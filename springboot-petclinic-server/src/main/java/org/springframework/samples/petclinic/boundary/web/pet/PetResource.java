@@ -56,7 +56,7 @@ public class PetResource extends AbstractResourceController {
 
     @GetMapping("/owners/{ownerId}/pets/new")
     public String initCreationForm(@PathVariable("ownerId") int ownerId, Map<String, Object> model) {
-        Owner owner = this.ownerService.findOwnerById(ownerId);
+        Owner owner = ownerService.findOwnerById(ownerId);
         Pet pet = new Pet();
         owner.addPet(pet);
         model.put("pet", pet);
@@ -70,7 +70,7 @@ public class PetResource extends AbstractResourceController {
             @PathVariable("ownerId") int ownerId) {
 
         Pet pet = new Pet();
-        Owner owner = this.ownerService.findOwnerById(ownerId);
+        Owner owner = ownerService.findOwnerById(ownerId);
         owner.addPet(pet);
 
         save(pet, petRequest);
@@ -87,19 +87,15 @@ public class PetResource extends AbstractResourceController {
         pet.setName(petRequest.getName());
         pet.setBirthDate(petRequest.getBirthDate());
 
-        for (PetType petType : petService.findPetTypes()) {
-            if (petType.getId() == petRequest.getTypeId()) {
-                pet.setType(petType);
-            }
-        }
+        petService.findPetTypeById(petRequest.getTypeId())
+            .ifPresent(pet::setType);
 
         petService.savePet(pet);
     }
 
     @GetMapping("/owner/*/pet/{petId}")
     public PetDetails findPet(@PathVariable("petId") int petId) {
-        Pet pet = this.petService.findPetById(petId);
-        return new PetDetails(pet);
+        return new PetDetails(petService.findPetById(petId));
     }
 
     static class PetRequest {

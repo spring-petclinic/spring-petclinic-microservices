@@ -12,7 +12,6 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.cache.CacheManager;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -24,17 +23,14 @@ public class CacheConfig {
 
     @Bean
     public JCacheManagerCustomizer cacheManagerCustomizer() {
-        return new JCacheManagerCustomizer() {
-            @Override
-            public void customize(CacheManager cacheManager) {
-                CacheConfiguration<Object, Object> config = CacheConfigurationBuilder
-                    .newCacheConfigurationBuilder(Object.class, Object.class,
-                        ResourcePoolsBuilder.newResourcePoolsBuilder()
-                            .heap(100, EntryUnit.ENTRIES))
-                    .withExpiry(Expirations.timeToLiveExpiration(Duration.of(60, TimeUnit.SECONDS)))
-                    .build();
-                cacheManager.createCache("vets", Eh107Configuration.fromEhcacheCacheConfiguration(config));
-            }
+        return cacheManager -> {
+            CacheConfiguration<Object, Object> config = CacheConfigurationBuilder
+                .newCacheConfigurationBuilder(Object.class, Object.class,
+                    ResourcePoolsBuilder.newResourcePoolsBuilder()
+                        .heap(100, EntryUnit.ENTRIES))
+                .withExpiry(Expirations.timeToLiveExpiration(Duration.of(60, TimeUnit.SECONDS)))
+                .build();
+            cacheManager.createCache("vets", Eh107Configuration.fromEhcacheCacheConfiguration(config));
         };
     }
 
