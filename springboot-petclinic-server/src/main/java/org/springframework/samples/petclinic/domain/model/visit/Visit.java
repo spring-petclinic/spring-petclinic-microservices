@@ -16,8 +16,6 @@
 package org.springframework.samples.petclinic.domain.model.visit;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.springframework.samples.petclinic.domain.model.pet.Pet;
 import org.springframework.samples.petclinic.support.jpa.BaseEntity;
 
 import javax.persistence.*;
@@ -39,7 +37,7 @@ public class Visit extends BaseEntity {
     @Column(name = "visit_date")
     @Temporal(TemporalType.TIMESTAMP)
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private Date date;
+    private Date date = new Date();
 
     /**
      * Holds value of property description.
@@ -49,21 +47,10 @@ public class Visit extends BaseEntity {
     private String description;
 
     /**
-     * Holds value of property pet.
+     * Holds id of property pet.
      */
-    @ManyToOne
-    @JoinColumn(name = "pet_id")
-    @JsonIgnore
-    private Pet pet;
-
-
-    /**
-     * Creates a new instance of Visit for the current date
-     */
-    public Visit() {
-        this.date = new Date();
-    }
-
+    @Column(name = "pet_id")
+    private int petId;
 
     /**
      * Getter for property date.
@@ -71,7 +58,7 @@ public class Visit extends BaseEntity {
      * @return Value of property date.
      */
     public Date getDate() {
-        return this.date;
+        return date;
     }
 
     /**
@@ -89,7 +76,7 @@ public class Visit extends BaseEntity {
      * @return Value of property description.
      */
     public String getDescription() {
-        return this.description;
+        return description;
     }
 
     /**
@@ -101,22 +88,12 @@ public class Visit extends BaseEntity {
         this.description = description;
     }
 
-    /**
-     * Getter for property pet.
-     *
-     * @return Value of property pet.
-     */
-    public Pet getPet() {
-        return this.pet;
+    public int getPetId() {
+        return petId;
     }
 
-    /**
-     * Setter for property pet.
-     *
-     * @param pet New value of property pet.
-     */
-    public void setPet(Pet pet) {
-        this.pet = pet;
+    public void setPetId(final int petId) {
+        this.petId = petId;
     }
 
 }

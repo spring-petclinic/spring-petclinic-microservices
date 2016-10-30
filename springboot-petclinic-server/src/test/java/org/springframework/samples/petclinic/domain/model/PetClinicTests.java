@@ -177,18 +177,14 @@ public class PetClinicTests {
     @Test
     @Transactional
     public void shouldAddNewVisitForPet() {
+        // given
         Pet pet7 = petService.findPetById(7);
-        int found = pet7.getVisits().size();
         Visit visit = new Visit();
-        pet7.addVisit(visit);
+        visit.setPetId(pet7.getId());
         visit.setDescription("test");
+        //when
         visitService.saveVisit(visit);
-        petService.savePet(pet7);
-
-        pet7 = petService.findPetById(7);
-        assertThat(pet7.getVisits().size()).isEqualTo(found + 1);
+        // then
         assertThat(visit.getId()).isNotNull();
     }
-
-
 }

@@ -17,13 +17,13 @@ package org.springframework.samples.petclinic.boundary.web.visit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.samples.petclinic.domain.model.pet.PetService;
 import org.springframework.samples.petclinic.domain.model.visit.Visit;
 import org.springframework.samples.petclinic.domain.model.visit.VisitService;
 import org.springframework.samples.petclinic.support.web.AbstractResourceController;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * @author Juergen Hoeller
@@ -36,12 +36,9 @@ public class VisitResource extends AbstractResourceController {
 
     private final VisitService visitService;
 
-    private final PetService petService;
-
     @Autowired
-    public VisitResource(VisitService visitService, PetService petService) {
+    public VisitResource(VisitService visitService) {
         this.visitService = visitService;
-        this.petService = petService;
     }
 
     @PostMapping("/owners/{ownerId}/pets/{petId}/visits")
@@ -50,12 +47,12 @@ public class VisitResource extends AbstractResourceController {
             @Valid @RequestBody Visit visit,
             @PathVariable("petId") int petId) {
 
-        petService.findPetById(petId).addVisit(visit);
+        visit.setPetId(petId);
         visitService.saveVisit(visit);
     }
 
     @GetMapping("/owners/{ownerId}/pets/{petId}/visits")
-    public Object visits(@PathVariable("petId") int petId) {
-        return petService.findPetById(petId).getVisits();
+    public List<Visit> visits(@PathVariable("petId") int petId) {
+        return visitService.findVisitsByPetId(petId);
     }
 }
