@@ -17,6 +17,9 @@
 	<modules>
 		<module>springboot-petclinic-client</module>
 		<module>springboot-petclinic-server</module>
+		<module>petclinic-clients-service</module>
+		<module>petclinic-vets-service</module>
+		<module>petclinic-visits-service</module>
 	</modules>
 
 	<dependencyManagement>
