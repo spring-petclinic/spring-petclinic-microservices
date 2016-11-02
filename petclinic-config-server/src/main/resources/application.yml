@@ -1,0 +1,8 @@
+server.port: 8888
+spring:
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/mszarlinski/petclinic-config-repo
+#          uri: file:///{$GIT_REPO}

@@ -8,6 +8,10 @@
 * https://github.com/citerus/dddsample-core
 * https://github.com/BottegaIT/ddd-leaven-v2
 
+## Spring Cloud microservices based on
+* https://github.com/kbastani/spring-cloud-event-sourcing-example
+* https://github.com/spring-cloud-samples/springbox-cloud
+
 ## Running petclinic locally
 ```
 	git clone https://github.com/spring-projects/spring-petclinic.git
