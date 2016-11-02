@@ -15,7 +15,6 @@
         <java.version>1.8</java.version>
 
         <docker.image.prefix>arey</docker.image.prefix>
-        <assertj.version>3.5.2</assertj.version>
     </properties>
 
     <dependencies>
@@ -76,7 +75,6 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>${assertj.version}</version>
             <scope>test</scope>
         </dependency>
 

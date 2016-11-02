@@ -24,6 +24,11 @@
         <module>petclinic-discovery-server</module>
 	</modules>
 
+    <properties>
+        <assertj.version>3.5.2</assertj.version>
+        <spring-cloud.version>Camden.SR1</spring-cloud.version>
+    </properties>
+
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -34,10 +39,17 @@
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-dependencies</artifactId>
-				<version>Camden.SR1</version>
+				<version>${spring-cloud.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
+
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>${assertj.version}</version>
+                <scope>test</scope>
+            </dependency>
 		</dependencies>
 	</dependencyManagement>
 
