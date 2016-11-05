@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.springframework.samples.petclinic.vets</groupId>
-	<artifactId>vet-service</artifactId>
+	<artifactId>petclinic-vet-service</artifactId>
 	<version>1.4.1</version>
 	<packaging>jar</packaging>
 
