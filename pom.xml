@@ -22,6 +22,7 @@
 		<module>petclinic-visits-service</module>
 		<module>petclinic-config-server</module>
         <module>petclinic-discovery-server</module>
+        <module>petclinic-api-gateway</module>
 	</modules>
 
     <properties>

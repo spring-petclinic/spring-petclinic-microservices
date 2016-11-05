@@ -17,8 +17,8 @@ package org.springframework.samples.petclinic.clients.boundary.web.owner;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.samples.petclinic.clients.domain.model.owner.Owner;
 import org.springframework.samples.petclinic.clients.application.OwnerService;
+import org.springframework.samples.petclinic.clients.domain.model.owner.Owner;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +31,7 @@ import java.util.Collection;
  * @author Arjen Poutsma
  * @author Michael Isvy
  */
+@RequestMapping("/owners")
 @RestController
 public class OwnerResource {
 
@@ -53,7 +54,7 @@ public class OwnerResource {
     /**
      * Create Owner
      */
-    @RequestMapping(value = "/owner", method = RequestMethod.POST)
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public void createOwner(@Valid @RequestBody Owner owner) {
         this.ownerService.saveOwner(owner);
@@ -62,7 +63,7 @@ public class OwnerResource {
     /**
      * Read single Owner
      */
-    @RequestMapping(value = "/owner/{ownerId}", method = RequestMethod.GET)
+    @GetMapping(value = "/{ownerId}")
     public Owner findOwner(@PathVariable("ownerId") int ownerId) {
         return retrieveOwner(ownerId);
     }
@@ -70,7 +71,7 @@ public class OwnerResource {
     /**
      * Read List of Owners
      */
-    @GetMapping("/owner/list")
+    @GetMapping
     public Collection<Owner> findAll() {
         return ownerService.findAll();
     }
@@ -78,7 +79,7 @@ public class OwnerResource {
     /**
      * Update Owner
      */
-    @RequestMapping(value = "/owner/{ownerId}", method = RequestMethod.PUT)
+    @PutMapping(value = "/{ownerId}")
     public Owner updateOwner(@PathVariable("ownerId") int ownerId, @Valid @RequestBody Owner ownerRequest) {
         Owner ownerModel = retrieveOwner(ownerId);
         // This is done by hand for simplicity purpose. In a real life use-case we should consider using MapStruct.

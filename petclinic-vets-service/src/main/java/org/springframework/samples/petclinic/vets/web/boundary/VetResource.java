@@ -16,9 +16,10 @@
 package org.springframework.samples.petclinic.vets.web.boundary;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.samples.petclinic.vets.domain.model.vet.Vet;
 import org.springframework.samples.petclinic.vets.application.VetService;
+import org.springframework.samples.petclinic.vets.domain.model.vet.Vet;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
@@ -29,6 +30,7 @@ import java.util.Collection;
  * @author Ken Krebs
  * @author Arjen Poutsma
  */
+@RequestMapping("/vets")
 @RestController
 public class VetResource {
 
@@ -39,7 +41,7 @@ public class VetResource {
         this.vetService = vetService;
     }
 
-    @GetMapping("/vets")
+    @GetMapping
     public Collection<Vet> showResourcesVetList() {
         return vetService.findVets();
     }

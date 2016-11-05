@@ -25,6 +25,7 @@ import org.springframework.validation.Errors;
  * @author Ken Krebs
  * @author Juergen Hoeller
  */
+//TODO: unused?
 public class PetValidator {
 
     public void validate(Pet pet, Errors errors) {

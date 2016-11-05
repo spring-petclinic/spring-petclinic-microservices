@@ -19,16 +19,16 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
-import org.springframework.samples.petclinic.clients.domain.model.owner.Owner;
 import org.springframework.samples.petclinic.clients.application.OwnerService;
-import org.springframework.samples.petclinic.clients.domain.model.pet.Pet;
 import org.springframework.samples.petclinic.clients.application.PetService;
+import org.springframework.samples.petclinic.clients.domain.model.owner.Owner;
+import org.springframework.samples.petclinic.clients.domain.model.pet.Pet;
 import org.springframework.samples.petclinic.clients.domain.model.pet.PetType;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Size;
+import java.util.Collection;
 import java.util.Date;
-import java.util.Map;
 
 /**
  * @author Juergen Hoeller
@@ -49,18 +49,19 @@ public class PetResource {
     }
 
     @GetMapping("/petTypes")
-    Object getPetTypes() {
+    public Collection<PetType> getPetTypes() {
         return petService.findPetTypes();
     }
 
-    @GetMapping("/owners/{ownerId}/pets/new")
-    public String initCreationForm(@PathVariable("ownerId") int ownerId, Map<String, Object> model) {
-        Owner owner = ownerService.findOwnerById(ownerId);
-        Pet pet = new Pet();
-        owner.addPet(pet);
-        model.put("pet", pet);
-        return "pets/createOrUpdatePetForm";
-    }
+    //TODO: unused?
+//    @GetMapping("/owners/{ownerId}/pets/new")
+//    public String initCreationForm(@PathVariable("ownerId") int ownerId, Map<String, Object> model) {
+//        Owner owner = ownerService.findOwnerById(ownerId);
+//        Pet pet = new Pet();
+//        owner.addPet(pet);
+//        model.put("pet", pet);
+//        return "pets/createOrUpdatePetForm";
+//    }
 
     @PostMapping("/owners/{ownerId}/pets")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -92,7 +93,7 @@ public class PetResource {
         petService.savePet(pet);
     }
 
-    @GetMapping("/owner/*/pet/{petId}")
+    @GetMapping("/pets/{petId}")
     public PetDetails findPet(@PathVariable("petId") int petId) {
         return new PetDetails(petService.findPetById(petId));
     }
