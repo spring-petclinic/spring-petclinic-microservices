@@ -4,6 +4,3 @@ spring:
       uri: http://localhost:8888
   application:
     name: clients-service
-
-server:
-  port: 0

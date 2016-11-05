@@ -4,5 +4,5 @@ spring:
     config:
       server:
         git:
-          uri: https://github.com/mszarlinski/petclinic-config-repo
-#          uri: file:///${GIT_REPO}
+#          uri: https://github.com/mszarlinski/petclinic-config-repo
+          uri: file:///${GIT_REPO}
