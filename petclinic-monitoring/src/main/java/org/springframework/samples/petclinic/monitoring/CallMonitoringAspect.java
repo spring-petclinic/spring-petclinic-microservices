@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.samples.petclinic.infrastructure;
+package org.springframework.samples.petclinic.monitoring;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -32,7 +32,7 @@ import org.springframework.util.StopWatch;
  * @author Michael Isvy
  * @since 2.5
  */
-@ManagedResource("petclinic:type=CallMonitor")
+@ManagedResource(objectName = "petclinic:type=CallMonitor")
 @Aspect
 public class CallMonitoringAspect {
 
@@ -42,10 +42,9 @@ public class CallMonitoringAspect {
 
     private long accumulatedCallTime = 0;
 
-
     @ManagedAttribute
     public void setEnabled(boolean enabled) {
-    	this.enabled = enabled;
+        this.enabled = enabled;
     }
 
     @ManagedAttribute
@@ -66,7 +65,7 @@ public class CallMonitoringAspect {
 
     @ManagedAttribute
     public long getCallTime() {
-    	if (this.callCount > 0) {
+        if (this.callCount > 0) {
             return this.accumulatedCallTime / this.callCount;
         } else {
             return 0;
@@ -74,7 +73,7 @@ public class CallMonitoringAspect {
     }
 
 
-    @Around("within(@org.springframework.stereotype.Repository *)")
+    @Around("@annotation(Monitored)")
     public Object invoke(ProceedingJoinPoint joinPoint) throws Throwable {
         if (this.enabled) {
             StopWatch sw = new StopWatch(joinPoint.toShortString());

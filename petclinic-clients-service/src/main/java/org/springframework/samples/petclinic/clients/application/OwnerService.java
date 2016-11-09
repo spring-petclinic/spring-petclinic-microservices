@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.samples.petclinic.clients.domain.model.owner.Owner;
 import org.springframework.samples.petclinic.clients.domain.model.owner.OwnerRepository;
+import org.springframework.samples.petclinic.monitoring.Monitored;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,11 +28,13 @@ public class OwnerService {
         return ownerRepository.findOne(id);
     }
 
+    @Monitored
     @Transactional(readOnly = true)
     public Collection<Owner> findAll() throws DataAccessException {
         return ownerRepository.findAll();
     }
 
+    @Monitored
     @Transactional
     public void saveOwner(Owner owner) throws DataAccessException {
         ownerRepository.save(owner);
