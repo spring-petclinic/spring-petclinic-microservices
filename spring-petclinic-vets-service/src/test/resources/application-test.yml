@@ -1,0 +1,14 @@
+petclinic.database: hsqldb
+spring:
+  datasource:
+    schema: classpath*:db/${petclinic.database}/schema.sql
+    data: classpath*:db/${petclinic.database}/data.sql
+
+spring.jpa.hibernate.ddl-auto: none
+
+logging.level.org.springframework: INFO
+
+vets:
+  cache:
+    ttl: 10
+    heap-size: 10
