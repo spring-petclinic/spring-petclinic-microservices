@@ -9,20 +9,20 @@
 	</parent>
 
 	<groupId>org.springframework.samples</groupId>
-	<artifactId>spring-petclinic-angular1</artifactId>
+	<artifactId>spring-petclinic-microservices</artifactId>
 	<version>1.4.2</version>
 	<name>Spring Petclinic :: Parent POM</name>
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>springboot-petclinic-client</module>
-		<module>petclinic-clients-service</module>
-		<module>petclinic-vets-service</module>
-		<module>petclinic-visits-service</module>
-		<module>petclinic-config-server</module>
-        <module>petclinic-discovery-server</module>
-        <module>petclinic-api-gateway</module>
-        <module>petclinic-monitoring</module>
+		<module>spring-petclinic-client</module>
+		<module>spring-petclinic-clients-service</module>
+		<module>spring-petclinic-vets-service</module>
+		<module>spring-petclinic-visits-service</module>
+		<module>spring-petclinic-config-server</module>
+        <module>spring-petclinic-discovery-server</module>
+        <module>spring-petclinic-api-gateway</module>
+        <module>spring-petclinic-monitoring</module>
     </modules>
 
     <properties>
@@ -42,7 +42,7 @@
 
             <dependency>
                 <groupId>org.springframework.samples.petclinic.monitoring</groupId>
-                <artifactId>petclinic-monitoring</artifactId>
+                <artifactId>spring-petclinic-monitoring</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
