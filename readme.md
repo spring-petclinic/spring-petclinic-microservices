@@ -1,33 +1,14 @@
-# Spring Boot version of the Spring PetClinic Sample Application [![Build Status](https://travis-ci.org/spring-petclinic/spring-petclinic-angular1.svg?branch=master)](https://travis-ci.org/spring-projects/spring-petclinic/)
+# Distributed version of the Spring PetClinic Sample Application built with Spring Cloud [![Build Status](https://travis-ci.org/spring-petclinic/spring-petclinic-angular1.svg?branch=master)](https://travis-ci.org/spring-projects/spring-petclinic/)
 
 ## Understanding the Spring Petclinic application with a few diagrams
 <a href="https://speakerdeck.com/michaelisvy/spring-petclinic-sample-application">See the presentation here</a>
-
-## Implementation of Domain Driven Desing based on following samples
-* https://github.com/VaughnVernon/IDDD_Samples
-* https://github.com/citerus/dddsample-core
-* https://github.com/BottegaIT/ddd-leaven-v2
-
-## Spring Cloud microservices based on
-* https://github.com/kbastani/spring-cloud-event-sourcing-example
-* https://github.com/spring-cloud-samples/springbox-cloud
-
-## Running petclinic locally
-```
-	git clone https://github.com/spring-projects/spring-petclinic.git
-	cd spring-petclinic
-	git checkout angularjs
-	./mvnw clean install
-	cd spring-petclinic-server
-	./mvnw spring-boot:run
-```
 
 You can then access petclinic here: http://localhost:8080/
 
 <img width="782" alt="springboot-petclinic" src="https://cloud.githubusercontent.com/assets/838318/19653851/61c1986a-9a16-11e6-8b94-03fd7f775bb3.png">
 
 ## In case you find a bug/suggested improvement for Spring Petclinic
-Our issue tracker is available here: https://github.com/spring-projects/spring-petclinic/issues
+Our issue tracker is available here: https://github.com/spring-petclinic/spring-petclinic-microservices/issues
 
 ## Database configuration
 
@@ -57,7 +38,7 @@ If m2e is not there, just follow the install process here: http://eclipse.org/m2
 
 1) In the command line
 ```
-git clone https://github.com/spring-projects/spring-petclinic.git
+git clone https://github.com/spring-petclinic/spring-petclinic-microservices.git
 ```
 2) Inside Eclipse
 ```
@@ -160,7 +141,7 @@ Here is a list of them:
 
 # Contributing
 
-The [issue tracker](https://github.com/spring-projects/spring-petclinic/issues) is the preferred channel for bug reports, features requests and submitting pull requests.
+The [issue tracker](https://github.com/spring-petclinic/spring-petclinic-microservices/issues) is the preferred channel for bug reports, features requests and submitting pull requests.
 
 For pull requests, editor preferences are available in the [editor config](https://github.com/spring-projects/spring-petclinic/blob/master/.editorconfig) for easy use in common text editors. Read more and download plugins at <http://editorconfig.org>.
 
