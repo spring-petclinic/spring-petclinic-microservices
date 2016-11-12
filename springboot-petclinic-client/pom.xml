@@ -4,10 +4,10 @@
 
 	<parent>
 		<groupId>org.springframework.samples</groupId>
-		<artifactId>springboot-petclinic</artifactId>
+		<artifactId>spring-petclinic-angular1</artifactId>
 		<version>1.4.1</version>
 	</parent>
-	<artifactId>springboot-petclinic-client</artifactId>
+	<artifactId>spring-petclinic-client</artifactId>
 	<name>Spring Petclinic :: AngularJS Client</name>
 
 	<properties>

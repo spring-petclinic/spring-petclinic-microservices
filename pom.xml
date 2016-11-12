@@ -9,7 +9,7 @@
 	</parent>
 
 	<groupId>org.springframework.samples</groupId>
-	<artifactId>springboot-petclinic</artifactId>
+	<artifactId>spring-petclinic-angular1</artifactId>
 	<version>1.4.1</version>
 	<name>Spring Petclinic :: Parent POM</name>
 	<packaging>pom</packaging>
