@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.4.1.RELEASE</version>
+		<version>1.4.2.RELEASE</version>
 	</parent>
 
 	<groupId>org.springframework.samples</groupId>
 	<artifactId>spring-petclinic-angular1</artifactId>
-	<version>1.4.1</version>
+	<version>1.4.2</version>
 	<name>Spring Petclinic :: Parent POM</name>
 	<packaging>pom</packaging>
 
