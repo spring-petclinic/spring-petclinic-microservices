@@ -1,4 +1,4 @@
-# Distributed version of the Spring PetClinic Sample Application built with Spring Cloud [![Build Status](https://travis-ci.org/spring-petclinic/spring-petclinic-angular1.svg?branch=master)](https://travis-ci.org/spring-projects/spring-petclinic/)
+# Distributed version of the Spring PetClinic Sample Application built with Spring Cloud [![Build Status](https://travis-ci.org/spring-petclinic/spring-petclinic-microservices.svg?branch=master)](https://travis-ci.org/spring-petclinic/spring-petclinic-microservices/)
 
 ## Understanding the Spring Petclinic application with a few diagrams
 <a href="https://speakerdeck.com/michaelisvy/spring-petclinic-sample-application">See the presentation here</a>
