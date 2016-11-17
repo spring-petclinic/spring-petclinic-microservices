@@ -15,8 +15,8 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>spring-petclinic-client</module>
-		<module>spring-petclinic-clients-service</module>
+		<module>spring-petclinic-ui</module>
+		<module>spring-petclinic-customers-service</module>
 		<module>spring-petclinic-vets-service</module>
 		<module>spring-petclinic-visits-service</module>
 		<module>spring-petclinic-config-server</module>
