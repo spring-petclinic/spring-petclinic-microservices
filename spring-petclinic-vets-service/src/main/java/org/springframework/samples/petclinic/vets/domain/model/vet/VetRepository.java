@@ -15,10 +15,7 @@
  */
 package org.springframework.samples.petclinic.vets.domain.model.vet;
 
-import org.springframework.dao.DataAccessException;
-import org.springframework.data.repository.Repository;
-
-import java.util.Collection;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
  * Repository class for <code>Vet</code> domain objects All method names are compliant with Spring Data naming
@@ -28,15 +25,7 @@ import java.util.Collection;
  * @author Juergen Hoeller
  * @author Sam Brannen
  * @author Michael Isvy
+ * @author Maciej Szarlinski
  */
-public interface VetRepository extends Repository<Vet, Integer> {
-
-    /**
-     * Retrieve all <code>Vet</code>s from the data store.
-     *
-     * @return a <code>Collection</code> of <code>Vet</code>s
-     */
-    Collection<Vet> findAll() throws DataAccessException;
-
-
+public interface VetRepository extends JpaRepository<Vet, Integer> {
 }

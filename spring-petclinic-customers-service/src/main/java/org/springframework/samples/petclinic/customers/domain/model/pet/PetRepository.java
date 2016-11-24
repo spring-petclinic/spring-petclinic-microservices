@@ -15,12 +15,12 @@
  */
 package org.springframework.samples.petclinic.customers.domain.model.pet;
 
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.Repository;
-import org.springframework.data.repository.query.Param;
-
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 /**
  * Repository class for <code>Pet</code> domain objects All method names are compliant with Spring Data naming
@@ -30,8 +30,9 @@ import java.util.Optional;
  * @author Juergen Hoeller
  * @author Sam Brannen
  * @author Michael Isvy
+ * @author Maciej Szarlinski
  */
-public interface PetRepository extends Repository<Pet, Integer> {
+public interface PetRepository extends JpaRepository<Pet, Integer> {
 
     /**
      * Retrieve all {@link PetType}s from the data store.
@@ -43,18 +44,6 @@ public interface PetRepository extends Repository<Pet, Integer> {
     @Query("FROM PetType ptype WHERE ptype.id = :typeId")
     Optional<PetType> findPetTypeById(@Param("typeId") int typeId);
 
-    /**
-     * Retrieve a {@link Pet} from the data store by id.
-     * @param id the id to search for
-     * @return the {@link Pet} if found
-     */
-    Pet findById(int id);
-
-    /**
-     * Save a {@link Pet} to the data store, either inserting or updating it.
-     * @param pet the {@link Pet} to save
-     */
-    void save(Pet pet);
 
 }
 

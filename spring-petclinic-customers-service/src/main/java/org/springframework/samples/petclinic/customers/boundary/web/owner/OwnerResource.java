@@ -15,41 +15,38 @@
  */
 package org.springframework.samples.petclinic.customers.boundary.web.owner;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.samples.petclinic.customers.application.OwnerService;
-import org.springframework.samples.petclinic.customers.domain.model.owner.Owner;
-import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.*;
+import lombok.RequiredArgsConstructor;
+
+import java.util.List;
 
 import javax.validation.Valid;
-import java.util.Collection;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.samples.petclinic.customers.domain.model.owner.Owner;
+import org.springframework.samples.petclinic.customers.domain.model.owner.OwnerRepository;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author Juergen Hoeller
  * @author Ken Krebs
  * @author Arjen Poutsma
  * @author Michael Isvy
+ * @author Maciej Szarlinski
  */
 @RequestMapping("/owners")
 @RestController
-public class OwnerResource {
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+class OwnerResource {
 
-    private final OwnerService ownerService;
-
-    @Autowired
-    public OwnerResource(OwnerService ownerService) {
-        this.ownerService = ownerService;
-    }
-
-    @InitBinder
-    public void setAllowedFields(WebDataBinder dataBinder) {
-        dataBinder.setDisallowedFields("id");
-    }
-
-    private Owner retrieveOwner(int ownerId) {
-        return this.ownerService.findOwnerById(ownerId);
-    }
+    private final OwnerRepository ownerRepository;
 
     /**
      * Create Owner
@@ -57,7 +54,7 @@ public class OwnerResource {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public void createOwner(@Valid @RequestBody Owner owner) {
-        this.ownerService.saveOwner(owner);
+        ownerRepository.save(owner);
     }
 
     /**
@@ -65,15 +62,15 @@ public class OwnerResource {
      */
     @GetMapping(value = "/{ownerId}")
     public Owner findOwner(@PathVariable("ownerId") int ownerId) {
-        return retrieveOwner(ownerId);
+        return ownerRepository.findOne(ownerId);
     }
 
     /**
      * Read List of Owners
      */
     @GetMapping
-    public Collection<Owner> findAll() {
-        return ownerService.findAll();
+    public List<Owner> findAll() {
+        return ownerRepository.findAll();
     }
 
     /**
@@ -81,16 +78,13 @@ public class OwnerResource {
      */
     @PutMapping(value = "/{ownerId}")
     public Owner updateOwner(@PathVariable("ownerId") int ownerId, @Valid @RequestBody Owner ownerRequest) {
-        Owner ownerModel = retrieveOwner(ownerId);
+        final Owner ownerModel = ownerRepository.findOne(ownerId);
         // This is done by hand for simplicity purpose. In a real life use-case we should consider using MapStruct.
         ownerModel.setFirstName(ownerRequest.getFirstName());
         ownerModel.setLastName(ownerRequest.getLastName());
         ownerModel.setCity(ownerRequest.getCity());
         ownerModel.setAddress(ownerRequest.getAddress());
         ownerModel.setTelephone(ownerRequest.getTelephone());
-        this.ownerService.saveOwner(ownerModel);
-        return ownerModel;
+        return ownerRepository.save(ownerModel);
     }
-
-
 }
