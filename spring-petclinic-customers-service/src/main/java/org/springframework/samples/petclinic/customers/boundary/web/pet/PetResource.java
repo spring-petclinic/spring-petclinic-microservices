@@ -15,42 +15,42 @@
  */
 package org.springframework.samples.petclinic.customers.boundary.web.pet;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
-import org.springframework.samples.petclinic.customers.application.OwnerService;
-import org.springframework.samples.petclinic.customers.application.PetService;
-import org.springframework.samples.petclinic.customers.domain.model.owner.Owner;
-import org.springframework.samples.petclinic.customers.domain.model.pet.Pet;
-import org.springframework.samples.petclinic.customers.domain.model.pet.PetType;
-import org.springframework.web.bind.annotation.*;
+import lombok.RequiredArgsConstructor;
 
-import javax.validation.constraints.Size;
-import java.util.Collection;
-import java.util.Date;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.samples.petclinic.customers.domain.model.owner.Owner;
+import org.springframework.samples.petclinic.customers.domain.model.owner.OwnerRepository;
+import org.springframework.samples.petclinic.customers.domain.model.pet.Pet;
+import org.springframework.samples.petclinic.customers.domain.model.pet.PetRepository;
+import org.springframework.samples.petclinic.customers.domain.model.pet.PetType;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author Juergen Hoeller
  * @author Ken Krebs
  * @author Arjen Poutsma
+ * @author Maciej Szarlinski
  */
 @RestController
-public class PetResource {
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+class PetResource {
 
-    private final PetService petService;
+    private final PetRepository petRepository;
 
-    private final OwnerService ownerService;
-
-    @Autowired
-    public PetResource(PetService petService, OwnerService ownerService) {
-        this.petService = petService;
-        this.ownerService = ownerService;
-    }
+    private final OwnerRepository ownerRepository;
 
     @GetMapping("/petTypes")
-    public Collection<PetType> getPetTypes() {
-        return petService.findPetTypes();
+    public List<PetType> getPetTypes() {
+        return petRepository.findPetTypes();
     }
 
     @PostMapping("/owners/{ownerId}/pets")
@@ -59,8 +59,8 @@ public class PetResource {
         @RequestBody PetRequest petRequest,
         @PathVariable("ownerId") int ownerId) {
 
-        Pet pet = new Pet();
-        Owner owner = ownerService.findOwnerById(ownerId);
+        final Pet pet = new Pet();
+        final Owner owner = ownerRepository.findOne(ownerId);
         owner.addPet(pet);
 
         save(pet, petRequest);
@@ -69,102 +69,23 @@ public class PetResource {
     @PutMapping("/owners/*/pets/{petId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void processUpdateForm(@RequestBody PetRequest petRequest) {
-        save(petService.findPetById(petRequest.getId()), petRequest);
+        save(petRepository.findOne(petRequest.getId()), petRequest);
     }
 
-    private void save(Pet pet, PetRequest petRequest) {
+    private void save(final Pet pet, final PetRequest petRequest) {
 
         pet.setName(petRequest.getName());
         pet.setBirthDate(petRequest.getBirthDate());
 
-        petService.findPetTypeById(petRequest.getTypeId())
+        petRepository.findPetTypeById(petRequest.getTypeId())
             .ifPresent(pet::setType);
 
-        petService.savePet(pet);
+        petRepository.save(pet);
     }
 
     @GetMapping("owners/*/pets/{petId}")
     public PetDetails findPet(@PathVariable("petId") int petId) {
-        return new PetDetails(petService.findPetById(petId));
-    }
-
-    static class PetRequest {
-        int id;
-        @JsonFormat(pattern = "yyyy-MM-dd")
-        Date birthDate;
-        @Size(min = 1)
-        String name;
-        int typeId;
-
-        public int getId() {
-            return id;
-        }
-
-        public void setId(int id) {
-            this.id = id;
-        }
-
-        public Date getBirthDate() {
-            return birthDate;
-        }
-
-        public void setBirthDate(Date birthDate) {
-            this.birthDate = birthDate;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public int getTypeId() {
-            return typeId;
-        }
-
-        public void setTypeId(int typeId) {
-            this.typeId = typeId;
-        }
-    }
-
-    static class PetDetails {
-
-        long id;
-        String name;
-        String owner;
-        @DateTimeFormat(pattern = "yyyy-MM-dd")
-        Date birthDate;
-        PetType type;
-
-        PetDetails(Pet pet) {
-            this.id = pet.getId();
-            this.name = pet.getName();
-            this.owner = pet.getOwner().getFirstName() + " " + pet.getOwner().getLastName();
-            this.birthDate = pet.getBirthDate();
-            this.type = pet.getType();
-        }
-
-        public long getId() {
-            return id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getOwner() {
-            return owner;
-        }
-
-        public Date getBirthDate() {
-            return birthDate;
-        }
-
-        public PetType getType() {
-            return type;
-        }
+        return new PetDetails(petRepository.findOne(petId));
     }
 
 }

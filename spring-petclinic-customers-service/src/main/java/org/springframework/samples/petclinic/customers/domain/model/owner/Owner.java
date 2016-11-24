@@ -15,16 +15,26 @@
  */
 package org.springframework.samples.petclinic.customers.domain.model.owner;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.validation.constraints.Digits;
+
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.beans.support.MutableSortDefinition;
 import org.springframework.beans.support.PropertyComparator;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.samples.petclinic.customers.domain.model.Person;
 import org.springframework.samples.petclinic.customers.domain.model.pet.Pet;
-
-import javax.persistence.*;
-import javax.validation.constraints.Digits;
-import java.util.*;
 
 /**
  * Simple JavaBean domain object representing an owner.
@@ -33,6 +43,7 @@ import java.util.*;
  * @author Juergen Hoeller
  * @author Sam Brannen
  * @author Michael Isvy
+ * @author Maciej Szarlinski
  */
 @Entity
 @Table(name = "owners")
@@ -77,19 +88,15 @@ public class Owner extends Person {
         this.telephone = telephone;
     }
 
-    protected void setPetsInternal(Set<Pet> pets) {
-        this.pets = pets;
-    }
-
     protected Set<Pet> getPetsInternal() {
         if (this.pets == null) {
-            this.pets = new HashSet<Pet>();
+            this.pets = new HashSet<>();
         }
         return this.pets;
     }
 
     public List<Pet> getPets() {
-        List<Pet> sortedPets = new ArrayList<Pet>(getPetsInternal());
+        final List<Pet> sortedPets = new ArrayList<>(getPetsInternal());
         PropertyComparator.sort(sortedPets, new MutableSortDefinition("name", true, true));
         return Collections.unmodifiableList(sortedPets);
     }
@@ -97,36 +104,6 @@ public class Owner extends Person {
     public void addPet(Pet pet) {
         getPetsInternal().add(pet);
         pet.setOwner(this);
-    }
-
-    /**
-     * Return the Pet with the given name, or null if none found for this Owner.
-     *
-     * @param name to test
-     * @return true if pet name is already in use
-     */
-    public Pet getPet(String name) {
-        return getPet(name, false);
-    }
-
-    /**
-     * Return the Pet with the given name, or null if none found for this Owner.
-     *
-     * @param name to test
-     * @return true if pet name is already in use
-     */
-    public Pet getPet(String name, boolean ignoreNew) {
-        name = name.toLowerCase();
-        for (Pet pet : getPetsInternal()) {
-            if (!ignoreNew || !pet.isNew()) {
-                String compName = pet.getName();
-                compName = compName.toLowerCase();
-                if (compName.equals(name)) {
-                    return pet;
-                }
-            }
-        }
-        return null;
     }
 
     @Override

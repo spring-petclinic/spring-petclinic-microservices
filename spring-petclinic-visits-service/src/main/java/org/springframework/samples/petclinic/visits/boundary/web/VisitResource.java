@@ -15,30 +15,35 @@
  */
 package org.springframework.samples.petclinic.visits.boundary.web;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.samples.petclinic.visits.application.VisitService;
-import org.springframework.samples.petclinic.visits.domain.model.visit.Visit;
-import org.springframework.web.bind.annotation.*;
+import lombok.RequiredArgsConstructor;
+
+import java.util.List;
 
 import javax.validation.Valid;
-import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.samples.petclinic.visits.domain.model.visit.Visit;
+import org.springframework.samples.petclinic.visits.domain.model.visit.VisitRepository;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author Juergen Hoeller
  * @author Ken Krebs
  * @author Arjen Poutsma
  * @author Michael Isvy
+ * @author Maciej Szarlinski
  */
 @RestController
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class VisitResource {
 
-    private final VisitService visitService;
-
-    @Autowired
-    public VisitResource(VisitService visitService) {
-        this.visitService = visitService;
-    }
+    private final VisitRepository visitRepository;
 
     @PostMapping("owners/*/pets/{petId}/visits")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -47,11 +52,11 @@ public class VisitResource {
         @PathVariable("petId") int petId) {
 
         visit.setPetId(petId);
-        visitService.saveVisit(visit);
+        visitRepository.save(visit);
     }
 
     @GetMapping("owners/*/pets/{petId}/visits")
     public List<Visit> visits(@PathVariable("petId") int petId) {
-        return visitService.findVisitsByPetId(petId);
+        return visitRepository.findByPetId(petId);
     }
 }

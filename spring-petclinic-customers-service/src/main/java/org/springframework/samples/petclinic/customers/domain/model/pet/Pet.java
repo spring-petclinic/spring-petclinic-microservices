@@ -28,6 +28,7 @@ import java.util.Date;
  * @author Ken Krebs
  * @author Juergen Hoeller
  * @author Sam Brannen
+ * @author Maciej Szarlinski
  */
 @Entity
 @Table(name = "pets")
