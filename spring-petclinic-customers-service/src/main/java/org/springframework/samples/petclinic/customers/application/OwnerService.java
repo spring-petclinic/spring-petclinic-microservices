@@ -1,5 +1,7 @@
 package org.springframework.samples.petclinic.customers.application;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.samples.petclinic.customers.domain.model.owner.Owner;
@@ -15,6 +17,8 @@ import java.util.Collection;
  */
 @Service
 public class OwnerService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(OwnerService.class);
 
     private final OwnerRepository ownerRepository;
 
@@ -37,6 +41,7 @@ public class OwnerService {
     @Monitored
     @Transactional
     public void saveOwner(Owner owner) throws DataAccessException {
+        LOG.info("Saving owner {}", owner);
         ownerRepository.save(owner);
     }
 
