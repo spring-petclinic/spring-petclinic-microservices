@@ -23,6 +23,7 @@
         <module>spring-petclinic-discovery-server</module>
         <module>spring-petclinic-api-gateway</module>
         <module>spring-petclinic-monitoring</module>
+        <module>spring-petclinic-tracing-server</module>
     </modules>
 
     <properties>
