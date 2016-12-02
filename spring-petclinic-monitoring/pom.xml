@@ -13,6 +13,7 @@
     <description>Spring PetClinic monitoring utilities</description>
 
     <dependencies>
+        <!-- Third-parties -->
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjweaver</artifactId>
