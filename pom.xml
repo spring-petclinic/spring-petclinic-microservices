@@ -28,6 +28,7 @@
     <properties>
         <assertj.version>3.5.2</assertj.version>
         <spring-cloud.version>Camden.SR1</spring-cloud.version>
+        <java.version>1.8</java.version>
     </properties>
 
 	<dependencyManagement>
