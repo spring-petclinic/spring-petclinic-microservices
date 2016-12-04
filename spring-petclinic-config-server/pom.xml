@@ -7,8 +7,6 @@
 	<artifactId>spring-petclinic-config-server</artifactId>
 	<version>1.4.2</version>
 	<packaging>jar</packaging>
-
-	<name>spring-petclinic-config-server</name>
 	<description>Spring PetClinic Config Server</description>
 
     <parent>

@@ -7,8 +7,6 @@
 	<artifactId>spring-petclinic-vets-service</artifactId>
 	<version>1.4.2</version>
 	<packaging>jar</packaging>
-
-	<name>spring-petclinic-vets-service</name>
 	<description>Spring PetClinic Vets Service</description>
 
 	<parent>

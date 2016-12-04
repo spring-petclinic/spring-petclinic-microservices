@@ -7,8 +7,6 @@
     <artifactId>spring-petclinic-api-gateway</artifactId>
     <version>1.4.2</version>
     <packaging>jar</packaging>
-
-    <name>spring-petclinic-api-gateway</name>
     <description>Spring PetClinic API Gateway</description>
 
     <parent>

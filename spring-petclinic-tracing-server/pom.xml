@@ -8,8 +8,6 @@
     <artifactId>spring-petclinic-zipkin-server</artifactId>
     <version>1.4.2</version>
     <packaging>jar</packaging>
-
-    <name>spring-petclinic-tracing-server</name>
     <description>Zipkin server with UI</description>
 
     <parent>

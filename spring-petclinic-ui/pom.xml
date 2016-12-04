@@ -8,8 +8,8 @@
 		<version>1.4.2</version>
 	</parent>
 	<artifactId>spring-petclinic-ui</artifactId>
-	<name>Spring Petclinic :: AngularJS UI</name>
     <version>1.4.2</version>
+    <description>Front-end webjar based on Angular 1</description>
 
 	<properties>
 		<node.version>v4.4.3</node.version>

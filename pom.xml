@@ -11,7 +11,7 @@
 	<groupId>org.springframework.samples</groupId>
 	<artifactId>spring-petclinic-microservices</artifactId>
 	<version>1.4.2</version>
-	<name>Spring Petclinic :: Parent POM</name>
+    <name>${project.artifactId}</name>
 	<packaging>pom</packaging>
 
 	<modules>
