@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * @author mszarlinski on 2016-11-05.
+ * @author Maciej Szarlinski
  */
 @RunWith(SpringRunner.class)
 @WebMvcTest(PetResource.class)

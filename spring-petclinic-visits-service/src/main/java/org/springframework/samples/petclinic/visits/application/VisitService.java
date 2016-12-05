@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * @author mszarlinski on 2016-10-30.
+ * @author Maciej Szarlinski
  */
 @Service
 public class VisitService {

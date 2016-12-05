@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 
 /**
- * @author mszarlinski on 2016-10-30.
+ * @author Maciej Szarlinski
  */
 @Service
 public class OwnerService {

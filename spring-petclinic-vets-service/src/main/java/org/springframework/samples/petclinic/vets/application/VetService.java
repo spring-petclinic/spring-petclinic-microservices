@@ -11,7 +11,7 @@ import javax.cache.annotation.CacheResult;
 import java.util.Collection;
 
 /**
- * @author mszarlinski on 2016-10-30.
+ * @author Maciej Szarlinski
  */
 @Service
 public class VetService {
