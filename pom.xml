@@ -30,6 +30,9 @@
         <assertj.version>3.5.2</assertj.version>
         <spring-cloud.version>Camden.SR1</spring-cloud.version>
         <java.version>1.8</java.version>
+
+		<docker.image.prefix>mszarlinski</docker.image.prefix>
+		<docker.plugin.version>0.3.258</docker.plugin.version>
     </properties>
 
 	<dependencyManagement>

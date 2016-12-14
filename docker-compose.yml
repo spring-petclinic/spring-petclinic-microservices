@@ -1,0 +1,73 @@
+version: '2'
+services:
+  config-server:
+    image: mszarlinski/spring-petclinic-config-server
+    ports:
+     - 8888:8888
+
+  discovery-server:
+    image: mszarlinski/spring-petclinic-discovery-server
+    links:
+     - config-server
+    depends_on:
+      - config-server
+    ports:
+     - 8761:8761
+
+  customers-service:
+    image: mszarlinski/spring-petclinic-customers-service
+    links:
+     - config-server
+     - discovery-server
+    depends_on:
+     - config-server
+     - discovery-server
+    ports:
+    - 8081:8081
+
+  visits-service:
+    image: mszarlinski/spring-petclinic-visits-service
+    links:
+     - config-server
+     - discovery-server
+    depends_on:
+     - config-server
+     - discovery-server
+    ports:
+     - 8082:8082
+
+  vets-service:
+    image: mszarlinski/spring-petclinic-vets-service
+    links:
+     - config-server
+     - discovery-server
+    depends_on:
+     - config-server
+     - discovery-server
+    ports:
+     - 8083:8083
+
+  api-gateway:
+    image: mszarlinski/spring-petclinic-api-gateway
+    links:
+     - config-server
+     - discovery-server
+     - customers-service
+     - visits-service
+     - vets-service
+    depends_on:
+     - config-server
+     - discovery-server
+    ports:
+     - 8080:8080
+
+  tracing-server:
+    image: mszarlinski/spring-petclinic-tracing-server
+    links:
+     - config-server
+     - discovery-server
+    depends_on:
+     - config-server
+     - discovery-server
+    ports:
+     - 9411:9411
