@@ -11,6 +11,10 @@ If everything goes well, you can access the following services at given location
 * Customers, Vets and Visits Services - random port, check Eureka Dashboard 
 * Tracing Server (Zipkin) - http://localhost:9411
 
+You can tell Config Server to use your local Git repository by using `local` Spring profile and setting
+`GIT_REPO` environment variable, for example:
+`-Dspring.profiles.active=local -DGIT_REPO=/projects/spring-petclinic-microservices-config`
+
 ## Understanding the Spring Petclinic application with a few diagrams
 <a href="https://speakerdeck.com/michaelisvy/spring-petclinic-sample-application">See the presentation here</a>
 

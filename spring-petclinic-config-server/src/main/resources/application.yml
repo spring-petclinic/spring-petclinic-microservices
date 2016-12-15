@@ -5,5 +5,11 @@ spring:
       server:
         git:
           uri: https://github.com/spring-petclinic/spring-petclinic-microservices-config
-          # Uncomment for local configuration repository:
-          # uri: file:///${GIT_REPO}
+---
+spring:
+  profiles: local
+  cloud:
+    config:
+      server:
+        git:
+          uri: file:///${GIT_REPO}
