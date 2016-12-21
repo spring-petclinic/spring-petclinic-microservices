@@ -10,24 +10,23 @@
     <packaging>jar</packaging>
     <description>Spring PetClinic monitoring utilities</description>
 
+    <parent>
+        <groupId>org.springframework.samples</groupId>
+        <artifactId>spring-petclinic-microservices</artifactId>
+        <version>1.4.2</version>
+    </parent>
+
     <dependencies>
+        <!-- Spring dependencies -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+
         <!-- Third-parties -->
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjweaver</artifactId>
-            <version>1.8.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-jmx</artifactId>
-            <scope>provided</scope>
-            <version>2.0.8</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-            <scope>provided</scope>
-            <version>4.3.4.RELEASE</version>
         </dependency>
     </dependencies>
 </project>
