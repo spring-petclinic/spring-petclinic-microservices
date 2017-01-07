@@ -125,6 +125,9 @@
                                     <include>${project.build.finalName}.jar</include>
                                 </resource>
                             </resources>
+                            <buildArgs>
+                                <ARTIFACT_NAME>${project.build.finalName}</ARTIFACT_NAME>
+                            </buildArgs>
                         </configuration>
                     </plugin>
                 </plugins>
