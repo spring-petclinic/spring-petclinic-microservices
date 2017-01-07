@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.samples.petclinic.customers.model.Owner;
 import org.springframework.samples.petclinic.customers.model.OwnerRepository;
+import org.springframework.samples.petclinic.monitoring.Monitored;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -53,6 +54,7 @@ class OwnerResource {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @Monitored
     public void createOwner(@Valid @RequestBody Owner owner) {
         ownerRepository.save(owner);
     }
@@ -77,6 +79,7 @@ class OwnerResource {
      * Update Owner
      */
     @PutMapping(value = "/{ownerId}")
+    @Monitored
     public Owner updateOwner(@PathVariable("ownerId") int ownerId, @Valid @RequestBody Owner ownerRequest) {
         final Owner ownerModel = ownerRepository.findOne(ownerId);
         // This is done by hand for simplicity purpose. In a real life use-case we should consider using MapStruct.

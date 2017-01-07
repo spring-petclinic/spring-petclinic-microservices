@@ -26,6 +26,7 @@ import org.springframework.samples.petclinic.customers.model.OwnerRepository;
 import org.springframework.samples.petclinic.customers.model.Pet;
 import org.springframework.samples.petclinic.customers.model.PetRepository;
 import org.springframework.samples.petclinic.customers.model.PetType;
+import org.springframework.samples.petclinic.monitoring.Monitored;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -55,6 +56,7 @@ class PetResource {
 
     @PostMapping("/owners/{ownerId}/pets")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Monitored
     public void processCreationForm(
         @RequestBody PetRequest petRequest,
         @PathVariable("ownerId") int ownerId) {
@@ -68,6 +70,7 @@ class PetResource {
 
     @PutMapping("/owners/*/pets/{petId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Monitored
     public void processUpdateForm(@RequestBody PetRequest petRequest) {
         save(petRepository.findOne(petRequest.getId()), petRequest);
     }
