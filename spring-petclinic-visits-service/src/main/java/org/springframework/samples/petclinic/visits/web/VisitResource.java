@@ -16,21 +16,16 @@
 package org.springframework.samples.petclinic.visits.web;
 
 import lombok.RequiredArgsConstructor;
-
-import java.util.List;
-
-import javax.validation.Valid;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.samples.petclinic.visits.model.Visit;
 import org.springframework.samples.petclinic.visits.model.VisitRepository;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.List;
 
 /**
  * @author Juergen Hoeller
@@ -43,6 +38,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class VisitResource {
 
+    private static final Logger LOG = LoggerFactory.getLogger(VisitResource.class);
+
+
     private final VisitRepository visitRepository;
 
     @PostMapping("owners/*/pets/{petId}/visits")
@@ -52,6 +50,7 @@ public class VisitResource {
         @PathVariable("petId") int petId) {
 
         visit.setPetId(petId);
+        LOG.info("Saving visit {}", visit);
         visitRepository.save(visit);
     }
 

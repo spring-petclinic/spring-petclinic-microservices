@@ -21,6 +21,8 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.samples.petclinic.customers.model.Owner;
@@ -46,6 +48,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 class OwnerResource {
+
+    private static final Logger LOG = LoggerFactory.getLogger(OwnerResource.class);
 
     private final OwnerRepository ownerRepository;
 
@@ -88,6 +92,7 @@ class OwnerResource {
         ownerModel.setCity(ownerRequest.getCity());
         ownerModel.setAddress(ownerRequest.getAddress());
         ownerModel.setTelephone(ownerRequest.getTelephone());
+        LOG.info("Saving owner {}", ownerModel);
         return ownerRepository.save(ownerModel);
     }
 }
