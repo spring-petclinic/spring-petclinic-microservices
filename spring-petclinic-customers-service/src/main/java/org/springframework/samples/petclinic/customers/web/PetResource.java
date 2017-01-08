@@ -16,8 +16,7 @@
 package org.springframework.samples.petclinic.customers.web;
 
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.samples.petclinic.customers.model.*;
@@ -34,9 +33,8 @@ import java.util.List;
  */
 @RestController
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@Slf4j
 class PetResource {
-
-    private static final Logger LOG = LoggerFactory.getLogger(PetResource.class);
 
     private final PetRepository petRepository;
 
@@ -76,7 +74,7 @@ class PetResource {
         petRepository.findPetTypeById(petRequest.getTypeId())
             .ifPresent(pet::setType);
 
-        LOG.info("Saving pet {}", pet);
+        log.info("Saving pet {}", pet);
         petRepository.save(pet);
     }
 

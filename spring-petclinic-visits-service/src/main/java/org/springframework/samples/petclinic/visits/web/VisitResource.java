@@ -16,8 +16,7 @@
 package org.springframework.samples.petclinic.visits.web;
 
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.samples.petclinic.visits.model.Visit;
@@ -36,10 +35,8 @@ import java.util.List;
  */
 @RestController
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@Slf4j
 public class VisitResource {
-
-    private static final Logger LOG = LoggerFactory.getLogger(VisitResource.class);
-
 
     private final VisitRepository visitRepository;
 
@@ -50,7 +47,7 @@ public class VisitResource {
         @PathVariable("petId") int petId) {
 
         visit.setPetId(petId);
-        LOG.info("Saving visit {}", visit);
+        log.info("Saving visit {}", visit);
         visitRepository.save(visit);
     }
 
