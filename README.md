@@ -2,7 +2,7 @@
 
 This microservices branch was initially derived from [AngularJS version](https://github.com/spring-petclinic/spring-petclinic-angular1) to demonstrate how to split sample Spring application into [microservices](http://www.martinfowler.com/articles/microservices.html). To achieve that goal we used [Spring Cloud Netflix](https://github.com/spring-cloud/spring-cloud-netflix) technology stack.
 
-## Starting services locally
+## Starting services locally without Docker
 Every microservice is a Spring Boot application and can be started locally using IDE or `mvn spring-boot:run` command. Please note that supporting services (Config and Discovery Server) must be started before any other application (Customers, Vets, Visits and API). Tracing server startup is optional.
 If everything goes well, you can access the following services at given location:
 * Discovery Server - http://localhost:8761
@@ -14,6 +14,14 @@ If everything goes well, you can access the following services at given location
 You can tell Config Server to use your local Git repository by using `local` Spring profile and setting
 `GIT_REPO` environment variable, for example:
 `-Dspring.profiles.active=local -DGIT_REPO=/projects/spring-petclinic-microservices-config`
+
+## Starting services locally with docker-compose
+In order to start entire infrastructure using Docker, you have to build images by executing `mvn clean install -PbuildDocker` 
+from a project root. Once images are ready, you can start them with a single command
+`docker-compose up`. Containers startup order is coordinated with [`wait-for-it.sh` script](https://github.com/vishnubob/wait-for-it). 
+After starting services it takes a while for API Gateway to be in sync with service registry,
+so don't be scared of initial Zuul timeouts. You can track services availability using Eureka dashboard
+available by default at http://localhost:8761.
 
 ## Understanding the Spring Petclinic application with a few diagrams
 <a href="https://speakerdeck.com/michaelisvy/spring-petclinic-sample-application">See the presentation here</a>

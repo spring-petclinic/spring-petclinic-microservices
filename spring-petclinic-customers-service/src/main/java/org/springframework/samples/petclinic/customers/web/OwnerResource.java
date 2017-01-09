@@ -16,24 +16,16 @@
 package org.springframework.samples.petclinic.customers.web;
 
 import lombok.RequiredArgsConstructor;
-
-import java.util.List;
-
-import javax.validation.Valid;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.samples.petclinic.customers.model.Owner;
 import org.springframework.samples.petclinic.customers.model.OwnerRepository;
 import org.springframework.samples.petclinic.monitoring.Monitored;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.List;
 
 /**
  * @author Juergen Hoeller
@@ -45,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/owners")
 @RestController
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@Slf4j
 class OwnerResource {
 
     private final OwnerRepository ownerRepository;
@@ -88,6 +81,7 @@ class OwnerResource {
         ownerModel.setCity(ownerRequest.getCity());
         ownerModel.setAddress(ownerRequest.getAddress());
         ownerModel.setTelephone(ownerRequest.getTelephone());
+        log.info("Saving owner {}", ownerModel);
         return ownerRepository.save(ownerModel);
     }
 }
