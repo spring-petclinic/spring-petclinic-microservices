@@ -4,3 +4,9 @@ spring:
       uri: http://localhost:8888
   application:
     name: customers-service
+---
+spring:
+  profiles: docker
+  cloud:
+    config:
+      uri: http://config-server:8888
