@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+
+<html ng-app="petClinicApp" lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0, minimal-ui"/>
+    <!-- The above 4 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+
+    <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.png"/>
+
+    <title>PetClinic :: a Spring Framework demonstration</title>
+    <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/css/petclinic.css"/>
+
+    <script src="/webjars/jquery/jquery.min.js"></script>
+    <script src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+
+    <script src="/webjars/angularjs/angular.min.js"></script>
+    <script src="/webjars/angular-ui-router/angular-ui-router.min.js"></script>
+
+    <script src="/scripts/app.js"></script>
+
+    <script src="/scripts/owner-list/owner-list.js"></script>
+    <script src="/scripts/owner-list/owner-list.controller.js"></script>
+    <script src="/scripts/owner-list/owner-list.component.js"></script>
+
+    <script src="/scripts/owner-details/owner-details.js"></script>
+    <script src="/scripts/owner-details/owner-details.controller.js"></script>
+    <script src="/scripts/owner-details/owner-details.component.js"></script>
+
+    <script src="/scripts/owner-form/owner-form.js"></script>
+    <script src="/scripts/owner-form/owner-form.controller.js"></script>
+    <script src="/scripts/owner-form/owner-form.component.js"></script>
+
+    <script src="/scripts/pet-form/pet-form.js"></script>
+    <script src="/scripts/pet-form/pet-form.controller.js"></script>
+    <script src="/scripts/pet-form/pet-form.component.js"></script>
+
+    <script src="/scripts/visits/visits.js"></script>
+    <script src="/scripts/visits/visits.controller.js"></script>
+    <script src="/scripts/visits/visits.component.js"></script>
+
+    <script src="/scripts/vet-list/vet-list.js"></script>
+    <script src="/scripts/vet-list/vet-list.controller.js"></script>
+    <script src="/scripts/vet-list/vet-list.component.js"></script>
+</head>
+
+<body class="container">
+<layout-nav></layout-nav>
+<div class="container-fluid">
+    <div class="container xd-container">
+        <div ui-view=""></div>
+    </div>
+</div>
+<layout-footer></layout-footer>
+</body>
+
+</html>
