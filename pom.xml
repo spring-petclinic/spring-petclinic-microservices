@@ -15,7 +15,6 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>spring-petclinic-ui</module>
 		<module>spring-petclinic-customers-service</module>
 		<module>spring-petclinic-vets-service</module>
 		<module>spring-petclinic-visits-service</module>
@@ -28,7 +27,8 @@
 
     <properties>
         <assertj.version>3.5.2</assertj.version>
-        <spring-cloud.version>Camden.SR1</spring-cloud.version>
+        <spring-cloud.version>Camden.SR3</spring-cloud.version>
+        <sleuth.version>1.1.0.RELEASE</sleuth.version>
         <java.version>1.8</java.version>
 
 		<docker.image.prefix>mszarlinski</docker.image.prefix>
@@ -37,6 +37,13 @@
 
 	<dependencyManagement>
 		<dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-sleuth-dependencies</artifactId>
+				<type>pom</type>
+				<scope>import</scope>
+                <version>${sleuth.version}</version>
+            </dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-dependencies</artifactId>
