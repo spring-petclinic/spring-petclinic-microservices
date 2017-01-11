@@ -43,6 +43,12 @@
             <version>1.4.4</version>
         </dependency>
 
+        <!-- Third-party librairies -->
+        <dependency>
+            <groupId>org.jolokia</groupId>
+            <artifactId>jolokia-core</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

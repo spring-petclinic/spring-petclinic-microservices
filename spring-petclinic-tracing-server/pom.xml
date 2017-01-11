@@ -48,6 +48,10 @@
             <artifactId>zipkin-autoconfigure-ui</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>org.jolokia</groupId>
+            <artifactId>jolokia-core</artifactId>
+        </dependency>
 
     </dependencies>
 
