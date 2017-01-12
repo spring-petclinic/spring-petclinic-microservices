@@ -6,7 +6,6 @@
 
     <groupId>org.springframework.samples.petclinic.admin</groupId>
     <artifactId>spring-petclinic-admin-server</artifactId>
-    <version>1.4.2</version>
     <packaging>jar</packaging>
     <description>Spring Boot Admin server</description>
 
@@ -15,6 +14,10 @@
         <artifactId>spring-petclinic-microservices</artifactId>
         <version>1.4.2</version>
     </parent>
+
+    <properties>
+        <spring-boot-admin.version>1.4.5</spring-boot-admin.version>
+    </properties>
 
     <dependencies>
         <!-- Spring Boot -->
@@ -35,12 +38,12 @@
         <dependency>
             <groupId>de.codecentric</groupId>
             <artifactId>spring-boot-admin-server</artifactId>
-            <version>1.4.4</version>
+            <version>${spring-boot-admin.version}</version>
         </dependency>
         <dependency>
             <groupId>de.codecentric</groupId>
             <artifactId>spring-boot-admin-server-ui</artifactId>
-            <version>1.4.4</version>
+            <version>${spring-boot-admin.version}</version>
         </dependency>
 
         <!-- Third-party librairies -->
