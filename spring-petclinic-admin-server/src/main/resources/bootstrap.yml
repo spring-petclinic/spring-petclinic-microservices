@@ -3,4 +3,10 @@ spring:
     config:
       uri: http://localhost:8888
   application:
-    name: ADMIN-SERVER
+    name: admin-server
+---
+spring:
+  profiles: docker
+  cloud:
+    config:
+      uri: http://config-server:8888
