@@ -5,7 +5,7 @@
 
     <groupId>org.springframework.samples.petclinic.api</groupId>
     <artifactId>spring-petclinic-api-gateway</artifactId>
-    <version>1.4.2</version>
+    <version>1.5.1</version>
     <packaging>jar</packaging>
     <description>Spring PetClinic API Gateway</description>
 

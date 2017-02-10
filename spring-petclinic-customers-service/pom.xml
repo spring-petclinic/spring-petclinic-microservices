@@ -5,7 +5,7 @@
 
 	<groupId>org.springframework.samples.petclinic.client</groupId>
 	<artifactId>spring-petclinic-customers-service</artifactId>
-	<version>1.4.2</version>
+	<version>1.5.1</version>
 	<packaging>jar</packaging>
 	<description>Spring PetClinic Customers Service</description>
 
