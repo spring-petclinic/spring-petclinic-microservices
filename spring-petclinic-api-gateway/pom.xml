@@ -5,14 +5,13 @@
 
     <groupId>org.springframework.samples.petclinic.api</groupId>
     <artifactId>spring-petclinic-api-gateway</artifactId>
-    <version>1.5.1</version>
     <packaging>jar</packaging>
     <description>Spring PetClinic API Gateway</description>
 
     <parent>
         <groupId>org.springframework.samples</groupId>
         <artifactId>spring-petclinic-microservices</artifactId>
-        <version>1.4.2</version>
+        <version>1.5.1</version>
     </parent>
 
     <properties>

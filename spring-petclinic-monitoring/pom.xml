@@ -6,14 +6,13 @@
 
     <groupId>org.springframework.samples.petclinic.monitoring</groupId>
     <artifactId>spring-petclinic-monitoring</artifactId>
-    <version>1.5.1</version>
     <packaging>jar</packaging>
     <description>Spring PetClinic monitoring utilities</description>
 
     <parent>
         <groupId>org.springframework.samples</groupId>
         <artifactId>spring-petclinic-microservices</artifactId>
-        <version>1.4.2</version>
+        <version>1.5.1</version>
     </parent>
 
     <dependencies>
