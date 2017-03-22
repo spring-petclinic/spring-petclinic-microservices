@@ -17,8 +17,8 @@
     <properties>
         <webjars-bootstrap.version>3.3.7-1</webjars-bootstrap.version>
         <webjars-jquery-ui.version>1.11.4</webjars-jquery-ui.version>
-        <webjars-jquery.version>3.1.1</webjars-jquery.version>
-        <webjars-angular.version>1.6.1</webjars-angular.version>
+        <webjars-jquery.version>3.1.1-1</webjars-jquery.version>
+        <webjars-angular.version>1.6.2</webjars-angular.version>
         <webjars-angular-ui-router.version>0.2.18</webjars-angular-ui-router.version>
         <wro4j.version>1.8.0</wro4j.version>
     </properties>
