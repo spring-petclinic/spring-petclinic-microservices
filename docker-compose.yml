@@ -23,7 +23,6 @@ services:
     links:
      - config-server
      - discovery-server
-     - tracing-server
     depends_on:
      - config-server
      - discovery-server
@@ -37,7 +36,6 @@ services:
     links:
      - config-server
      - discovery-server
-     - tracing-server
     depends_on:
      - config-server
      - discovery-server
@@ -51,7 +49,6 @@ services:
     links:
      - config-server
      - discovery-server
-     - tracing-server
     depends_on:
      - config-server
      - discovery-server
@@ -68,26 +65,12 @@ services:
      - customers-service
      - visits-service
      - vets-service
-     - tracing-server
     depends_on:
      - config-server
      - discovery-server
     entrypoint: ["./wait-for-it.sh","discovery-server:8761","--timeout=60","--","java","-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
     ports:
      - 8080:8080
-
-  tracing-server:
-    image: mszarlinski/spring-petclinic-tracing-server
-    container_name: tracing-server
-    links:
-     - config-server
-     - discovery-server
-    depends_on:
-     - config-server
-     - discovery-server
-    entrypoint: ["./wait-for-it.sh","discovery-server:8761","--timeout=60","--","java","-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
-    ports:
-     - 9411:9411
 
   admin-server:
     image: mszarlinski/spring-petclinic-admin-server
