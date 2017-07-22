@@ -4,11 +4,7 @@ phases:
   pre_build:
     commands:
       - echo Logging in to Docker Hub...
-<<<<<<< HEAD
       # Type the command to log in to your Docker Hub account here.
-=======
-      # Type the command to log in to your Docker Hub account here.          
->>>>>>> 4e9c45015217f864bdd454bc797a556d1980421d
   build:
     commands:
       - echo Build started on `date`
