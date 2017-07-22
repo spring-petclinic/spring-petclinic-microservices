@@ -1,14 +1,19 @@
 version: 0.2
 
 phases:
+  pre_build:
+    commands:
+      - echo Logging in to Docker Hub...
+      # Type the command to log in to your Docker Hub account here.          
   build:
     commands:
       - echo Build started on `date`
-      - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+      - mvn 
+      - echo Building the Docker image...
+      - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
+      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $IMAGE_REPO_NAME:$IMAGE_TAG
   post_build:
     commands:
       - echo Build completed on `date`
-      - mvn package
-artifacts:
-  files:
-    - target/*.jar
+      - echo Pushing the Docker image...
+      - docker push $IMAGE_REPO_NAME:$IMAGE_TAG
