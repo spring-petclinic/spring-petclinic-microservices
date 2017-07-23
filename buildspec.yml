@@ -17,7 +17,7 @@ phases:
       # - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $IMAGE_REPO_NAME:$IMAGE_TAG
   post_build:
     commands:
-      - echo Build completed on `date`
+      - echo Build completed on `date` 
       - echo Pushing the Docker image...
       # - docker push $IMAGE_REPO_NAME:$IMAGE_TAG
       - docker push paruff/spring-petclinic-admin-server
