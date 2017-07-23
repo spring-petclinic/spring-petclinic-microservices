@@ -11,8 +11,8 @@ phases:
   build:
     commands:
       - echo Build started on `date`
-      - mvn clean install -DpushImage -DskipTests=true -PbuildDocker -B -V
       - echo Building the Docker image...
+      - mvn clean install -DskipTests=true -PbuildDocker -B -V
       # - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
       # - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $IMAGE_REPO_NAME:$IMAGE_TAG
   post_build:
