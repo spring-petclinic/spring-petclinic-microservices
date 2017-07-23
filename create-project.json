@@ -1,0 +1,35 @@
+{
+  "name": "sample-docker-project",
+  "source": {
+    "type": "S3",
+    "location": "codebuild-region-ID-account-ID-input-bucket/DockerSample.zip"
+  },
+  "artifacts": {
+    "type": "NO_ARTIFACTS"
+  },
+  "environment": {
+    "type": "LINUX_CONTAINER",
+    "image": "aws/codebuild/docker:1.12.1",
+    "computeType": "BUILD_GENERAL1_SMALL",
+    "environmentVariables": [
+      {
+        "name": "AWS_DEFAULT_REGION",
+        "value": "region-ID"
+      },
+      {
+        "name": "AWS_ACCOUNT_ID",
+        "value": "account-ID"
+      },
+      {
+        "name": "IMAGE_REPO_NAME",
+        "value": "Amazon-ECR-repo-name"
+      },
+      {
+        "name": "IMAGE_TAG",
+        "value": "latest"
+      }
+    ]
+  },
+  "serviceRole": "arn:aws:iam::account-ID:role/role-name",
+  "encryptionKey": "arn:aws:kms:region-ID:account-ID:key/key-ID"
+}
