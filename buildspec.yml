@@ -6,12 +6,12 @@ phases:
       - echo Logging in to Docker Hub...
       # Type the command to log in to your Docker Hub account here.
       - sudo service docker start
-      - sleep 600
+      - sleep 10
       - docker login -u $IMAGE_REPO_USER -p $IMAGE_REPO_PASSWORD $IMAGE_REPO_NAME
   build:
     commands:
       - echo Build started on `date`
-      - mvn clean install -PbuildDocker
+      - mvn clean install  -DskipTests=true -Dmaven.javadoc.skip=true -B -V -PbuildDocker
       - echo Building the Docker image...
       - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
       - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $IMAGE_REPO_NAME:$IMAGE_TAG
