@@ -5,7 +5,7 @@ phases:
     commands:
       - echo Logging in to Docker Hub...
       # Type the command to log in to your Docker Hub account here.
-      - docker login -u $IMAGE_REPO_USER -p $IMAGE_REPO_PASSWORD
+      - docker login -u $IMAGE_REPO_USER -p $IMAGE_REPO_PASSWORD hub.docker.com
   build:
     commands:
       - echo Build started on `date`
