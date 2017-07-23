@@ -3,6 +3,10 @@ version: 0.2
 phases:
   pre_build:
     commands:
+      - sudo yum update -y
+      - sudo yum install -y docker
+      - sudo service docker start
+      - sudo usermod -a -G docker ec2-user
       - echo Logging in to Docker Hub...
       # Type the command to log in to your Docker Hub account here.
   build:
