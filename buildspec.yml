@@ -12,7 +12,7 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
-      - mvn clean install -DskipTests=true  -Dmaven.javadoc.skip=true
+      - mvn clean install -DskipTests=true  -Dmaven.javadoc.skip=true -PbuildDocker -B -V
       # - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
       # - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $IMAGE_REPO_NAME:$IMAGE_TAG
   post_build:
