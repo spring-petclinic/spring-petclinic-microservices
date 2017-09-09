@@ -1,6 +1,6 @@
 pipeline {
 agent {
-        docker { image 'cloudbees/jnlp-slave-with-java-build-tools }
+        docker { image 'cloudbees/jnlp-slave-with-java-build-tools' }
     }
 //    agent {
 //        docker 'cloudbees/jnlp-slave-with-java-build-tools'
