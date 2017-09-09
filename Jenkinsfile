@@ -1,20 +1,8 @@
 pipeline {
-    
-    podTemplate(label: 'jenkins-ja', containers: [
-    containerTemplate(name: 'jenkinsja', image: 'cloudbees/jnlp-slave-with-java-build-tools', ttyEnabled: true, 
-        command: 'cat')    
-  ]) {
-    node('jenkins-ja') {
-        container('jenkinsja') {
-  //          stage('Run Command') {
-  //              sh 'cat /etc/issue'
-  //          }
- //       }
- //   }
-//}
-//    agent {
-//        docker 'cloudbees/jnlp-slave-with-java-build-tools'
-//    }
+
+    agent {
+        docker 'cloudbees/jnlp-slave-with-java-build-tools'
+    }
     stages {
         stage ('Initialize') {
             steps {
@@ -36,8 +24,6 @@ pipeline {
             }
         }
     }
-        }
-    }
-    }
+ 
 }
 
