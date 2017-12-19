@@ -3,6 +3,10 @@ jdk: oraclejdk8
 
 sudo: required
 
+branches:
+  only:
+  - kubernetes
+
 services:
   - docker
 
