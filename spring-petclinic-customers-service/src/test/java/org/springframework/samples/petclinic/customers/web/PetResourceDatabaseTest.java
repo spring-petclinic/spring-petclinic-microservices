@@ -6,6 +6,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.http.MediaType;
 import org.springframework.samples.petclinic.customers.model.Owner;
 import org.springframework.samples.petclinic.customers.model.OwnerRepository;
@@ -29,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @DataJpaTest
 @ActiveProfiles("test")
+
 public class PetResourceDatabaseTest {
 
     @Autowired
@@ -36,6 +38,9 @@ public class PetResourceDatabaseTest {
 
     @Autowired
     OwnerRepository ownerRepository;
+
+    @Autowired
+    private DiscoveryClient discoveryClient;
 
     @Test
     public void shouldGetAPet() throws Exception {

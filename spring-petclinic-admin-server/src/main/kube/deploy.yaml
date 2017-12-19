@@ -1,0 +1,55 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\ProgramData\chocolatey\lib\kubernetes-kompose\tools\kompose.exe
+      --file docker-compose.yml convert
+    kompose.version: 1.4.0 (c7964e7)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: admin-server
+  name: admin-server
+spec:
+  replicas: 1
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: admin-server
+    spec:
+      containers:
+      - name: admin-server
+        image: localhost:5000/petclinic/spring-petclinic-admin-server-1.5.3
+        command:
+          - ./wait-for-it.sh
+        args:
+          - discovery-server:8761
+            --timeout=60
+            --
+            java
+            -Djava.security.egd=file:/dev/./urandom
+            -jar
+            /app.jar
+        ports:
+        - containerPort: 9090
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: C:\ProgramData\chocolatey\lib\kubernetes-kompose\tools\kompose.exe
+      --file docker-compose.yml convert
+    kompose.version: 1.4.0 (c7964e7)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: admin-server
+  name: admin-server
+spec:
+  ports:
+  - name: admin-server
+    port: 9090
+    targetPort: 9090
+  selector:
+    io.kompose.service: admin-server
+

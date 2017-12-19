@@ -1,0 +1,59 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\ProgramData\chocolatey\lib\kubernetes-kompose\tools\kompose.exe
+      --file docker-compose.yml convert
+    kompose.version: 1.4.0 (c7964e7)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: tracing-server
+  name: tracing-server
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: tracing-server
+    spec:
+      containers:
+      - command:
+        - ./wait-for-it.sh
+        args:
+        - discovery-server:8761
+        - --timeout=60
+        - --
+        - java
+        - -Djava.security.egd=file:/dev/./urandom
+        - -jar
+        - /app.jar
+        image: localhost:5000/petclinic/spring-petclinic-tracing-server-1.5.3
+        name: tracing-server
+        ports:
+        - containerPort: 9411
+        resources: {}
+      restartPolicy: Always
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: C:\ProgramData\chocolatey\lib\kubernetes-kompose\tools\kompose.exe
+      --file docker-compose.yml convert
+    kompose.version: 1.4.0 (c7964e7)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: tracing-server
+  name: tracing-server
+spec:
+  ports:
+  - name: tracing-server
+    port: 9411
+    targetPort: 9411
+  selector:
+    io.kompose.service: tracing-server
+status:
+  loadBalancer: {}

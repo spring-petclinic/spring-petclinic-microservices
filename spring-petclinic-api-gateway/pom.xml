@@ -57,11 +57,17 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-kubernetes-zipkin</artifactId>
+            <version>0.2.0.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-config</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-eureka</artifactId>
+            <artifactId>spring-cloud-starter-kubernetes-all</artifactId>
+            <version>0.2.0.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -80,6 +86,8 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <version>1.16.18</version>
+            <scope>provided</scope>
         </dependency>
         <!-- Webjars -->
         <dependency>
@@ -170,6 +178,69 @@
                             <buildArgs>
                                 <ARTIFACT_NAME>${project.build.finalName}</ARTIFACT_NAME>
                             </buildArgs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>deployToRegistry</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.6.0</version>
+                        <executions>
+                            <execution>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <executable>packer</executable>
+                            <arguments>
+                                <argument>build</argument>
+                                <argument>${project.basedir}/src/main/packer/packer.json</argument>
+                            </arguments>
+                            <environmentVariables>
+                                <ARTIFACT_NAME>
+                                    ${project.build.directory}/${project.build.finalName}.jar
+                                </ARTIFACT_NAME>
+                                <PROJECT_NAME>
+                                    ${project.build.finalName}
+                                </PROJECT_NAME>
+                            </environmentVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>deployToKubernetes</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.6.0</version>
+                        <executions>
+                            <execution>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <executable>kubectl</executable>
+                            <arguments>
+                                <argument>apply</argument>
+                                <argument>-f</argument>
+                                <argument>${project.basedir}/src/main/kube/deploy.yaml</argument>
+                            </arguments>
                         </configuration>
                     </plugin>
                 </plugins>
