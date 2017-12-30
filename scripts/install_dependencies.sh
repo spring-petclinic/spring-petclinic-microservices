@@ -7,3 +7,6 @@ curl -fSL "https://releases.hashicorp.com/packer/1.1.1/packer_1.1.1_linux_amd64.
 unzip packer.zip -d /opt/packer
 sudo ln -s /opt/packer/packer /usr/bin/packer
 rm -f packer.zip
+
+#ansible
+apt-get -y install ansible

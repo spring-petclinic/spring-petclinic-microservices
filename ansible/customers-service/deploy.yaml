@@ -1,0 +1,59 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\ProgramData\chocolatey\lib\kubernetes-kompose\tools\kompose.exe
+      --file docker-compose.yml convert
+    kompose.version: 1.4.0 (c7964e7)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: customers-service
+  name: customers-service
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: customers-service
+    spec:
+      containers:
+      - command:
+        - ./wait-for-it.sh
+        args:
+        - discovery-server:8761
+        - --timeout=60
+        - --
+        - java
+        - -Djava.security.egd=file:/dev/./urandom
+        - -jar
+        - /app.jar
+        image: localhost:5000/petclinic/spring-petclinic-customers-service-1.5.3
+        name: customers-service
+        ports:
+        - containerPort: 8081
+        resources: {}
+      restartPolicy: Always
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: C:\ProgramData\chocolatey\lib\kubernetes-kompose\tools\kompose.exe
+      --file docker-compose.yml convert
+    kompose.version: 1.4.0 (c7964e7)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: customers-service
+  name: customers-service
+spec:
+  ports:
+  - name: customers-service
+    port: 8081
+    targetPort: 8081
+  selector:
+    io.kompose.service: customers-service
+status:
+  loadBalancer: {}
