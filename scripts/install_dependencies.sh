@@ -9,4 +9,4 @@ sudo ln -s /opt/packer/packer /usr/bin/packer
 rm -f packer.zip
 
 #ansible
-apt-get -y install ansible
+sudo apt-get -y install ansible
