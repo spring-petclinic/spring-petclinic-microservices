@@ -13,5 +13,8 @@ target/
 # Branch switching
 generated/
 
-#ansible templates
-ansible/
+# template output
+templates/output
+
+#logs
+.log
