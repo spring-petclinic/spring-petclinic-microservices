@@ -218,34 +218,6 @@
                 </plugins>
             </build>
         </profile>
-        <profile>
-            <id>deployToKubernetes</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>exec-maven-plugin</artifactId>
-                        <version>1.6.0</version>
-                        <executions>
-                            <execution>
-                                <phase>install</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <executable>kubectl</executable>
-                            <arguments>
-                                <argument>apply</argument>
-                                <argument>-f</argument>
-                                <argument>${project.basedir}/src/main/kube/deploy.yaml</argument>
-                            </arguments>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
     </profiles>
 
 </project>

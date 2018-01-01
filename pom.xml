@@ -15,11 +15,11 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>spring-petclinic-admin-server</module>
+		<!--<module>spring-petclinic-admin-server</module>-->
 		<module>spring-petclinic-customers-service</module>
 		<module>spring-petclinic-vets-service</module>
 		<module>spring-petclinic-visits-service</module>
-		<module>spring-petclinic-config-server</module>
+		<!--<module>spring-petclinic-config-server</module>-->
         <!--<module>spring-petclinic-discovery-server</module>-->
         <module>spring-petclinic-api-gateway</module>
         <module>spring-petclinic-monitoring</module>
@@ -73,7 +73,7 @@
 		</dependencies>
 	</dependencyManagement>
 
-    <profiles>
+   <profiles>
         <profile>
             <id>springboot</id>
             <activation>
@@ -135,8 +135,38 @@
                     </plugin>
                 </plugins>
             </build>
-
         </profile>
-    </profiles>
+       <profile>
+           <id>deployToK8s</id>
+           <modules>
+               <module>spring-petclinic-customers-service</module>
+           </modules>
+           <activation>
+               <activeByDefault>false</activeByDefault>
+               <property>
+                   <name>deployToK8s</name>
+                   <value>true</value>
+               </property>
+           </activation>
+           <build>
+               <plugins>
+                   <plugin>
+                       <groupId>co.escapeideas.maven</groupId>
+                       <artifactId>ansible-maven-plugin</artifactId>
+                       <version>1.3.0</version>
+                       <inherited>false</inherited>
+                       <executions>
+                           <execution>
+                               <id>ansible-playbook</id>
+                               <goals>
+                                   <goal>playbook</goal>
+                               </goals>
+                           </execution>
+                       </executions>
+                   </plugin>
+               </plugins>
+           </build>
+       </profile>
+   </profiles>
 
 </project>

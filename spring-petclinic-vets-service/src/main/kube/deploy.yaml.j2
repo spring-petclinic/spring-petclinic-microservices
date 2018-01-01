@@ -2,13 +2,12 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   annotations:
-    kompose.cmd: C:\ProgramData\chocolatey\lib\kubernetes-kompose\tools\kompose.exe
-      --file docker-compose.yml convert
+    kompose.cmd: kompose.exe --file docker-compose.yml convert
     kompose.version: 1.4.0 (c7964e7)
   creationTimestamp: null
   labels:
-    io.kompose.service: tracing-server
-  name: tracing-server
+    io.kompose.service: vets-service
+  name: vets-service
 spec:
   replicas: 1
   strategy: {}
@@ -16,7 +15,7 @@ spec:
     metadata:
       creationTimestamp: null
       labels:
-        io.kompose.service: tracing-server
+        io.kompose.service: vets-service
     spec:
       containers:
       - command:
@@ -29,10 +28,10 @@ spec:
         - -Djava.security.egd=file:/dev/./urandom
         - -jar
         - /app.jar
-        image: localhost:5000/petclinic/spring-petclinic-tracing-server-1.5.3
-        name: tracing-server
+        image: localhost:5000/petclinic/spring-petclinic-vets-service-1.5.3
+        name: vets-service
         ports:
-        - containerPort: 9411
+        - containerPort: 8083
         resources: {}
       restartPolicy: Always
 status: {}
@@ -41,19 +40,18 @@ apiVersion: v1
 kind: Service
 metadata:
   annotations:
-    kompose.cmd: C:\ProgramData\chocolatey\lib\kubernetes-kompose\tools\kompose.exe
-      --file docker-compose.yml convert
+    kompose.cmd: kompose.exe --file docker-compose.yml convert
     kompose.version: 1.4.0 (c7964e7)
   creationTimestamp: null
   labels:
-    io.kompose.service: tracing-server
-  name: tracing-server
+    io.kompose.service: vets-service
+  name: vets-service
 spec:
   ports:
-  - name: tracing-server
-    port: 9411
-    targetPort: 9411
+  - name: vets-service
+    port: 8083
+    targetPort: 8083
   selector:
-    io.kompose.service: tracing-server
+    io.kompose.service: vets-service
 status:
   loadBalancer: {}

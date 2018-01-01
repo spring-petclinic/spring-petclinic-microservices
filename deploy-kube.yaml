@@ -1,0 +1,50 @@
+---
+- name: Configure webserver with nginx
+  hosts: localhost
+  roles:
+    - role: ansible.kubernetes-modules
+      install_python_requirements: no
+
+  vars:
+    server: "{{ ansible_env.KUBE_SERVER }}"
+    username: "{{ ansible_env.KUBE_USER }}"
+    password: "{{ ansible_env.KUBE_PASSWORD }}"
+    to_deploy_services:
+        - customers-service
+        - vets-service
+        - visits-service
+        - api-gateway
+
+  tasks:
+    - name: Create deployment templates
+      local_action: template src={{item}}.yaml.j2 dest=templates/{{item}}.yaml
+      with_items:
+        "{{to_deploy_services}}"
+
+#    - name: Create a kubernetes namespace
+#      kubernetes:
+#        api_endpoint: "{{ server }}"
+#        insecure: yes
+#        inline_data:
+#          kind: Namespace
+#          apiVersion: v1
+#          metadata:
+#            name: petclinic
+#            labels:
+#              env: staging
+#              ver: latest
+#        state: present
+
+    - name: Deploy service
+      k8s_apps_v1beta1_deployment:
+        state: present
+        debug: yes
+        host: 'https://192.168.39.43:8443'
+        verify_ssl: True
+        key_file: '~/.minikube/client.key'
+        cert_file: '~/.minikube/client.crt'
+        ssl_ca_cert: '~/.minikube/ca.crt'
+        src: templates/{{item}}.yaml
+      with_items:
+        "{{to_deploy_services}}"
+

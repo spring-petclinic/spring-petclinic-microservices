@@ -29,4 +29,7 @@ before_install:
 - scripts/install_dependencies.sh
 
 script:
-- mvn clean install -PdeployToRegistry -DskipTests
+- make travis_registry
+
+after_success:
+- make travis_deploy

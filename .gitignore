@@ -12,3 +12,6 @@ target/
 
 # Branch switching
 generated/
+
+#ansible templates
+ansible/

@@ -1,3 +1,4 @@
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -9,12 +10,12 @@ metadata:
   labels:
     io.kompose.service: vets-service
   name: vets-service
+  namespace: default
 spec:
   replicas: 1
   strategy: {}
   template:
     metadata:
-      creationTimestamp: null
       labels:
         io.kompose.service: vets-service
     spec:
@@ -36,24 +37,3 @@ spec:
         resources: {}
       restartPolicy: Always
 status: {}
----
-apiVersion: v1
-kind: Service
-metadata:
-  annotations:
-    kompose.cmd: C:\ProgramData\chocolatey\lib\kubernetes-kompose\tools\kompose.exe
-      --file docker-compose.yml convert
-    kompose.version: 1.4.0 (c7964e7)
-  creationTimestamp: null
-  labels:
-    io.kompose.service: vets-service
-  name: vets-service
-spec:
-  ports:
-  - name: vets-service
-    port: 8083
-    targetPort: 8083
-  selector:
-    io.kompose.service: vets-service
-status:
-  loadBalancer: {}
