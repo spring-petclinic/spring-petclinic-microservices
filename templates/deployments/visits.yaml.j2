@@ -8,8 +8,8 @@ metadata:
     kompose.version: 1.4.0 (c7964e7)
   creationTimestamp: null
   labels:
-    io.kompose.service: vets-service
-  name: vets-service
+    io.kompose.service: visits-service
+  name: visits-service
   namespace: default
 spec:
   replicas: 1
@@ -17,7 +17,7 @@ spec:
   template:
     metadata:
       labels:
-        io.kompose.service: vets-service
+        io.kompose.service: visits-service
     spec:
       containers:
       - command:
@@ -30,8 +30,8 @@ spec:
         - -Djava.security.egd=file:/dev/./urandom
         - -jar
         - /app.jar
-        image: localhost:5000/petclinic/spring-petclinic-vets-service-1.5.3
-        name: vets-service
+        image: localhost:5000/petclinic/spring-petclinic-visits-service-1.5.3
+        name: visits-service
         ports:
         - containerPort: 8083
         resources: {}

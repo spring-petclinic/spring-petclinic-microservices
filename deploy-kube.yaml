@@ -1,5 +1,5 @@
 ---
-- name: Configure webserver with nginx
+- name: Deploy Petclinic
   hosts: localhost
   roles:
     - role: ansible.kubernetes-modules
@@ -9,42 +9,54 @@
     server: "{{ ansible_env.KUBE_SERVER }}"
     username: "{{ ansible_env.KUBE_USER }}"
     password: "{{ ansible_env.KUBE_PASSWORD }}"
-    to_deploy_services:
-        - customers-service
-        - vets-service
-        - visits-service
+    kubernetes_ip: "{{ ansible_env.KUBERNETES_IP }}"
+    services:
+        - customers
+        - vets
+        - visits
+        - api-gateway
+    deployments:
+        - customers
+        - vets
+        - visits
         - api-gateway
 
   tasks:
+    - debug:
+      msg: "Kuberntes ip is: {{ kubernetes_ip }}"
+
     - name: Create deployment templates
-      local_action: template src={{item}}.yaml.j2 dest=templates/{{item}}.yaml
+      local_action: template src=deployments/{{item}}.yaml.j2 dest=templates/output/{{item}}-deployment.yaml
       with_items:
-        "{{to_deploy_services}}"
+        "{{deployments}}"
 
-#    - name: Create a kubernetes namespace
-#      kubernetes:
-#        api_endpoint: "{{ server }}"
-#        insecure: yes
-#        inline_data:
-#          kind: Namespace
-#          apiVersion: v1
-#          metadata:
-#            name: petclinic
-#            labels:
-#              env: staging
-#              ver: latest
-#        state: present
-
-    - name: Deploy service
+    - name: Deployments
       k8s_apps_v1beta1_deployment:
         state: present
         debug: yes
-        host: 'https://192.168.39.43:8443'
+        host: 'https://{{ kubernetes_ip }}:8443'
         verify_ssl: True
         key_file: '~/.minikube/client.key'
         cert_file: '~/.minikube/client.crt'
         ssl_ca_cert: '~/.minikube/ca.crt'
-        src: templates/{{item}}.yaml
+        src: templates/output/{{item}}-deployment.yaml
       with_items:
-        "{{to_deploy_services}}"
+        "{{deployments}}"
 
+    - name: Create service templates
+      local_action: template src=services/{{item}}.yaml.j2 dest=templates/output/{{item}}-service.yaml
+      with_items:
+        "{{services}}"
+
+    - name: Services
+      k8s_v1_service:
+        state: present
+        debug: yes
+        host: 'https://{{ kubernetes_ip }}:8443'
+        verify_ssl: True
+        key_file: '~/.minikube/client.key'
+        cert_file: '~/.minikube/client.crt'
+        ssl_ca_cert: '~/.minikube/ca.crt'
+        src: templates/output/{{item}}-service.yaml
+      with_items:
+        "{{services}}"

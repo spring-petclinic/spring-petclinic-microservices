@@ -150,10 +150,6 @@
                         </executions>
                         <configuration>
                             <executable>packer</executable>
-                            <arguments>
-                                <argument>build</argument>
-                                <argument>${project.basedir}/src/main/packer/packer.json</argument>
-                            </arguments>
                             <environmentVariables>
                                 <ARTIFACT_NAME>
                                     ${project.build.directory}/${project.build.finalName}.jar
@@ -162,6 +158,10 @@
                                     ${project.build.finalName}
                                 </PROJECT_NAME>
                             </environmentVariables>
+                            <arguments>
+                                <argument>build</argument>
+                                <argument>${project.basedir}/src/main/packer/packer.json</argument>
+                            </arguments>
                         </configuration>
                     </plugin>
                 </plugins>
