@@ -69,5 +69,40 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>deployToRegistry</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.6.0</version>
+                        <executions>
+                            <execution>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <executable>packer</executable>
+                            <arguments>
+                                <argument>build</argument>
+                                <argument>${project.basedir}/src/main/packer/packer.json</argument>
+                            </arguments>
+                            <environmentVariables>
+                                <ARTIFACT_NAME>
+                                    ${project.build.directory}/${project.build.finalName}.jar
+                                </ARTIFACT_NAME>
+                                <PROJECT_NAME>
+                                    ${project.build.finalName}
+                                </PROJECT_NAME>
+                            </environmentVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 </project>

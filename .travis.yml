@@ -1,2 +1,35 @@
 language: java
 jdk: oraclejdk8
+
+sudo: required
+
+branches:
+  only:
+  - kubernetes
+
+services:
+  - docker
+
+env:
+  global:
+  # REGISTRY_USER
+  - secure: "HhSWgkkdyGocvcNgFXC+ESfmbmkiqB8qGb7eaKPK4PtGR1AiGUP0GPopzRc0VjPX6NmAHTO048hOg0JEb2olSVKDyTvV1QZ4Tq46NG1q7dg9pvUtEPrUSUlLdk1kYSQn9PjXKjLuVs+1WmrJzl8CO+awdRMhmHHQKyolbgJL8niW1dNCpG79CXfyNvs99N3XdkLTcOeevQYkzSjuArtIMj5+yrVGRyulnfpJ8SV4FYnCmG+ezhsT9AB32ntAyVZp4ZyJDPbGXOvju5eI3w2rXCLpjrWkEoneEcJ9gaUbEzW3uStHFx6UsDqxYAeMMuZjG9F12WelOGooMGO5Gy5q+s+sTfIzuOMe5KzRSK/VAs3+SRi/AMpCciqLISqKw/MnASrB2/umfCjwPTx6inUHaNRD26XVieuao8CIQcHIzPA4b31zrXVTe1W/R1IWjgEssF7U4/ZX5m+wS1mu+cTSwli4GDEtBmrUipPwgoK3u+3I8fGsQ/AHUaL7T6WFTcjSIqFuBZR5WbU2Av5XmcsU3Raf4oPyxXqGcAXnlOhnD+s6Vkitvcza4jIZ0fMsWvrQm043SFtl+Ol0t8GedcKeE4BeyQrUSgXWBBYjnnOBbUtkn6OISBgCbp8ABDJvPt++lMCqKFja9HKCzcPO3BCwll6duLZFzvSPJiemwTJG57U="
+
+  # REGISTRY_PASS
+  - secure: "R5OW5RNUdJaKRicP3Rs0Mt65V5pF4XBMklRubRg02XjisujP+xXsPSwE7DUoyRtgCAXoYC3Ej1SNoY7fbHnFw7cxjMvMviTTpKV0VOEdfTmDPUajnZTs3uYD7N4lSAfT5JTeAmOKZAdC0XOFiT3+Fw5wrQaNlsBcwkKiruCdtVIUJV2usnMZLOwcCmkI9YESmFEiOSfnUwycbbF+whS7I6YIRZGqUCBVwDu9ufUz4F1XetlQzGnaDXxW5LZSNiDGZ4sSqeHyAbZpYYZ3lHl86lrF/Dd8LahsV4S5bx0vj1/2+A46eOBUhB8nhS+hcKsYCBSbvt0jbRgRXomw/73d3l3Vwa4ERrVbKkwJmHdsG6MRmee77dUvqXfg/VTbvjoblc73IsaKvu/OG/MDKz88JCpK4HnwE5+gwvxfUpSihw2YjDV8+SkGtlWtsalHRM4k6O/bTDnbxtbPGwbQ+jiy4kzl1luSF/W0yCEZvVMxKEcKQdF5kk61u9AQ92HPFxooHL5bMEzNQmiNn4UWPXGlfrjg5CHcnYHYfrN+NGdD6Uke+/18g4QkCulK6DtjT3+qZH7unXK3Jh/d8f3U4sq7zxxLhOwzMdZ9Xnm3L9jjo4kfrzCDZQvud0jjO03cyIjaL+pEYS55ZZ2cd+DonLBuCoL1WfbEXv5pzazguZ2Owm4="
+
+  - DOCKER_REGISTRY=petclinic.azurecr.io
+
+language: java
+jdk: oraclejdk8
+
+before_install:
+- docker login petclinic.azurecr.io -u $REGISTRY_USER -p $REGISTRY_PASS
+- chmod +x scripts/install_dependencies.sh
+- scripts/install_dependencies.sh
+
+script:
+- make travis_registry
+
+after_success:
+- make travis_deploy

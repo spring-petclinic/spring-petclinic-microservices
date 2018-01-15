@@ -12,3 +12,9 @@ target/
 
 # Branch switching
 generated/
+
+# template output
+templates/output
+
+#logs
+.log

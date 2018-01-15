@@ -41,7 +41,7 @@ public class VisitsServiceClient {
         final ParameterizedTypeReference<List<VisitDetails>> responseType = new ParameterizedTypeReference<List<VisitDetails>>() {
         };
         return petIds.parallelStream()
-            .flatMap(petId -> loadBalancedRestTemplate.exchange("http://visits-service/owners/{ownerId}/pets/{petId}/visits", HttpMethod.GET, null,
+            .flatMap(petId -> loadBalancedRestTemplate.exchange("http://visits-service:8082/owners/{ownerId}/pets/{petId}/visits", HttpMethod.GET, null,
                 responseType, ownerId, petId).getBody().stream())
             .collect(groupingBy(VisitDetails::getPetId));
     }
