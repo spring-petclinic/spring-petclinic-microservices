@@ -35,7 +35,7 @@ import static java.util.Collections.emptyList;
  * @author Maciej Szarlinski
  */
 @RestController
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor
 public class ApiGatewayController {
 
     private final CustomersServiceClient customersServiceClient;

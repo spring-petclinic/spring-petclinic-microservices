@@ -31,7 +31,7 @@ import static java.util.stream.Collectors.groupingBy;
  * @author Maciej Szarlinski
  */
 @Component
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor
 public class VisitsServiceClient {
 
     private final RestTemplate loadBalancedRestTemplate;

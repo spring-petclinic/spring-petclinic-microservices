@@ -12,7 +12,7 @@
     <parent>
         <groupId>org.springframework.samples</groupId>
         <artifactId>spring-petclinic-microservices</artifactId>
-        <version>1.5.3</version>
+        <version>1.5.9</version>
     </parent>
 
     <dependencies>

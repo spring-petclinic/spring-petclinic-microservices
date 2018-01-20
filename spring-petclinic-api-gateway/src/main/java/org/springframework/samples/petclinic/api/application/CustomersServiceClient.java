@@ -24,7 +24,7 @@ import org.springframework.web.client.RestTemplate;
  * @author Maciej Szarlinski
  */
 @Component
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor
 public class CustomersServiceClient {
 
     private final RestTemplate loadBalancedRestTemplate;
