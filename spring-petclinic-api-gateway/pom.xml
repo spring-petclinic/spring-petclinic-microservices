@@ -11,7 +11,7 @@
     <parent>
         <groupId>org.springframework.samples</groupId>
         <artifactId>spring-petclinic-microservices</artifactId>
-        <version>1.5.3</version>
+        <version>1.5.9</version>
     </parent>
 
     <properties>
@@ -61,7 +61,7 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-eureka</artifactId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -69,7 +69,7 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-zuul</artifactId>
+            <artifactId>spring-cloud-starter-netflix-zuul</artifactId>
         </dependency>
 
         <!-- Third parties -->
