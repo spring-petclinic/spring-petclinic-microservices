@@ -36,7 +36,7 @@ import java.util.List;
  */
 @RequestMapping("/owners")
 @RestController
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor
 @Slf4j
 class OwnerResource {
 

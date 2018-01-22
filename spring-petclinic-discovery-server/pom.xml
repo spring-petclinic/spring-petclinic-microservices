@@ -11,7 +11,7 @@
     <parent>
         <groupId>org.springframework.samples</groupId>
         <artifactId>spring-petclinic-microservices</artifactId>
-        <version>1.5.3</version>
+        <version>1.5.9</version>
     </parent>
 
     <dependencies>
@@ -29,7 +29,7 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-eureka-server</artifactId>
+            <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
         </dependency>
 
     </dependencies>

@@ -34,7 +34,7 @@ import java.util.List;
  * @author Maciej Szarlinski
  */
 @RestController
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor
 @Slf4j
 public class VisitResource {
 
