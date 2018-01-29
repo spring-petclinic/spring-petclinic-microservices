@@ -33,6 +33,8 @@
         <java.version>1.8</java.version>
 
 		<docker.image.prefix>mszarlinski</docker.image.prefix>
+        <docker.image.exposed.port>9090</docker.image.exposed.port>
+        <docker.image.dockerfile.dir>${basedir}</docker.image.dockerfile.dir>
 		<docker.plugin.version>0.4.13</docker.plugin.version>
     </properties>
 
@@ -124,6 +126,44 @@
                 </plugins>
             </build>
 
+        </profile>
+
+        <profile>
+            <id>buildDocker</id>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>com.spotify</groupId>
+                            <artifactId>docker-maven-plugin</artifactId>
+                            <version>${docker.plugin.version}</version>
+                            <executions>
+                                <execution>
+                                    <phase>install</phase>
+                                    <goals>
+                                        <goal>build</goal>
+                                    </goals>
+                                </execution>
+                            </executions>
+                            <configuration>
+                                <imageName>${docker.image.prefix}/${project.artifactId}</imageName>
+                                <dockerDirectory>${docker.image.dockerfile.dir}</dockerDirectory>
+                                <resources>
+                                    <resource>
+                                        <targetPath>/</targetPath>
+                                        <directory>${project.build.directory}</directory>
+                                        <include>${project.build.finalName}.jar</include>
+                                    </resource>
+                                </resources>
+                                <buildArgs>
+                                    <ARTIFACT_NAME>${project.build.finalName}</ARTIFACT_NAME>
+                                    <EXPOSED_PORT>${docker.image.exposed.port}</EXPOSED_PORT>
+                                </buildArgs>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
         </profile>
     </profiles>
 
