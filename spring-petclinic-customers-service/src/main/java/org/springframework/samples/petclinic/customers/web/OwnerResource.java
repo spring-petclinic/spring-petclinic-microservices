@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Juergen Hoeller
@@ -56,8 +57,8 @@ class OwnerResource {
      * Read single Owner
      */
     @GetMapping(value = "/{ownerId}")
-    public Owner findOwner(@PathVariable("ownerId") int ownerId) {
-        return ownerRepository.findOne(ownerId);
+    public Optional<Owner> findOwner(@PathVariable("ownerId") int ownerId) {
+        return ownerRepository.findById(ownerId);
     }
 
     /**
@@ -74,7 +75,11 @@ class OwnerResource {
     @PutMapping(value = "/{ownerId}")
     @Monitored
     public Owner updateOwner(@PathVariable("ownerId") int ownerId, @Valid @RequestBody Owner ownerRequest) {
-        final Owner ownerModel = ownerRepository.findOne(ownerId);
+        final Optional<Owner> owner = ownerRepository.findById(ownerId);
+        if (!owner.isPresent()) {
+            throw new ResourceNotFoundException("Owner "+ownerId+" not found");
+        }
+        final Owner ownerModel = owner.get();
         // This is done by hand for simplicity purpose. In a real life use-case we should consider using MapStruct.
         ownerModel.setFirstName(ownerRequest.getFirstName());
         ownerModel.setLastName(ownerRequest.getLastName());

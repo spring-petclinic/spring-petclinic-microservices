@@ -1,25 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.5.9.RELEASE</version>
-	</parent>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.0.0.RELEASE</version>
+    </parent>
 
-	<groupId>org.springframework.samples</groupId>
-	<artifactId>spring-petclinic-microservices</artifactId>
-	<version>1.5.9</version>
+    <groupId>org.springframework.samples</groupId>
+    <artifactId>spring-petclinic-microservices</artifactId>
+    <version>2.0.0</version>
     <name>${project.artifactId}</name>
-	<packaging>pom</packaging>
+    <packaging>pom</packaging>
 
-	<modules>
-		<module>spring-petclinic-admin-server</module>
-		<module>spring-petclinic-customers-service</module>
-		<module>spring-petclinic-vets-service</module>
-		<module>spring-petclinic-visits-service</module>
-		<module>spring-petclinic-config-server</module>
+    <modules>
+        <module>spring-petclinic-admin-server</module>
+        <module>spring-petclinic-customers-service</module>
+        <module>spring-petclinic-vets-service</module>
+        <module>spring-petclinic-visits-service</module>
+        <module>spring-petclinic-config-server</module>
         <module>spring-petclinic-discovery-server</module>
         <module>spring-petclinic-api-gateway</module>
         <module>spring-petclinic-monitoring</module>
@@ -28,32 +29,32 @@
 
     <properties>
         <assertj.version>3.9.0</assertj.version>
-        <spring-cloud.version>Edgware.SR1</spring-cloud.version>
-        <sleuth.version>1.3.1.RELEASE</sleuth.version>
+        <spring-cloud.version>Finchley.M9</spring-cloud.version>
+        <sleuth.version>2.0.0.M9</sleuth.version>
         <java.version>1.8</java.version>
 
-		<docker.image.prefix>mszarlinski</docker.image.prefix>
+        <docker.image.prefix>mszarlinski</docker.image.prefix>
         <docker.image.exposed.port>9090</docker.image.exposed.port>
         <docker.image.dockerfile.dir>${basedir}</docker.image.dockerfile.dir>
-		<docker.plugin.version>0.4.13</docker.plugin.version>
+        <docker.plugin.version>0.4.13</docker.plugin.version>
     </properties>
 
-	<dependencyManagement>
-		<dependencies>
+    <dependencyManagement>
+        <dependencies>
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-sleuth-dependencies</artifactId>
-				<type>pom</type>
-				<scope>import</scope>
+                <type>pom</type>
+                <scope>import</scope>
                 <version>${sleuth.version}</version>
             </dependency>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-dependencies</artifactId>
-				<version>${spring-cloud.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
 
             <dependency>
                 <groupId>org.springframework.samples.petclinic.monitoring</groupId>
@@ -66,8 +67,8 @@
                 <version>${assertj.version}</version>
                 <scope>test</scope>
             </dependency>
-		</dependencies>
-	</dependencyManagement>
+        </dependencies>
+    </dependencyManagement>
 
     <profiles>
         <profile>
@@ -166,5 +167,13 @@
             </build>
         </profile>
     </profiles>
+
+    <repositories>
+        <repository>
+            <id>repository.spring.milestone</id>
+            <name>Spring Milestone Repository</name>
+            <url>http://repo.spring.io/milestone</url>
+        </repository>
+    </repositories>
 
 </project>

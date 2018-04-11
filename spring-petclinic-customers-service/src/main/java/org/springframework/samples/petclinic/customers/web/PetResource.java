@@ -24,6 +24,7 @@ import org.springframework.samples.petclinic.monitoring.Monitored;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Juergen Hoeller
@@ -53,8 +54,11 @@ class PetResource {
         @PathVariable("ownerId") int ownerId) {
 
         final Pet pet = new Pet();
-        final Owner owner = ownerRepository.findOne(ownerId);
-        owner.addPet(pet);
+        final Optional<Owner> owner = ownerRepository.findById(ownerId);
+        if (!owner.isPresent()) {
+            throw new ResourceNotFoundException("Owner "+ownerId+" not found");
+        }
+        owner.get().addPet(pet);
 
         save(pet, petRequest);
     }
@@ -63,7 +67,9 @@ class PetResource {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Monitored
     public void processUpdateForm(@RequestBody PetRequest petRequest) {
-        save(petRepository.findOne(petRequest.getId()), petRequest);
+        int petId = petRequest.getId();
+        Pet pet = findPetById(petId);
+        save(pet, petRequest);
     }
 
     private void save(final Pet pet, final PetRequest petRequest) {
@@ -80,7 +86,16 @@ class PetResource {
 
     @GetMapping("owners/*/pets/{petId}")
     public PetDetails findPet(@PathVariable("petId") int petId) {
-        return new PetDetails(petRepository.findOne(petId));
+        return new PetDetails(findPetById(petId));
+    }
+
+
+    private Pet findPetById(int petId) {
+        Optional<Pet> pet = petRepository.findById(petId);
+        if (!pet.isPresent()) {
+            throw new ResourceNotFoundException("Pet "+petId+" not found");
+        }
+        return pet.get();
     }
 
 }
