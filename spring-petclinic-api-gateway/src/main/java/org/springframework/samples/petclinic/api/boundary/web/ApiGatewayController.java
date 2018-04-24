@@ -15,37 +15,38 @@
  */
 package org.springframework.samples.petclinic.api.boundary.web;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.samples.petclinic.api.application.CustomersServiceClient;
-import org.springframework.samples.petclinic.api.application.OwnerDetails;
-import org.springframework.samples.petclinic.api.application.VisitDetails;
-import org.springframework.samples.petclinic.api.application.VisitsServiceClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import static java.util.Collections.*;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static java.util.Collections.emptyList;
+import org.springframework.samples.petclinic.api.application.CustomersService;
+import org.springframework.samples.petclinic.api.application.OwnerDetails;
+import org.springframework.samples.petclinic.api.application.VisitDetails;
+import org.springframework.samples.petclinic.api.application.VisitsService;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Maciej Szarlinski
+ * @author lain
  */
 @RestController
 @RequiredArgsConstructor
 public class ApiGatewayController {
 
-    private final CustomersServiceClient customersServiceClient;
+    private final CustomersService customersService;
 
-    private final VisitsServiceClient visitsServiceClient;
+    private final VisitsService visitsService;
 
     @GetMapping(value = "owners/{ownerId}")
     public OwnerDetails getOwnerDetails(final @PathVariable int ownerId) {
-        final OwnerDetails owner = customersServiceClient.getOwner(ownerId);
-        supplyVisits(owner, visitsServiceClient.getVisitsForPets(owner.getPetIds(), ownerId));
+        final OwnerDetails owner = customersService.getOwner(ownerId);
+        supplyVisits(owner, visitsService.getVisitsForPets(owner.getPetIds(), ownerId));
         return owner;
     }
 
