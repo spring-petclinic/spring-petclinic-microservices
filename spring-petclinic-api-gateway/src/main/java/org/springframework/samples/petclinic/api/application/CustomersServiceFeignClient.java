@@ -11,5 +11,5 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface CustomersServiceFeignClient {
 
     @GetMapping("/owners/{ownerId}")
-    OwnerDetails getOwner(@PathVariable final int ownerId);
+    OwnerDetails getOwner(@PathVariable("ownerId") final int ownerId);
 }

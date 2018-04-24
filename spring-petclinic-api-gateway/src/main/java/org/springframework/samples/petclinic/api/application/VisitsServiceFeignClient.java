@@ -13,5 +13,5 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface VisitsServiceFeignClient {
 
     @GetMapping("/owners/{ownerId}/pets/{petId}/visits")
-    List<VisitDetails> getVisitDetails(@PathVariable final int ownerId, @PathVariable final int petId);
+    List<VisitDetails> getVisitDetails(@PathVariable("ownerId") final int ownerId, @PathVariable("petId") final int petId);
 }
