@@ -15,21 +15,21 @@
  */
 package org.springframework.samples.petclinic.api.application;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Maciej Szarlinski
+ * @author lain
  */
 @Component
 @RequiredArgsConstructor
-public class CustomersServiceClient {
+public class CustomersService {
 
-    private final RestTemplate loadBalancedRestTemplate;
+    private final CustomersServiceFeignClient feignClient;
 
     public OwnerDetails getOwner(final int ownerId) {
-        return loadBalancedRestTemplate.getForObject("http://customers-service/owners/{ownerId}", OwnerDetails.class, ownerId);
+        return feignClient.getOwner(ownerId);
     }
 }
