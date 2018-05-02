@@ -27,6 +27,9 @@ After starting services it takes a while for API Gateway to be in sync with serv
 so don't be scared of initial Zuul timeouts. You can track services availability using Eureka dashboard
 available by default at http://localhost:8761.
 
+*NOTE: Under MacOSX or Windows, make sure that the Docker VM has enough memory to run the microservices. The default settings
+are usually not enough and make the `docker-compose up` painfully slow.*
+
 ## Understanding the Spring Petclinic application with a few diagrams
 <a href="https://speakerdeck.com/michaelisvy/spring-petclinic-sample-application">See the presentation here</a>
 
