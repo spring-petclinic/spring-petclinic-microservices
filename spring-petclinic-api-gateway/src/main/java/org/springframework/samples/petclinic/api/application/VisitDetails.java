@@ -16,18 +16,20 @@
 package org.springframework.samples.petclinic.api.application;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Maciej Szarlinski
  */
 @Data
+@NoArgsConstructor
 public class VisitDetails {
 
-    private final int id;
+    private int id;
 
-    private final int petId;
+    private int petId;
 
-    private final String date;
+    private String date;
 
-    private final String description;
+    private String description;
 }

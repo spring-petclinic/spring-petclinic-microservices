@@ -17,6 +17,7 @@ package org.springframework.samples.petclinic.api.application;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,19 +28,20 @@ import static java.util.stream.Collectors.toList;
  * @author Maciej Szarlinski
  */
 @Data
+@NoArgsConstructor
 public class OwnerDetails {
 
-    private final int id;
+    private int id;
 
-    private final String firstName;
+    private String firstName;
 
-    private final String lastName;
+    private String lastName;
 
-    private final String address;
+    private String address;
 
-    private final String city;
+    private String city;
 
-    private final String telephone;
+    private String telephone;
 
     private final List<PetDetails> pets = new ArrayList<>();
 
