@@ -25,7 +25,6 @@ import java.util.List;
  * @author Maciej Szarlinski
  */
 @Data
-@NoArgsConstructor
 public class PetDetails {
 
     private int id;

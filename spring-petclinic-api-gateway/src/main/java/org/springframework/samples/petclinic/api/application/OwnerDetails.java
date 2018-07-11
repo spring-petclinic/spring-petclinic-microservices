@@ -28,7 +28,6 @@ import static java.util.stream.Collectors.toList;
  * @author Maciej Szarlinski
  */
 @Data
-@NoArgsConstructor
 public class OwnerDetails {
 
     private int id;

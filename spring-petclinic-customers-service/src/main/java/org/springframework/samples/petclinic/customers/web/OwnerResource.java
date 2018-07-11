@@ -76,10 +76,8 @@ class OwnerResource {
     @Monitored
     public Owner updateOwner(@PathVariable("ownerId") int ownerId, @Valid @RequestBody Owner ownerRequest) {
         final Optional<Owner> owner = ownerRepository.findById(ownerId);
-        if (!owner.isPresent()) {
-            throw new ResourceNotFoundException("Owner "+ownerId+" not found");
-        }
-        final Owner ownerModel = owner.get();
+
+        final Owner ownerModel = owner.orElseThrow(() -> new ResourceNotFoundException("Owner "+ownerId+" not found"));
         // This is done by hand for simplicity purpose. In a real life use-case we should consider using MapStruct.
         ownerModel.setFirstName(ownerRequest.getFirstName());
         ownerModel.setLastName(ownerRequest.getLastName());

@@ -54,11 +54,9 @@ class PetResource {
         @PathVariable("ownerId") int ownerId) {
 
         final Pet pet = new Pet();
-        final Optional<Owner> owner = ownerRepository.findById(ownerId);
-        if (!owner.isPresent()) {
-            throw new ResourceNotFoundException("Owner "+ownerId+" not found");
-        }
-        owner.get().addPet(pet);
+        final Optional<Owner> optionalOwner = ownerRepository.findById(ownerId);
+        Owner owner = optionalOwner.orElseThrow(() -> new ResourceNotFoundException("Owner "+ownerId+" not found"));
+        owner.addPet(pet);
 
         save(pet, petRequest);
     }

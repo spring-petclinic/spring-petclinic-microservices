@@ -22,7 +22,6 @@ import lombok.NoArgsConstructor;
  * @author Maciej Szarlinski
  */
 @Data
-@NoArgsConstructor
 public class PetType {
 
     private String name;
