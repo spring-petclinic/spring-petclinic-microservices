@@ -39,7 +39,7 @@ public class PetResourceDatabaseTest {
 
     @Test
     public void shouldGetAPet() throws Exception {
-        Pet pet = petRepository.findOne(2);
+        Pet pet = petRepository.findById(2).get();
         assertThat(petRepository.findAll()).contains(pet);
     }
 }
