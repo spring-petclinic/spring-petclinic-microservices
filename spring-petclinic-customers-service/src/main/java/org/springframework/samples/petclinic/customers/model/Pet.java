@@ -29,6 +29,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.core.style.ToStringCreator;
 
 /**
  * Simple business object representing a pet.
@@ -100,4 +101,17 @@ public class Pet {
     public void setOwner(final Owner owner) {
         this.owner = owner;
     }
+
+    @Override
+    public String toString() {
+        return new ToStringCreator(this)
+            .append("id", this.getId())
+            .append("name", this.getName())
+            .append("birthDate", this.getBirthDate())
+            .append("type", this.getType().getName())
+            .append("ownerFirstname", this.getOwner().getFirstName())
+            .append("ownerLastname", this.getOwner().getLastName())
+            .toString();
+    }
+
 }

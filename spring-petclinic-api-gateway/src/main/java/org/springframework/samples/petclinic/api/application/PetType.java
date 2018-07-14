@@ -16,6 +16,7 @@
 package org.springframework.samples.petclinic.api.application;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Maciej Szarlinski
@@ -23,5 +24,5 @@ import lombok.Data;
 @Data
 public class PetType {
 
-    private final String name;
+    private String name;
 }
