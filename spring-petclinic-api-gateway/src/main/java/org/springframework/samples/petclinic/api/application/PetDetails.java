@@ -16,6 +16,7 @@
 package org.springframework.samples.petclinic.api.application;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,13 +27,13 @@ import java.util.List;
 @Data
 public class PetDetails {
 
-    private final int id;
+    private int id;
 
-    private final String name;
+    private String name;
 
-    private final String birthDate;
+    private String birthDate;
 
-    private final PetType type;
+    private PetType type;
 
     private final List<VisitDetails> visits = new ArrayList<>();
 

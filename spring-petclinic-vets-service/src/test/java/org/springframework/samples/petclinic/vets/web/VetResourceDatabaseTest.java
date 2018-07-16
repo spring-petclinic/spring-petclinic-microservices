@@ -41,7 +41,7 @@ public class VetResourceDatabaseTest {
 
     @Test
     public void shouldGetAListOfVetsInJSonFormat() throws Exception {
-        Vet vet = vetRepository.findOne(1);
+        Vet vet = vetRepository.findById(1).get();
         assertThat(vetRepository.findAll()).contains(vet);
     }
 }

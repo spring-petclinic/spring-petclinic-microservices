@@ -55,7 +55,7 @@ public class VetResourceTest {
 
         given(vetRepository.findAll()).willReturn(asList(vet));
 
-        mvc.perform(get("/vets.json").accept(MediaType.APPLICATION_JSON))
+        mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(1));
     }
