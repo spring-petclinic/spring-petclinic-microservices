@@ -43,21 +43,41 @@ Our issue tracker is available here: https://github.com/spring-petclinic/spring-
 
 ## Database configuration
 
-In its default configuration, Petclinic uses an in-memory database (HSQLDB) which
-gets populated at startup with data. A similar setup is provided for MySql in case a persistent database configuration is needed.
-Note that whenever the database type is changed, the data-access.properties file needs to be updated and the mysql-connector-java artifact from the pom.xml needs to be uncommented.
+In its default configuration, Petclinic uses an in-memory database (HSQLDB) which gets populated at startup with data.
+A similar setup is provided for MySql in case a persistent database configuration is needed.
+Dependency for Connector/J, the MySQL JDBC driver is already included in the `dpom.xml` files.
+
+### Start a MySql database
 
 You may start a MySql database with docker:
 
 ```
 docker run -e MYSQL_ROOT_PASSWORD=petclinic -e MYSQL_DATABASE=petclinic -p 3306:3306 mysql:5.7.8
 ```
+or download and install the MySQL database (e.g., MySQL Community Server 5.7 GA), which can be found here: https://dev.mysql.com/downloads/
+
+### Use the Spring 'mysql' profile
+
+To use a MySQL database, you have to start 3 microservices (`visits-service`, `customers-service` and `vets-services`)
+with the `mysql` Spring profile. Add the `--spring.profiles.active=mysql`` as programm argument.
+
+By default, at startup, database schema will be created and data will be populated.
+You may also manualy create the PetClinic database and data by executing the `"db/mysql/{schema,data}.sql"` scripts of each 3 microservices. 
+In the `application.yml` of the [Configuration repository], set the `initialization-mode` to `never`.
+
+If you are running the microservices with Docker, you have to add the `mysql` profile into the (Dockerfile)[docker/Dockerfile]:
+```
+ENV SPRING_PROFILES_ACTIVE docker,mysql
+```
+In the `mysql section` of the `application.yml` from the [Configuration repository], you have to change 
+the host and port of your MySQL JDBC connection string. 
+
 
 ## Looking for something in particular?
 
 | Spring Cloud components | Resources  |
 |-------------------------|------------|
-| Configuration server    | [Config server properties](spring-petclinic-config-server/src/main/resources/application.yml) and [Configuration repository](https://github.com/spring-petclinic/spring-petclinic-microservices-config) |
+| Configuration server    | [Config server properties](spring-petclinic-config-server/src/main/resources/application.yml) and [Configuration repository] |
 | Service Discovery       | [Eureka server](spring-petclinic-discovery-server) and [Service discovery client](spring-petclinic-vets-service/src/main/java/org/springframework/samples/petclinic/vets/VetsServiceApplication.java) |
 | API Gateway             | [Zuul reverse proxy](spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/ApiGatewayApplication.java) and [Routing configuration](https://github.com/spring-petclinic/spring-petclinic-microservices-config/blob/master/api-gateway.yml) |
 | Docker Compose          | [Spring Boot with Docker guide](https://spring.io/guides/gs/spring-boot-docker/) and [docker-compose file](docker-compose.yml) |
@@ -78,3 +98,6 @@ docker run -e MYSQL_ROOT_PASSWORD=petclinic -e MYSQL_DATABASE=petclinic -p 3306:
 The [issue tracker](https://github.com/spring-petclinic/spring-petclinic-microservices/issues) is the preferred channel for bug reports, features requests and submitting pull requests.
 
 For pull requests, editor preferences are available in the [editor config](.editorconfig) for easy use in common text editors. Read more and download plugins at <http://editorconfig.org>.
+
+
+[Configuration repository]: https://github.com/spring-petclinic/spring-petclinic-microservices-config
