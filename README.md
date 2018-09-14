@@ -45,7 +45,7 @@ Our issue tracker is available here: https://github.com/spring-petclinic/spring-
 
 In its default configuration, Petclinic uses an in-memory database (HSQLDB) which gets populated at startup with data.
 A similar setup is provided for MySql in case a persistent database configuration is needed.
-Dependency for Connector/J, the MySQL JDBC driver is already included in the `dpom.xml` files.
+Dependency for Connector/J, the MySQL JDBC driver is already included in the `pom.xml` files.
 
 ### Start a MySql database
 
@@ -59,7 +59,7 @@ or download and install the MySQL database (e.g., MySQL Community Server 5.7 GA)
 ### Use the Spring 'mysql' profile
 
 To use a MySQL database, you have to start 3 microservices (`visits-service`, `customers-service` and `vets-services`)
-with the `mysql` Spring profile. Add the `--spring.profiles.active=mysql`` as programm argument.
+with the `mysql` Spring profile. Add the `--spring.profiles.active=mysql` as programm argument.
 
 By default, at startup, database schema will be created and data will be populated.
 You may also manualy create the PetClinic database and data by executing the `"db/mysql/{schema,data}.sql"` scripts of each 3 microservices. 
