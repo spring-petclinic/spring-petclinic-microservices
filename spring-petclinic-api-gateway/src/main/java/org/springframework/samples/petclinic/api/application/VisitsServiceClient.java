@@ -15,17 +15,19 @@
  */
 package org.springframework.samples.petclinic.api.application;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
-
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import org.springframework.samples.petclinic.api.dto.VisitDetails;
+import org.springframework.samples.petclinic.api.dto.Visits;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+
 
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.joining;
+import static org.springframework.web.util.UriComponentsBuilder.fromHttpUrl;
 
 /**
  * @author Maciej Szarlinski
@@ -36,13 +38,17 @@ public class VisitsServiceClient {
 
     private final RestTemplate loadBalancedRestTemplate;
 
-    public Map<Integer, List<VisitDetails>> getVisitsForPets(final List<Integer> petIds, final int ownerId) {
-        //TODO:  expose batch interface in Visit Service
-        final ParameterizedTypeReference<List<VisitDetails>> responseType = new ParameterizedTypeReference<List<VisitDetails>>() {
-        };
-        return petIds.parallelStream()
-            .flatMap(petId -> loadBalancedRestTemplate.exchange("http://visits-service/owners/{ownerId}/pets/{petId}/visits", HttpMethod.GET, null,
-                responseType, ownerId, petId).getBody().stream())
+    public Map<Integer, List<VisitDetails>> getVisitsForPets(final List<Integer> petIds) {
+        UriComponentsBuilder builder = fromHttpUrl("http://visits-service/pets/visits")
+            .queryParam("petId", joinIds(petIds));
+
+        return loadBalancedRestTemplate.getForObject(builder.toUriString(), Visits.class)
+            .getItems()
+            .stream()
             .collect(groupingBy(VisitDetails::getPetId));
+    }
+
+    private String joinIds(List<Integer> petIds) {
+        return petIds.stream().map(Object::toString).collect(joining(","));
     }
 }

@@ -33,4 +33,5 @@ public interface VisitRepository extends JpaRepository<Visit, Integer> {
 
     List<Visit> findByPetId(int petId);
 
+    List<Visit> findByPetIdIn(Iterable<Integer> petIds);
 }
