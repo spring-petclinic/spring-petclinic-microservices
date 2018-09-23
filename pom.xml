@@ -23,7 +23,6 @@
         <module>spring-petclinic-config-server</module>
         <module>spring-petclinic-discovery-server</module>
         <module>spring-petclinic-api-gateway</module>
-        <module>spring-petclinic-monitoring</module>
         <module>spring-petclinic-tracing-server</module>
     </modules>
 
@@ -56,11 +55,6 @@
                 <scope>import</scope>
             </dependency>
 
-            <dependency>
-                <groupId>org.springframework.samples.petclinic.monitoring</groupId>
-                <artifactId>spring-petclinic-monitoring</artifactId>
-                <version>${project.version}</version>
-            </dependency>
             <dependency>
                 <groupId>org.assertj</groupId>
                 <artifactId>assertj-core</artifactId>

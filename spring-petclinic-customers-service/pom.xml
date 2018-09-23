@@ -20,11 +20,6 @@
     </properties>
 
 	<dependencies>
-        <!-- Petclinic -->
-        <dependency>
-            <groupId>org.springframework.samples.petclinic.monitoring</groupId>
-            <artifactId>spring-petclinic-monitoring</artifactId>
-        </dependency>
 
         <!-- Spring Boot -->
         <dependency>
