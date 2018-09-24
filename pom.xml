@@ -28,9 +28,9 @@
 
     <properties>
         <java.version>1.8</java.version>
-        <junit.version>5.3.1</junit.version>
         <assertj.version>3.11.1</assertj.version>
-        
+
+        <spring-boot.version>2.0.4.RELEASE</spring-boot.version>
         <spring-cloud.version>Finchley.SR1</spring-cloud.version>
         <sleuth.version>2.0.0.RC2</sleuth.version>
 
@@ -58,18 +58,17 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-
             <dependency>
-                <groupId>org.junit.jupiter</groupId>
-                <artifactId>junit-jupiter-api</artifactId>
-                <version>${junit.version}</version>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-test</artifactId>
+                <version>${spring-boot.version}</version>
                 <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.junit.jupiter</groupId>
-                <artifactId>junit-jupiter-engine</artifactId>
-                <version>${junit.version}</version>
-                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.assertj</groupId>
