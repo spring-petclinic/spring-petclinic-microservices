@@ -27,10 +27,14 @@
     </modules>
 
     <properties>
-        <assertj.version>3.9.0</assertj.version>
+        <java.version>1.8</java.version>
+        <assertj.version>3.11.1</assertj.version>
+
+        <spring-boot.version>2.0.4.RELEASE</spring-boot.version>
         <spring-cloud.version>Finchley.SR1</spring-cloud.version>
         <sleuth.version>2.0.0.RC2</sleuth.version>
-        <java.version>1.8</java.version>
+
+        <maven-surefire-plugin.version>2.22.0</maven-surefire-plugin.version>
 
         <docker.image.prefix>mszarlinski</docker.image.prefix>
         <docker.image.exposed.port>9090</docker.image.exposed.port>
@@ -54,7 +58,18 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-test</artifactId>
+                <version>${spring-boot.version}</version>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
             <dependency>
                 <groupId>org.assertj</groupId>
                 <artifactId>assertj-core</artifactId>
