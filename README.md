@@ -34,9 +34,17 @@ are usually not enough and make the `docker-compose up` painfully slow.*
 
 [See the presentation of the Spring Petclinic Framework version](http://fr.slideshare.net/AntoineRey/spring-framework-petclinic-sample-application)
 
+[A blog bost introducing the Spring Petclinic Microsevices](http://javaetmoi.com/2018/10/architecture-microservices-avec-spring-cloud/) (french language)
+
 You can then access petclinic here: http://localhost:8080/
 
 ![Spring Petclinic Microservices screenshot](docs/application-screenshot.png)
+
+
+**Architecture diagram of the Spring Petclinic Microservices**
+
+![Spring Petclinic Microservices architecture](docs/microservices-architecture-diagram.jpg)
+
 
 ## In case you find a bug/suggested improvement for Spring Petclinic Microservices
 
