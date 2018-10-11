@@ -3,14 +3,14 @@ services:
   config-server:
     image: mszarlinski/spring-petclinic-config-server
     container_name: config-server
-    mem_limit: 256M
+    mem_limit: 1024M
     ports:
      - 8888:8888
 
   discovery-server:
     image: mszarlinski/spring-petclinic-discovery-server
     container_name: discovery-server
-    mem_limit: 256M
+    mem_limit: 1024M
     links:
      - config-server
     depends_on:
@@ -22,7 +22,7 @@ services:
   customers-service:
     image: mszarlinski/spring-petclinic-customers-service
     container_name: customers-service
-    mem_limit: 256M
+    mem_limit: 1024M
     links:
      - config-server
      - discovery-server
@@ -37,7 +37,7 @@ services:
   visits-service:
     image: mszarlinski/spring-petclinic-visits-service
     container_name: visits-service
-    mem_limit: 256M
+    mem_limit: 1024M
     links:
      - config-server
      - discovery-server
@@ -52,7 +52,7 @@ services:
   vets-service:
     image: mszarlinski/spring-petclinic-vets-service
     container_name: vets-service
-    mem_limit: 256M
+    mem_limit: 1024M
     links:
      - config-server
      - discovery-server
@@ -67,7 +67,7 @@ services:
   api-gateway:
     image: mszarlinski/spring-petclinic-api-gateway
     container_name: api-gateway
-    mem_limit: 256M
+    mem_limit: 1024M
     links:
      - config-server
      - discovery-server
@@ -92,7 +92,7 @@ services:
   admin-server:
     image: mszarlinski/spring-petclinic-admin-server
     container_name: admin-server
-    mem_limit: 256M
+    mem_limit: 1024M
     links:
      - config-server
      - discovery-server
