@@ -83,16 +83,9 @@ services:
      - 8080:8080
 
   tracing-server:
-    image: mszarlinski/spring-petclinic-tracing-server
+    image: openzipkin/zipkin
     container_name: tracing-server
     mem_limit: 256M
-    links:
-     - config-server
-     - discovery-server
-    depends_on:
-     - config-server
-     - discovery-server
-    entrypoint: ["./wait-for-it.sh","discovery-server:8761","--timeout=60","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
     ports:
      - 9411:9411
 
