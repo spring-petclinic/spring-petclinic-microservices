@@ -85,7 +85,7 @@ services:
   tracing-server:
     image: openzipkin/zipkin
     container_name: tracing-server
-    mem_limit: 256M
+    mem_limit: 512M
     ports:
      - 9411:9411
 
