@@ -65,6 +65,8 @@ services:
     image: openzipkin/zipkin
     container_name: tracing-server
     mem_limit: 512M
+    environment:
+    - JAVA_OPTS=-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -Djava.security.egd=file:/dev/./urandom
     ports:
      - 9411:9411
 
