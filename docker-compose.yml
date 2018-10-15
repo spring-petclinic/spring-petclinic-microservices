@@ -11,8 +11,6 @@ services:
     image: mszarlinski/spring-petclinic-discovery-server
     container_name: discovery-server
     mem_limit: 512M
-    links:
-     - config-server
     depends_on:
       - config-server
     entrypoint: ["./dockerize","-wait=tcp://config-server:8888","-timeout=60s","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
@@ -23,10 +21,6 @@ services:
     image: mszarlinski/spring-petclinic-customers-service
     container_name: customers-service
     mem_limit: 512M
-    links:
-     - config-server
-     - discovery-server
-     - tracing-server
     depends_on:
      - config-server
      - discovery-server
@@ -38,10 +32,6 @@ services:
     image: mszarlinski/spring-petclinic-visits-service
     container_name: visits-service
     mem_limit: 512M
-    links:
-     - config-server
-     - discovery-server
-     - tracing-server
     depends_on:
      - config-server
      - discovery-server
@@ -53,10 +43,6 @@ services:
     image: mszarlinski/spring-petclinic-vets-service
     container_name: vets-service
     mem_limit: 512M
-    links:
-     - config-server
-     - discovery-server
-     - tracing-server
     depends_on:
      - config-server
      - discovery-server
@@ -68,13 +54,6 @@ services:
     image: mszarlinski/spring-petclinic-api-gateway
     container_name: api-gateway
     mem_limit: 512M
-    links:
-     - config-server
-     - discovery-server
-     - customers-service
-     - visits-service
-     - vets-service
-     - tracing-server
     depends_on:
      - config-server
      - discovery-server
@@ -93,9 +72,6 @@ services:
     image: mszarlinski/spring-petclinic-admin-server
     container_name: admin-server
     mem_limit: 512M
-    links:
-     - config-server
-     - discovery-server
     depends_on:
      - config-server
      - discovery-server
