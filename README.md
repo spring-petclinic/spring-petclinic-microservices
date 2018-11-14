@@ -90,7 +90,7 @@ the host and port of your MySQL JDBC connection string.
 | Service Discovery       | [Eureka server](spring-petclinic-discovery-server) and [Service discovery client](spring-petclinic-vets-service/src/main/java/org/springframework/samples/petclinic/vets/VetsServiceApplication.java) |
 | API Gateway             | [Zuul reverse proxy](spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/ApiGatewayApplication.java) and [Routing configuration](https://github.com/spring-petclinic/spring-petclinic-microservices-config/blob/master/api-gateway.yml) |
 | Docker Compose          | [Spring Boot with Docker guide](https://spring.io/guides/gs/spring-boot-docker/) and [docker-compose file](docker-compose.yml) |
-| Circuit Breaker         | TBD |
+| Circuit Breaker         | [Circuit Breaker with Hystrix guide](https://spring.io/guides/gs/circuit-breaker/) and [fallback method configuration](spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/application/VisitsServiceClient.java) |
 | Graphite Monitoring     | TBD |
 
  Front-end module  | Files |
