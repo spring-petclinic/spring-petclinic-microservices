@@ -56,7 +56,7 @@ public class VisitsServiceClient {
         return petIds.stream().map(Object::toString).collect(joining(","));
     }
 
-    public Map<Integer, List<VisitDetails>> emptyVisitsForPets(List<Integer> petIds) {
+    private Map<Integer, List<VisitDetails>> emptyVisitsForPets(List<Integer> petIds) {
         return Collections.emptyMap();
     }
 }
