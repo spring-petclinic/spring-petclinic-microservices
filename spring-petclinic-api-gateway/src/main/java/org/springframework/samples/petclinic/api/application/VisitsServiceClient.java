@@ -15,7 +15,7 @@
  */
 package org.springframework.samples.petclinic.api.application;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -57,6 +57,6 @@ public class VisitsServiceClient {
     }
 
     public Map<Integer, List<VisitDetails>> emptyVisitsForPets(List<Integer> petIds) {
-        return new HashMap<>();
+        return Collections.emptyMap();
     }
 }
