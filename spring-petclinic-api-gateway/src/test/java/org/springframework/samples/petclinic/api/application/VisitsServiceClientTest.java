@@ -63,11 +63,7 @@ class VisitsServiceClientTest {
 
         Map<Integer, List<VisitDetails>> visits = visitsServiceClient.getVisitsForPets(Collections.singletonList(1));
 
-        assertNotNull(visits);
-        assertEquals(1, visits.size());
-        assertNotNull(visits.get(1));
-        assertEquals(1, visits.get(PET_ID).size());
-        assertDescriptionEquals(visits.get(PET_ID),"test visit");
+        assertVisitDescriptionEquals(visits, PET_ID,"test visit");
     }
 
     /**
@@ -81,12 +77,14 @@ class VisitsServiceClientTest {
 
         Map<Integer, List<VisitDetails>> visits = visitsServiceClient.getVisitsForPets(Collections.singletonList(1));
 
-        assertNotNull(visits);
         assertEquals(0, visits.size());
     }
 
-    private void assertDescriptionEquals(List<VisitDetails> visitDetails, String description) {
-        assertEquals(description, visitDetails.get(0).getDescription());
+    private void assertVisitDescriptionEquals(Map<Integer, List<VisitDetails>> visits, int petId, String description) {
+        assertEquals(1, visits.size());
+        assertNotNull(visits.get(1));
+        assertEquals(1, visits.get(petId).size());
+        assertEquals(description, visits.get(petId).get(0).getDescription());
     }
 
 }
