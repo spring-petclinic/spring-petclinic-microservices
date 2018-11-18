@@ -31,6 +31,8 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 @ContextConfiguration(classes = {VisitsServiceClient.class})
 class VisitsServiceClientTest {
 
+    private static final Integer PET_ID = 1;
+
     @Autowired
     private VisitsServiceClient visitsServiceClient;
 
@@ -61,11 +63,7 @@ class VisitsServiceClientTest {
 
         Map<Integer, List<VisitDetails>> visits = visitsServiceClient.getVisitsForPets(Collections.singletonList(1));
 
-        assertNotNull(visits);
-        assertEquals(1, visits.size());
-        assertNotNull(visits.get(1));
-        assertEquals(1, visits.get(1).size());
-        assertEquals("test visit", visits.get(1).get(0).getDescription());
+        assertVisitDescriptionEquals(visits, PET_ID,"test visit");
     }
 
     /**
@@ -79,8 +77,14 @@ class VisitsServiceClientTest {
 
         Map<Integer, List<VisitDetails>> visits = visitsServiceClient.getVisitsForPets(Collections.singletonList(1));
 
-        assertNotNull(visits);
         assertEquals(0, visits.size());
+    }
+
+    private void assertVisitDescriptionEquals(Map<Integer, List<VisitDetails>> visits, int petId, String description) {
+        assertEquals(1, visits.size());
+        assertNotNull(visits.get(1));
+        assertEquals(1, visits.get(petId).size());
+        assertEquals(description, visits.get(petId).get(0).getDescription());
     }
 
 }
