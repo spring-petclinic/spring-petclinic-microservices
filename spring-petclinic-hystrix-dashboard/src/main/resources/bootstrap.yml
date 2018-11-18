@@ -1,0 +1,12 @@
+spring:
+  cloud:
+    config:
+      uri: http://localhost:8888
+  application:
+    name: hystrix-dashboard
+---
+spring:
+  profiles: docker
+  cloud:
+    config:
+      uri: http://config-server:8888
