@@ -81,7 +81,7 @@ services:
     ports:
      - 9090:9090
 
-  admin-server:
+  hystrix-dashboard:
     image: mszarlinski/spring-petclinic-hystrix-dashboard
     container_name: hystrix-dashboard
     mem_limit: 512M
