@@ -2,16 +2,12 @@ package org.springframework.samples.petclinic.api.application;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.circuitbreaker.EnableCircuitBreaker;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.http.MediaType;
 import org.springframework.samples.petclinic.api.dto.VisitDetails;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
@@ -25,10 +21,9 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-@ExtendWith(SpringExtension.class)
 @EnableCircuitBreaker
 @EnableAspectJAutoProxy
-@ContextConfiguration(classes = {VisitsServiceClient.class})
+@SpringJUnitConfig(classes = {VisitsServiceClient.class, RestTemplate.class})
 class VisitsServiceClientTest {
 
     private static final Integer PET_ID = 1;
@@ -41,20 +36,10 @@ class VisitsServiceClientTest {
 
     private MockRestServiceServer mockServer;
 
-    @Configuration
-    static class Config {
-        @Bean
-        public RestTemplate restTemplate() {
-            return new RestTemplate();
-        }
-    }
-
-
     @BeforeEach
     public void setUp() {
         mockServer = MockRestServiceServer.createServer(restTemplate);
     }
-
 
     @Test
     public void getVisitsForPets_withAvailableVisitsService() {

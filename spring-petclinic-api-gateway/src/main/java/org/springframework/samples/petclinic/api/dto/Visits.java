@@ -16,12 +16,17 @@
 package org.springframework.samples.petclinic.api.dto;
 
 import java.util.List;
+
+import lombok.NoArgsConstructor;
 import lombok.Value;
 
 /**
  * @author Maciej Szarlinski
  */
 @Value
+@NoArgsConstructor
 public class Visits {
-    private List<VisitDetails> items;
+
+    private List<VisitDetails> items = null;
+
 }
