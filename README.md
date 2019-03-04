@@ -85,17 +85,42 @@ ENV SPRING_PROFILES_ACTIVE docker,mysql
 In the `mysql section` of the `application.yml` from the [Configuration repository], you have to change 
 the host and port of your MySQL JDBC connection string. 
 
+## Custom metrics monitoring
+
+@todo Add default custom dashboards to grafana
+
+Grafana and Prometheus are included in the `docker-compose.yml` configuration, and the public facing applications have been instrumented with [MicroMeter](https://micrometer.io) to collect JVM and custom business metrics.
+
+### Using Prometheus
+
+* Prometheus can be accessed from your local machine at http://localhost:9091
+
+### Using Grafana with Prometheus
+
+* Login to Grafana at http://localhost:3000, the default user/pass is `admin:admin`, you will be prompted to change your password.
+* Setup a prometheus datasource and point the URL to `http://prometheus-server:9090`, leave all the other options set to their default.
+* Add the [Micrometer/SpringBoot dashboard](https://grafana.com/dashboards/4701) via the Import Dashboard menu item. The id for the dashboard is `4701` 
+
+### Custom metrics implementation
+
+* `customers-service` application has the following custom metrics enabled:
+  * counter: `create.owner`
+  * counter: `update.owner`
+  * counter: `create.pet`
+  * counter: `update.pet`
+* `visits-service` application has the following custom metrics enabled:
+  * counter: `create.visit`
 
 ## Looking for something in particular?
 
-| Spring Cloud components | Resources  |
-|-------------------------|------------|
-| Configuration server    | [Config server properties](spring-petclinic-config-server/src/main/resources/application.yml) and [Configuration repository] |
-| Service Discovery       | [Eureka server](spring-petclinic-discovery-server) and [Service discovery client](spring-petclinic-vets-service/src/main/java/org/springframework/samples/petclinic/vets/VetsServiceApplication.java) |
-| API Gateway             | [Zuul reverse proxy](spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/ApiGatewayApplication.java) and [Routing configuration](https://github.com/spring-petclinic/spring-petclinic-microservices-config/blob/master/api-gateway.yml) |
-| Docker Compose          | [Spring Boot with Docker guide](https://spring.io/guides/gs/spring-boot-docker/) and [docker-compose file](docker-compose.yml) |
-| Circuit Breaker         | [Circuit Breaker with Hystrix guide](https://spring.io/guides/gs/circuit-breaker/) and [fallback method configuration](spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/application/VisitsServiceClient.java) |
-| Graphite Monitoring     | TBD |
+| Spring Cloud components         | Resources  |
+|---------------------------------|------------|
+| Configuration server            | [Config server properties](spring-petclinic-config-server/src/main/resources/application.yml) and [Configuration repository] |
+| Service Discovery               | [Eureka server](spring-petclinic-discovery-server) and [Service discovery client](spring-petclinic-vets-service/src/main/java/org/springframework/samples/petclinic/vets/VetsServiceApplication.java) |
+| API Gateway                     | [Zuul reverse proxy](spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/ApiGatewayApplication.java) and [Routing configuration](https://github.com/spring-petclinic/spring-petclinic-microservices-config/blob/master/api-gateway.yml) |
+| Docker Compose                  | [Spring Boot with Docker guide](https://spring.io/guides/gs/spring-boot-docker/) and [docker-compose file](docker-compose.yml) |
+| Circuit Breaker                 | TBD |
+| Grafana / Prometheus Monitoring | [Micrometer implementation](https://micrometer.io/) |
 
  Front-end module  | Files |
 |-------------------|-------|
