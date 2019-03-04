@@ -1,4 +1,8 @@
 version: '2'
+
+volumes:
+  graf-data:
+
 services:
   config-server:
     image: mszarlinski/spring-petclinic-config-server
@@ -91,3 +95,22 @@ services:
     entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
     ports:
      - 7979:7979
+
+  ## Grafana / Prometheus
+
+  grafana-server:
+    image: grafana/grafana:5.2.4
+    container_name: grafana-server
+    mem_limit: 256M
+    ports:
+    - 3000:3000
+    volumes:
+    - graf-data:/var/lib/grafana
+
+  prometheus-server:
+    build: ./docker/prometheus
+    image: prometheus-local:v2.4.2
+    container_name: prometheus-server
+    mem_limit: 256M
+    ports:
+    - 9091:9090
