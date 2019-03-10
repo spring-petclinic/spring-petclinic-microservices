@@ -15,7 +15,7 @@
  */
 package org.springframework.samples.petclinic.customers.web;
 
-import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -36,12 +36,12 @@ import java.util.Optional;
  */
 @RequestMapping("/owners")
 @RestController
+@Timed("petclinic.owner")
 @RequiredArgsConstructor
 @Slf4j
 class OwnerResource {
 
     private final OwnerRepository ownerRepository;
-    private final MeterRegistry registry;
 
     /**
      * Create Owner
@@ -49,7 +49,6 @@ class OwnerResource {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public void createOwner(@Valid @RequestBody Owner owner) {
-        registry.counter("create.owner").increment();
         ownerRepository.save(owner);
     }
 
@@ -84,7 +83,6 @@ class OwnerResource {
         ownerModel.setAddress(ownerRequest.getAddress());
         ownerModel.setTelephone(ownerRequest.getTelephone());
         log.info("Saving owner {}", ownerModel);
-        registry.counter("update.owner").increment();
         return ownerRepository.save(ownerModel);
     }
 }
