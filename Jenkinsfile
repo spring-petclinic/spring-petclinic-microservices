@@ -1,39 +1,20 @@
 pipeline {
-
-        
-        agent {
-        docker {
-            image 'maven:3-alpine'
-            args '-v $HOME/.m2:/root/.m2'
-        }
-    }
-//    agent {
-//        docker { image 'cloudbees/jnlp-slave-with-java-build-tools' }
-//    }
-//    agent {
-//        docker 'cloudbees/jnlp-slave-with-java-build-tools'
-//    }
-    stages {
-        stage ('Initialize') {
+        agent none
+        stages {
+          stage("build & SonarQube analysis") {
+            agent any
             steps {
-                sh '''
-                    echo "PATH = ${PATH}"
-                    echo "M2_HOME = ${M2_HOME}"
-                '''
+              withSonarQubeEnv('My SonarQube Server') {
+                sh 'mvn clean package sonar:sonar'
+              }
             }
-        }
-
-        stage ('Build') {
+          }
+          stage("Quality Gate") {
             steps {
-                sh 'mvn -Dmaven.test.failure.ignore=true install' 
+              timeout(time: 1, unit: 'HOURS') {
+                waitForQualityGate abortPipeline: true
+              }
             }
-            post {
-                success {
-                    junit 'target/surefire-reports/**/*.xml' 
-                }
-            }
+          }
         }
-    }
- 
-}
-
+      }
