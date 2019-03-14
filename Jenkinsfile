@@ -1,20 +1,19 @@
-//podTemplate(label: 'maven', activeDeadlineSeconds: 180, containers: [
-//    containerTemplate(name: 'maven', image: 'maven:3.5.4-jdk-10-slim')
-//  ]) {
- 
-pipeline {
-  agent {
-      label "default"
-  }
-  stages {
-    stage('Run maven') {
-      steps {
-        sh 'mvn -version'
-          sh 'mvnw -version'
+/**
+ * This pipeline will execute a simple Maven build
+ */
+
+def label = "maven-${UUID.randomUUID().toString()}"
+
+podTemplate(label: label, containers: [
+  containerTemplate(name: 'maven', image: 'maven:3.3.9-jdk-8-alpine', ttyEnabled: true, command: 'cat')
+  ]) {
+
+  node(label) {
+    stage('Build a Maven project') {
+//      git 'https://github.com/jenkinsci/kubernetes-plugin.git'
+      container('maven') {
+          sh 'mvn -B clean package'
       }
     }
   }
 }
-
-
-
