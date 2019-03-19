@@ -99,17 +99,16 @@ services:
   ## Grafana / Prometheus
 
   grafana-server:
-    image: grafana/grafana:5.2.4
+    build: ./docker/grafana
     container_name: grafana-server
     mem_limit: 256M
     ports:
     - 3000:3000
-    volumes:
-    - graf-data:/var/lib/grafana
+    ##volumes:
+    ##- graf-data:/var/lib/grafana
 
   prometheus-server:
     build: ./docker/prometheus
-    image: prometheus-local:v2.4.2
     container_name: prometheus-server
     mem_limit: 256M
     ports:
