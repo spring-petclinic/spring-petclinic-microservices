@@ -1,6 +1,6 @@
 pipeline {
         agent {
-          node { label 'maven' }
+          node {  'cloudbees/jnlp-slave-with-java-build-tools' }
         }
         stages {
           stage("build & SonarQube analysis") {
