@@ -1,9 +1,7 @@
 pipeline {
         agent {
-
-        node { label 'maven' }
-
-    }
+          node { label 'maven' }
+        }
         stages {
           stage("build & SonarQube analysis") {
             agent any
