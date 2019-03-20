@@ -20,7 +20,7 @@ volumes: [
  
     stage('Test') {
       try {
-        container('gradle') {
+        container('maven') {
           sh """
             pwd
             echo "GIT_BRANCH=${gitBranch}" >> /etc/environment
