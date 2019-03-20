@@ -1,8 +1,5 @@
 version: '2'
 
-volumes:
-  graf-data:
-
 services:
   config-server:
     image: mszarlinski/spring-petclinic-config-server
@@ -104,8 +101,6 @@ services:
     mem_limit: 256M
     ports:
     - 3000:3000
-    ##volumes:
-    ##- graf-data:/var/lib/grafana
 
   prometheus-server:
     build: ./docker/prometheus
