@@ -283,7 +283,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(petclinic_owner_seconds_count{method=\"PUT\", status=\"200\"})",
+          "expr": "sum(petclinic_owner_seconds_count{method=\"PUT\", status=\"204\"})",
           "format": "time_series",
           "instant": true,
           "intervalFactor": 1,
@@ -446,7 +446,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(petclinic_pet_seconds_count{method=\"POST\", status=\"204\"})",
+          "expr": "sum(petclinic_pet_seconds_count{method=\"POST\", status=\"201\"})",
           "format": "time_series",
           "instant": true,
           "intervalFactor": 1,
@@ -528,7 +528,7 @@
       "tableColumn": "Value",
       "targets": [
         {
-          "expr": "sum(petclinic_visit_seconds_count{method=\"POST\", status=\"204\"})",
+          "expr": "sum(petclinic_visit_seconds_count{method=\"POST\", status=\"201\"})",
           "format": "time_series",
           "instant": true,
           "intervalFactor": 1,
@@ -598,21 +598,21 @@
           "refId": "A"
         },
         {
-          "expr": "sum(petclinic_pet_seconds_count{method=\"POST\", status=\"204\"})",
+          "expr": "sum(petclinic_pet_seconds_count{method=\"POST\", status=\"201\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "pet create",
           "refId": "B"
         },
         {
-          "expr": "sum(petclinic_visit_seconds_count{method=\"POST\", status=\"204\"})",
+          "expr": "sum(petclinic_visit_seconds_count{method=\"POST\", status=\"201\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "visit create",
           "refId": "C"
         },
         {
-          "expr": "sum(petclinic_owner_seconds_count{method=\"PUT\", status=\"200\"})",
+          "expr": "sum(petclinic_owner_seconds_count{method=\"PUT\", status=\"204\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "owner update",
