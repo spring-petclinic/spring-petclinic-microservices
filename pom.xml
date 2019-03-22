@@ -6,12 +6,12 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.0.6.RELEASE</version>
+        <version>2.1.1.RELEASE</version>
     </parent>
 
     <groupId>org.springframework.samples</groupId>
     <artifactId>spring-petclinic-microservices</artifactId>
-    <version>2.0.6</version>
+    <version>2.1.2</version>
     <name>${project.artifactId}</name>
     <packaging>pom</packaging>
 
@@ -30,9 +30,9 @@
         <java.version>1.8</java.version>
         <assertj.version>3.11.1</assertj.version>
 
-        <spring-boot.version>2.0.4.RELEASE</spring-boot.version>
-        <spring-cloud.version>Finchley.SR2</spring-cloud.version>
-        <sleuth.version>2.0.0.RC2</sleuth.version>
+        <spring-boot.version>2.1.2.RELEASE</spring-boot.version>
+        <spring-cloud.version>Greenwich.RELEASE</spring-cloud.version>
+        <micrometer.version>1.0.5</micrometer.version>
 
         <maven-surefire-plugin.version>2.22.0</maven-surefire-plugin.version>
 
@@ -45,13 +45,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-sleuth-dependencies</artifactId>
-                <type>pom</type>
-                <scope>import</scope>
-                <version>${sleuth.version}</version>
-            </dependency>
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
