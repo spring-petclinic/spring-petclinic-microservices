@@ -2,7 +2,6 @@ package org.springframework.samples.petclinic.customers.web;
 
 import java.util.Optional;
 
-import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,9 +40,6 @@ class PetResourceTest {
 
     @MockBean
     OwnerRepository ownerRepository;
-
-    @MockBean
-    MeterRegistry registry;
 
     @Test
     void shouldGetAPetInJSonFormat() throws Exception {

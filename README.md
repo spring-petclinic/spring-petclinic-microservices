@@ -6,7 +6,7 @@ This microservices branch was initially derived from [AngularJS version](https:/
 
 ## Starting services locally without Docker
 Every microservice is a Spring Boot application and can be started locally using IDE or `../mvnw spring-boot:run` command. Please note that supporting services (Config and Discovery Server) must be started before any other application (Customers, Vets, Visits and API).
-Tracing server and Admin server startup is optional.
+Startup of Tracing server, Admin server, Grafana and Prometheus is optional.
 If everything goes well, you can access the following services at given location:
 * Discovery Server - http://localhost:8761
 * Config Server - http://localhost:8888
@@ -14,6 +14,8 @@ If everything goes well, you can access the following services at given location
 * Customers, Vets and Visits Services - random port, check Eureka Dashboard 
 * Tracing Server (Zipkin) - http://localhost:9411/zipkin/ (we use [openzipkin](https://github.com/openzipkin/zipkin/tree/master/zipkin-server))
 * Admin Server (Spring Boot Admin) - http://localhost:9090
+* Grafana Dashboards - http://localhost:3000
+* Prometheus - http://localhost:9091
 * Hystrix Dashboard for Circuit Breaker pattern - http://localhost:7979 - On the home page is a form where you can enter 
 the URL for an event stream to monitor, for example the `api-gateway` service running locally: `http://localhost:8080/actuator/hystrix.stream` 
 or running into docker: `http://api-gateway:8080/actuator/hystrix.stream`
@@ -87,29 +89,36 @@ the host and port of your MySQL JDBC connection string.
 
 ## Custom metrics monitoring
 
-@todo Add default custom dashboards to grafana
+Grafana and Prometheus are included in the `docker-compose.yml` configuration, and the public facing applications
+have been instrumented with [MicroMeter](https://micrometer.io) to collect JVM and custom business metrics.
 
-Grafana and Prometheus are included in the `docker-compose.yml` configuration, and the public facing applications have been instrumented with [MicroMeter](https://micrometer.io) to collect JVM and custom business metrics.
+A JMeter load testing script is available to stress the application and generate metrics: [petclinic_test_plan.jmx](spring-petclinic-api-gateway/src/test/jmeter/petclinic_test_plan.jmx)
+
+![Grafana metrics dashboard](docs/grafana-custom-metrics-dashboard.png)
 
 ### Using Prometheus
 
-* Prometheus can be accessed from your local machine at http://localhost:9091
+* Prometheus can be accessed from your local machine at [http://localhost:9091]()
 
 ### Using Grafana with Prometheus
 
-* Login to Grafana at http://localhost:3000, the default user/pass is `admin:admin`, you will be prompted to change your password.
-* Setup a prometheus datasource and point the URL to `http://prometheus-server:9090`, leave all the other options set to their default.
-* Add the [Micrometer/SpringBoot dashboard](https://grafana.com/dashboards/4701) via the Import Dashboard menu item. The id for the dashboard is `4701` 
+* An anonymous access and a Prometheus datasource are setup.
+* A `Spring Petclinic Metrics` Dashboard is available at the URL [http://localhost:3000/d/69JXeR0iw/spring-petclinic-metrics]().
+You will find the JSON configuration file here: [docker/grafana/dashboards/grafana-petclinic-dashboard.json]().
+* You may create your own dashboard or import the [Micrometer/SpringBoot dashboard](https://grafana.com/dashboards/4701) via the Import Dashboard menu item.
+The id for this dashboard is `4701`.
 
-### Custom metrics implementation
+### Custom metrics
+
+Spring Boot registers a lot number of core metrics: JVM, CPU, Tomcat, Logback... 
+The Spring Boot auto-configuration enables the instrumentation of requests handled by Spring MVC.
+All those three REST controllers `OwnerResource`, `PetResource` and `VisitResource` have been instrumented by the `@Timed` Micrometer annotation at class level.
 
 * `customers-service` application has the following custom metrics enabled:
-  * counter: `create.owner`
-  * counter: `update.owner`
-  * counter: `create.pet`
-  * counter: `update.pet`
+  * @Timed: `petclinic.owner`
+  * @Timed: `petclinic.pet`
 * `visits-service` application has the following custom metrics enabled:
-  * counter: `create.visit`
+  * @Timed: `petclinic.visit`
 
 ## Looking for something in particular?
 
@@ -119,8 +128,8 @@ Grafana and Prometheus are included in the `docker-compose.yml` configuration, a
 | Service Discovery               | [Eureka server](spring-petclinic-discovery-server) and [Service discovery client](spring-petclinic-vets-service/src/main/java/org/springframework/samples/petclinic/vets/VetsServiceApplication.java) |
 | API Gateway                     | [Zuul reverse proxy](spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/ApiGatewayApplication.java) and [Routing configuration](https://github.com/spring-petclinic/spring-petclinic-microservices-config/blob/master/api-gateway.yml) |
 | Docker Compose                  | [Spring Boot with Docker guide](https://spring.io/guides/gs/spring-boot-docker/) and [docker-compose file](docker-compose.yml) |
-| Circuit Breaker                 | TBD |
-| Grafana / Prometheus Monitoring | [Micrometer implementation](https://micrometer.io/) |
+| Circuit Breaker                 | [Hystrix fallback method](spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/application/VisitsServiceClient.java)  |
+| Grafana / Prometheus Monitoring | [Micrometer implementation](https://micrometer.io/), [Spring Boot Actuator Production Ready Metrics] |
 
  Front-end module  | Files |
 |-------------------|-------|
@@ -149,3 +158,4 @@ For pull requests, editor preferences are available in the [editor config](.edit
 
 
 [Configuration repository]: https://github.com/spring-petclinic/spring-petclinic-microservices-config
+[Spring Boot Actuator Production Ready Metrics]: https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-metrics.html
