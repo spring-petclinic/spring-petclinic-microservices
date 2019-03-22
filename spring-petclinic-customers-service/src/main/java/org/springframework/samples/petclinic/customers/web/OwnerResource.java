@@ -15,7 +15,7 @@
  */
 package org.springframework.samples.petclinic.customers.web;
 
-import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -36,21 +36,20 @@ import java.util.Optional;
  */
 @RequestMapping("/owners")
 @RestController
+@Timed("petclinic.owner")
 @RequiredArgsConstructor
 @Slf4j
 class OwnerResource {
 
     private final OwnerRepository ownerRepository;
-    private final MeterRegistry registry;
 
     /**
      * Create Owner
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void createOwner(@Valid @RequestBody Owner owner) {
-        registry.counter("create.owner").increment();
-        ownerRepository.save(owner);
+    public Owner createOwner(@Valid @RequestBody Owner owner) {
+        return ownerRepository.save(owner);
     }
 
     /**
@@ -73,7 +72,8 @@ class OwnerResource {
      * Update Owner
      */
     @PutMapping(value = "/{ownerId}")
-    public Owner updateOwner(@PathVariable("ownerId") int ownerId, @Valid @RequestBody Owner ownerRequest) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateOwner(@PathVariable("ownerId") int ownerId, @Valid @RequestBody Owner ownerRequest) {
         final Optional<Owner> owner = ownerRepository.findById(ownerId);
 
         final Owner ownerModel = owner.orElseThrow(() -> new ResourceNotFoundException("Owner "+ownerId+" not found"));
@@ -84,7 +84,6 @@ class OwnerResource {
         ownerModel.setAddress(ownerRequest.getAddress());
         ownerModel.setTelephone(ownerRequest.getTelephone());
         log.info("Saving owner {}", ownerModel);
-        registry.counter("update.owner").increment();
-        return ownerRepository.save(ownerModel);
+        ownerRepository.save(ownerModel);
     }
 }
