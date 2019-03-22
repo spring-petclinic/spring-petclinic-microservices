@@ -33,7 +33,6 @@
         <spring-boot.version>2.0.4.RELEASE</spring-boot.version>
         <spring-cloud.version>Finchley.SR2</spring-cloud.version>
         <sleuth.version>2.0.0.RC2</sleuth.version>
-        <micrometer.version>1.0.5</micrometer.version>
 
         <maven-surefire-plugin.version>2.22.0</maven-surefire-plugin.version>
 
@@ -79,18 +78,6 @@
                 <scope>test</scope>
             </dependency>
 
-            <!-- Micrometer core dependency  -->
-            <dependency>
-                <groupId>io.micrometer</groupId>
-                <artifactId>micrometer-core</artifactId>
-                <version>${micrometer.version}</version>
-            </dependency>
-            <!-- Micrometer Prometheus registry  -->
-            <dependency>
-                <groupId>io.micrometer</groupId>
-                <artifactId>micrometer-registry-prometheus</artifactId>
-                <version>${micrometer.version}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
