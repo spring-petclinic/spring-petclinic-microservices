@@ -25,6 +25,7 @@ import org.springframework.samples.petclinic.api.application.VisitsServiceClient
 import org.springframework.samples.petclinic.api.dto.VisitDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 
@@ -35,6 +36,7 @@ import static java.util.Collections.emptyList;
  */
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/gateway")
 public class ApiGatewayController {
 
     private final CustomersServiceClient customersServiceClient;
