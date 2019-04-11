@@ -7,7 +7,7 @@ kind: Pod
 spec:
   containers:
   - name: docker
-    image: docker:1.11
+    image: docker:18.09
     command: ['cat']
     tty: true
     volumeMounts:
@@ -25,6 +25,7 @@ spec:
     stage("Build artifacts") {
       checkout scm
       container('docker') {
+        sh "docker version"
         sh "docker build -t builder:${BUILD_TAG} --target builder ."
       }
     }
