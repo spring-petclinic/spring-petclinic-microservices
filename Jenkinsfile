@@ -23,7 +23,6 @@ spec:
 """
   ) {
 
-  def image = "jenkins/jnlp-slave"
   node(label) {
     stage("Build images") {
       checkout scm
