@@ -1,3 +1,4 @@
+properties([buildDiscarder(logRotator(numToKeepStr: '8'))])
 
 def label = "petclinic-${UUID.randomUUID().toString()}"
 
