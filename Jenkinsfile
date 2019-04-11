@@ -33,7 +33,7 @@ spec:
        
         sh "docker build -t jcsirot/spring-petclinic-admin-server:${revision} --build-arg SKIP_TESTS=true --target spring-petclinic-admin-server --build-arg REVISION=${revision} --build-arg EXPOSED_PORT=9090 ."
         sh "docker build -t jcsirot/spring-petclinic-customers-service:${revision} --build-arg SKIP_TESTS=true --target spring-petclinic-customers-service --build-arg REVISION=${revision} --build-arg EXPOSED_PORT=8081 ."
-        sh "docker build -t jcsirot/spring-petclinic-vets-service:${revision} --build-arg SKIP_TESTS=true --target spring-petclinic-admin-server --build-arg REVISION=${revision} --build-arg EXPOSED_PORT=8081 ."
+        sh "docker build -t jcsirot/spring-petclinic-vets-service:${revision} --build-arg SKIP_TESTS=true --target spring-petclinic-vets-service --build-arg REVISION=${revision} --build-arg EXPOSED_PORT=8081 ."
         sh "docker build -t jcsirot/spring-petclinic-visits-service:${revision} --build-arg SKIP_TESTS=true --target spring-petclinic-visits-service --build-arg REVISION=${revision} --build-arg EXPOSED_PORT=8081 ."
         sh "docker build -t jcsirot/spring-petclinic-config-server:${revision} --build-arg SKIP_TESTS=true --target spring-petclinic-config-server --build-arg REVISION=${revision} --build-arg EXPOSED_PORT=8888 ."
         sh "docker build -t jcsirot/spring-petclinic-discovery-server:${revision} --build-arg SKIP_TESTS=true --target spring-petclinic-discovery-server --build-arg REVISION=${revision} --build-arg EXPOSED_PORT=8761 ."
