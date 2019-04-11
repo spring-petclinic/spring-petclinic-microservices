@@ -21,7 +21,48 @@ ENTRYPOINT ["java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLim
 FROM base AS spring-petclinic-admin-server
 VOLUME /tmp
 ARG REVISION
-
 COPY --from=builder /spring-petclinic-admin-server/target/spring-petclinic-admin-server-${REVISION}.jar /app.jar
-#ADD ${ARTIFACT_NAME}.jar /app.jar
 RUN touch /app.jar
+
+FROM base AS spring-petclinic-customers-service
+VOLUME /tmp
+ARG REVISION
+COPY --from=builder /spring-petclinic-customers-service/target/spring-petclinic-customers-service-${REVISION}.jar /app.jar
+RUN touch /app.jar
+
+FROM base AS spring-petclinic-vets-service
+VOLUME /tmp
+ARG REVISION
+COPY --from=builder /spring-petclinic-vets-service/target/spring-petclinic-vets-service-${REVISION}.jar /app.jar
+RUN touch /app.jar
+
+FROM base AS spring-petclinic-visits-service
+VOLUME /tmp
+ARG REVISION
+COPY --from=builder /spring-petclinic-visits-service/target/spring-petclinic-visits-service-${REVISION}.jar /app.jar
+RUN touch /app.jar
+
+FROM base AS spring-petclinic-config-server
+VOLUME /tmp
+ARG REVISION
+COPY --from=builder /spring-petclinic-config-server/target/spring-petclinic-config-server-${REVISION}.jar /app.jar
+RUN touch /app.jar
+
+FROM base AS spring-petclinic-discovery-server
+VOLUME /tmp
+ARG REVISION
+COPY --from=builder /spring-petclinic-discovery-server/target/spring-petclinic-discovery-server-${REVISION}.jar /app.jar
+RUN touch /app.jar
+
+FROM base AS spring-petclinic-api-gateway
+VOLUME /tmp
+ARG REVISION
+COPY --from=builder /spring-petclinic-api-gateway/target/spring-petclinic-api-gateway-${REVISION}.jar /app.jar
+RUN touch /app.jar
+
+FROM base AS spring-petclinic-hystrix-dashboard
+VOLUME /tmp
+ARG REVISION
+COPY --from=builder /spring-petclinic-hystrix-dashboard/target/spring-petclinic-hystrix-dashboard-${REVISION}.jar /app.jar
+RUN touch /app.jar
+
