@@ -2,7 +2,7 @@ FROM maven:3.6.0-jdk-8 AS builder
 ARG SKIP_TESTS="false" 
 ARG REVISION
 COPY . .
-RUN mvn package -Drevision=${REVISION} -DskipTests=${SKIP_TESTS}
+RUN mvn --batch-mode install -Drevision=${REVISION} -DskipTests=${SKIP_TESTS}
 
 FROM openjdk:8-jre-alpine AS base
 VOLUME /tmp
@@ -64,3 +64,10 @@ ARG REVISION
 COPY --from=builder --chown=1000:0 /spring-petclinic-hystrix-dashboard/target/spring-petclinic-hystrix-dashboard-${REVISION}.jar /app.jar
 RUN touch /app.jar
 
+FROM builder as sonar
+ARG REVISION
+ARG SONAR_MAVEN_GOAL
+ARG SONAR_HOST_URL
+ARG SONAR_AUTH_TOKEN
+ARG MVN_EXTRA_ARGS=""
+RUN mvn --batch-mode ${SONAR_MAVEN_GOAL} -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.login=$SONAR_AUTH_TOKEN -Drevision=${REVISION} ${MVN_EXTRA_ARGS}
