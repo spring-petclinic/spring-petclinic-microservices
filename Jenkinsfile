@@ -29,19 +29,19 @@ spec:
       stage("Build images") {
         sh "docker version"
         sh "docker build -t builder:${BUILD_TAG} --target builder --build-arg REVISION=${revision} ."
-        
-        sh "docker build -t jcsirot/spring-petclinic-admin-server:${revision} --build-arg SKIP_TESTS=true --target spring-petclinic-admin-server --build-arg REVISION=${revision} --build-arg EXPOSED_PORT=9090 ."
-        sh "docker build -t jcsirot/spring-petclinic-customers-service:${revision} --build-arg SKIP_TESTS=true --target spring-petclinic-customers-service --build-arg REVISION=${revision} --build-arg EXPOSED_PORT=8081 ."
-        sh "docker build -t jcsirot/spring-petclinic-vets-service:${revision} --build-arg SKIP_TESTS=true --target spring-petclinic-vets-service --build-arg REVISION=${revision} --build-arg EXPOSED_PORT=8081 ."
-        sh "docker build -t jcsirot/spring-petclinic-visits-service:${revision} --build-arg SKIP_TESTS=true --target spring-petclinic-visits-service --build-arg REVISION=${revision} --build-arg EXPOSED_PORT=8081 ."
-        sh "docker build -t jcsirot/spring-petclinic-config-server:${revision} --build-arg SKIP_TESTS=true --target spring-petclinic-config-server --build-arg REVISION=${revision} --build-arg EXPOSED_PORT=8888 ."
-        sh "docker build -t jcsirot/spring-petclinic-discovery-server:${revision} --build-arg SKIP_TESTS=true --target spring-petclinic-discovery-server --build-arg REVISION=${revision} --build-arg EXPOSED_PORT=8761 ."
-        sh "docker build -t jcsirot/spring-petclinic-api-gateway:${revision} --build-arg SKIP_TESTS=true --target spring-petclinic-api-gateway --build-arg REVISION=${revision} --build-arg EXPOSED_PORT=8081 ."
-        sh "docker build -t jcsirot/spring-petclinic-hystrix-dashboard:${revision} --build-arg SKIP_TESTS=true --target spring-petclinic-hystrix-dashboard --build-arg REVISION=${revision} --build-arg EXPOSED_PORT=7979 ."
+        sh "docker build -t base:${BUILD_TAG} --target base --build-arg REVISION=${revision} ."
+        sh "docker build -t jcsirot/spring-petclinic-admin-server:${revision} -f spring-petclinic-admin-server/Dockerfile --build-arg BASE_ID=${BUILD_TAG} --build-arg REVISION=${revision} --build-arg EXPOSED_PORT=9090 ."
+        sh "docker build -t jcsirot/spring-petclinic-customers-service:${revision} -f spring-petclinic-customers-service/Dockerfile --build-arg BASE_ID=${BUILD_TAG} --build-arg REVISION=${revision} --build-arg EXPOSED_PORT=8081 ."
+        sh "docker build -t jcsirot/spring-petclinic-vets-service:${revision} -f spring-petclinic-vets-service/Dockerfile --build-arg BASE_ID=${BUILD_TAG} --build-arg REVISION=${revision} --build-arg EXPOSED_PORT=8081 ."
+        sh "docker build -t jcsirot/spring-petclinic-visits-service:${revision} -f spring-petclinic-visits-service/Dockerfile --build-arg BASE_ID=${BUILD_TAG} --build-arg REVISION=${revision} --build-arg EXPOSED_PORT=8081 ."
+        sh "docker build -t jcsirot/spring-petclinic-config-server:${revision} -f spring-petclinic-config-server/Dockerfile --build-arg BASE_ID=${BUILD_TAG} --build-arg REVISION=${revision} --build-arg EXPOSED_PORT=8888 ."
+        sh "docker build -t jcsirot/spring-petclinic-discovery-server:${revision} -f spring-petclinic-discovery-server/Dockerfile --build-arg BASE_ID=${BUILD_TAG} --build-arg REVISION=${revision} --build-arg EXPOSED_PORT=8761 ."
+        sh "docker build -t jcsirot/spring-petclinic-api-gateway:${revision} -f spring-petclinic-api-gateway/Dockerfile --build-arg BASE_ID=${BUILD_TAG} --build-arg REVISION=${revision} --build-arg EXPOSED_PORT=8081 ."
+        sh "docker build -t jcsirot/spring-petclinic-hystrix-dashboard:${revision} -f spring-petclinic-hystrix-dashboard/Dockerfile --build-arg BASE_ID=${BUILD_TAG} --build-arg REVISION=${revision} --build-arg EXPOSED_PORT=7979 ."
       }
       stage("Sonar Analysis") {
         withSonarQubeEnv('sonarqube') {
-          sh "docker build --target sonar --build-arg REVISION=${revision} --build-arg SONAR_MAVEN_GOAL=${SONAR_MAVEN_GOAL} --build-arg SONAR_HOST_URL=${SONAR_HOST_URL} --build-arg SONAR_AUTH_TOKEN=${SONAR_AUTH_TOKEN} ."
+          sh "docker build -f sonar.Dockerfile --build-arg BASE_ID=${BUILD_TAG} --build-arg REVISION=${revision} --build-arg SONAR_MAVEN_GOAL=${SONAR_MAVEN_GOAL} --build-arg SONAR_HOST_URL=${SONAR_HOST_URL} --build-arg SONAR_AUTH_TOKEN=${SONAR_AUTH_TOKEN} ."
         }
       }
     }
