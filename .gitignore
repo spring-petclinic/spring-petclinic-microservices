@@ -6,10 +6,26 @@ target/
 .settings/
 .classpath
 .project
+*.factorypath
+
+
 
 # IntelliJ IDEA
 .idea
 *.iml
 
+# VsCode
+.vscode/
+
+# Dive
+dive.log
+
+# node (snyk)
+node_modules/
+package-lock.json
+
 # Branch switching
 generated/
+
+# local project values
+helm/manifest/*

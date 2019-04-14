@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  {{- if .Values.service.name }}
+  name: {{ .Values.service.name }}
+  {{- else }}
+  name: {{ template "dependency-track.fullname" . }}
+  {{- end }}
+  labels:
+    app.kubernetes.io/name: {{ include "dependency-track.name" . }}
+    helm.sh/chart: {{ include "dependency-track.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: {{ include "dependency-track.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
