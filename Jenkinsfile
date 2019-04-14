@@ -12,7 +12,7 @@ kind: Pod
 spec:
   containers:
   - name: docker
-    image: docker:18.09
+    image: docker:19.03-rc
     command: ['cat']
     tty: true
     volumeMounts:
