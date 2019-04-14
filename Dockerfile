@@ -2,6 +2,7 @@ FROM maven:3.6.0-jdk-8 AS builder
 ARG SKIP_TESTS="false" 
 ARG REVISION
 COPY . .
+RUN mkdir ~/.m2 && cp ci-settings.xml ~/.m2/settings.xml
 RUN mvn --batch-mode install -Drevision=${REVISION} -DskipTests=${SKIP_TESTS}
 
 FROM openjdk:8-jre-alpine AS base
