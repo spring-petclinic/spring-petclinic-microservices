@@ -158,6 +158,12 @@
                         <artifactId>bootstrap</artifactId>
                         <version>${webjars-bootstrap.version}</version>
                     </dependency>
+                    <!-- Some tweak for wro4j 1.8 compatibility with Java 9+-->
+                    <dependency>
+                        <groupId>org.mockito</groupId>
+                        <artifactId>mockito-core</artifactId>
+                        <version>${mockito.version}</version>
+                    </dependency>
                 </dependencies>
             </plugin>
         </plugins>
