@@ -2,6 +2,9 @@
 target/
 !.mvn/wrapper/maven-wrapper.jar
 
+# Jenv
+.java-version
+
 # Eclipse
 .settings/
 .classpath
