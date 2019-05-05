@@ -2,14 +2,14 @@ version: '2'
 
 services:
   config-server:
-    image: mszarlinski/spring-petclinic-config-server
+    image: springcommunity/spring-petclinic-config-server
     container_name: config-server
     mem_limit: 512M
     ports:
      - 8888:8888
 
   discovery-server:
-    image: mszarlinski/spring-petclinic-discovery-server
+    image: springcommunity/spring-petclinic-discovery-server
     container_name: discovery-server
     mem_limit: 512M
     depends_on:
@@ -19,7 +19,7 @@ services:
      - 8761:8761
 
   customers-service:
-    image: mszarlinski/spring-petclinic-customers-service
+    image: springcommunity/spring-petclinic-customers-service
     container_name: customers-service
     mem_limit: 512M
     depends_on:
@@ -30,7 +30,7 @@ services:
     - 8081:8081
 
   visits-service:
-    image: mszarlinski/spring-petclinic-visits-service
+    image: springcommunity/spring-petclinic-visits-service
     container_name: visits-service
     mem_limit: 512M
     depends_on:
@@ -41,7 +41,7 @@ services:
      - 8082:8082
 
   vets-service:
-    image: mszarlinski/spring-petclinic-vets-service
+    image: springcommunity/spring-petclinic-vets-service
     container_name: vets-service
     mem_limit: 512M
     depends_on:
@@ -52,7 +52,7 @@ services:
      - 8083:8083
 
   api-gateway:
-    image: mszarlinski/spring-petclinic-api-gateway
+    image: springcommunity/spring-petclinic-api-gateway
     container_name: api-gateway
     mem_limit: 512M
     depends_on:
@@ -72,7 +72,7 @@ services:
      - 9411:9411
 
   admin-server:
-    image: mszarlinski/spring-petclinic-admin-server
+    image: springcommunity/spring-petclinic-admin-server
     container_name: admin-server
     mem_limit: 512M
     depends_on:
@@ -83,7 +83,7 @@ services:
      - 9090:9090
 
   hystrix-dashboard:
-    image: mszarlinski/spring-petclinic-hystrix-dashboard
+    image: springcommunity/spring-petclinic-hystrix-dashboard
     container_name: hystrix-dashboard
     mem_limit: 512M
     depends_on:
