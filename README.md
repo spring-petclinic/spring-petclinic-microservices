@@ -5,6 +5,7 @@
 This microservices branch was initially derived from [AngularJS version](https://github.com/spring-petclinic/spring-petclinic-angular1) to demonstrate how to split sample Spring application into [microservices](http://www.martinfowler.com/articles/microservices.html). To achieve that goal we used [Spring Cloud Netflix](https://github.com/spring-cloud/spring-cloud-netflix) technology stack.
 
 ## Starting services locally without Docker
+
 Every microservice is a Spring Boot application and can be started locally using IDE or `../mvnw spring-boot:run` command. Please note that supporting services (Config and Discovery Server) must be started before any other application (Customers, Vets, Visits and API).
 Startup of Tracing server, Admin server, Grafana and Prometheus is optional.
 If everything goes well, you can access the following services at given location:
@@ -32,6 +33,8 @@ from a project root. Once images are ready, you can start them with a single com
 After starting services it takes a while for API Gateway to be in sync with service registry,
 so don't be scared of initial Zuul timeouts. You can track services availability using Eureka dashboard
 available by default at http://localhost:8761.
+
+The `master` branch uses an  Alpine linux  with JRE 8 as Docker base. You will find a Java 11 version in the `release/java11` branch.
 
 *NOTE: Under MacOSX or Windows, make sure that the Docker VM has enough memory to run the microservices. The default settings
 are usually not enough and make the `docker-compose up` painfully slow.*
