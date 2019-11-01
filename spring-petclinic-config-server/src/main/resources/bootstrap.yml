@@ -12,4 +12,4 @@ spring:
     config:
       server:
         git:
-          uri: file:///${GIT_REPO}
+          basedir: file:///${GIT_REPO}
