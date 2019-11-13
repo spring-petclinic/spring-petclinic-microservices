@@ -61,7 +61,7 @@ public class ApiGatewayApplication {
     RouterFunction<?> routerFunction() {
         RouterFunction router = RouterFunctions.resources("/**", new ClassPathResource("static/"))
             .andRoute(RequestPredicates.GET("/"),
-                request -> ServerResponse.ok().contentType(MediaType.TEXT_HTML).syncBody(indexHtml));
+                request -> ServerResponse.ok().contentType(MediaType.TEXT_HTML).bodyValue(indexHtml));
         return router;
     }
 }
