@@ -57,7 +57,7 @@ public class VisitsServiceClient {
         return Mono.just(Collections.emptyMap());
     }
 
-    public void setHostname(String hostname) {
+    void setHostname(String hostname) {
         this.hostname = hostname;
     }
 }
