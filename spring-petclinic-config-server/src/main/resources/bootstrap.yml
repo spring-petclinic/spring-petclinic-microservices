@@ -5,11 +5,7 @@ spring:
       server:
         git:
           uri: https://github.com/spring-petclinic/spring-petclinic-microservices-config
----
-spring:
-  profiles: local
-  cloud:
-    config:
-      server:
-        git:
-          uri: file:///${GIT_REPO}
+        # Use the File System Backend to avoid git pulling. Enable "native" profile in the Config Server.
+        native:
+          searchLocations: file:///${GIT_REPO}
+
