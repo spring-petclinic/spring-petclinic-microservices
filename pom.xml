@@ -23,7 +23,6 @@
         <module>spring-petclinic-config-server</module>
         <module>spring-petclinic-discovery-server</module>
         <module>spring-petclinic-api-gateway</module>
-        <module>spring-petclinic-hystrix-dashboard</module>
     </modules>
 
     <properties>
