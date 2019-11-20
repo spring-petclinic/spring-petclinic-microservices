@@ -19,10 +19,6 @@ If everything goes well, you can access the following services at given location
 * Admin Server (Spring Boot Admin) - http://localhost:9090
 * Grafana Dashboards - http://localhost:3000
 * Prometheus - http://localhost:9091
-* Hystrix Dashboard for Circuit Breaker pattern - http://localhost:7979 - On the home page is a form where you can enter 
-the URL for an event stream to monitor, for example the `api-gateway` service running locally: `http://localhost:8080/actuator/hystrix.stream` 
-or running into docker: `http://api-gateway:8080/actuator/hystrix.stream`
-
 
 You can tell Config Server to use your local Git repository by using `native` Spring profile and setting
 `GIT_REPO` environment variable, for example:

@@ -82,17 +82,6 @@ services:
     ports:
      - 9090:9090
 
-  hystrix-dashboard:
-    image: springcommunity/spring-petclinic-hystrix-dashboard
-    container_name: hystrix-dashboard
-    mem_limit: 512M
-    depends_on:
-     - config-server
-     - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
-    ports:
-     - 7979:7979
-
   ## Grafana / Prometheus
 
   grafana-server:
