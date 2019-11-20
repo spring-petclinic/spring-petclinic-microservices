@@ -77,6 +77,10 @@
                     <groupId>com.netflix.ribbon</groupId>
                     <artifactId>ribbon-eureka</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-netflix-hystrix</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -86,16 +90,6 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-gateway</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.cloud</groupId>
-                    <artifactId>spring-cloud-netflix-ribbon</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!-- Third parties -->
