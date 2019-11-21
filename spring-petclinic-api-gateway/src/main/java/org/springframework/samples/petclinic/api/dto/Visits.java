@@ -15,6 +15,7 @@
  */
 package org.springframework.samples.petclinic.api.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import lombok.NoArgsConstructor;
@@ -24,9 +25,8 @@ import lombok.Value;
  * @author Maciej Szarlinski
  */
 @Value
-@NoArgsConstructor
 public class Visits {
 
-    private List<VisitDetails> items = null;
+    private List<VisitDetails> items = new ArrayList<>();
 
 }
