@@ -16,15 +16,12 @@
 package org.springframework.samples.petclinic.api.application;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.samples.petclinic.api.dto.VisitDetails;
 import org.springframework.samples.petclinic.api.dto.Visits;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
 
@@ -40,7 +37,6 @@ public class VisitsServiceClient {
 
     private final WebClient.Builder webClientBuilder;
 
-    // FIXME HYSTRIX @HystrixCommand(fallbackMethod = "emptyVisitsForPets")
     public Mono<Visits> getVisitsForPets(final List<Integer> petIds) {
         return webClientBuilder.build()
             .get()
@@ -51,10 +47,6 @@ public class VisitsServiceClient {
 
     private String joinIds(List<Integer> petIds) {
         return petIds.stream().map(Object::toString).collect(joining(","));
-    }
-
-    private Mono<Map<Integer, List<VisitDetails>>> emptyVisitsForPets(Mono<List<Integer>> petIds) {
-        return Mono.just(Collections.emptyMap());
     }
 
     void setHostname(String hostname) {
