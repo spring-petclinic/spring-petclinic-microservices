@@ -1,4 +1,4 @@
-FROM openjdk:8-jre-alpine
+FROM openjdk:8-jre
 VOLUME /tmp
 ARG DOCKERIZE_VERSION
 ARG ARTIFACT_NAME
