@@ -81,6 +81,16 @@ class OwnerResource {
         ownerModel.setAddress(ownerRequest.getAddress());
         ownerModel.setTelephone(ownerRequest.getTelephone());
         log.info("Saving owner {}", ownerModel);
+        newMethod1();
+        newMethod2();
         return ownerRepository.save(ownerModel);
+    }
+
+    public void newMethod1(){
+        System.out.println("hello new method 1");
+    }
+
+    public void newMethod2(){
+        System.out.println("hello new method 2");
     }
 }

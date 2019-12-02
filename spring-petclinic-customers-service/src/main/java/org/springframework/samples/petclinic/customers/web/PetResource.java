@@ -60,12 +60,12 @@ class PetResource {
 
     @PutMapping("/owners/*/pets/{petId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void processUpdateForm(@RequestBody PetRequest petRequest) {
+/*    public void processUpdateForm(@RequestBody PetRequest petRequest) {
         int petId = petRequest.getId();
         Pet pet = findPetById(petId);
         save(pet, petRequest);
         System.out.println("drill hello");
-    }
+    }*/
 
     private void save(final Pet pet, final PetRequest petRequest) {
 

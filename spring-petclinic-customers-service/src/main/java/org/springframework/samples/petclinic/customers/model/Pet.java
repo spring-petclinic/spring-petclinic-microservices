@@ -78,9 +78,9 @@ public class Pet {
         this.name = name;
     }
 
-    /*public Date getBirthDate() {
+    public Date getBirthDate() {
         return birthDate;
-    }*/
+    }
 
     public void setBirthDate(final Date birthDate) {
         this.birthDate = birthDate;
