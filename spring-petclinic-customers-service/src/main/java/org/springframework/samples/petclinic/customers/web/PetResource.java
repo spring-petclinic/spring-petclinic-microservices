@@ -64,6 +64,7 @@ class PetResource {
         int petId = petRequest.getId();
         Pet pet = findPetById(petId);
         save(pet, petRequest);
+        System.out.println("drill hello");
     }
 
     private void save(final Pet pet, final PetRequest petRequest) {

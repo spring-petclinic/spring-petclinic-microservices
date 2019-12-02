@@ -52,6 +52,7 @@ class VisitResource {
         @PathVariable("petId") int petId) {
 
         visit.setPetId(petId);
+        System.out.println("drill hello");
         log.info("Saving visit {}", visit);
         visitRepository.save(visit);
     }
