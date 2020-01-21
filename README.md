@@ -78,7 +78,7 @@ To use a MySQL database, you have to start 3 microservices (`visits-service`, `c
 with the `mysql` Spring profile. Add the `--spring.profiles.active=mysql` as programm argument.
 
 By default, at startup, database schema will be created and data will be populated.
-You may also manualy create the PetClinic database and data by executing the `"db/mysql/{schema,data}.sql"` scripts of each 3 microservices. 
+You may also manually create the PetClinic database and data by executing the `"db/mysql/{schema,data}.sql"` scripts of each 3 microservices. 
 In the `application.yml` of the [Configuration repository], set the `initialization-mode` to `never`.
 
 If you are running the microservices with Docker, you have to add the `mysql` profile into the (Dockerfile)[docker/Dockerfile]:
