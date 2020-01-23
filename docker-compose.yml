@@ -11,18 +11,20 @@ services:
     image: mszarlinski/spring-petclinic-discovery-server
     container_name: discovery-server
     mem_limit: 512M
+    volumes:
+      - ./distr:/data
     depends_on:
       - config-server
-    entrypoint: ["./dockerize","-wait=tcp://config-server:8888","-timeout=60s","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+    entrypoint: ["./dockerize","-wait=tcp://config-server:8888","-timeout=60s","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-javaagent:/data/drill-proxy.jar=ttl.agent.logger:STDOUT", "-agentpath:/data/libdrill_agent.so=drillInstallationDir=/data,adminAddress=${adminAddress}:8090,agentId=discovery-server,serviceGroupId=${serviceGroupId}", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
     ports:
       - 8761:8761
 
   customers-service:
     image: mszarlinski/spring-petclinic-customers-service
     container_name: customers-service
-    mem_limit: 1024M
+    mem_limit: 512M
     volumes:
-      - ./distr1:/data
+      - ./distr:/data
     depends_on:
       - config-server
       - discovery-server
@@ -33,9 +35,9 @@ services:
   visits-service:
     image: mszarlinski/spring-petclinic-visits-service
     container_name: visits-service
-    mem_limit: 1024M
+    mem_limit: 512M
     volumes:
-      - ./distr2:/data
+      - ./distr:/data
     depends_on:
       - config-server
       - discovery-server
@@ -46,9 +48,9 @@ services:
   vets-service:
     image: mszarlinski/spring-petclinic-vets-service
     container_name: vets-service
-    mem_limit: 1024M
+    mem_limit: 512M
     volumes:
-      - ./distr3:/data
+      - ./distr:/data
     depends_on:
       - config-server
       - discovery-server
