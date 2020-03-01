@@ -99,7 +99,7 @@ A JMeter load testing script is available to stress the application and generate
 
 ### Using Prometheus
 
-* Prometheus can be accessed from your local machine at [http://localhost:9091]()
+* Prometheus can be accessed from your local machine at http://localhost:9091
 
 ### Using Grafana with Prometheus
 
