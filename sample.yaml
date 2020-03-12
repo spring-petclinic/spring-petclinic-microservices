@@ -1,0 +1,116 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "17"
+  creationTimestamp: "2019-11-22T08:16:36Z"
+  generation: 46
+  labels:
+    app: transcript-post-processor-cstage
+    app.kubernetes.io/instance: transcript-post-processor-cstage
+    app.kubernetes.io/managed-by: Tiller
+    app.kubernetes.io/name: transcript-post-processor-cstage
+    helm.sh/chart: vcra-std-app-0.1.0
+  name: transcript-post-processor-cstage
+  namespace: default
+  resourceVersion: "175733150"
+  selfLink: /apis/extensions/v1beta1/namespaces/default/deployments/transcript-post-processor-cstage
+  uid: 67007e12-0d00-11ea-bce1-4201ac12a80a
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 125
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: transcript-post-processor-cstage
+      app.kubernetes.io/name: transcript-post-processor-cstage
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      creationTimestamp: null
+      labels:
+        app: transcript-post-processor-cstage
+        app.kubernetes.io/instance: transcript-post-processor-cstage
+        app.kubernetes.io/name: transcript-post-processor-cstage
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - preference:
+              matchExpressions:
+              - key: dedicated
+                operator: In
+                values:
+                - transcript-post-processor-cstage
+            weight: 100
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: dedicated
+                operator: In
+                values:
+                - transcript-post-processor-cstage
+      containers:
+      - env:
+        - name: PUNCTUATOR_PARALLELISM_DEGREE
+          value: "3"
+        image: workfit/transcript-post-processor:ayush
+        imagePullPolicy: Always
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - sleep
+              - "20"
+        name: transcript-post-processor-cstage
+        resources:
+          limits:
+            cpu: 1500m
+            memory: 6Gi
+          requests:
+            cpu: 500m
+            memory: 3Gi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+      - name: docker-secret
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      tolerations:
+      - effect: NoSchedule
+        key: dedicated
+        operator: Equal
+        value: transcript-post-processor-cstage
+      - effect: NoSchedule
+        key: preemptive
+        operator: Equal
+        value: "true"
+status:
+  availableReplicas: 125
+  conditions:
+  - lastTransitionTime: "2019-11-22T08:16:36Z"
+    lastUpdateTime: "2020-03-04T00:53:25Z"
+    message: ReplicaSet "transcript-post-processor-cstage-5845bdb4d5" has successfully
+      progressed.
+    reason: NewReplicaSetAvailable
+    status: "True"
+    type: Progressing
+  - lastTransitionTime: "2020-03-04T01:38:32Z"
+    lastUpdateTime: "2020-03-04T01:38:32Z"
+    message: Deployment has minimum availability.
+    reason: MinimumReplicasAvailable
+    status: "True"
+    type: Available
+  observedGeneration: 46
+  readyReplicas: 125
+  replicas: 125
+  updatedReplicas: 125
