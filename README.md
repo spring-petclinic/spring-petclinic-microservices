@@ -110,7 +110,6 @@ You will find the JSON configuration file here: [docker/grafana/dashboards/grafa
 The id for this dashboard is `4701`.
 
 ### Custom metrics
-
 Spring Boot registers a lot number of core metrics: JVM, CPU, Tomcat, Logback... 
 The Spring Boot auto-configuration enables the instrumentation of requests handled by Spring MVC.
 All those three REST controllers `OwnerResource`, `PetResource` and `VisitResource` have been instrumented by the `@Timed` Micrometer annotation at class level.
