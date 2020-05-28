@@ -1,161 +1,306 @@
-# Distributed version of the Spring PetClinic Sample Application built with Spring Cloud 
+---
+page_type: sample
+languages:
+- java
+products:
+- Azure Spring Cloud
+description: "Deploy Spring microservices using Azure Spring Cloud and MySQL"
+urlFragment: "spring-petclinic-microservices"
 
-[![Build Status](https://travis-ci.org/spring-petclinic/spring-petclinic-microservices.svg?branch=master)](https://travis-ci.org/spring-petclinic/spring-petclinic-microservices/) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+---
+# Deploy Spring Boot app using Azure Spring Cloud and MySQL 
 
-This microservices branch was initially derived from [AngularJS version](https://github.com/spring-petclinic/spring-petclinic-angular1) to demonstrate how to split sample Spring application into [microservices](http://www.martinfowler.com/articles/microservices.html).
-To achieve that goal we use Spring Cloud Gateway, Spring Cloud Circuit Breaker, Spring Cloud Config, Spring Cloud Sleuth, Resilience4j, Micrometer 
-and the Eureka Service Discovery from the [Spring Cloud Netflix](https://github.com/spring-cloud/spring-cloud-netflix) technology stack.
+Azure Spring Cloud enables you to easily run a Spring Boot based microservices application on Azure.
 
-## Starting services locally without Docker
+This quickstart shows you how to deploy an existing Java Spring Cloud application to Azure. When you're finished, you can continue to manage the application via the Azure CLI or switch to using the Azure portal.
 
-Every microservice is a Spring Boot application and can be started locally using IDE or `../mvnw spring-boot:run` command. Please note that supporting services (Config and Discovery Server) must be started before any other application (Customers, Vets, Visits and API).
-Startup of Tracing server, Admin server, Grafana and Prometheus is optional.
-If everything goes well, you can access the following services at given location:
-* Discovery Server - http://localhost:8761
-* Config Server - http://localhost:8888
-* AngularJS frontend (API Gateway) - http://localhost:8080
-* Customers, Vets and Visits Services - random port, check Eureka Dashboard 
-* Tracing Server (Zipkin) - http://localhost:9411/zipkin/ (we use [openzipkin](https://github.com/openzipkin/zipkin/tree/master/zipkin-server))
-* Admin Server (Spring Boot Admin) - http://localhost:9090
-* Grafana Dashboards - http://localhost:3000
-* Prometheus - http://localhost:9091
+## What will you experience
+You will:
+- Build existing Spring microservices applications
+- Provision an Azure Spring Cloud service instance
+- Deploy applications to Azure
+- Bind applications to Azure Database for MySQL
+- Open the application
 
-You can tell Config Server to use your local Git repository by using `native` Spring profile and setting
-`GIT_REPO` environment variable, for example:
-`-Dspring.profiles.active=native -DGIT_REPO=/projects/spring-petclinic-microservices-config`
+## What you will need
 
-## Starting services locally with docker-compose
-In order to start entire infrastructure using Docker, you have to build images by executing `./mvnw clean install -P buildDocker` 
-from a project root. Once images are ready, you can start them with a single command
-`docker-compose up`. Containers startup order is coordinated with [`dockerize` script](https://github.com/jwilder/dockerize). 
-After starting services it takes a while for API Gateway to be in sync with service registry,
-so don't be scared of initial Spring Cloud Gateway timeouts. You can track services availability using Eureka dashboard
-available by default at http://localhost:8761.
+In order to deploy a Java app to cloud, you need 
+an Azure subscription. If you do not already have an Azure 
+subscription, you can activate your 
+[MSDN subscriber benefits](https://azure.microsoft.com/pricing/member-offers/msdn-benefits-details/) 
+or sign up for a 
+[free Azure account]((https://azure.microsoft.com/free/)).
 
-The `master` branch uses an  Alpine linux  with JRE 8 as Docker base. You will find a Java 11 version in the `release/java11` branch.
+In addition, you will need the following:
 
-*NOTE: Under MacOSX or Windows, make sure that the Docker VM has enough memory to run the microservices. The default settings
-are usually not enough and make the `docker-compose up` painfully slow.*
+| [Azure CLI version 2.0.67 or higher](https://docs.microsoft.com/cli/azure/install-azure-cli?view=azure-cli-latest) 
+| [Java 8](https://www.azul.com/downloads/azure-only/zulu/?version=java-8-lts&architecture=x86-64-bit&package=jdk) 
+| [Maven](https://maven.apache.org/download.cgi) 
+| [MySQL CLI](https://dev.mysql.com/downloads/shell/)
+| [Git](https://git-scm.com/)
+|
 
-## Understanding the Spring Petclinic application
+## Install the Azure CLI extension
 
-[See the presentation of the Spring Petclinic Framework version](http://fr.slideshare.net/AntoineRey/spring-framework-petclinic-sample-application)
+Install the Azure Spring Cloud extension for the Azure CLI using the following command
 
-[A blog bost introducing the Spring Petclinic Microsevices](http://javaetmoi.com/2018/10/architecture-microservices-avec-spring-cloud/) (french language)
-
-You can then access petclinic here: http://localhost:8080/
-
-![Spring Petclinic Microservices screenshot](docs/application-screenshot.png)
-
-
-**Architecture diagram of the Spring Petclinic Microservices**
-
-![Spring Petclinic Microservices architecture](docs/microservices-architecture-diagram.jpg)
-
-
-## In case you find a bug/suggested improvement for Spring Petclinic Microservices
-
-Our issue tracker is available here: https://github.com/spring-petclinic/spring-petclinic-microservices/issues
-
-## Database configuration
-
-In its default configuration, Petclinic uses an in-memory database (HSQLDB) which gets populated at startup with data.
-A similar setup is provided for MySql in case a persistent database configuration is needed.
-Dependency for Connector/J, the MySQL JDBC driver is already included in the `pom.xml` files.
-
-### Start a MySql database
-
-You may start a MySql database with docker:
-
+```bash
+    az extension add --name spring-cloud
 ```
-docker run -e MYSQL_ROOT_PASSWORD=petclinic -e MYSQL_DATABASE=petclinic -p 3306:3306 mysql:5.7.8
+
+## Clone and build the repo
+
+### Create a new folder and clone the sample app repository to your Azure Cloud account  
+
+```bash
+    mkdir source-code
+    git clone https://github.com/azure-samples/spring-petclinic-microservices
 ```
-or download and install the MySQL database (e.g., MySQL Community Server 5.7 GA), which can be found here: https://dev.mysql.com/downloads/
 
-### Use the Spring 'mysql' profile
+### Change directory and build the project
 
-To use a MySQL database, you have to start 3 microservices (`visits-service`, `customers-service` and `vets-services`)
-with the `mysql` Spring profile. Add the `--spring.profiles.active=mysql` as programm argument.
-
-By default, at startup, database schema will be created and data will be populated.
-You may also manually create the PetClinic database and data by executing the `"db/mysql/{schema,data}.sql"` scripts of each 3 microservices. 
-In the `application.yml` of the [Configuration repository], set the `initialization-mode` to `never`.
-
-If you are running the microservices with Docker, you have to add the `mysql` profile into the (Dockerfile)[docker/Dockerfile]:
+```bash
+    cd spring-petclinic-microservices
+    mvn clean package -DskipTests -Denv=cloud
 ```
-ENV SPRING_PROFILES_ACTIVE docker,mysql
+This will take a few minutes.
+
+## Provision Azure Spring Cloud service instance using Azure CLI
+
+### Prepare your environment for deployments
+
+Create a bash script with environment variables by making a copy of the supplied template:
+```bash
+    cp .scripts/setup-env-variables-azure-template.sh .scripts/setup-env-variables-azure.sh
 ```
-In the `mysql section` of the `application.yml` from the [Configuration repository], you have to change 
-the host and port of your MySQL JDBC connection string. 
 
-## Custom metrics monitoring
+Open `.scripts/setup-env-variables-azure.sh` and enter the following information:
 
-Grafana and Prometheus are included in the `docker-compose.yml` configuration, and the public facing applications
-have been instrumented with [MicroMeter](https://micrometer.io) to collect JVM and custom business metrics.
+```bash
 
-A JMeter load testing script is available to stress the application and generate metrics: [petclinic_test_plan.jmx](spring-petclinic-api-gateway/src/test/jmeter/petclinic_test_plan.jmx)
+    export SUBSCRIPTION=subscription-id # customize this
+    export RESOURCE_GROUP=resource-group-name # customize this
+    ...
+    export SPRING_CLOUD_SERVICE=azure-spring-cloud-name # customize this
+    ...
+    export MYSQL_SERVER_NAME=mysql-servername # customize this
+    ...
+    export MYSQL_SERVER_ADMIN_NAME=admin-name # customize this
+    ...
+    export MYSQL_SERVER_ADMIN_PASSWORD=SuperS3cr3t # customize this
+    ...
+```
 
-![Grafana metrics dashboard](docs/grafana-custom-metrics-dashboard.png)
+Then, set the environment:
+```bash
+    source .scripts/setup-env-variables-azure.sh
+```
 
-### Using Prometheus
+### Login to the Azure CLI 
+Login to the Azure CLI and choose your active subscription. Be sure to choose the active subscription that is whitelisted for Azure Spring Cloud
 
-* Prometheus can be accessed from your local machine at http://localhost:9091
+```bash
+    az login
+    az account list -o table
+    az account set --subscription ${SUBSCRIPTION}
+```
 
-### Using Grafana with Prometheus
+### Create Azure Spring Cloud service instance
+Prepare a name for your Azure Spring Cloud service.  The name must be between 4 and 32 characters long and can contain only lowercase letters, numbers, and hyphens.  The first character of the service name must be a letter and the last character must be either a letter or a number.
 
-* An anonymous access and a Prometheus datasource are setup.
-* A `Spring Petclinic Metrics` Dashboard is available at the URL http://localhost:3000/d/69JXeR0iw/spring-petclinic-metrics.
-You will find the JSON configuration file here: [docker/grafana/dashboards/grafana-petclinic-dashboard.json]().
-* You may create your own dashboard or import the [Micrometer/SpringBoot dashboard](https://grafana.com/dashboards/4701) via the Import Dashboard menu item.
-The id for this dashboard is `4701`.
+Create a resource group to contain your Azure Spring Cloud service.
 
-### Custom metrics
-Spring Boot registers a lot number of core metrics: JVM, CPU, Tomcat, Logback... 
-The Spring Boot auto-configuration enables the instrumentation of requests handled by Spring MVC.
-All those three REST controllers `OwnerResource`, `PetResource` and `VisitResource` have been instrumented by the `@Timed` Micrometer annotation at class level.
+```bash
+    az group create --name ${RESOURCE_GROUP} \
+        --location ${REGION}
+```
 
-* `customers-service` application has the following custom metrics enabled:
-  * @Timed: `petclinic.owner`
-  * @Timed: `petclinic.pet`
-* `visits-service` application has the following custom metrics enabled:
-  * @Timed: `petclinic.visit`
+Create an instance of Azure Spring Cloud.
 
-## Looking for something in particular?
+```bash
+    az spring-cloud create --name ${SPRING_CLOUD_SERVICE} \
+        --resource-group ${RESOURCE_GROUP} \
+        --location ${REGION}
+```
 
-| Spring Cloud components         | Resources  |
-|---------------------------------|------------|
-| Configuration server            | [Config server properties](spring-petclinic-config-server/src/main/resources/application.yml) and [Configuration repository] |
-| Service Discovery               | [Eureka server](spring-petclinic-discovery-server) and [Service discovery client](spring-petclinic-vets-service/src/main/java/org/springframework/samples/petclinic/vets/VetsServiceApplication.java) |
-| API Gateway                     | [Spring Cloud Gateway starter](spring-petclinic-api-gateway/pom.xml) and [Routing configuration](/spring-petclinic-api-gateway/src/main/resources/application.yml) |
-| Docker Compose                  | [Spring Boot with Docker guide](https://spring.io/guides/gs/spring-boot-docker/) and [docker-compose file](docker-compose.yml) |
-| Circuit Breaker                 | [Resilience4j fallback method](spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/boundary/web/ApiGatewayController.java)  |
-| Grafana / Prometheus Monitoring | [Micrometer implementation](https://micrometer.io/), [Spring Boot Actuator Production Ready Metrics] |
+The service instance will take around five minutes to deploy.
 
- Front-end module  | Files |
-|-------------------|-------|
-| Node and NPM      | [The frontend-maven-plugin plugin downloads/installs Node and NPM locally then runs Bower and Gulp](spring-petclinic-ui/pom.xml)  |
-| Bower             | [JavaScript libraries are defined by the manifest file bower.json](spring-petclinic-ui/bower.json)  |
-| Gulp              | [Tasks automated by Gulp: minify CSS and JS, generate CSS from LESS, copy other static resources](spring-petclinic-ui/gulpfile.js)  |
-| Angular JS        | [app.js, controllers and templates](spring-petclinic-ui/src/scripts/)  |
+Set your default resource group name and cluster name using the following commands:
 
+```bash
+    az configure --defaults \
+        group=${RESOURCE_GROUP} \
+        location=${REGION} \
+        spring-cloud=${SPRING_CLOUD_SERVICE}
+```
 
-## Interesting Spring Petclinic forks
+### Load Spring Cloud Config Server
 
-The Spring Petclinic master branch in the main [spring-projects](https://github.com/spring-projects/spring-petclinic)
-GitHub org is the "canonical" implementation, currently based on Spring Boot and Thymeleaf.
+Use the `application.yml` in the root of this project to load configuration into the Config Server in Azure Spring Cloud.
 
-This [spring-petclinic-microservices](https://github.com/spring-petclinic/spring-petclinic-microservices/) project is one of the [several forks](https://spring-petclinic.github.io/docs/forks.html) 
-hosted in a special GitHub org: [spring-petclinic](https://github.com/spring-petclinic).
-If you have a special interest in a different technology stack
-that could be used to implement the Pet Clinic then please join the community there.
+```bash
+    az spring-cloud config-server set \
+        --config-file application.yml \
+        --name ${SPRING_CLOUD_SERVICE}
+```
 
+## Create microservice applications
 
-# Contributing
+Create 5 microservice apps.
 
-The [issue tracker](https://github.com/spring-petclinic/spring-petclinic-microservices/issues) is the preferred channel for bug reports, features requests and submitting pull requests.
+```bash
+    az spring-cloud app create --name ${API_GATEWAY} --instance-count 1 --is-public true \
+        --memory 2 \
+        --jvm-options='-Xms2048m -Xmx2048m'
+    
+    az spring-cloud app create --name ${ADMIN_SERVER} --instance-count 1 --is-public true \
+        --memory 2 \
+        --jvm-options='-Xms2048m -Xmx2048m'
+    
+    az spring-cloud app create --name ${CUSTOMERS_SERVICE} --instance-count 1 \
+        --memory 2 \
+        --jvm-options='-Xms2048m -Xmx2048m'
+    
+    az spring-cloud app create --name ${VETS_SERVICE} --instance-count 1 \
+        --memory 2 \
+        --jvm-options='-Xms2048m -Xmx2048m'
+    
+    az spring-cloud app create --name ${VISITS_SERVICE} --instance-count 1 \
+        --memory 2 \
+        --jvm-options='-Xms2048m -Xmx2048m'
+```
 
-For pull requests, editor preferences are available in the [editor config](.editorconfig) for easy use in common text editors. Read more and download plugins at <http://editorconfig.org>.
+## Create MySQL Database
 
+Create a MySQL database in Azure Database for MySQL.
 
-[Configuration repository]: https://github.com/spring-petclinic/spring-petclinic-microservices-config
-[Spring Boot Actuator Production Ready Metrics]: https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-metrics.html
+```bash
+    // create mysql server
+    az mysql server create --resource-group ${RESOURCE_GROUP} \
+     --name ${MYSQL_SERVER_NAME}  --location ${REGION} \
+     --admin-user ${MYSQL_SERVER_ADMIN_NAME} \
+     --admin-password ${MYSQL_SERVER_ADMIN_PASSWORD} \
+     --sku-name GP_Gen5_2 \
+     --ssl-enforcement Disabled \
+     --version 5.7
+    
+    // allow access from Azure resources
+    az mysql server firewall-rule create --name allAzureIPs \
+     --server ${MYSQL_SERVER_NAME} \
+     --resource-group ${RESOURCE_GROUP} \
+     --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0
+    
+    // allow access from your dev machine for testing
+    az mysql server firewall-rule create --name devMachine \
+     --server ${MYSQL_SERVER_NAME} \
+     --resource-group ${RESOURCE_GROUP} \
+     --start-ip-address <ip-address-of-your-dev-machine> \
+     --end-ip-address <ip-address-of-your-dev-machine>
+    
+    // increase connection timeout
+    az mysql server configuration set --name wait_timeout \
+     --resource-group ${RESOURCE_GROUP} \
+     --server ${MYSQL_SERVER_NAME} --value 2147483
+    
+    // SUBSTITUTE values
+    mysql -u ${MYSQL_SERVER_ADMIN_LOGIN_NAME} \
+     -h ${MYSQL_SERVER_FULL_NAME} -P 3306 -p
+    
+    Enter password:
+    Welcome to the MySQL monitor.  Commands end with ; or \g.
+    Your MySQL connection id is 64379
+    Server version: 5.6.39.0 MySQL Community Server (GPL)
+    
+    Copyright (c) 2000, 2018, Oracle and/or its affiliates. All rights reserved.
+    
+    Oracle is a registered trademark of Oracle Corporation and/or its
+    affiliates. Other names may be trademarks of their respective
+    owners.
+    
+    Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+    
+    mysql> CREATE DATABASE petclinic;
+    Query OK, 1 row affected (0.10 sec)
+    
+    mysql> CREATE USER 'root' IDENTIFIED BY 'petclinic';
+    Query OK, 0 rows affected (0.11 sec)
+    
+    mysql> GRANT ALL PRIVILEGES ON petclinic.* TO 'root';
+    Query OK, 0 rows affected (1.29 sec)
+    
+    mysql> CALL mysql.az_load_timezone();
+    Query OK, 3179 rows affected, 1 warning (6.34 sec)
+    
+    mysql> SELECT name FROM mysql.time_zone_name;
+    ...
+    
+    mysql> quit
+    Bye
+    
+    
+    az mysql server configuration set --name time_zone \
+     --resource-group ${RESOURCE_GROUP} \
+     --server ${MYSQL_SERVER_NAME} --value "US/Pacific"
+```
+
+## Deploy applications and set environment variables
+
+Deploy microservice applications to Azure.
+
+```bash
+    az spring-cloud app deploy --name ${API_GATEWAY} \
+        --jar-path ${API_GATEWAY_JAR} \
+        --jvm-options='-Xms2048m -Xmx2048m -Dspring.profiles.active=mysql'
+    
+    
+    az spring-cloud app deploy --name ${ADMIN_SERVER} \
+        --jar-path ${ADMIN_SERVER_JAR} \
+        --jvm-options='-Xms2048m -Xmx2048m -Dspring.profiles.active=mysql'
+    
+    
+    az spring-cloud app deploy --name ${CUSTOMERS_SERVICE} \
+        --jar-path ${CUSTOMERS_SERVICE_JAR} \
+        --jvm-options='-Xms2048m -Xmx2048m -Dspring.profiles.active=mysql' \
+        --env MYSQL_SERVER_FULL_NAME=${MYSQL_SERVER_FULL_NAME} \
+              MYSQL_DATABASE_NAME=${MYSQL_DATABASE_NAME} \
+              MYSQL_SERVER_ADMIN_LOGIN_NAME=${MYSQL_SERVER_ADMIN_LOGIN_NAME} \
+              MYSQL_SERVER_ADMIN_PASSWORD=${MYSQL_SERVER_ADMIN_PASSWORD}
+    
+    
+    az spring-cloud app deploy --name ${VETS_SERVICE} \
+        --jar-path ${VETS_SERVICE_JAR} \
+        --jvm-options='-Xms2048m -Xmx2048m -Dspring.profiles.active=mysql' \
+        --env MYSQL_SERVER_FULL_NAME=${MYSQL_SERVER_FULL_NAME} \
+              MYSQL_DATABASE_NAME=${MYSQL_DATABASE_NAME} \
+              MYSQL_SERVER_ADMIN_LOGIN_NAME=${MYSQL_SERVER_ADMIN_LOGIN_NAME} \
+              MYSQL_SERVER_ADMIN_PASSWORD=${MYSQL_SERVER_ADMIN_PASSWORD}
+              
+    
+    az spring-cloud app deploy --name ${VISITS_SERVICE} \
+        --jar-path ${VISITS_SERVICE_JAR} \
+        --jvm-options='-Xms2048m -Xmx2048m -Dspring.profiles.active=mysql' \
+        --env MYSQL_SERVER_FULL_NAME=${MYSQL_SERVER_FULL_NAME} \
+              MYSQL_DATABASE_NAME=${MYSQL_DATABASE_NAME} \
+              MYSQL_SERVER_ADMIN_LOGIN_NAME=${MYSQL_SERVER_ADMIN_LOGIN_NAME} \
+              MYSQL_SERVER_ADMIN_PASSWORD=${MYSQL_SERVER_ADMIN_PASSWORD}
+```
+
+```bash
+    az spring-cloud app show --name ${APP_NAME} | grep url
+```
+
+Navigate to the URL provided by the previous command to open the Pet Clinic microservice application.
+    
+![](./media/petclinic.jpg)
+
+## Next Steps
+
+In this quickstart, you've deployed an existing Spring Boot application using Azure CLI. To learn more about Azure Spring Cloud, go to:
+
+- [Azure Spring Cloud](https://azure.microsoft.com/en-us/services/spring-cloud/)
+- [Azure Spring Cloud docs](https://docs.microsoft.com/en-us/azure/java/)
+- [Deploy Spring microservices from scratch](https://github.com/microsoft/azure-spring-cloud-training)
+- [Deploy existing Spring microservices](https://github.com/Azure-Samples/azure-spring-cloud)
+- [Azure for Java Cloud Developers](https://docs.microsoft.com/en-us/azure/java/)
+- [Spring Cloud Azure](https://cloud.spring.io/spring-cloud-azure/)
+- [Spring Cloud](https://spring.io/projects/spring-cloud)

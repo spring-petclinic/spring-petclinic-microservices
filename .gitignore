@@ -16,3 +16,6 @@ target/
 
 # Branch switching
 generated/
+
+# Skip scripts
+.scripts/

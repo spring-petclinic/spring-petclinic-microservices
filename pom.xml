@@ -172,6 +172,34 @@
                 </pluginManagement>
             </build>
         </profile>
+
+        <profile>
+            <id>dev</id>
+            <activation>
+                <property>
+                    <name>env</name>
+                    <value>development</value>
+                </property>
+            </activation>
+        </profile>
+
+        <profile>
+            <id>cloud</id>
+            <activation>
+                <property>
+                    <name>env</name>
+                    <value>cloud</value>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.microsoft.azure</groupId>
+                    <artifactId>spring-cloud-starter-azure-spring-cloud-client</artifactId>
+                    <version>2.2.0</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
     </profiles>
 
     <repositories>
