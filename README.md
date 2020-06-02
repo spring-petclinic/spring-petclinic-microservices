@@ -285,7 +285,7 @@ Deploy microservice applications to Azure.
 ```
 
 ```bash
-    az spring-cloud app show --name ${APP_NAME} | grep url
+    az spring-cloud app show --name ${API_GATEWAY} | grep url
 ```
 
 Navigate to the URL provided by the previous command to open the Pet Clinic microservice application.
