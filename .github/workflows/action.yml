@@ -1,0 +1,25 @@
+name: Deploy to Azure Spring Cloud with Key Vault
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}           # Strong box key you generated in the first step
+    - uses: Azure/get-keyvault-secrets@v1.0
+      with:
+        keyvault: "zlhe-test"
+        secrets: "AZURE-CREDENTIALS-FOR-SPRING"           # Master key to open all doors in the building
+      id: keyvaultaction
+    - uses: azure/login@v1
+      with:
+        creds: ${{ steps.keyvaultaction.outputs.AZURE-CREDENTIALS-FOR-SPRING }}
+    - name: Azure CLI script
+      uses: azure/CLI@v1
+      with:
+        azcliversion: 2.0.75
+        inlineScript: |
+          az extension add --name spring-cloud             # Spring CLI commands from here
+          az spring-cloud list
