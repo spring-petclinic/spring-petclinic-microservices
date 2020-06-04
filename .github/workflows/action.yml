@@ -4,14 +4,11 @@ on: [push]
 env:
   GROUP: petclinic-demo
   SERVICE_NAME: petclinic-demo
-# ==== Apps ====
   API_GATEWAY: api-gateway
   ADMIN_SERVER: admin-server
   CUSTOMERS_SERVICE: customers-service
   VETS_SERVICE: vets-service
   VISITS_SERVICE: visits-service
-
-# ==== JARS ====
   API_GATEWAY_JAR: spring-petclinic-api-gateway/target/spring-petclinic-api-gateway-2.2.1.jar
   ADMIN_SERVER_JAR: spring-petclinic-admin-server/target/spring-petclinic-admin-server-2.2.1.jar
   CUSTOMERS_SERVICE_JAR: spring-petclinic-customers-service/target/spring-petclinic-customers-service-2.2.1.jar
