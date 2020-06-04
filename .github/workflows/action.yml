@@ -57,4 +57,4 @@ jobs:
           az extension add --name spring-cloud
           az configure --defaults group=$GROUP
           az configure --defaults spring-cloud=$SERVICE_NAME
-          az spring-cloud app deploy --name ${{API_GATEWAY}} --jar-path ${{github.workspace}}/${{API_GATEWAY_JAR}} --jvm-options='-Xms2048m -Xmx2048m -Dspring.profiles.active=mysql'
+          az spring-cloud app deploy --name ${{ API_GATEWAY }} --jar-path ${{ github.workspace }}/${{ API_GATEWAY_JAR }} --jvm-options='-Xms2048m -Xmx2048m -Dspring.profiles.active=mysql'
