@@ -25,13 +25,22 @@ jobs:
     - name: Login with Key Vault SP
       uses: azure/login@v1
       with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}           # Strong box key you generated in the first step
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
     - name: Get service SP from Key Vault
       uses: Azure/get-keyvault-secrets@v1.0
       with:
         keyvault: "petclinicdemokv"
-        secrets: "AZURE-CREDENTIALS-FOR-SPRING"           # Master key to open all doors in the building
+        secrets: "AZURE-CREDENTIALS-FOR-SPRING"
       id: keyvaultaction
+    
+    - name: Get MySQL Secrets from Key Vault
+      uses: Azure/get-keyvault-secrets@v1.0
+      with:
+        keyvault: "petclinicdemokv"
+        secrets: "MYSQL-SERVER-FULL-NAME,MYSQL-DATABASE-NAME,MYSQL-SERVER-ADMIN-LOGIN-NAME,MYSQL-SERVER-ADMIN-PASSWORD"
+      id: mysqlsecrets
+      
     - name: Login with Service SP
       uses: azure/login@v1
       with:
@@ -39,11 +48,6 @@ jobs:
         
     - name: Checkout your repo
       uses: actions/checkout@v2
-      
-    - name: Extract branch name
-      shell: bash
-      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-      id: extract_branch
       
     - name: Set up JDK 1.8
       uses: actions/setup-java@v1
@@ -61,4 +65,30 @@ jobs:
       run: |
           az configure --defaults group=$GROUP
           az configure --defaults spring-cloud=$SERVICE_NAME
-          az spring-cloud app deploy --name $API_GATEWAY --jar-path ${{ github.workspace }}/$API_GATEWAY_JAR --jvm-options='-Xms2048m -Xmx2048m -Dspring.profiles.active=mysql'
+          az spring-cloud app deploy --name $API_GATEWAY \
+            --jar-path ${{ github.workspace }}/$API_GATEWAY_JAR \
+            --jvm-options='-Xms2048m -Xmx2048m -Dspring.profiles.active=mysql'
+          az spring-cloud app deploy --name $ADMIN_SERVER \
+            --jar-path ${{ github.workspace }}/$ADMIN_SERVER_JAR \
+            --jvm-options='-Xms2048m -Xmx2048m -Dspring.profiles.active=mysql'
+          az spring-cloud app deploy --name $CUSTOMERS_SERVICE \
+            --jar-path ${{ github.workspace }}/$CUSTOMERS_SERVICE_JAR \
+            --jvm-options='-Xms2048m -Xmx2048m -Dspring.profiles.active=mysql' \
+            --env MYSQL_SERVER_FULL_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-FULL-NAME }} \
+              MYSQL_DATABASE_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-DATABASE-NAME }} \
+              MYSQL_SERVER_ADMIN_LOGIN_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-ADMIN-LOGIN-NAME }} \
+              MYSQL_SERVER_ADMIN_PASSWORD=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-ADMIN-PASSWORD }}
+          az spring-cloud app deploy --name $VETS_SERVICE \
+            --jar-path ${{ github.workspace }}/$VETS_SERVICE_JAR \
+            --jvm-options='-Xms2048m -Xmx2048m -Dspring.profiles.active=mysql' \
+            --env MYSQL_SERVER_FULL_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-FULL-NAME }} \
+              MYSQL_DATABASE_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-DATABASE-NAME }} \
+              MYSQL_SERVER_ADMIN_LOGIN_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-ADMIN-LOGIN-NAME }} \
+              MYSQL_SERVER_ADMIN_PASSWORD=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-ADMIN-PASSWORD }}
+          az spring-cloud app deploy --name $VISITS_SERVICE \
+            --jar-path ${{ github.workspace }}/$VISITS_SERVICE_JAR \
+            --jvm-options='-Xms2048m -Xmx2048m -Dspring.profiles.active=mysql' \
+            --env MYSQL_SERVER_FULL_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-FULL-NAME }} \
+              MYSQL_DATABASE_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-DATABASE-NAME }} \
+              MYSQL_SERVER_ADMIN_LOGIN_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-ADMIN-LOGIN-NAME }} \
+              MYSQL_SERVER_ADMIN_PASSWORD=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-ADMIN-PASSWORD }}
