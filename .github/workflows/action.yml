@@ -1,25 +1,60 @@
 name: Deploy to Azure Spring Cloud with Key Vault
 on: [push]
 
+env:
+  GROUP: petclinic-demo
+  SERVICE_NAME: petclinic-demo
+# ==== Apps ====
+  API_GATEWAY: api-gateway
+  ADMIN_SERVER: admin-server
+  CUSTOMERS_SERVICE: customers-service
+  VETS_SERVICE: vets-service
+  VISITS_SERVICE: visits-service
+
+# ==== JARS ====
+  API_GATEWAY_JAR: spring-petclinic-api-gateway/target/spring-petclinic-api-gateway-2.2.1.jar
+  ADMIN_SERVER_JAR: spring-petclinic-admin-server/target/spring-petclinic-admin-server-2.2.1.jar
+  CUSTOMERS_SERVICE_JAR: spring-petclinic-customers-service/target/spring-petclinic-customers-service-2.2.1.jar
+  VETS_SERVICE_JAR: spring-petclinic-vets-service/target/spring-petclinic-vets-service-2.2.1.jar
+  VISITS_SERVICE_JAR: spring-petclinic-visits-service/target/spring-petclinic-visits-service-2.2.1.jar
+
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: azure/login@v1
+    - name: Login with Key Vault SP
+      uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}           # Strong box key you generated in the first step
-    - uses: Azure/get-keyvault-secrets@v1.0
+    - name: Get service SP from Key Vault
+      uses: Azure/get-keyvault-secrets@v1.0
       with:
         keyvault: "petclinicdemokv"
         secrets: "AZURE-CREDENTIALS-FOR-SPRING"           # Master key to open all doors in the building
       id: keyvaultaction
-    - uses: azure/login@v1
+    - name: Login with Service SP
+      uses: azure/login@v1
       with:
         creds: ${{ steps.keyvaultaction.outputs.AZURE-CREDENTIALS-FOR-SPRING }}
+        
+    - uses: actions/checkout@master
+    
+    - name: Set up JDK 1.8
+      uses: actions/setup-java@v1
+      with:
+        java-version: 1.8
+    
+    - name: maven build, clean
+      run: |
+        mvn clean package -DskipTests -Denv=cloud
+        
     - name: Azure CLI script
       uses: azure/CLI@v1
       with:
         azcliversion: 2.0.75
         inlineScript: |
           az extension add --name spring-cloud
-          az spring-cloud list
+          az configure --defaults group=$GROUP
+          az configure --defaults spring-cloud=$SERVICE_NAME
+          az spring-cloud app deploy --name ${{API_GATEWAY}} --jar-path ${{github.workspace}}/${{API_GATEWAY_JAR}} --jvm-options='-Xms2048m -Xmx2048m -Dspring.profiles.active=mysql'
