@@ -51,7 +51,9 @@ jobs:
         creds: ${{ steps.keyvaultaction.outputs.AZURE-CREDENTIALS-FOR-SPRING }}
         
     - name: test
-      run: echo ${{ steps.keyvaultaction.outputs.AZURE-CREDENTIALS-FOR-SPRING }}.clientId
+      run: |
+        sudo apt-get install jq
+        echo ${{ steps.keyvaultaction.outputs.AZURE-CREDENTIALS-FOR-SPRING }} | jq '.clientId'
     
     - name: Checkout your repo
       uses: actions/checkout@v2
