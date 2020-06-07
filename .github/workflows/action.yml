@@ -16,11 +16,6 @@ env:
   CUSTOMERS_SERVICE_JAR: spring-petclinic-customers-service/target/spring-petclinic-customers-service-2.2.1.jar
   VETS_SERVICE_JAR: spring-petclinic-vets-service/target/spring-petclinic-vets-service-2.2.1.jar
   VISITS_SERVICE_JAR: spring-petclinic-visits-service/target/spring-petclinic-visits-service-2.2.1.jar
-  # ==== TF ====:
-  TF_VAR_resource_group: petclinic-demo
-  TF_VAR_region: WEST US 2
-  TF_VAR_spring_cloud_service: petclinic-demo # customize this
-  TF_VAR_api_gateway: api-gateway
 
 jobs:
   build:
@@ -35,7 +30,7 @@ jobs:
       uses: Azure/get-keyvault-secrets@v1.0
       with:
         keyvault: "petclinicdemokv"
-        secrets: "AZURE-CREDENTIALS-FOR-SPRING, TFtenantId, TFsubscriptionId, TFclientSecret, TFclientID"
+        secrets: "AZURE-CREDENTIALS-FOR-SPRING"
       id: keyvaultaction
     
     - name: Get MySQL Secrets from Key Vault
@@ -58,20 +53,41 @@ jobs:
       with:
         java-version: 1.8
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-
-    - name: Terraform Init
+    - name: maven build, clean
       run: |
-        cd ${{ github.workspace }}/terraform
-        terraform init
+        mvn clean package -DskipTests -Denv=cloud
         
-    - name: Terraform Plan
+    - name: Install ASC AZ extension
+      run: az extension add --name spring-cloud
+   
+    - name: Deploy with AZ CLI commands
       run: |
-        cd ${{ github.workspace }}/terraform
-        export ARM_CLIENT_ID=${{ steps.keyvaultaction.outputs.TFclientId }}
-        export ARM_CLIENT_SECRET=${{ steps.keyvaultaction.outputs.TFclientSecret }}
-        export ARM_SUBSCRIPTION_ID=${{ steps.keyvaultaction.outputs.TFsubscriptionId }}
-        export ARM_TENANT_ID=${{ steps.keyvaultaction.outputs.TFtenantId }}
-        terraform import
-        terraform plan
+          az configure --defaults group=$RESOURCE_GROUP
+          az configure --defaults spring-cloud=$SPRING_CLOUD_SERVICE
+          az spring-cloud app deploy --name $API_GATEWAY \
+            --jar-path ${{ github.workspace }}/$API_GATEWAY_JAR \
+            --jvm-options='-Xms2048m -Xmx2048m -Dspring.profiles.active=mysql'
+          az spring-cloud app deploy --name $ADMIN_SERVER \
+            --jar-path ${{ github.workspace }}/$ADMIN_SERVER_JAR \
+            --jvm-options='-Xms2048m -Xmx2048m -Dspring.profiles.active=mysql'
+          az spring-cloud app deploy --name $CUSTOMERS_SERVICE \
+            --jar-path ${{ github.workspace }}/$CUSTOMERS_SERVICE_JAR \
+            --jvm-options='-Xms2048m -Xmx2048m -Dspring.profiles.active=mysql' \
+            --env MYSQL_SERVER_FULL_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-FULL-NAME }} \
+              MYSQL_DATABASE_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-DATABASE-NAME }} \
+              MYSQL_SERVER_ADMIN_LOGIN_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-ADMIN-LOGIN-NAME }} \
+              MYSQL_SERVER_ADMIN_PASSWORD=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-ADMIN-PASSWORD }}
+          az spring-cloud app deploy --name $VETS_SERVICE \
+            --jar-path ${{ github.workspace }}/$VETS_SERVICE_JAR \
+            --jvm-options='-Xms2048m -Xmx2048m -Dspring.profiles.active=mysql' \
+            --env MYSQL_SERVER_FULL_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-FULL-NAME }} \
+              MYSQL_DATABASE_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-DATABASE-NAME }} \
+              MYSQL_SERVER_ADMIN_LOGIN_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-ADMIN-LOGIN-NAME }} \
+              MYSQL_SERVER_ADMIN_PASSWORD=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-ADMIN-PASSWORD }}
+          az spring-cloud app deploy --name $VISITS_SERVICE \
+            --jar-path ${{ github.workspace }}/$VISITS_SERVICE_JAR \
+            --jvm-options='-Xms2048m -Xmx2048m -Dspring.profiles.active=mysql' \
+            --env MYSQL_SERVER_FULL_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-FULL-NAME }} \
+              MYSQL_DATABASE_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-DATABASE-NAME }} \
+              MYSQL_SERVER_ADMIN_LOGIN_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-ADMIN-LOGIN-NAME }} \
+              MYSQL_SERVER_ADMIN_PASSWORD=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-ADMIN-PASSWORD }}
