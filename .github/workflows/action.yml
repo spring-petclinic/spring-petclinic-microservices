@@ -73,4 +73,5 @@ jobs:
         export ARM_CLIENT_SECRET=${{ steps.keyvaultaction.outputs.TFclientSecret }}
         export ARM_SUBSCRIPTION_ID=${{ steps.keyvaultaction.outputs.TFsubscriptionId }}
         export ARM_TENANT_ID=${{ steps.keyvaultaction.outputs.TFtenantId }}
+        terraform import
         terraform plan
