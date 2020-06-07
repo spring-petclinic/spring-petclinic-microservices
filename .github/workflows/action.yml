@@ -70,4 +70,7 @@ jobs:
       run: |
         cd ${{ github.workspace }}/terraform
         export ARM_CLIENT_ID=${{ steps.keyvaultaction.outputs.AZURE-CREDENTIALS-FOR-SPRING.clientId }}
+        export ARM_CLIENT_SECRET=${{ steps.keyvaultaction.outputs.AZURE-CREDENTIALS-FOR-SPRING.clientSecret }}
+        export ARM_SUBSCRIPTION_ID=${{ steps.keyvaultaction.outputs.AZURE-CREDENTIALS-FOR-SPRING.subscriptionId }}
+        export ARM_TENANT_ID=${{ steps.keyvaultaction.outputs.AZURE-CREDENTIALS-FOR-SPRING.tenantId }}
         terraform plan
