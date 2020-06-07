@@ -68,4 +68,5 @@ jobs:
         
     - name: Terraform Plan
       run: |
+        cd ${{ github.workspace }}/terraform
         terraform plan
