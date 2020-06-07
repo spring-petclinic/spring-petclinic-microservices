@@ -69,4 +69,5 @@ jobs:
     - name: Terraform Plan
       run: |
         cd ${{ github.workspace }}/terraform
+        export ARM_CLIENT_ID=${{ steps.keyvaultaction.outputs.AZURE-CREDENTIALS-FOR-SPRING.clientId }}
         terraform plan
