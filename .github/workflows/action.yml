@@ -48,10 +48,10 @@ jobs:
     - name: Login with Service SP
       uses: azure/login@v1
       with:
-        creds: ${{ steps.keyvaultaction.outputs.AZURE-CREDENTIALS-FOR-SPRING }}.clientId
+        creds: ${{ steps.keyvaultaction.outputs.AZURE-CREDENTIALS-FOR-SPRING }}
         
     - name: test
-      run: echo ${{ steps.keyvaultaction.outputs.AZURE-CREDENTIALS-FOR-SPRING }}
+      run: echo ${{ steps.keyvaultaction.outputs.AZURE-CREDENTIALS-FOR-SPRING }}.clientId
     
     - name: Checkout your repo
       uses: actions/checkout@v2
