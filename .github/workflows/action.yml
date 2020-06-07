@@ -35,7 +35,7 @@ jobs:
       uses: Azure/get-keyvault-secrets@v1.0
       with:
         keyvault: "petclinicdemokv"
-        secrets: "AZURE-CREDENTIALS-FOR-SPRING"
+        secrets: "AZURE-CREDENTIALS-FOR-SPRING, TFtenantId, TFsubscriptionId, TFclientSecret, TFclientID"
       id: keyvaultaction
     
     - name: Get MySQL Secrets from Key Vault
@@ -50,10 +50,6 @@ jobs:
       with:
         creds: ${{ steps.keyvaultaction.outputs.AZURE-CREDENTIALS-FOR-SPRING }}
         
-    - name: test
-      run: |
-        echo ${{ steps.keyvaultaction.outputs.AZURE-CREDENTIALS-FOR-SPRING }} | jq .clientId
-    
     - name: Checkout your repo
       uses: actions/checkout@v2
       
@@ -73,8 +69,8 @@ jobs:
     - name: Terraform Plan
       run: |
         cd ${{ github.workspace }}/terraform
-        export ARM_CLIENT_ID=${{ steps.keyvaultaction.outputs.AZURE-CREDENTIALS-FOR-SPRING.clientId }}
-        export ARM_CLIENT_SECRET=${{ steps.keyvaultaction.outputs.AZURE-CREDENTIALS-FOR-SPRING.clientSecret }}
-        export ARM_SUBSCRIPTION_ID=${{ steps.keyvaultaction.outputs.AZURE-CREDENTIALS-FOR-SPRING.subscriptionId }}
-        export ARM_TENANT_ID=${{ steps.keyvaultaction.outputs.AZURE-CREDENTIALS-FOR-SPRING.tenantId }}
+        export ARM_CLIENT_ID=${{ steps.keyvaultaction.outputs.TFclientId }}
+        export ARM_CLIENT_SECRET=${{ steps.keyvaultaction.outputs.TFclientSecret }}
+        export ARM_SUBSCRIPTION_ID=${{ steps.keyvaultaction.outputs.TFsubscriptionId }}
+        export ARM_TENANT_ID=${{ steps.keyvaultaction.outputs.TFtenantId }}
         terraform plan
