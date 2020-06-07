@@ -7,6 +7,9 @@ products:
 description: "Deploy Spring microservices using Azure Spring Cloud and MySQL"
 urlFragment: "spring-petclinic-microservices"
 ---
+
+![Deploy to Azure Spring Cloud with Key Vault](https://github.com/Azure-Samples/spring-petclinic-microservices/workflows/Deploy%20to%20Azure%20Spring%20Cloud%20with%20Key%20Vault/badge.svg)
+
 # Deploy Spring Microservices using Azure Spring Cloud and MySQL 
 
 Azure Spring Cloud enables you to easily run a Spring Boot based microservices application on Azure.
