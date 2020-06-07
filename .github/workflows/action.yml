@@ -48,7 +48,7 @@ jobs:
     - name: Login with Service SP
       uses: azure/login@v1
       with:
-        creds: ${{ steps.keyvaultaction.outputs.AZURE-CREDENTIALS-FOR-SPRING }}
+        creds: ${{ steps.keyvaultaction.outputs.AZURE-CREDENTIALS-FOR-SPRING }}.clientId
         
     - name: test
       run: echo ${{ steps.keyvaultaction.outputs.AZURE-CREDENTIALS-FOR-SPRING }}
