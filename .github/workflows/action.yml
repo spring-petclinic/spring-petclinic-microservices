@@ -19,7 +19,7 @@ env:
   # ==== TF ====:
   TF_VAR_resource_group: $RESOURCE_GROUP
   TF_VAR_region: WEST US 2
-  TF_VAR_spring_cloud_service: SPRING_CLOUD_SERVICE # customize this
+  TF_VAR_spring_cloud_service: $SPRING_CLOUD_SERVICE # customize this
   TF_VAR_api_gateway: $API_GATEWAY
 
 jobs:
@@ -61,8 +61,11 @@ jobs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
 
-    - name: Manage resource with Terraform
+    - name: Terraform Init
       run: |
         cd ${{ github.workspace }}/terraform
         terraform init
+        
+    - name: Terraform Plan
+      run: |
         terraform plan
