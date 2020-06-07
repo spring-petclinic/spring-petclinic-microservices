@@ -17,10 +17,10 @@ env:
   VETS_SERVICE_JAR: spring-petclinic-vets-service/target/spring-petclinic-vets-service-2.2.1.jar
   VISITS_SERVICE_JAR: spring-petclinic-visits-service/target/spring-petclinic-visits-service-2.2.1.jar
   # ==== TF ====:
-  TF_VAR_resource_group: $RESOURCE_GROUP
+  TF_VAR_resource_group: petclinic-demo
   TF_VAR_region: WEST US 2
   TF_VAR_spring_cloud_service: $SPRING_CLOUD_SERVICE # customize this
-  TF_VAR_api_gateway: $API_GATEWAY
+  TF_VAR_api_gateway: api-gateway
 
 jobs:
   build:
