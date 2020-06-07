@@ -2,8 +2,8 @@ name: Deploy to Azure Spring Cloud with Key Vault
 on: [push]
 
 env:
-  GROUP: petclinic-demo
-  SERVICE_NAME: petclinic-demo
+  RESOURCE_GROUP: petclinic-demo
+  SPRING_CLOUD_SERVICE: petclinic-demo
   # ==== APPS ====:  
   API_GATEWAY: api-gateway
   ADMIN_SERVER: admin-server
@@ -16,7 +16,11 @@ env:
   CUSTOMERS_SERVICE_JAR: spring-petclinic-customers-service/target/spring-petclinic-customers-service-2.2.1.jar
   VETS_SERVICE_JAR: spring-petclinic-vets-service/target/spring-petclinic-vets-service-2.2.1.jar
   VISITS_SERVICE_JAR: spring-petclinic-visits-service/target/spring-petclinic-visits-service-2.2.1.jar
-
+  # ==== TF ====:
+  TF_VAR_resource_group: $RESOURCE_GROUP
+  TF_VAR_region: WEST US 2
+  TF_VAR_spring_cloud_service: SPRING_CLOUD_SERVICE # customize this
+  TF_VAR_api_gateway: $API_GATEWAY
 
 jobs:
   build:
@@ -53,42 +57,12 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
-    
-    - name: maven build, clean
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+
+    - name: Manage resource with Terraform
       run: |
-        mvn clean package -DskipTests -Denv=cloud
-        
-    - name: Install ASC AZ extension
-      run: az extension add --name spring-cloud
-   
-    - name: Deploy with AZ CLI commands
-      run: |
-          az configure --defaults group=$GROUP
-          az configure --defaults spring-cloud=$SERVICE_NAME
-          az spring-cloud app deploy --name $API_GATEWAY \
-            --jar-path ${{ github.workspace }}/$API_GATEWAY_JAR \
-            --jvm-options='-Xms2048m -Xmx2048m -Dspring.profiles.active=mysql'
-          az spring-cloud app deploy --name $ADMIN_SERVER \
-            --jar-path ${{ github.workspace }}/$ADMIN_SERVER_JAR \
-            --jvm-options='-Xms2048m -Xmx2048m -Dspring.profiles.active=mysql'
-          az spring-cloud app deploy --name $CUSTOMERS_SERVICE \
-            --jar-path ${{ github.workspace }}/$CUSTOMERS_SERVICE_JAR \
-            --jvm-options='-Xms2048m -Xmx2048m -Dspring.profiles.active=mysql' \
-            --env MYSQL_SERVER_FULL_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-FULL-NAME }} \
-              MYSQL_DATABASE_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-DATABASE-NAME }} \
-              MYSQL_SERVER_ADMIN_LOGIN_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-ADMIN-LOGIN-NAME }} \
-              MYSQL_SERVER_ADMIN_PASSWORD=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-ADMIN-PASSWORD }}
-          az spring-cloud app deploy --name $VETS_SERVICE \
-            --jar-path ${{ github.workspace }}/$VETS_SERVICE_JAR \
-            --jvm-options='-Xms2048m -Xmx2048m -Dspring.profiles.active=mysql' \
-            --env MYSQL_SERVER_FULL_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-FULL-NAME }} \
-              MYSQL_DATABASE_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-DATABASE-NAME }} \
-              MYSQL_SERVER_ADMIN_LOGIN_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-ADMIN-LOGIN-NAME }} \
-              MYSQL_SERVER_ADMIN_PASSWORD=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-ADMIN-PASSWORD }}
-          az spring-cloud app deploy --name $VISITS_SERVICE \
-            --jar-path ${{ github.workspace }}/$VISITS_SERVICE_JAR \
-            --jvm-options='-Xms2048m -Xmx2048m -Dspring.profiles.active=mysql' \
-            --env MYSQL_SERVER_FULL_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-FULL-NAME }} \
-              MYSQL_DATABASE_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-DATABASE-NAME }} \
-              MYSQL_SERVER_ADMIN_LOGIN_NAME=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-ADMIN-LOGIN-NAME }} \
-              MYSQL_SERVER_ADMIN_PASSWORD=${{ steps.mysqlsecrets.outputs.MYSQL-SERVER-ADMIN-PASSWORD }}
+        cd ${{ github.workspace }}/terraform
+        terraform init
+        terraform plan
