@@ -295,6 +295,64 @@ Navigate to the URL provided by the previous command to open the Pet Clinic micr
     
 ![](./media/petclinic.jpg)
 
+## Working with GitHub Actions
+
+### Prepare secrets in your Key Vault
+If you don't have a Key Vault yet, run the following commands to provision a Key Vault:
+``` bash
+export KEY_VAULT=<your-keyvault-name>
+az keyvault create --name ${KEY_VAULT} -g ${RESOURCE_GROUP}
+```
+
+Add the MySQL secrets to your Key Vault:
+```bash
+az keyvault secret set --vault-name ${KEY_VAULT} --name "MYSQL-DATABASE-NAME" --value ${MYSQL_DATABASE_NAME}
+az keyvault secret set --vault-name ${KEY_VAULT} --name "MYSQL-SERVER-ADMIN-LOGIN-NAME" --value ${MYSQL_SERVER_ADMIN_LOGIN_NAME}
+az keyvault secret set --vault-name ${KEY_VAULT} --name "MYSQL-SERVER-ADMIN-PASSWORD" --value ${MYSQL_SERVER_ADMIN_PASSWORD}
+az keyvault secret set --vault-name ${KEY_VAULT} --name "MYSQL-SERVER-FULL-NAME" --value ${MYSQL_SERVER_FULL_NAME}
+```
+
+Create a service priciple with enough scope/role to manage your Azure Spring Cloud instance:
+```bash
+az ad sp create-for-rbac --role contributor --scopes /subscriptions/<SUBSCRIPTION_ID> --sdk-auth
+```
+With results:
+```json
+{
+    "clientId": "<GUID>",
+    "clientSecret": "<GUID>",
+    "subscriptionId": "<GUID>",
+    "tenantId": "<GUID>",
+    "activeDirectoryEndpointUrl": "https://login.microsoftonline.com",
+    "resourceManagerEndpointUrl": "https://management.azure.com/",
+    "sqlManagementEndpointUrl": "https://management.core.windows.net:8443/",
+    "galleryEndpointUrl": "https://gallery.azure.com/",
+    "managementEndpointUrl": "https://management.core.windows.net/"
+}
+```
+Add it as a secret to your Key Vault:
+```bash
+az keyvault secret set --vault-name ${KEY_VAULT} --name "AZURE-CREDENTIALS-FOR-SPRING" --value "<results above>"
+```
+
+### Grant access to your Key Vault with Service Principle
+To generate a key to access the key vault, execute command below:
+```bash
+az ad sp create-for-rbac --role contributor --scopes /subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RESOURCE_GROUP>/providers/Microsoft.KeyVault/vaults/<KEY_VAULT> --sdk-auth
+```
+Then, follow [the steps here](https://docs.microsoft.com/azure/spring-cloud/spring-cloud-github-actions-key-vault#add-access-policies-for-the-credential) to add access policy for the Service Principle.
+
+In the end, add this service principle as a secrets named "AZURE_CREDENTIALS" in your forked GitHub repo following [the steps here](https://docs.microsoft.com/en-us/azure/spring-cloud/spring-cloud-github-actions-key-vault#add-access-policies-for-the-credential).
+
+### Customize your workflow
+Finally, edit the workfolw file `.github/workflows/action.yml` in your forked repo to fill in the names of resource group and Azure Spring Cloud instance you just created:
+```yml
+env:
+  RESOURCE_GROUP: resource-group-name # customize this
+  SPRING_CLOUD_SERVICE: azure-spring-cloud-name # customize this
+```
+After your commited this change, you will see GitHub Actions triggered to build and deploy all the apps in the repo to your Azure Spring Cloud instance.
+
 ## Next Steps
 
 In this quickstart, you've deployed an existing Spring microservices app using Azure CLI. To learn more about Azure Spring Cloud, go to:
