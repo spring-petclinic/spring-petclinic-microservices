@@ -1,14 +1,8 @@
-FROM adoptopenjdk:11-jre-hotspot as builder
+FROM openjdk:11-jre as builder
 WORKDIR application
 ARG ARTIFACT_NAME
 COPY ${ARTIFACT_NAME}.jar application.jar
 RUN java -Djarmode=layertools -jar application.jar extract
-
-
-# wget is not installed on adoptopenjdk:11-jre-hotspot
-FROM openjdk:11-jre
-
-WORKDIR application
 
 # Download dockerize and cache that layer
 ARG DOCKERIZE_VERSION
@@ -16,6 +10,15 @@ RUN wget -O dockerize.tar.gz https://github.com/jwilder/dockerize/releases/downl
 RUN tar xzf dockerize.tar.gz
 RUN rm dockerize.tar.gz
 RUN chmod +x dockerize
+
+
+# wget is not installed on adoptopenjdk:11-jre-hotspot
+FROM adoptopenjdk:11-jre-hotspot
+
+WORKDIR application
+
+# Dockerize
+COPY --from=builder application/dockerize ./
 
 ARG EXPOSED_PORT
 EXPOSE ${EXPOSED_PORT}
