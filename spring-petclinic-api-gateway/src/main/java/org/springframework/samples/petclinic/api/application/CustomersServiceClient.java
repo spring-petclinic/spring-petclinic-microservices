@@ -29,7 +29,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class CustomersServiceClient {
 
-    private final WebClient.Builder webClientBuilder;
+    private final WebClient.Builder webClientBuilder = null;
 
     public Mono<OwnerDetails> getOwner(final int ownerId) {
         return webClientBuilder.build().get()

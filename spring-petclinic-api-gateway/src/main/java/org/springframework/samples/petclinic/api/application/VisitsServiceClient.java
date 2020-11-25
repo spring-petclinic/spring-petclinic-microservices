@@ -35,7 +35,11 @@ public class VisitsServiceClient {
     // Could be changed for testing purpose
     private String hostname = "http://visits-service/";
 
-    private final WebClient.Builder webClientBuilder;
+    private WebClient.Builder webClientBuilder;
+
+    public VisitsServiceClient(WebClient.Builder webClientBuilder){
+        this.webClientBuilder = webClientBuilder;
+    }
 
     public Mono<Visits> getVisitsForPets(final List<Integer> petIds) {
         return webClientBuilder.build()

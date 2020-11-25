@@ -15,7 +15,9 @@
  */
 package org.springframework.samples.petclinic.api.boundary.web;
 
+import com.netflix.discovery.converters.Auto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreaker;
 import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreakerFactory;
 import org.springframework.samples.petclinic.api.application.CustomersServiceClient;
@@ -39,11 +41,14 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/gateway")
 public class ApiGatewayController {
 
-    private final CustomersServiceClient customersServiceClient;
+    @Autowired
+    private CustomersServiceClient customersServiceClient;
 
-    private final VisitsServiceClient visitsServiceClient;
+    @Autowired
+    private VisitsServiceClient visitsServiceClient;
 
-    private final ReactiveCircuitBreakerFactory cbFactory;
+    @Autowired
+    private ReactiveCircuitBreakerFactory cbFactory;
 
     @GetMapping(value = "owners/{ownerId}")
     public Mono<OwnerDetails> getOwnerDetails(final @PathVariable int ownerId) {

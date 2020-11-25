@@ -11,7 +11,8 @@ target/
 .project
 
 # IntelliJ IDEA
-.idea
+.idea/**
+!.idea/workspace.xml
 *.iml
 
 # Branch switching
