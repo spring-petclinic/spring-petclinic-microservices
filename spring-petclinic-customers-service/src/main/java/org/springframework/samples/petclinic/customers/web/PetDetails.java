@@ -43,7 +43,7 @@ class PetDetails {
     PetDetails(Pet pet) {
         this.id = pet.getId();
         this.name = pet.getName();
-        this.owner = pet.getOwner().getFirstName() + " " + pet.getOwner().getLastName();
+        this.owner = pet.getOwner().getFirstName() + " {bug here} " + pet.getOwner().getLastName();
         this.birthDate = pet.getBirthDate();
         this.type = pet.getType();
     }

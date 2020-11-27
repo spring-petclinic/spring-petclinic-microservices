@@ -50,9 +50,8 @@ class VisitResource {
     void create(
         @Valid @RequestBody Visit visit,
         @PathVariable("petId") int petId) {
-
+        printPetId(petId);
         visit.setPetId(petId);
-        System.out.println("drill hello");
         log.info("Saving visit {}", visit);
         visitRepository.save(visit);
     }
@@ -71,5 +70,9 @@ class VisitResource {
     @Value
     static class Visits {
         private final List<Visit> items;
+    }
+
+    private void printPetId(int petId){
+        System.out.println(petId);
     }
 }

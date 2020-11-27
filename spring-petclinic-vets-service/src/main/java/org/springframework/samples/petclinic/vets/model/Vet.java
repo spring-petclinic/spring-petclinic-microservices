@@ -72,12 +72,16 @@ public class Vet {
     }
 
     public void setId(Integer id) {
+        printId(id);
         this.id = id;
     }
 
     public String getFirstName() {
-        System.out.println("drill hello");
         return this.firstName;
+    }
+
+    private void printId(Integer id){
+        System.out.println(id);
     }
 
     public void setFirstName(String firstName) {
