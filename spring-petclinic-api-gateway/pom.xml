@@ -5,7 +5,7 @@
 
     <groupId>org.springframework.samples.petclinic.api</groupId>
     <artifactId>spring-petclinic-api-gateway</artifactId>
-    <packaging>jar</packaging>
+    <version>1.0</version>
     <description>Spring PetClinic API Gateway</description>
 
     <parent>
@@ -192,20 +192,5 @@
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>buildDocker</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.spotify</groupId>
-                        <artifactId>docker-maven-plugin</artifactId>
-                        <version>${docker.plugin.version}</version>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 
 </project>
