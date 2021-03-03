@@ -12,8 +12,6 @@ services:
     image: adenmin/spring-petclinic-discovery-server
     container_name: discovery-server
     mem_limit: 512M
-    volumes:
-      - ./distr:/data
     depends_on:
       - config-server
     entrypoint: ["./dockerize","-wait=tcp://config-server:8888","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
@@ -26,10 +24,12 @@ services:
     mem_limit: 512M
     volumes:
       - ./distr:/data
+    environment:
+      - JAVA_TOOL_OPTIONS="-agentpath:/data/libdrill_agent.so=drillInstallationDir=/data,adminAddress=host.docker.internal:8090,agentId=customer-service,groupId=pet-mcr,logLevel=DEBUG"
     depends_on:
      - config-server
      - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
     ports:
       - 8081:8081
 
@@ -39,6 +39,8 @@ services:
     mem_limit: 512M
     volumes:
       - ./distr:/data
+    environment:
+      - JAVA_TOOL_OPTIONS="-agentpath:/data/libdrill_agent.so=drillInstallationDir=/data,adminAddress=host.docker.internal:8090,agentId=visit-service,groupId=pet-mcr,logLevel=DEBUG"
     depends_on:
      - config-server
      - discovery-server
@@ -52,10 +54,12 @@ services:
     mem_limit: 512M
     volumes:
       - ./distr:/data
+    environment:
+      - JAVA_TOOL_OPTIONS="-agentpath:/data/libdrill_agent.so=drillInstallationDir=/data,adminAddress=host.docker.internal:8090,agentId=vets-service,groupId=pet-mcr,logLevel=DEBUG"
     depends_on:
      - config-server
      - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
     ports:
       - 8083:8083
 
@@ -63,6 +67,10 @@ services:
     image: adenmin/spring-petclinic-api-gateway
     container_name: api-gateway
     mem_limit: 512M
+    volumes:
+      - ./distr:/data
+    environment:
+      - JAVA_TOOL_OPTIONS="-agentpath:/data/libdrill_agent.so=drillInstallationDir=/data,adminAddress=host.docker.internal:8090,agentId=api-service,groupId=pet-mcr,logLevel=DEBUG"
     depends_on:
      - config-server
      - discovery-server
@@ -78,25 +86,3 @@ services:
     - JAVA_OPTS=-XX:+UnlockExperimentalVMOptions -Djava.security.egd=file:/dev/./urandom
     ports:
       - 9411:9411
-
-  admin-server:
-    image: adenmin/spring-petclinic-admin-server
-    container_name: admin-server
-    mem_limit: 512M
-    depends_on:
-     - config-server
-     - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
-    ports:
-      - 9090:9090
-
-  hystrix-dashboard:
-    image: mszarlinski/spring-petclinic-hystrix-dashboard
-    container_name: hystrix-dashboard
-    mem_limit: 512M
-    depends_on:
-     - config-server
-     - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
-    ports:
-     - 7979:7979
