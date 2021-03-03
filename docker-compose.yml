@@ -1,4 +1,5 @@
 version: '2'
+
 services:
   config-server:
     image: adenmin/spring-petclinic-config-server
@@ -15,7 +16,7 @@ services:
       - ./distr:/data
     depends_on:
       - config-server
-    entrypoint: ["./dockerize","-wait=tcp://config-server:8888","-timeout=60s","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-javaagent:/data/drill-proxy.jar=ttl.agent.logger:STDOUT", "-agentpath:/data/libdrill_agent.so=drillInstallationDir=/data,adminAddress=${adminAddress}:8090,agentId=discovery-server,serviceGroupId=${serviceGroupId}", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+    entrypoint: ["./dockerize","-wait=tcp://config-server:8888","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
     ports:
       - 8761:8761
 
@@ -26,9 +27,9 @@ services:
     volumes:
       - ./distr:/data
     depends_on:
-      - config-server
-      - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-javaagent:/data/drill-proxy.jar=ttl.agent.logger:STDOUT", "-agentpath:/data/libdrill_agent.so=drillInstallationDir=/data,adminAddress=${adminAddress}:8090,agentId=customers-service,serviceGroupId=${serviceGroupId}", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+     - config-server
+     - discovery-server
+    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
     ports:
       - 8081:8081
 
@@ -39,9 +40,9 @@ services:
     volumes:
       - ./distr:/data
     depends_on:
-      - config-server
-      - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-javaagent:/data/drill-proxy.jar=ttl.agent.logger:STDOUT", "-agentpath:/data/libdrill_agent.so=drillInstallationDir=/data,adminAddress=${adminAddress}:8090,agentId=visits-service,serviceGroupId=${serviceGroupId}", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+     - config-server
+     - discovery-server
+    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
     ports:
       - 8082:8082
 
@@ -52,9 +53,9 @@ services:
     volumes:
       - ./distr:/data
     depends_on:
-      - config-server
-      - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-javaagent:/data/drill-proxy.jar=ttl.agent.logger:STDOUT", "-agentpath:/data/libdrill_agent.so=drillInstallationDir=/data,adminAddress=${adminAddress}:8090,agentId=vets-service,serviceGroupId=${serviceGroupId}", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+     - config-server
+     - discovery-server
+    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
     ports:
       - 8083:8083
 
@@ -63,9 +64,9 @@ services:
     container_name: api-gateway
     mem_limit: 512M
     depends_on:
-      - config-server
-      - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+     - config-server
+     - discovery-server
+    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
     ports:
       - 8080:8080
 
@@ -74,7 +75,7 @@ services:
     container_name: tracing-server
     mem_limit: 512M
     environment:
-      - JAVA_OPTS=-XX:+UnlockExperimentalVMOptions -Djava.security.egd=file:/dev/./urandom
+    - JAVA_OPTS=-XX:+UnlockExperimentalVMOptions -Djava.security.egd=file:/dev/./urandom
     ports:
       - 9411:9411
 
@@ -83,20 +84,19 @@ services:
     container_name: admin-server
     mem_limit: 512M
     depends_on:
-      - config-server
-      - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+     - config-server
+     - discovery-server
+    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
     ports:
       - 9090:9090
 
   hystrix-dashboard:
-    image: adenmin/spring-petclinic-hystrix-dashboard
+    image: mszarlinski/spring-petclinic-hystrix-dashboard
     container_name: hystrix-dashboard
     mem_limit: 512M
     depends_on:
-      - config-server
-      - discovery-server
+     - config-server
+     - discovery-server
     entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
     ports:
-      - 7979:7979
-
+     - 7979:7979
