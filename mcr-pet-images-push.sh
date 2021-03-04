@@ -1,6 +1,6 @@
 #! /bin/bash
 
-ACTUAL_VERSION="0.2.0"
+ACTUAL_VERSION="0.3.0"
 
 echo "chagne latest tag to $ACTUAL_VERSION"
 
