@@ -15,19 +15,21 @@
  */
 package org.springframework.samples.petclinic.api.dto;
 
-import lombok.Value;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Maciej Szarlinski
  */
-@Value
+@Data
+@NoArgsConstructor
 public class VisitDetails {
 
-    private int id;
+    private Integer id = null;
 
-    private int petId;
+    private Integer petId = null;
 
-    private String date;
+    private String date = null;
 
-    private String description;
+    private String description = null;
 }

@@ -6,12 +6,12 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.0.6.RELEASE</version>
+        <version>2.4.2</version>
     </parent>
 
     <groupId>org.springframework.samples</groupId>
     <artifactId>spring-petclinic-microservices</artifactId>
-    <version>2.0.6</version>
+    <version>2.4.2</version>
     <name>${project.artifactId}</name>
     <packaging>pom</packaging>
 
@@ -23,16 +23,14 @@
         <module>spring-petclinic-config-server</module>
         <module>spring-petclinic-discovery-server</module>
         <module>spring-petclinic-api-gateway</module>
-        <module>spring-petclinic-hystrix-dashboard</module>
     </modules>
 
     <properties>
         <java.version>1.8</java.version>
         <assertj.version>3.11.1</assertj.version>
 
-        <spring-boot.version>2.0.4.RELEASE</spring-boot.version>
-        <spring-cloud.version>Finchley.SR2</spring-cloud.version>
-        <sleuth.version>2.0.0.RELEASE</sleuth.version>
+        <spring-boot.version>2.4.2</spring-boot.version>
+        <spring-cloud.version>2020.0.1</spring-cloud.version>
 
         <maven-surefire-plugin.version>2.22.0</maven-surefire-plugin.version>
 
@@ -47,13 +45,6 @@
         <dependencies>
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-sleuth-dependencies</artifactId>
-                <type>pom</type>
-                <scope>import</scope>
-                <version>${sleuth.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
                 <version>${spring-cloud.version}</version>
                 <type>pom</type>
@@ -65,11 +56,11 @@
                 <version>${spring-boot.version}</version>
                 <scope>test</scope>
                 <exclusions>
-                    <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                    </exclusion>
-                </exclusions>
+			        <exclusion>
+			            <groupId>org.junit.vintage</groupId>
+			            <artifactId>junit-vintage-engine</artifactId>
+			        </exclusion>
+			    </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.assertj</groupId>
@@ -77,8 +68,10 @@
                 <version>${assertj.version}</version>
                 <scope>test</scope>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
+
 
     <profiles>
         <profile>
@@ -96,6 +89,10 @@
                         <artifactId>spring-boot-maven-plugin</artifactId>
                         <configuration>
                             <fork>true</fork>
+                            <!-- Layered jars optimizes Docker images -->
+                            <layers>
+                                <enabled>true</enabled>
+                            </layers>
                         </configuration>
                         <executions>
                             <execution>
@@ -160,6 +157,8 @@
                             <configuration>
                                 <imageName>${docker.image.prefix}/${project.artifactId}</imageName>
                                 <dockerDirectory>${docker.image.dockerfile.dir}</dockerDirectory>
+                                <serverId>docker-hub</serverId>
+                                <registryUrl>https://index.docker.io/v1/</registryUrl>
                                 <resources>
                                     <resource>
                                         <targetPath>/</targetPath>
@@ -182,10 +181,24 @@
 
     <repositories>
         <repository>
-            <id>repository.spring.milestone</id>
-            <name>Spring Milestone Repository</name>
-            <url>http://repo.spring.io/milestone</url>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
     </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
 
 </project>

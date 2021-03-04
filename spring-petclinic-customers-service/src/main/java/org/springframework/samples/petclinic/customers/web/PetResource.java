@@ -15,6 +15,7 @@
  */
 package org.springframework.samples.petclinic.customers.web;
 
+import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -31,13 +32,14 @@ import java.util.Optional;
  * @author Maciej Szarlinski
  */
 @RestController
+@Timed("petclinic.pet")
 @RequiredArgsConstructor
 @Slf4j
 class PetResource {
 
     private final PetRepository petRepository;
-
     private final OwnerRepository ownerRepository;
+
 
     @GetMapping("/petTypes")
     public List<PetType> getPetTypes() {
@@ -45,8 +47,8 @@ class PetResource {
     }
 
     @PostMapping("/owners/{ownerId}/pets")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void processCreationForm(
+    @ResponseStatus(HttpStatus.CREATED)
+    public Pet processCreationForm(
         @RequestBody PetRequest petRequest,
         @PathVariable("ownerId") int ownerId) {
 
@@ -55,7 +57,7 @@ class PetResource {
         Owner owner = optionalOwner.orElseThrow(() -> new ResourceNotFoundException("Owner "+ownerId+" not found"));
         owner.addPet(pet);
 
-        save(pet, petRequest);
+        return save(pet, petRequest);
     }
 
     @PutMapping("/owners/*/pets/{petId}")
@@ -66,7 +68,7 @@ class PetResource {
         save(pet, petRequest);
     }
 
-    private void save(final Pet pet, final PetRequest petRequest) {
+    private Pet save(final Pet pet, final PetRequest petRequest) {
 
         pet.setName(petRequest.getName());
         pet.setBirthDate(petRequest.getBirthDate());
@@ -75,7 +77,7 @@ class PetResource {
             .ifPresent(pet::setType);
 
         log.info("Saving pet {}", pet);
-        petRepository.save(pet);
+        return petRepository.save(pet);
     }
 
     @GetMapping("owners/*/pets/{petId}")

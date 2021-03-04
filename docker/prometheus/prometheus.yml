@@ -1,0 +1,32 @@
+# my global config
+global:
+  scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+- job_name: prometheus
+  static_configs:
+  - targets: ['localhost:9090']
+
+- job_name: api-gateway
+  metrics_path: /actuator/prometheus
+  static_configs:
+  - targets: ['api-gateway:8080']
+
+- job_name: customers-service
+  metrics_path: /actuator/prometheus
+  static_configs:
+  - targets: ['customers-service:8081']
+
+- job_name: visits-service
+  metrics_path: /actuator/prometheus
+  static_configs:
+  - targets: ['visits-service:8082']
+
+- job_name: vets-service
+  metrics_path: /actuator/prometheus
+  static_configs:
+  - targets: ['vets-service:8083']
