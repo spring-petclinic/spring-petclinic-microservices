@@ -4,34 +4,27 @@ extensions:
     endpoint: 0.0.0.0:55679
 
 receivers:
-
   otlp:
     protocols:
         grpc:
 
 processors:
-
   batch:
-
+  queued_retry:
   attributes/newenvironment:
     actions:
     - key: environment
       value: "petclinic"
       action: insert
 
-  queued_retry:
-
 exporters:
-
   logging:
-
+    logLevel: debug
   zipkin:
-    endpoint: "http://tracing-server:9411/api/v2/spans"
+    endpoint: "http://zipkin-server:9411/api/v2/spans"
 
 service:
-
   pipelines:
-
     traces:
       receivers: [otlp]
       processors: [batch, attributes/newenvironment, queued_retry]

@@ -16,3 +16,4 @@ target/
 
 # Branch switching
 generated/
+/otel/splunk-otel-javaagent-all.jar
