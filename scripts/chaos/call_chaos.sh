@@ -8,7 +8,7 @@ set -o pipefail
 ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 function usage {
-    echo "usage: $0: <customers|visits|vets|attacks_enable_exception|attacks_enable_killapplication|attacks_enable_latency|attacks_enable_memory|watcher_enable_component|watcher_enable_controller|watcher_enable_repository|watcher_enable_restcontroller|watcher_enable_service|watcher_disable>"
+    echo "usage: $0: <customers|visits|vets> <attacks_enable_exception|attacks_enable_killapplication|attacks_enable_latency|attacks_enable_memory|watcher_enable_component|watcher_enable_controller|watcher_enable_repository|watcher_enable_restcontroller|watcher_enable_service|watcher_disable>"
     echo "First pick either customers, visits or vets"
     echo "Then pick what to enable. Order matters!"
     echo "Example"
@@ -47,4 +47,3 @@ case $1 in
 esac
 shift
 done
-
