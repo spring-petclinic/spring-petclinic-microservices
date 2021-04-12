@@ -12,7 +12,7 @@ function usage {
     echo "First pick either customers, visits or vets"
     echo "Then pick what to enable. Order matters!"
     echo "Example"
-    echo "visits attacks_enable_exception watcher_enable_restcontroller"
+    echo "./scripts/chaos/call_chaos.sh visits attacks_enable_exception watcher_enable_restcontroller"
     exit 1
 }
 
