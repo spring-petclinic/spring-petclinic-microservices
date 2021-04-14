@@ -40,6 +40,9 @@
         <docker.image.dockerfile.dir>${basedir}</docker.image.dockerfile.dir>
         <docker.image.dockerize.version>v0.6.1</docker.image.dockerize.version>
         <docker.plugin.version>1.2.0</docker.plugin.version>
+        <sonar.projectKey>SyCode7_spring-petclinic-microservices</sonar.projectKey>
+        <sonar.organization>sycode7</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
     <dependencyManagement>
