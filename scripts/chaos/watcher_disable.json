@@ -1,0 +1,7 @@
+{
+    "controller": false,
+    "restController": false,
+    "service": false,
+    "repository": false,
+    "component": false
+}
