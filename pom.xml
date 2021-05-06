@@ -136,6 +136,7 @@
                             <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties
                             </generateGitPropertiesFilename>
                             <failOnNoGitDirectory>false</failOnNoGitDirectory>
+                            <failOnUnableToExtractRepoInfo>false</failOnUnableToExtractRepoInfo>
                         </configuration>
                     </plugin>
                 </plugins>
