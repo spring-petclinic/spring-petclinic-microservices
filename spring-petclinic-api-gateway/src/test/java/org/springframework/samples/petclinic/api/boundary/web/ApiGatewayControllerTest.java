@@ -23,7 +23,7 @@ import java.util.Collections;
 
 @ExtendWith(SpringExtension.class)
 @WebFluxTest(controllers = ApiGatewayController.class)
-@Import(ReactiveResilience4JAutoConfiguration.class)
+@Import({ReactiveResilience4JAutoConfiguration.class, CircuitBreakerConfiguration.class})
 class ApiGatewayControllerTest {
 
     @MockBean
