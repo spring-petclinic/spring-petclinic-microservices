@@ -52,6 +52,8 @@ class PetResource {
         @RequestBody PetRequest petRequest,
         @PathVariable("ownerId") int ownerId) {
 
+        validatePetType(petRequest.getTypeId());
+
         final Pet pet = new Pet();
         final Optional<Owner> optionalOwner = ownerRepository.findById(ownerId);
         Owner owner = optionalOwner.orElseThrow(() -> new ResourceNotFoundException("Owner "+ownerId+" not found"));
@@ -66,6 +68,28 @@ class PetResource {
         int petId = petRequest.getId();
         Pet pet = findPetById(petId);
         save(pet, petRequest);
+    }
+
+    private void validatePetType(int type) {
+        long sleepDuration;
+
+        //If the pet type is of type hamster, artificially lengthens the process time
+        if (type == 6) {
+            sleepDuration = (long) (3000 + Math.random() * 2000);
+        }
+        else {
+            sleepDuration = (long) (5 + Math.random() * 5);
+        }
+
+        sleepDurationOf(sleepDuration);
+    }
+
+    private void sleepDurationOf(long sleepDuration) {
+        try {
+            Thread.sleep(sleepDuration);
+        }
+        catch (InterruptedException e) {
+        }
     }
 
     private Pet save(final Pet pet, final PetRequest petRequest) {
