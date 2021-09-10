@@ -2,63 +2,63 @@ version: '2'
 
 services:
   config-server:
-    image: inspectit/spring-petclinic-config-server:inspectit-oce-demo-1.0
+    image: inspectit/spring-petclinic-config-server:${INSPECTIT_PETCLINIC_VERSION}
     container_name: config-server
     mem_limit: 512M
     ports:
      - 8888:8888
 
   discovery-server:
-    image: inspectit/spring-petclinic-discovery-server:inspectit-oce-demo-1.0
+    image: inspectit/spring-petclinic-discovery-server:${INSPECTIT_PETCLINIC_VERSION}
     container_name: discovery-server
     mem_limit: 512M
     depends_on:
       - config-server
-    entrypoint: ["./dockerize","-wait=tcp://config-server:8888","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
+    entrypoint: ["./dockerize","-wait=tcp://config-server:8888","-timeout=120s","--","java", "org.springframework.boot.loader.JarLauncher"]
     ports:
      - 8761:8761
 
   customers-service:
-    image: inspectit/spring-petclinic-customers-service:inspectit-oce-demo-1.0
+    image: inspectit/spring-petclinic-customers-service:${INSPECTIT_PETCLINIC_VERSION}
     container_name: customers-service
     mem_limit: 512M
     depends_on:
      - config-server
      - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
+    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=120s","--","java", "org.springframework.boot.loader.JarLauncher"]
     ports:
     - 8081:8081
 
   visits-service:
-    image: inspectit/spring-petclinic-visits-service:inspectit-oce-demo-1.0
+    image: inspectit/spring-petclinic-visits-service:${INSPECTIT_PETCLINIC_VERSION}
     container_name: visits-service
     mem_limit: 512M
     depends_on:
      - config-server
      - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
+    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=120s","--","java", "org.springframework.boot.loader.JarLauncher"]
     ports:
      - 8082:8082
 
   vets-service:
-    image: inspectit/spring-petclinic-vets-service:inspectit-oce-demo-1.0
+    image: inspectit/spring-petclinic-vets-service:${INSPECTIT_PETCLINIC_VERSION}
     container_name: vets-service
     mem_limit: 512M
     depends_on:
      - config-server
      - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
+    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=120s","--","java", "org.springframework.boot.loader.JarLauncher"]
     ports:
      - 8083:8083
 
   api-gateway:
-    image: inspectit/spring-petclinic-api-gateway:inspectit-oce-demo-1.0
+    image: inspectit/spring-petclinic-api-gateway:${INSPECTIT_PETCLINIC_VERSION}
     container_name: api-gateway
     mem_limit: 512M
     depends_on:
      - config-server
      - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
+    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=120s","--","java", "org.springframework.boot.loader.JarLauncher"]
     ports:
      - 8080:8080
 
@@ -72,13 +72,13 @@ services:
      - 9411:9411
 
   admin-server:
-    image: inspectit/spring-petclinic-admin-server:inspectit-oce-demo-1.0
+    image: inspectit/spring-petclinic-admin-server:${INSPECTIT_PETCLINIC_VERSION}
     container_name: admin-server
     mem_limit: 512M
     depends_on:
      - config-server
      - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
+    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=120s","--","java", "org.springframework.boot.loader.JarLauncher"]
     ports:
      - 9090:9090
 

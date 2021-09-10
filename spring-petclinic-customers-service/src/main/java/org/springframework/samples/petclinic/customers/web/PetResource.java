@@ -52,7 +52,11 @@ class PetResource {
         @RequestBody PetRequest petRequest,
         @PathVariable("ownerId") int ownerId) {
 
-        validatePetType(petRequest.getTypeId());
+        try {
+            validatePetType(petRequest.getTypeId());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         final Pet pet = new Pet();
         final Optional<Owner> optionalOwner = ownerRepository.findById(ownerId);
@@ -70,17 +74,18 @@ class PetResource {
         save(pet, petRequest);
     }
 
-    private void validatePetType(int type) {
-        long sleepDuration;
+    private void validatePetType(int type) throws Exception {
+        long sleepDuration = 0;
 
         //If the pet type is of type hamster, artificially lengthens the process time
         if (type == 6) {
             sleepDuration = (long) (3000 + Math.random() * 2000);
+        }else if(type == 5){//type bird will cause an exception, this is wanted behavior to force an exception
+            throw new Exception("Exception thrown for showcase uses");
         }
         else {
             sleepDuration = (long) (5 + Math.random() * 5);
         }
-
         sleepDurationOf(sleepDuration);
     }
 
