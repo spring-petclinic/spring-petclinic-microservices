@@ -30,7 +30,7 @@
         <assertj.version>3.17.1</assertj.version>
 
         <spring-boot.version>2.6.0-M3</spring-boot.version>
-        <spring-cloud.version>2021.0.0-M2</spring-cloud.version>
+        <spring-cloud.version>2021.0.0-M3</spring-cloud.version>
         <chaos-monkey-spring-boot.version>2.3.10</chaos-monkey-spring-boot.version>
 
         <docker.image.prefix>springcommunity</docker.image.prefix>
