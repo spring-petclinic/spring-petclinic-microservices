@@ -63,6 +63,7 @@ class PetResource {
     @PutMapping("/owners/*/pets/{petId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void processUpdateForm(@RequestBody PetRequest petRequest) {
+        System.out.println("0.4.0");
         int petId = petRequest.getId();
         Pet pet = findPetById(petId);
         save(pet, petRequest);
@@ -82,11 +83,13 @@ class PetResource {
 
     @GetMapping("owners/*/pets/{petId}")
     public PetDetails findPet(@PathVariable("petId") int petId) {
+        System.out.println("0.4.0");
         return new PetDetails(findPetById(petId));
     }
 
 
     private Pet findPetById(int petId) {
+        System.out.println("0.4.0");
         Optional<Pet> pet = petRepository.findById(petId);
         if (!pet.isPresent()) {
             throw new ResourceNotFoundException("Pet "+petId+" not found");

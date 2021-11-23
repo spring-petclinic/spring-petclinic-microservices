@@ -61,11 +61,13 @@ class VisitResource {
 
     @GetMapping("owners/*/pets/{petId}/visits")
    public List<Visit> visits(@PathVariable("petId") int petId) {
+        System.out.println("0.4.0");
         return visitRepository.findByPetId(petId);
     }
 
     @GetMapping("pets/visits")
    public Visits visitsMultiGet(@RequestParam("petId") List<Integer> petIds) {
+        System.out.println("0.4.0");
         final List<Visit> byPetIdIn = visitRepository.findByPetIdIn(petIds);
         return new Visits(byPetIdIn);
     }
@@ -76,6 +78,7 @@ class VisitResource {
     }
 
     private void printPetId(int petId){
+        System.out.println("0.4.0");
         System.out.println(petId);
     }
 }

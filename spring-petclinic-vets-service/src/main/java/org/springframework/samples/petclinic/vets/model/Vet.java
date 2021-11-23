@@ -68,11 +68,12 @@ public class Vet {
     private Set<Specialty> specialties;
 
     public Integer getId() {
+        System.out.println("0.4.0");
         return id;
     }
 
     public void setId(Integer id) {
-        printId(id);
+        System.out.println("0.4.0");
         this.id = id;
     }
 
@@ -81,22 +82,27 @@ public class Vet {
     }
 
     private void printId(Integer id){
+        System.out.println("0.4.0");
         System.out.println(id);
     }
 
     public void setFirstName(String firstName) {
+        System.out.println("0.4.0");
         this.firstName = firstName;
     }
 
     public String getLastName() {
+        System.out.println("0.4.0");
         return this.lastName;
     }
 
     public void setLastName(String lastName) {
+        System.out.println("0.4.0");
         this.lastName = lastName;
     }
 
     protected Set<Specialty> getSpecialtiesInternal() {
+        System.out.println("0.4.0");
         if (this.specialties == null) {
             this.specialties = new HashSet<>();
         }
@@ -105,16 +111,19 @@ public class Vet {
 
     @XmlElement
     public List<Specialty> getSpecialties() {
+        System.out.println("0.4.0");
         List<Specialty> sortedSpecs = new ArrayList<>(getSpecialtiesInternal());
         PropertyComparator.sort(sortedSpecs, new MutableSortDefinition("name", true, true));
         return Collections.unmodifiableList(sortedSpecs);
     }
 
     public int getNrOfSpecialties() {
+        System.out.println("0.4.0");
         return getSpecialtiesInternal().size();
     }
 
     public void addSpecialty(Specialty specialty) {
+        System.out.println("0.4.0");
         getSpecialtiesInternal().add(specialty);
     }
 
