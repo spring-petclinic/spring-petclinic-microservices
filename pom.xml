@@ -69,7 +69,7 @@
             <activation>
                 <file>
                     <!-- Just a way to identify a Spring Boot application -->
-                    <exists>src/main/resources/bootstrap.yml</exists>
+                    <exists>src/main/resources/application.yml</exists>
                 </file>
             </activation>
             <build>
@@ -77,13 +77,6 @@
                     <plugin>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-maven-plugin</artifactId>
-                        <configuration>
-                            <fork>true</fork>
-                            <!-- Layered jars optimizes Docker images -->
-                            <layers>
-                                <enabled>true</enabled>
-                            </layers>
-                        </configuration>
                         <executions>
                             <execution>
                                 <!-- Spring Boot Actuator displays build-related information if a META-INF/build-info.properties file is present -->
