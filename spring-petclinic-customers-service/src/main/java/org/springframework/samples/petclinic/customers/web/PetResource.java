@@ -50,13 +50,9 @@ class PetResource {
     @ResponseStatus(HttpStatus.CREATED)
     public Pet processCreationForm(
         @RequestBody PetRequest petRequest,
-        @PathVariable("ownerId") int ownerId) {
+        @PathVariable("ownerId") int ownerId) throws Exception {
 
-        try {
-            validatePetType(petRequest.getTypeId());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        validatePetType(petRequest.getTypeId());
 
         final Pet pet = new Pet();
         final Optional<Owner> optionalOwner = ownerRepository.findById(ownerId);
@@ -81,7 +77,7 @@ class PetResource {
         if (type == 6) {
             sleepDuration = (long) (3000 + Math.random() * 2000);
         }else if(type == 5){//type bird will cause an exception, this is wanted behavior to force an exception
-            throw new Exception("Exception thrown for showcase uses");
+            throw new Exception("[BirdTypeChosen] Exception thrown for showcase uses");
         }
         else {
             sleepDuration = (long) (5 + Math.random() * 5);

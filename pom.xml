@@ -161,7 +161,7 @@
                                     <DOCKERIZE_VERSION>${docker.image.dockerize.version}</DOCKERIZE_VERSION>
                                 </buildArgs>
                                 <imageTags>
-                                    <imageTag>1.0</imageTag>
+                                    <imageTag>1.1</imageTag>
                                 </imageTags>
                             </configuration>
                         </plugin>
