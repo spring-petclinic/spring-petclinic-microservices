@@ -22,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.samples.petclinic.customers.model.*;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.constraints.Min;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +31,7 @@ import java.util.Optional;
  * @author Ken Krebs
  * @author Arjen Poutsma
  * @author Maciej Szarlinski
+ * @author Ramazan Sakin
  */
 @RestController
 @Timed("petclinic.pet")
@@ -50,13 +52,13 @@ class PetResource {
     @ResponseStatus(HttpStatus.CREATED)
     public Pet processCreationForm(
         @RequestBody PetRequest petRequest,
-        @PathVariable("ownerId") int ownerId) {
+        @PathVariable("ownerId") @Min(1) int ownerId) {
 
-        final Pet pet = new Pet();
         final Optional<Owner> optionalOwner = ownerRepository.findById(ownerId);
         Owner owner = optionalOwner.orElseThrow(() -> new ResourceNotFoundException("Owner "+ownerId+" not found"));
-        owner.addPet(pet);
 
+        final Pet pet = new Pet();
+        owner.addPet(pet);
         return save(pet, petRequest);
     }
 
