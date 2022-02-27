@@ -31,8 +31,10 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.Digits;
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotBlank;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.support.MutableSortDefinition;
 import org.springframework.beans.support.PropertyComparator;
 import org.springframework.core.style.ToStringCreator;
@@ -45,6 +47,7 @@ import org.springframework.core.style.ToStringCreator;
  * @author Sam Brannen
  * @author Michael Isvy
  * @author Maciej Szarlinski
+ * @author Ramazan Sakin
  */
 @Entity
 @Table(name = "owners")
@@ -52,75 +55,42 @@ public class Owner {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Getter
     private Integer id;
 
+    @Getter
+    @Setter
     @Column(name = "first_name")
-    @NotEmpty
+    @NotBlank
     private String firstName;
 
+    @Getter
+    @Setter
     @Column(name = "last_name")
-    @NotEmpty
+    @NotBlank
     private String lastName;
 
+    @Getter
+    @Setter
     @Column(name = "address")
-    @NotEmpty
+    @NotBlank
     private String address;
 
+    @Getter
+    @Setter
     @Column(name = "city")
-    @NotEmpty
+    @NotBlank
     private String city;
 
+    @Getter
+    @Setter
     @Column(name = "telephone")
-    @NotEmpty
-    @Digits(fraction = 0, integer = 10)
+    @NotBlank
+    @Digits(fraction = 0, integer = 12)
     private String telephone;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "owner")
     private Set<Pet> pets;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(final String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(final String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getAddress() {
-        return this.address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public String getCity() {
-        return this.city;
-    }
-
-    public void setCity(String city) {
-        this.city = city;
-    }
-
-    public String getTelephone() {
-        return this.telephone;
-    }
-
-    public void setTelephone(String telephone) {
-        this.telephone = telephone;
-    }
 
     protected Set<Pet> getPetsInternal() {
         if (this.pets == null) {

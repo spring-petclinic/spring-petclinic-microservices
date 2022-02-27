@@ -29,6 +29,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Data;
 import org.springframework.core.style.ToStringCreator;
 
 /**
@@ -38,7 +39,9 @@ import org.springframework.core.style.ToStringCreator;
  * @author Juergen Hoeller
  * @author Sam Brannen
  * @author Maciej Szarlinski
+ * @author Ramazan Sakin
  */
+@Data
 @Entity
 @Table(name = "pets")
 public class Pet {
@@ -61,46 +64,6 @@ public class Pet {
     @JoinColumn(name = "owner_id")
     @JsonIgnore
     private Owner owner;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(final Integer id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return this.name;
-    }
-
-    public void setName(final String name) {
-        this.name = name;
-    }
-
-    public Date getBirthDate() {
-        return birthDate;
-    }
-
-    public void setBirthDate(final Date birthDate) {
-        this.birthDate = birthDate;
-    }
-
-    public PetType getType() {
-        return type;
-    }
-
-    public void setType(final PetType type) {
-        this.type = type;
-    }
-
-    public Owner getOwner() {
-        return owner;
-    }
-
-    public void setOwner(final Owner owner) {
-        this.owner = owner;
-    }
 
     @Override
     public String toString() {
