@@ -27,7 +27,8 @@
     
     <div class="form-group">
         <label>Telephone</label>
-        <input class="form-control" ng-model="$ctrl.owner.telephone" name="telephone" required/>
+        <input class="form-control" ng-model="$ctrl.owner.telephone" pattern="[0-9]{12}" placeholder="905554443322"
+               name="telephone" maxlength="12" required/>
         <span ng-show="ownerForm.telephone.$error.required" class="help-block">Telephone is required.</span>
     </div>
     
