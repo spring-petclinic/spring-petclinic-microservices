@@ -19,12 +19,7 @@ angular.module('visits')
             };
 
             $http.post(url, data).then(function () {
-                $state.go("owners", { ownerId: $stateParams.ownerId });
-            }, function (response) {
-                var error = response.data;
-                alert(error.error + "\r\n" + error.errors.map(function (e) {
-                        return e.field + ": " + e.defaultMessage;
-                    }).join("\r\n"));
+                $state.go('ownerDetails', { ownerId: $stateParams.ownerId });
             });
         };
     }]);

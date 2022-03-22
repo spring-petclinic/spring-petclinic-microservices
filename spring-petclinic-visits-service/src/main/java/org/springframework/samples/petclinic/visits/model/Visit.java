@@ -16,7 +16,11 @@
 package org.springframework.samples.petclinic.visits.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import java.util.Date;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -26,19 +30,19 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import java.util.Date;
 
 /**
  * Simple JavaBean domain object representing a visit.
  *
  * @author Ken Krebs
  * @author Maciej Szarlinski
+ * @author Ramazan Sakin
  */
 @Entity
 @Table(name = "visits")
 @Builder(builderMethodName = "visit")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Visit {
@@ -59,25 +63,5 @@ public class Visit {
 
     @Column(name = "pet_id")
     private int petId;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public Date getDate() {
-        return date;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public int getPetId() {
-        return petId;
-    }
-
-    public void setPetId(final int petId) {
-        this.petId = petId;
-    }
 
 }

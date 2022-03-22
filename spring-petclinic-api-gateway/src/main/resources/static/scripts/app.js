@@ -1,7 +1,7 @@
 'use strict';
 /* App Module */
 var petClinicApp = angular.module('petClinicApp', [
-    'ui.router', 'layoutNav', 'layoutFooter', 'layoutWelcome',
+    'ui.router', 'infrastructure', 'layoutNav', 'layoutFooter', 'layoutWelcome',
     'ownerList', 'ownerDetails', 'ownerForm', 'petForm', 'visits', 'vetList']);
 
 petClinicApp.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpProvider', function(
@@ -9,6 +9,7 @@ petClinicApp.config(['$stateProvider', '$urlRouterProvider', '$locationProvider'
 
     // safari turns to be lazy sending the Cache-Control header
     $httpProvider.defaults.headers.common["Cache-Control"] = 'no-cache';
+    $httpProvider.interceptors.push('HttpErrorHandlingInterceptor');
 
     $locationProvider.hashPrefix('!');
 
