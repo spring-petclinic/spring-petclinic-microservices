@@ -2,7 +2,7 @@
 
 angular.module('vetList')
     .controller('VetListController', ['$http', function ($http) {
-        var self = this;
+        let self = this;
 
         $http.get('api/vet/vets').then(function (resp) {
             self.vetList = resp.data;
