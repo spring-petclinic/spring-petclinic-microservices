@@ -70,7 +70,7 @@ public class ApiGatewayApplication {
      * @see <a href="https://github.com/spring-projects/spring-boot/issues/9785">#9785</a>
      */
     @Bean
-    RouterFunction routerFunction() {
+    RouterFunction<?> routerFunction(){
         RouterFunction router = RouterFunctions.resources("/**", new ClassPathResource("static/"))
             .andRoute(RequestPredicates.GET("/"),
                 request -> ServerResponse.ok().contentType(MediaType.TEXT_HTML).bodyValue(indexHtml));
