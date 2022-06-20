@@ -2,9 +2,9 @@
 
 angular.module('ownerForm')
     .controller('OwnerFormController', ["$http", '$state', '$stateParams', function ($http, $state, $stateParams) {
-        let self = this;
+        var self = this;
 
-        let ownerId = $stateParams.ownerId || 0;
+        var ownerId = $stateParams.ownerId || 0;
 
         if (!ownerId) {
             self.owner = {};
@@ -15,7 +15,7 @@ angular.module('ownerForm')
         }
 
         self.submitOwnerForm = function () {
-            let id = self.owner.id;
+            var id = self.owner.id;
 
             if (id) {
                 $http.put('api/customer/owners/' + id, self.owner).then(function () {

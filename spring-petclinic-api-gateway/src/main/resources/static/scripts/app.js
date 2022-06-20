@@ -1,6 +1,6 @@
 'use strict';
 /* App Module */
-const petClinicApp = angular.module('petClinicApp', [
+var petClinicApp = angular.module('petClinicApp', [
     'ui.router', 'infrastructure', 'layoutNav', 'layoutFooter', 'layoutWelcome',
     'ownerList', 'ownerDetails', 'ownerForm', 'petForm', 'visits', 'vetList']);
 
@@ -28,7 +28,7 @@ petClinicApp.config(['$stateProvider', '$urlRouterProvider', '$locationProvider'
 }]);
 
 ['welcome', 'nav', 'footer'].forEach(function(c) {
-    const mod = 'layout' + c.toUpperCase().substring(0, 1) + c.substring(1);
+    var mod = 'layout' + c.toUpperCase().substring(0, 1) + c.substring(1);
     angular.module(mod, []);
     angular.module(mod).component(mod, {
         templateUrl: "scripts/fragments/" + c + ".html"

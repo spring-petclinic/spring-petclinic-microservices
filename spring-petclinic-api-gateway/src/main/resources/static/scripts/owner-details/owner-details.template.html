@@ -34,7 +34,7 @@
     <caption>Pet information</caption>
     <tr ng-repeat="pet in $ctrl.owner.pets track by pet.id">
         <th>Agenda</th>
-        <td style="vertical-align: top">
+        <td valign="top">
             <dl class="dl-horizontal">
                 <dt>Name</dt>
                 <dd><a ui-sref="petEdit({ownerId: $ctrl.owner.id, petId: pet.id})">{{pet.name}}</a></dd>
@@ -44,7 +44,7 @@
                 <dd>{{pet.type.name}}</dd>
             </dl>
         </td>
-        <td style="vertical-align: top">
+        <td valign="top">
             <table class="table-condensed">
                 <caption>Visit agenda</caption>
                 <thead>

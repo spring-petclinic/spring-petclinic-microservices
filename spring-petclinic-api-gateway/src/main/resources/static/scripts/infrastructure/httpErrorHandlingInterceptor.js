@@ -7,7 +7,7 @@ angular.module('infrastructure')
     .factory('HttpErrorHandlingInterceptor', function () {
         return {
             responseError: function (response) {
-                const error = response.data;
+                var error = response.data;
                 alert(error.error + "\r\n" + error.errors.map(function (e) {
                     return e.field + ": " + e.defaultMessage;
                 }).join("\r\n"));
