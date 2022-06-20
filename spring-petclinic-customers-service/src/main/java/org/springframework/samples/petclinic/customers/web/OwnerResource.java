@@ -20,7 +20,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.samples.petclinic.customers.model.Owner;
-import org.springframework.samples.petclinic.customers.model.OwnerDTO;
 import org.springframework.samples.petclinic.customers.model.OwnerRepository;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,13 +49,7 @@ class OwnerResource {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Owner createOwner(@Valid @RequestBody OwnerDTO ownerDTO) {
-        Owner owner = new Owner();
-        owner.setFirstName(ownerDTO.getFirstName());
-        owner.setLastName(ownerDTO.getLastName());
-        owner.setAddress(ownerDTO.getAddress());
-        owner.setCity(ownerDTO.getCity());
-        owner.setTelephone(ownerDTO.getTelephone());
+    public Owner createOwner(@Valid @RequestBody Owner owner) {
         return ownerRepository.save(owner);
     }
 
@@ -81,7 +74,7 @@ class OwnerResource {
      */
     @PutMapping(value = "/{ownerId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateOwner(@PathVariable("ownerId") @Min(1) int ownerId, @Valid @RequestBody OwnerDTO ownerRequest) {
+    public void updateOwner(@PathVariable("ownerId") @Min(1) int ownerId, @Valid @RequestBody Owner ownerRequest) {
         final Optional<Owner> owner = ownerRepository.findById(ownerId);
         final Owner ownerModel = owner.orElseThrow(() -> new ResourceNotFoundException("Owner "+ownerId+" not found"));
 
