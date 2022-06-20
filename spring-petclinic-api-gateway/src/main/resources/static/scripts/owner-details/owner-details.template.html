@@ -1,21 +1,20 @@
 <h2>Owner Information</h2>
 
 <table class="table table-striped">
-    <caption>Personal information</caption>
     <tr>
-        <th id="1" class="col-sm-3">Name</th>
-        <td><strong>{{$ctrl.owner.firstName}} {{$ctrl.owner.lastName}}</strong></td>
+        <th class="col-sm-3">Name</th>
+        <td><b>{{$ctrl.owner.firstName}} {{$ctrl.owner.lastName}}</b></td>
     </tr>
     <tr>
-        <th id="2">Address</th>
+        <th>Address</th>
         <td>{{$ctrl.owner.address}}</td>
     </tr>
     <tr>
-        <th id="3">City</th>
+        <th>City</th>
         <td>{{$ctrl.owner.city}}</td>
     </tr>
     <tr>
-        <th id="4">Telephone</th>
+        <th>Telephone</th>
         <td>{{$ctrl.owner.telephone}}</td>
     </tr>
     <tr>
@@ -33,7 +32,6 @@
 <table class="table table-striped">
     <caption>Pet information</caption>
     <tr ng-repeat="pet in $ctrl.owner.pets track by pet.id">
-        <th>Agenda</th>
         <td valign="top">
             <dl class="dl-horizontal">
                 <dt>Name</dt>
@@ -46,7 +44,6 @@
         </td>
         <td valign="top">
             <table class="table-condensed">
-                <caption>Visit agenda</caption>
                 <thead>
                 <tr>
                     <th>Visit Date</th>
