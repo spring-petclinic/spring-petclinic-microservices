@@ -1,0 +1,23 @@
+<h2>Message list</h2>
+
+<input type="submit" value="Refresh" ng-click="$ctrl.refresh()" />
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>Request id</th>
+        <th>Pet id</th>
+        <th>Message</th>
+        <th>Accepted</th>
+        <td>Response</td>
+    </tr>
+    </thead>
+
+    <tr ng-repeat="message in $ctrl.messages">
+        <td>{{message.id}}</td>
+        <td>{{message.petId}}</td>
+        <td>{{message.message}}</td>
+        <td>{{message.accepted}}</td>
+        <td>{{message.response}}</td>
+    </tr>
+</table>
+</div>

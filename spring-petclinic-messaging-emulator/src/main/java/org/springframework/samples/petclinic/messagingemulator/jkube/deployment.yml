@@ -1,0 +1,37 @@
+spec:
+  replicas: 1
+  template:
+    spec:
+      volumes:
+      - name: secrets-store01-inline
+        csi: 
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes: 
+            secretProviderClass: "azure-kvname-user-msi"
+      containers:  
+      - env:
+        - name: CONFIG_SERVER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: config-server
+              key: CONFIG_SERVER_URL
+        - name: SPRING_PROFILES_ACTIVE
+          valueFrom:
+            configMapKeyRef:
+              name: config-server
+              key: SPRING_PROFILES_ACTIVE
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: unsecret
+              key: username
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pwsecret
+              key: password
+        volumeMounts:
+        - name: secrets-store01-inline
+          mountPath: "/mnt/secrets-store"
+          readOnly: true

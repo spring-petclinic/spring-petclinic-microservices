@@ -1,8 +1,8 @@
 spring:
   application:
     name: admin-server
-  config:
-    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
+#  config:
+#    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
 
 
 ---

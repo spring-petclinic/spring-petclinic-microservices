@@ -1,0 +1,10 @@
+-- CREATE DATABASE IF NOT EXISTS petclinic;
+-- GRANT ALL PRIVILEGES ON petclinic.* TO pc@localhost IDENTIFIED BY 'pc';
+-- USE petclinic;
+CREATE TABLE IF NOT EXISTS visitrequests (
+  id INT(4) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  pet_id INT(4) UNSIGNED NOT NULL,
+  message VARCHAR(8192) NOT NULL,
+  response VARCHAR(8192),
+  accepted BOOLEAN NOT NULL DEFAULT FALSE
+) engine = InnoDB;
