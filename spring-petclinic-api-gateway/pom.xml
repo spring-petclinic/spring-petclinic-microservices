@@ -93,6 +93,13 @@
             <artifactId>resilience4j-micrometer</artifactId>
         </dependency>
 
+        <!-- Netty for for local macOS dev -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-resolver-dns-native-macos</artifactId>
+            <classifier>osx-aarch_64</classifier>
+        </dependency>
+
         <!-- Webjars -->
         <dependency>
             <groupId>org.webjars</groupId>
