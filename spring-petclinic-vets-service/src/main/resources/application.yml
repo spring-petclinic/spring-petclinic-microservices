@@ -9,6 +9,7 @@ spring:
     active: production
 
 ---
+
 spring:
   config:
     activate:

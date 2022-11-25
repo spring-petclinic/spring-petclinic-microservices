@@ -26,8 +26,8 @@ spring:
             - StripPrefix=2
 
 
-
 ---
+
 spring:
   config:
     activate:
