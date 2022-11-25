@@ -11,17 +11,19 @@
     <parent>
         <groupId>org.springframework.samples</groupId>
         <artifactId>spring-petclinic-microservices</artifactId>
-        <version>2.6.7</version>
+        <version>2.7.5</version>
     </parent>
 
     <properties>
+        <!-- Maven versions -->
         <webjars-bootstrap.version>3.3.7-1</webjars-bootstrap.version>
         <webjars-jquery.version>3.6.0</webjars-jquery.version>
         <webjars-angular.version>1.8.2</webjars-angular.version>
         <webjars-angular-ui-router.version>1.0.20</webjars-angular-ui-router.version>
         <wro4j.version>1.8.0</wro4j.version>
-        <docker.image.exposed.port>8081</docker.image.exposed.port>
-        <docker.image.dockerfile.dir>${basedir}/../docker</docker.image.dockerfile.dir>
+
+        <!-- SpringBoot -->
+        <spring-boot.build-image.imageName>docker.io/springcommunity/${project.artifactId}:${project.version}</spring-boot.build-image.imageName>
     </properties>
 
     <dependencies>
@@ -163,7 +165,7 @@
                         <version>${webjars-bootstrap.version}</version>
                     </dependency>
                     <!-- Some tweak for wro4j 1.8 compatibility with Java 9+ -->
-                    <!-- See https://github.com/wro4j/wro4j/issues/1039 -->
+                    <!-- See: https://github.com/wro4j/wro4j/issues/1039 -->
                     <dependency>
                         <groupId>org.mockito</groupId>
                         <artifactId>mockito-core</artifactId>
@@ -173,19 +175,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>buildDocker</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.spotify</groupId>
-                        <artifactId>docker-maven-plugin</artifactId>
-                        <version>${docker.plugin.version}</version>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>

@@ -2,98 +2,168 @@ version: '2'
 
 services:
   config-server:
-    image: springcommunity/spring-petclinic-config-server
+    image: docker.io/springcommunity/spring-petclinic-config-server:2.7.5
     container_name: config-server
-    mem_limit: 512M
+    mem_limit: 768M
+    restart: on-failure
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - default
     ports:
-     - 8888:8888
+      - 8888:8888
 
   discovery-server:
-    image: springcommunity/spring-petclinic-discovery-server
+    image: docker.io/springcommunity/spring-petclinic-discovery-server:2.7.5
     container_name: discovery-server
-    mem_limit: 512M
+    mem_limit: 768M
+    restart: on-failure
     depends_on:
-      - config-server
-    entrypoint: ["./dockerize","-wait=tcp://config-server:8888","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
+      config-server:
+        condition: service_started
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - default
     ports:
-     - 8761:8761
+      - 8761:8761
 
   customers-service:
-    image: springcommunity/spring-petclinic-customers-service
+    image: docker.io/springcommunity/spring-petclinic-customers-service:2.7.5
     container_name: customers-service
-    mem_limit: 512M
+    mem_limit: 768M
+    restart: on-failure
     depends_on:
-     - config-server
-     - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
+      config-server:
+        condition: service_started
+      discovery-server:
+        condition: service_started
+      sql-server:
+        condition: service_started
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker,mysql
+    networks:
+      - default
     ports:
-    - 8081:8081
+      - 8081:8081
 
   visits-service:
-    image: springcommunity/spring-petclinic-visits-service
+    image: docker.io/springcommunity/spring-petclinic-visits-service:2.7.5
     container_name: visits-service
-    mem_limit: 512M
+    mem_limit: 768M
+    restart: on-failure
     depends_on:
-     - config-server
-     - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
+      config-server:
+        condition: service_started
+      discovery-server:
+        condition: service_started
+      sql-server:
+        condition: service_started
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker,mysql
+    networks:
+      - default
     ports:
-     - 8082:8082
+      - 8082:8082
 
   vets-service:
-    image: springcommunity/spring-petclinic-vets-service
+    image: docker.io/springcommunity/spring-petclinic-vets-service:2.7.5
     container_name: vets-service
-    mem_limit: 512M
+    mem_limit: 768M
+    restart: on-failure
     depends_on:
-     - config-server
-     - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
+      config-server:
+        condition: service_started
+      discovery-server:
+        condition: service_started
+      sql-server:
+        condition: service_started
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker,mysql
+    networks:
+      - default
     ports:
-     - 8083:8083
+      - 8083:8083
 
   api-gateway:
-    image: springcommunity/spring-petclinic-api-gateway
+    image: docker.io/springcommunity/spring-petclinic-api-gateway:2.7.5
     container_name: api-gateway
-    mem_limit: 512M
+    mem_limit: 768M
+    restart: on-failure
     depends_on:
-     - config-server
-     - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
-    ports:
-     - 8080:8080
-
-  tracing-server:
-    image: openzipkin/zipkin
-    container_name: tracing-server
-    mem_limit: 512M
+      config-server:
+        condition: service_started
+      discovery-server:
+        condition: service_started
     environment:
-    - JAVA_OPTS=-XX:+UnlockExperimentalVMOptions -Djava.security.egd=file:/dev/./urandom
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - default
     ports:
-     - 9411:9411
+      - 8080:8080
 
   admin-server:
-    image: springcommunity/spring-petclinic-admin-server
+    image: docker.io/springcommunity/spring-petclinic-admin-server:2.7.5
     container_name: admin-server
-    mem_limit: 512M
+    mem_limit: 768M
+    restart: on-failure
     depends_on:
-     - config-server
-     - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
+      config-server:
+        condition: service_started
+      discovery-server:
+        condition: service_started
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - default
     ports:
-     - 9090:9090
+      - 9090:9090
 
-  ## Grafana / Prometheus
+  ## Third-parties
+
+  sql-server:
+    image: docker.io/mysql:8.0
+    container_name: sql-server
+    mem_limit: 256M
+    restart: on-failure
+    environment:
+      - MYSQL_ROOT_PASSWORD=petclinic
+      - MYSQL_DATABASE=petclinic
+    networks:
+      - default
+    ports:
+      - 3306:3306
+
+  tracing-server:
+    image: docker.io/openzipkin/zipkin:2.23
+    container_name: tracing-server
+    mem_limit: 512M
+    restart: on-failure
+    networks:
+      - default
+    ports:
+      - 9411:9411
 
   grafana-server:
     build: ./docker/grafana
     container_name: grafana-server
     mem_limit: 256M
+    restart: on-failure
+    networks:
+      - default
     ports:
-    - 3000:3000
+      - 3000:3000
 
   prometheus-server:
     build: ./docker/prometheus
     container_name: prometheus-server
     mem_limit: 256M
+    restart: on-failure
+    networks:
+      - default
     ports:
-    - 9091:9090
+      - 9091:9090
+
+networks:
+  default:
+    driver: bridge

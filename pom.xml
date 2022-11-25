@@ -6,12 +6,12 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.6.7</version>
+        <version>2.7.5</version>
     </parent>
 
     <groupId>org.springframework.samples</groupId>
     <artifactId>spring-petclinic-microservices</artifactId>
-    <version>2.6.7</version>
+    <version>2.7.5</version>
     <name>${project.artifactId}</name>
     <packaging>pom</packaging>
 
@@ -26,22 +26,27 @@
     </modules>
 
     <properties>
-        <java.version>1.8</java.version>
-        <assertj.version>3.17.1</assertj.version>
+        <java.version>17</java.version>
 
-        <spring-boot.version>2.6.0</spring-boot.version>
-        <spring-cloud.version>2021.0.2</spring-cloud.version>
-        <chaos-monkey-spring-boot.version>2.3.10</chaos-monkey-spring-boot.version>
-
-        <docker.image.prefix>springcommunity</docker.image.prefix>
-        <docker.image.exposed.port>9090</docker.image.exposed.port>
-        <docker.image.dockerfile.dir>${basedir}</docker.image.dockerfile.dir>
-        <docker.image.dockerize.version>v0.6.1</docker.image.dockerize.version>
-        <docker.plugin.version>1.2.0</docker.plugin.version>
+        <!-- Maven versions -->
+        <assertj.version>3.23.1</assertj.version>
+        <chaos-monkey-spring-boot.version>2.6.1</chaos-monkey-spring-boot.version>
+        <spring-boot.version>2.7.5</spring-boot.version>
+        <spring-cloud.version>2021.0.5</spring-cloud.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <!-- Spring Boot -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Spring Cloud -->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
@@ -49,6 +54,8 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
+            <!-- Third-party librairies -->
             <dependency>
                 <groupId>de.codecentric</groupId>
                 <artifactId>chaos-monkey-spring-boot</artifactId>
@@ -68,7 +75,6 @@
             <id>springboot</id>
             <activation>
                 <file>
-                    <!-- Just a way to identify a Spring Boot application -->
                     <exists>src/main/resources/application.yml</exists>
                 </file>
             </activation>
@@ -79,14 +85,14 @@
                         <artifactId>spring-boot-maven-plugin</artifactId>
                         <executions>
                             <execution>
-                                <!-- Spring Boot Actuator displays build-related information if a META-INF/build-info.properties file is present -->
+                                <id>get-the-git-infos</id>
                                 <goals>
                                     <goal>build-info</goal>
                                 </goals>
                                 <configuration>
                                     <additionalProperties>
-                                        <encoding.source>${project.build.sourceEncoding}</encoding.source>
                                         <encoding.reporting>${project.reporting.outputEncoding}</encoding.reporting>
+                                        <encoding.source>${project.build.sourceEncoding}</encoding.source>
                                         <java.source>${maven.compiler.source}</java.source>
                                         <java.target>${maven.compiler.target}</java.target>
                                     </additionalProperties>
@@ -94,71 +100,29 @@
                             </execution>
                         </executions>
                     </plugin>
-
-                    <!-- Spring Boot Actuator displays build-related information if a META-INF/build-info.properties file is present -->
                     <plugin>
-                        <groupId>pl.project13.maven</groupId>
-                        <artifactId>git-commit-id-plugin</artifactId>
+                        <groupId>io.github.git-commit-id</groupId>
+                        <artifactId>git-commit-id-maven-plugin</artifactId>
+                        <version>5.0.0</version>
                         <executions>
                             <execution>
+                                <id>get-the-git-infos</id>
                                 <goals>
                                     <goal>revision</goal>
                                 </goals>
+                                <phase>initialize</phase>
                             </execution>
                         </executions>
                         <configuration>
-                            <verbose>true</verbose>
                             <dateFormat>yyyy-MM-dd'T'HH:mm:ssZ</dateFormat>
-                            <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                            <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
                             <failOnNoGitDirectory>false</failOnNoGitDirectory>
                             <failOnUnableToExtractRepoInfo>false</failOnUnableToExtractRepoInfo>
+                            <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                            <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
                         </configuration>
                     </plugin>
                 </plugins>
             </build>
         </profile>
-
-        <profile>
-            <id>buildDocker</id>
-            <build>
-                <pluginManagement>
-                    <plugins>
-                        <plugin>
-                            <groupId>com.spotify</groupId>
-                            <artifactId>docker-maven-plugin</artifactId>
-                            <version>${docker.plugin.version}</version>
-                            <executions>
-                                <execution>
-                                    <phase>install</phase>
-                                    <goals>
-                                        <goal>build</goal>
-                                    </goals>
-                                </execution>
-                            </executions>
-                            <configuration>
-                                <imageName>${docker.image.prefix}/${project.artifactId}</imageName>
-                                <dockerDirectory>${docker.image.dockerfile.dir}</dockerDirectory>
-                                <serverId>docker-hub</serverId>
-                                <registryUrl>https://index.docker.io/v1/</registryUrl>
-                                <resources>
-                                    <resource>
-                                        <targetPath>/</targetPath>
-                                        <directory>${project.build.directory}</directory>
-                                        <include>${project.build.finalName}.jar</include>
-                                    </resource>
-                                </resources>
-                                <buildArgs>
-                                    <ARTIFACT_NAME>${project.build.finalName}</ARTIFACT_NAME>
-                                    <EXPOSED_PORT>${docker.image.exposed.port}</EXPOSED_PORT>
-                                    <DOCKERIZE_VERSION>${docker.image.dockerize.version}</DOCKERIZE_VERSION>
-                                </buildArgs>
-                            </configuration>
-                        </plugin>
-                    </plugins>
-                </pluginManagement>
-            </build>
-        </profile>
     </profiles>
-
 </project>
