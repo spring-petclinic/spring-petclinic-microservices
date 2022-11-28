@@ -75,6 +75,7 @@
             <id>springboot</id>
             <activation>
                 <file>
+                    <!-- Just a way to identify a Spring Boot application -->
                     <exists>src/main/resources/application.yml</exists>
                 </file>
             </activation>
@@ -85,6 +86,7 @@
                         <artifactId>spring-boot-maven-plugin</artifactId>
                         <executions>
                             <execution>
+                                <!-- Spring Boot Actuator displays build-related information if a META-INF/build-info.properties file is present -->
                                 <id>get-the-git-infos</id>
                                 <goals>
                                     <goal>build-info</goal>
