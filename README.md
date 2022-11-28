@@ -1,6 +1,6 @@
 # Distributed version of the Spring PetClinic Sample Application built with Spring Cloud
 
-[![Build Status](https://github.com/clemlesne/azure-spring-apps-workshop-081122/actions/workflows/maven-build.yml/badge.svg)](https://github.com/clemlesne/azure-spring-apps-workshop-081122/actions/workflows/maven-build.yml)
+[![Build Status](https://github.com/spring-petclinic/spring-petclinic-microservices/actions/workflows/maven-build.yml/badge.svg)](https://github.com/spring-petclinic/spring-petclinic-microservices/actions/workflows/maven-build.yml)
 
 This microservices branch was initially derived from [AngularJS version](https://github.com/spring-petclinic/spring-petclinic-angular1) to demonstrate how to split sample Spring application into [microservices](http://www.martinfowler.com/articles/microservices.html).
 
@@ -149,7 +149,7 @@ Spring Boot registers a lot number of core metrics: JVM, CPU, Tomcat, Logback...
 
 The Spring Petclinic `main` branch in the main [spring-projects](https://github.com/spring-projects/spring-petclinic). GitHub org is the "canonical" implementation, currently based on Spring Boot and Thymeleaf.
 
-This [spring-petclinic-microservices](https://github.com/clemlesne/azure-spring-apps-workshop-081122/) project is one of the [several forks](https://spring-petclinic.github.io/docs/forks.html) hosted in a special GitHub org: [spring-petclinic](https://github.com/spring-petclinic). If you have a special interest in a different technology stack that could be used to implement the Pet Clinic then please join the community there.
+This [spring-petclinic-microservices](https://github.com/spring-petclinic/spring-petclinic-microservices/) project is one of the [several forks](https://spring-petclinic.github.io/docs/forks.html) hosted in a special GitHub org: [spring-petclinic](https://github.com/spring-petclinic). If you have a special interest in a different technology stack that could be used to implement the Pet Clinic then please join the community there.
 
 # Upgrade
 
@@ -162,11 +162,11 @@ This [spring-petclinic-microservices](https://github.com/clemlesne/azure-spring-
 
 # Report a bug & contributing
 
-Our issue tracker is available here: https://github.com/clemlesne/azure-spring-apps-workshop-081122/issues
+Our issue tracker is available here: https://github.com/spring-petclinic/spring-petclinic-microservices/issues
 
-The [issue tracker](https://github.com/clemlesne/azure-spring-apps-workshop-081122/issues) is the preferred channel for bug reports, features requests and submitting pull requests.
+The [issue tracker](https://github.com/spring-petclinic/spring-petclinic-microservices/issues) is the preferred channel for bug reports, features requests and submitting pull requests.
 
 For pull requests, editor preferences are available in the [editor config](.editorconfig) for easy use in common text editors. Read more and download plugins at <http://editorconfig.org>.
 
-[Configuration repository]: https://github.com/clemlesne/azure-spring-apps-workshop-081122-config
+[Configuration repository]: https://github.com/spring-petclinic/spring-petclinic-microservices-config
 [Spring Boot Actuator Production Ready Metrics]: https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-metrics.html.
