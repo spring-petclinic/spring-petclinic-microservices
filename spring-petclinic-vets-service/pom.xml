@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>org.springframework.samples</groupId>
 		<artifactId>spring-petclinic-microservices</artifactId>
-        <version>3.0.0</version>
+        <version>3.0.1</version>
 	</parent>
 
     <properties>
@@ -79,6 +79,7 @@
         <dependency>
             <groupId>org.ehcache</groupId>
             <artifactId>ehcache</artifactId>
+            <classifier>jakarta</classifier>
         </dependency>
         <dependency>
             <groupId>org.jolokia</groupId>
