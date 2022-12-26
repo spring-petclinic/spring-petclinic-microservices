@@ -29,7 +29,6 @@
         <java.version>17</java.version>
         <assertj.version>3.17.1</assertj.version>
 
-        <spring-boot.version>3.0.0-M1</spring-boot.version>
         <spring-cloud.version>2022.0.0</spring-cloud.version>
         <chaos-monkey-spring-boot.version>2.3.10</chaos-monkey-spring-boot.version>
         <jolokia-core.version>1.7.1</jolokia-core.version>
