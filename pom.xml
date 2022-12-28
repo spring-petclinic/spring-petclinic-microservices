@@ -6,12 +6,12 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.6.7</version>
+        <version>3.0.1</version>
     </parent>
 
     <groupId>org.springframework.samples</groupId>
     <artifactId>spring-petclinic-microservices</artifactId>
-    <version>2.6.7</version>
+    <version>3.0.1</version>
     <name>${project.artifactId}</name>
     <packaging>pom</packaging>
 
@@ -26,12 +26,12 @@
     </modules>
 
     <properties>
-        <java.version>1.8</java.version>
+        <java.version>17</java.version>
         <assertj.version>3.17.1</assertj.version>
 
-        <spring-boot.version>2.6.0</spring-boot.version>
-        <spring-cloud.version>2021.0.2</spring-cloud.version>
+        <spring-cloud.version>2022.0.0</spring-cloud.version>
         <chaos-monkey-spring-boot.version>2.3.10</chaos-monkey-spring-boot.version>
+        <jolokia-core.version>1.7.1</jolokia-core.version>
 
         <docker.image.prefix>springcommunity</docker.image.prefix>
         <docker.image.exposed.port>9090</docker.image.exposed.port>
@@ -53,6 +53,11 @@
                 <groupId>de.codecentric</groupId>
                 <artifactId>chaos-monkey-spring-boot</artifactId>
                 <version>${chaos-monkey-spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jolokia</groupId>
+                <artifactId>jolokia-core</artifactId>
+                <version>${jolokia-core.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.assertj</groupId>
@@ -97,8 +102,8 @@
 
                     <!-- Spring Boot Actuator displays build-related information if a META-INF/build-info.properties file is present -->
                     <plugin>
-                        <groupId>pl.project13.maven</groupId>
-                        <artifactId>git-commit-id-plugin</artifactId>
+                        <groupId>io.github.git-commit-id</groupId>
+                        <artifactId>git-commit-id-maven-plugin</artifactId>
                         <executions>
                             <execution>
                                 <goals>

@@ -33,7 +33,7 @@ After starting services, it takes a while for API Gateway to be in sync with ser
 so don't be scared of initial Spring Cloud Gateway timeouts. You can track services availability using Eureka dashboard
 available by default at http://localhost:8761.
 
-The `master` branch uses an  Alpine linux  with JRE 8 as Docker base. You will find a Java 11 version in the `release/java11` branch.
+The `master` branch uses an Eclipse Temurin with Java 17 as Docker base image.
 
 *NOTE: Under MacOSX or Windows, make sure that the Docker VM has enough memory to run the microservices. The default settings
 are usually not enough and make the `docker-compose up` painfully slow.*

@@ -16,8 +16,8 @@
 package org.springframework.samples.petclinic.visits.web;
 
 import java.util.List;
-import javax.validation.Valid;
-import javax.validation.constraints.Min;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 
 import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
@@ -62,12 +62,12 @@ class VisitResource {
     }
 
     @GetMapping("owners/*/pets/{petId}/visits")
-    public List<Visit> visits(@PathVariable("petId") @Min(1) int petId) {
+    public List<Visit> read(@PathVariable("petId") @Min(1) int petId) {
         return visitRepository.findByPetId(petId);
     }
 
     @GetMapping("pets/visits")
-    public Visits visitsMultiGet(@RequestParam("petId") List<Integer> petIds) {
+    public Visits read(@RequestParam("petId") List<Integer> petIds) {
         final List<Visit> byPetIdIn = visitRepository.findByPetIdIn(petIds);
         return new Visits(byPetIdIn);
     }

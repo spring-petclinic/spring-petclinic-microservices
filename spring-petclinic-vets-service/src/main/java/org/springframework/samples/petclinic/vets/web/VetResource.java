@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.samples.petclinic.vets.model.Vet;
 import org.springframework.samples.petclinic.vets.model.VetRepository;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,6 +41,7 @@ class VetResource {
     private final VetRepository vetRepository;
 
     @GetMapping
+    @Cacheable("vets")
     public List<Vet> showResourcesVetList() {
         return vetRepository.findAll();
     }
