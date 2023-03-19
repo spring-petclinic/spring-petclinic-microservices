@@ -33,3 +33,11 @@ spring:
     activate:
       on-profile: docker
     import: configserver:http://config-server:8888
+
+
+
+---
+management:
+  tracing:
+    sampling:
+      probability: 1
