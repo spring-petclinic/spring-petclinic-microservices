@@ -25,6 +25,8 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -86,5 +88,19 @@ class OwnerResource {
         ownerModel.setTelephone(ownerRequest.getTelephone());
         log.info("Saving owner {}", ownerModel);
         ownerRepository.save(ownerModel);
+    }
+
+    /**
+     * Remove an Owner
+     */
+    @DeleteMapping("/delete")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteOwner(@RequestParam @Min(1) int ownerId){
+        if(ownerRepository.existsById(ownerId)){
+            ownerRepository.delete(ownerRepository.getReferenceById(ownerId));
+            log.info("Owner removed");
+        }else {
+            log.info("Owner does not exist");
+        }
     }
 }
