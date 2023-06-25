@@ -6,12 +6,12 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.0.1</version>
+        <version>3.1.0</version>
     </parent>
 
     <groupId>org.springframework.samples</groupId>
     <artifactId>spring-petclinic-microservices</artifactId>
-    <version>3.0.1</version>
+    <version>3.1.0</version>
     <name>${project.artifactId}</name>
     <packaging>pom</packaging>
 
@@ -27,9 +27,8 @@
 
     <properties>
         <java.version>17</java.version>
-        <assertj.version>3.17.1</assertj.version>
 
-        <spring-cloud.version>2022.0.0</spring-cloud.version>
+        <spring-cloud.version>2022.0.3</spring-cloud.version>
         <chaos-monkey-spring-boot.version>2.3.10</chaos-monkey-spring-boot.version>
         <jolokia-core.version>1.7.1</jolokia-core.version>
 
@@ -59,12 +58,6 @@
                 <artifactId>jolokia-core</artifactId>
                 <version>${jolokia-core.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.assertj</groupId>
-                <artifactId>assertj-core</artifactId>
-                <version>${assertj.version}</version>
-                <scope>test</scope>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -92,8 +85,7 @@
                                     <additionalProperties>
                                         <encoding.source>${project.build.sourceEncoding}</encoding.source>
                                         <encoding.reporting>${project.reporting.outputEncoding}</encoding.reporting>
-                                        <java.source>${maven.compiler.source}</java.source>
-                                        <java.target>${maven.compiler.target}</java.target>
+                                        <java.version>${java.version}</java.version>
                                     </additionalProperties>
                                 </configuration>
                             </execution>

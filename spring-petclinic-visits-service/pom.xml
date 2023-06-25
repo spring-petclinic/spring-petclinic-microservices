@@ -11,7 +11,7 @@
     <parent>
         <groupId>org.springframework.samples</groupId>
         <artifactId>spring-petclinic-microservices</artifactId>
-        <version>3.0.1</version>
+        <version>3.1.0</version>
     </parent>
 
     <properties>
