@@ -1,17 +1,23 @@
-version: '2'
+version: '3'
 
 services:
   config-server:
     image: springcommunity/spring-petclinic-config-server
     container_name: config-server
-    mem_limit: 512M
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     ports:
      - 8888:8888
 
   discovery-server:
     image: springcommunity/spring-petclinic-discovery-server
     container_name: discovery-server
-    mem_limit: 512M
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     depends_on:
       - config-server
     entrypoint: ["./dockerize","-wait=tcp://config-server:8888","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
@@ -21,7 +27,10 @@ services:
   customers-service:
     image: springcommunity/spring-petclinic-customers-service
     container_name: customers-service
-    mem_limit: 512M
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     depends_on:
      - config-server
      - discovery-server
@@ -32,7 +41,10 @@ services:
   visits-service:
     image: springcommunity/spring-petclinic-visits-service
     container_name: visits-service
-    mem_limit: 512M
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     depends_on:
      - config-server
      - discovery-server
@@ -43,7 +55,10 @@ services:
   vets-service:
     image: springcommunity/spring-petclinic-vets-service
     container_name: vets-service
-    mem_limit: 512M
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     depends_on:
      - config-server
      - discovery-server
@@ -54,7 +69,10 @@ services:
   api-gateway:
     image: springcommunity/spring-petclinic-api-gateway
     container_name: api-gateway
-    mem_limit: 512M
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     depends_on:
      - config-server
      - discovery-server
@@ -65,7 +83,10 @@ services:
   tracing-server:
     image: openzipkin/zipkin
     container_name: tracing-server
-    mem_limit: 512M
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     environment:
     - JAVA_OPTS=-XX:+UnlockExperimentalVMOptions -Djava.security.egd=file:/dev/./urandom
     ports:
@@ -74,7 +95,10 @@ services:
   admin-server:
     image: springcommunity/spring-petclinic-admin-server
     container_name: admin-server
-    mem_limit: 512M
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     depends_on:
      - config-server
      - discovery-server
@@ -87,13 +111,19 @@ services:
   grafana-server:
     build: ./docker/grafana
     container_name: grafana-server
-    mem_limit: 256M
+    deploy:
+      resources:
+        limits:
+          memory: 256M
     ports:
     - 3000:3000
 
   prometheus-server:
     build: ./docker/prometheus
     container_name: prometheus-server
-    mem_limit: 256M
+    deploy:
+      resources:
+        limits:
+          memory: 256M
     ports:
     - 9091:9090
