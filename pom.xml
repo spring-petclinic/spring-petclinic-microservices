@@ -31,7 +31,11 @@
         <spring-cloud.version>2022.0.4</spring-cloud.version>
         <chaos-monkey-spring-boot.version>2.3.10</chaos-monkey-spring-boot.version>
         <jolokia-core.version>1.7.1</jolokia-core.version>
+
+        <!-- Workaround for resolving the issue while using the provided lombok dependency in upgraded Java version.
+        Should be removed while future upgrading-->
         <lombok.version>1.18.30</lombok.version>
+
         <docker.image.prefix>springcommunity</docker.image.prefix>
         <docker.image.exposed.port>9090</docker.image.exposed.port>
         <docker.image.dockerfile.dir>${basedir}</docker.image.dockerfile.dir>
