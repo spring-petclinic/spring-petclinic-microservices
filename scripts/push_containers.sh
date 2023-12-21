@@ -23,7 +23,7 @@ do
     echo "Tagging $container with tag $tag..."
     
     # Tag the Docker container
-    docker tag "$container" "$registry/$namespace/$container:$tag"
+    docker tag "$registry/$namespace/$container" "$registry/$namespace/$container:$tag"
 
     # Check if tagging was successful
     if [ $? -ne 0 ]; then
