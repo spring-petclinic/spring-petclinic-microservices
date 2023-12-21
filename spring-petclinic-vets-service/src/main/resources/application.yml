@@ -8,9 +8,9 @@ spring:
   profiles:
     active: production
 ---
-# eureka:
-#   instance:
-#     preferIpAddress: true
+eureka:
+  instance:
+    preferIpAddress: true
 ---
 spring:
   config:

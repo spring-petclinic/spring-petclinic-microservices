@@ -10,7 +10,7 @@ spring:
         native:
           searchLocations: file:///${GIT_REPO}
 ---
-# eureka:
-#   instance:
-#     preferIpAddress: true
+eureka:
+  instance:
+    preferIpAddress: true
 

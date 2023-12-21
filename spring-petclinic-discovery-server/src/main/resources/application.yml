@@ -12,9 +12,9 @@ logging:
         boot: INFO
         web: INFO
 ---
-# eureka:
-#   instance:
-#     preferIpAddress: true
+eureka:
+  instance:
+    preferIpAddress: true
 ---
 spring:
   config:
