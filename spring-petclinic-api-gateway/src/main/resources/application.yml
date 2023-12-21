@@ -24,8 +24,10 @@ spring:
             - Path=/api/customer/**
           filters:
             - StripPrefix=2
-
-
+---
+# eureka:
+#   instance:
+#     preferIpAddress: true
 
 ---
 spring:

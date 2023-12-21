@@ -11,7 +11,10 @@ logging:
       springframework:
         boot: INFO
         web: INFO
-
+---
+# eureka:
+#   instance:
+#     preferIpAddress: true
 ---
 spring:
   config:
