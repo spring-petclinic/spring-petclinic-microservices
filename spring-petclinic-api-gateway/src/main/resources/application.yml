@@ -25,9 +25,9 @@ spring:
           filters:
             - StripPrefix=2
 ---
-eureka:
-  instance:
-    preferIpAddress: true
+# eureka:
+#   instance:
+#     preferIpAddress: true
 ---
 spring:
   config:
