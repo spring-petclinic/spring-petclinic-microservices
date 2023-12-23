@@ -148,6 +148,7 @@
                                             <argument>build</argument>
                                             <argument>-f</argument>
                                             <argument>Dockerfile</argument>
+                                            <argument>--load</argument>
                                             <argument>--build-arg</argument>
                                             <argument>ARTIFACT_NAME=${project.build.finalName}</argument>
                                             <argument>--build-arg</argument>
