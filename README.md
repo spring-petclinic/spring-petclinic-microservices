@@ -26,9 +26,14 @@ You can tell Config Server to use your local Git repository by using `native` Sp
 `-Dspring.profiles.active=native -DGIT_REPO=/projects/spring-petclinic-microservices-config`
 
 ## Starting services locally with docker-compose
-In order to start entire infrastructure using Docker, you have to build images by executing `./mvnw clean install -P buildDocker` 
-from a project root. Once images are ready, you can start them with a single command
-`docker-compose up`. Containers startup order is coordinated with [`dockerize` script](https://github.com/jwilder/dockerize). 
+In order to start entire infrastructure using Docker, you have to build images by executing `./mvnw clean install -P buildDocker` . This requires Docker or Docker desktop to be installed and running.
+
+Alternatively you can also build all the images on Podman, which requires Podman or Podman Desktop to be installed and running. `./mvnw clean install -PbuildDocker -Dcontainer.executable=podman`
+
+Once images are ready, you can start them with a single command
+`docker-compose up` or `podman-compose up`. 
+
+Containers startup order is coordinated with [`dockerize` script](https://github.com/jwilder/dockerize). 
 After starting services, it takes a while for API Gateway to be in sync with service registry,
 so don't be scared of initial Spring Cloud Gateway timeouts. You can track services availability using Eureka dashboard
 available by default at http://localhost:8761.
