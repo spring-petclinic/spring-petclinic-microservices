@@ -33,7 +33,8 @@ Alternatively you can also build all the images on Podman, which requires Podman
 Once images are ready, you can start them with a single command
 `docker-compose up` or `podman-compose up`. 
 
-Containers startup order is coordinated with [`dockerize` script](https://github.com/jwilder/dockerize). 
+Containers startup order is coordinated with the `service_healthy` condition of the Docker Compose [depends-on](https://github.com/compose-spec/compose-spec/blob/master/spec.md#depends_on) expression 
+and the [healthcheck](https://github.com/compose-spec/compose-spec/blob/master/spec.md#healthcheck) of the service containers. 
 After starting services, it takes a while for API Gateway to be in sync with service registry,
 so don't be scared of initial Spring Cloud Gateway timeouts. You can track services availability using Eureka dashboard
 available by default at http://localhost:8761.
