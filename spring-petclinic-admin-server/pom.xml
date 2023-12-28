@@ -16,7 +16,7 @@
     </parent>
 
     <properties>
-        <spring-boot-admin.version>3.0.4</spring-boot-admin.version>
+        <spring-boot-admin.version>3.2.0</spring-boot-admin.version>
         <docker.image.exposed.port>9090</docker.image.exposed.port>
         <docker.image.dockerfile.dir>${basedir}/../docker</docker.image.dockerfile.dir>
     </properties>
