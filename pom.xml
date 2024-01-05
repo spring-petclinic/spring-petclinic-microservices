@@ -39,7 +39,14 @@
         <docker.image.prefix>springcommunity</docker.image.prefix>
         <docker.image.exposed.port>9090</docker.image.exposed.port>
         <docker.image.dockerfile.dir>${basedir}</docker.image.dockerfile.dir>
+        <!-- podman is also supported -->
         <container.executable>docker</container.executable>
+        <!-- By default, the OCI image is build for the linux/amd64 platform -->
+        <!-- For Apple Silicon M2 Chip you have to change it to the linux/arm64 -->
+        <container.platform>linux/amd64</container.platform>
+        <!-- The -load option is a shortcut for or -output=type=docker -->
+        <!-- Could be changed by the -push option !-->
+        <container.build.extraarg>--load</container.build.extraarg>
     </properties>
 
     <dependencyManagement>
@@ -147,11 +154,13 @@
                                             <argument>build</argument>
                                             <argument>-f</argument>
                                             <argument>Dockerfile</argument>
-                                            <argument>--load</argument>
                                             <argument>--build-arg</argument>
                                             <argument>ARTIFACT_NAME=${project.build.finalName}</argument>
                                             <argument>--build-arg</argument>
                                             <argument>EXPOSED_PORT=${docker.image.exposed.port}</argument>
+                                            <argument>--platform</argument>
+                                            <argument>${container.platform}</argument>
+                                            <argument>${container.build.extraarg}</argument>
                                             <argument>-t</argument>
                                             <argument>${docker.image.prefix}/${project.artifactId}</argument>
                                             <argument>${project.build.directory}</argument>

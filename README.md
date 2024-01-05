@@ -26,9 +26,22 @@ You can tell Config Server to use your local Git repository by using `native` Sp
 `-Dspring.profiles.active=native -DGIT_REPO=/projects/spring-petclinic-microservices-config`
 
 ## Starting services locally with docker-compose
-In order to start entire infrastructure using Docker, you have to build images by executing `./mvnw clean install -P buildDocker` . This requires Docker or Docker desktop to be installed and running.
+In order to start entire infrastructure using Docker, you have to build images by executing
+``bash
+./mvnw clean install -P buildDocker
+``
+This requires `Docker` or `Docker desktop` to be installed and running.
 
-Alternatively you can also build all the images on Podman, which requires Podman or Podman Desktop to be installed and running. `./mvnw clean install -PbuildDocker -Dcontainer.executable=podman`
+Alternatively you can also build all the images on `Podman`, which requires Podman or Podman Desktop to be installed and running.
+```bash
+./mvnw clean install -PbuildDocker -Dcontainer.executable=podman
+```
+By default, the Docker OCI image is build for an `linux/amd64` platform.
+For other architectures, you could change it by using the `-Dcontainer.platform` maven command line argument.
+For instance, if you target container images for an Apple M2, you could use the command line with the `linux/arm64` architecture:
+```bash
+./mvnw clean install -P buildDocker -Dcontainer.platform="linux/arm64"
+```
 
 Once images are ready, you can start them with a single command
 `docker-compose up` or `podman-compose up`. 
@@ -144,13 +157,46 @@ All those three REST controllers `OwnerResource`, `PetResource` and `VisitResour
 | Circuit Breaker                 | [Resilience4j fallback method](spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/boundary/web/ApiGatewayController.java)  |
 | Grafana / Prometheus Monitoring | [Micrometer implementation](https://micrometer.io/), [Spring Boot Actuator Production Ready Metrics] |
 
- Front-end module  | Files |
+|  Front-end module | Files |
 |-------------------|-------|
 | Node and NPM      | [The frontend-maven-plugin plugin downloads/installs Node and NPM locally then runs Bower and Gulp](spring-petclinic-ui/pom.xml)  |
 | Bower             | [JavaScript libraries are defined by the manifest file bower.json](spring-petclinic-ui/bower.json)  |
 | Gulp              | [Tasks automated by Gulp: minify CSS and JS, generate CSS from LESS, copy other static resources](spring-petclinic-ui/gulpfile.js)  |
 | Angular JS        | [app.js, controllers and templates](spring-petclinic-ui/src/scripts/)  |
 
+## Pushing to a Docker registry
+
+Docker images for `linux/amd64` and `linux/arm64` platforms have been published into DockerHub 
+in the [springcommunity](https://hub.docker.com/u/springcommunity) organization.
+You can pull an image:
+```bash
+docker pull springcommunity/spring-petclinic-config-server
+```
+You may prefer to build then push images to your own Docker registry.
+
+### Choose your Docker registry
+
+You need to define your target Docker registry.
+Make sure you're already logged in by running `docker login <endpoint>` or `docker login` if you're just targeting Docker hub.
+
+Setup the `REPOSITORY_PREFIX` env variable to target your Docker registry.
+If you're targeting Docker hub, simple provide your username, for example:
+```bash
+export REPOSITORY_PREFIX=springcommunity
+```
+
+For other Docker registries, provide the full URL to your repository, for example:
+```bash
+export REPOSITORY_PREFIX=harbor.myregistry.com/petclinic
+```
+
+To push Docker image for the `linux/amd64` and the `linux/arm64` platform to your own registry, please use the command line:
+```bash
+mvn clean install -Dmaven.test.skip -P buildDocker -Ddocker.image.prefix=${REPOSITORY_PREFIX} -Dcontainer.build.extraarg="--push" -Dcontainer.platform="linux/amd64,linux/arm64"
+```
+
+The `scripts/pushImages.sh` and `scripts/tagImages.sh` shell scripts could also be used once you build your image with the `buildDocker` maven profile.
+The `scripts/tagImages.sh` requires to declare the `VERSION` env variable.
 
 ## Interesting Spring Petclinic forks
 
@@ -163,7 +209,7 @@ If you have a special interest in a different technology stack
 that could be used to implement the Pet Clinic then please join the community there.
 
 
-# Contributing
+## Contributing
 
 The [issue tracker](https://github.com/spring-petclinic/spring-petclinic-microservices/issues) is the preferred channel for bug reports, features requests and submitting pull requests.
 
