@@ -84,7 +84,7 @@ class PetResource {
     @GetMapping("owners/*/pets/{petId}")
     public PetDetails findPet(@PathVariable("petId") int petId) {
         Pet pet = findPetById(petId);
-        return new PetDetails(pet.getId(), pet.getName(), pet.getOwner().getFirstName() + " " + pet.getOwner().getLastName(), pet.getBirthDate(), pet.getType());
+        return new PetDetails(pet);
     }
 
 

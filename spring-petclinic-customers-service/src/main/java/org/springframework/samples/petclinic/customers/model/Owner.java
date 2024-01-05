@@ -61,26 +61,32 @@ public class Owner {
     @Getter
     @Setter
     @Column(name = "first_name")
+    @NotBlank
     private String firstName;
 
     @Getter
     @Setter
     @Column(name = "last_name")
+    @NotBlank
     private String lastName;
 
     @Getter
     @Setter
     @Column(name = "address")
+    @NotBlank
     private String address;
 
     @Getter
     @Setter
     @Column(name = "city")
+    @NotBlank
     private String city;
 
     @Getter
     @Setter
     @Column(name = "telephone")
+    @NotBlank
+    @Digits(fraction = 0, integer = 12)
     private String telephone;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "owner")

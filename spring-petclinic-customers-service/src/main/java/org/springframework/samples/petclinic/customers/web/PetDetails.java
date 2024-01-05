@@ -16,6 +16,7 @@
 package org.springframework.samples.petclinic.customers.web;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.samples.petclinic.customers.model.Pet;
 import org.springframework.samples.petclinic.customers.model.PetType;
 
 import java.util.Date;
@@ -37,4 +38,7 @@ record PetDetails(
 
     PetType type
 ) {
+    public PetDetails(Pet pet) {
+        this(pet.getId(), pet.getName(), pet.getOwner().getFirstName() + " " + pet.getOwner().getLastName(), pet.getBirthDate(), pet.getType());
+    }
 }
