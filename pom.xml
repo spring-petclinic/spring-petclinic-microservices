@@ -134,7 +134,8 @@
                                 </execution>
                             </executions>
                             <configuration>
-                                <!-- <imageName>quay.io/phagen/${project.artifactId}:local</imageName> -->
+                                <imageName>quay.io/phagen/${project.artifactId}:local</imageName>
+                                <!-- <imageName>quay.io/phagen/${project.artifactId}</imageName> -->
                                 <dockerDirectory>${docker.image.dockerfile.dir}</dockerDirectory>
                                 <serverId>docker-hub</serverId>
                                 <registryUrl>https://index.docker.io/v1/</registryUrl>
