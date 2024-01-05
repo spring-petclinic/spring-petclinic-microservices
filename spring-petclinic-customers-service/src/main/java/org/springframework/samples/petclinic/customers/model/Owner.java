@@ -113,7 +113,6 @@ public class Owner {
     @Override
     public String toString() {
         return new ToStringCreator(this)
-
             .append("id", this.getId())
             .append("lastName", this.getLastName())
             .append("firstName", this.getFirstName())
