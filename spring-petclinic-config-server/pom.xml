@@ -33,7 +33,14 @@
 			<artifactId>spring-cloud-config-server</artifactId>
 		</dependency>
 
-        <!-- Third-party librairies -->
+        <!--OpenTelemetry-->
+        <!-- <dependency>
+            <groupId>io.opentelemetry.instrumentation</groupId>
+            <artifactId>opentelemetry-instrumentation-annotations</artifactId>
+            <version>1.32.0</version>
+         </dependency> -->
+
+         <!-- Third-party librairies -->
         <dependency>
             <groupId>org.jolokia</groupId>
             <artifactId>jolokia-core</artifactId>
