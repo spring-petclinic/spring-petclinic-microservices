@@ -22,7 +22,8 @@ import java.util.Date;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.samples.petclinic.customers.model.Pet;
 import org.springframework.samples.petclinic.customers.model.PetType;
-
+import io.opentelemetry.instrumentation.annotations.SpanAttribute;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 /**
  * @author mszarlinski@bravurasolutions.com on 2016-12-05.
  */
@@ -39,8 +40,8 @@ class PetDetails {
     private Date birthDate;
 
     private PetType type;
-
-    PetDetails(Pet pet) {
+    @WithSpan
+    PetDetails(@SpanAttribute("pet") pet) {
         this.id = pet.getId();
         this.name = pet.getName();
         this.owner = pet.getOwner().getFirstName() + " " + pet.getOwner().getLastName();

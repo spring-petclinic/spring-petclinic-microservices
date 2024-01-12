@@ -28,8 +28,7 @@ import io.opentelemetry.instrumentation.annotations.WithSpan;
 @SpringBootApplication
 public class VisitsServiceApplication {
 
-    @WithSpan
-    public static void main(@SpanAttribute("args") String[] args) {
+    public static void main( String[] args) {
         SpringApplication.run(VisitsServiceApplication.class, args);
     }
 }
