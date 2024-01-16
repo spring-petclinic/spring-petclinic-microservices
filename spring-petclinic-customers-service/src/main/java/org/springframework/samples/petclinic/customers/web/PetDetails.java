@@ -41,7 +41,7 @@ class PetDetails {
 
     private PetType type;
     @WithSpan
-    PetDetails(@SpanAttribute("pet") pet) {
+    PetDetails(@SpanAttribute("pet") Pet pet) {
         this.id = pet.getId();
         this.name = pet.getName();
         this.owner = pet.getOwner().getFirstName() + " " + pet.getOwner().getLastName();

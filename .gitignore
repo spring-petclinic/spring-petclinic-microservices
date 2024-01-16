@@ -19,3 +19,4 @@ target/
 
 # Branch switching
 generated/
+.vscode/settings.json
