@@ -38,11 +38,18 @@
         </dependency>
 
         <!--OpenTelemetry-->
-        <!-- <dependency>
+<!-- 
+        <dependency>
             <groupId>io.opentelemetry.instrumentation</groupId>
             <artifactId>opentelemetry-instrumentation-annotations</artifactId>
             <version>1.32.0</version>
-         </dependency> -->
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry.instrumentation</groupId>
+            <artifactId>opentelemetry-logback-mdc-1.0</artifactId>
+            <version>2.0.0-alpha</version>
+        </dependency>
+-->
 
          <!-- JAXB is required since Java 9 -->
         <dependency>
