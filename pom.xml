@@ -134,7 +134,7 @@
                                 </execution>
                             </executions>
                             <configuration>
-                                <imageName>localhost:5000/${project.artifactId}:local</imageName>
+                                <imageName>localhost:9999/${project.artifactId}:local</imageName>
                                 <dockerDirectory>${docker.image.dockerfile.dir}</dockerDirectory>
                                 <serverId>docker-hub</serverId>
                                 <registryUrl>https://index.docker.io/v1/</registryUrl>
