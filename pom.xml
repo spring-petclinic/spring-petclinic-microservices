@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.5.1</version>
+        <version>3.2.0</version>
     </parent>
 
     <groupId>org.springframework.samples</groupId>
     <artifactId>spring-petclinic-microservices</artifactId>
-    <version>2.5.1</version>
+    <version>3.2.0</version>
     <name>${project.artifactId}</name>
     <packaging>pom</packaging>
 
@@ -26,18 +26,27 @@
     </modules>
 
     <properties>
-        <java.version>1.8</java.version>
-        <assertj.version>3.17.1</assertj.version>
+        <java.version>17</java.version>
 
-        <spring-boot.version>2.5.1</spring-boot.version>
-        <spring-cloud.version>2020.0.3</spring-cloud.version>
+        <spring-cloud.version>2023.0.0</spring-cloud.version>
         <chaos-monkey-spring-boot.version>2.3.10</chaos-monkey-spring-boot.version>
+        <jolokia-core.version>1.7.1</jolokia-core.version>
+
+        <!-- Workaround for resolving the issue while using the provided lombok dependency in upgraded Java version.
+        Should be removed while future upgrading-->
+        <lombok.version>1.18.30</lombok.version>
 
         <docker.image.prefix>inspectit</docker.image.prefix>
         <docker.image.exposed.port>9090</docker.image.exposed.port>
         <docker.image.dockerfile.dir>${basedir}</docker.image.dockerfile.dir>
-        <docker.image.dockerize.version>v0.6.1</docker.image.dockerize.version>
-        <docker.plugin.version>1.2.0</docker.plugin.version>
+        <!-- podman is also supported -->
+        <container.executable>docker</container.executable>
+        <!-- By default, the OCI image is build for the linux/amd64 platform -->
+        <!-- For Apple Silicon M2 Chip you have to change it to the linux/arm64 -->
+        <container.platform>linux/amd64</container.platform>
+        <!-- The -load option is a shortcut for or -output=type=docker -->
+        <!-- Could be changed by the -push option !-->
+        <container.build.extraarg>--load</container.build.extraarg>
     </properties>
 
     <dependencyManagement>
@@ -55,10 +64,14 @@
                 <version>${chaos-monkey-spring-boot.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.assertj</groupId>
-                <artifactId>assertj-core</artifactId>
-                <version>${assertj.version}</version>
-                <scope>test</scope>
+                <groupId>org.jolokia</groupId>
+                <artifactId>jolokia-core</artifactId>
+                <version>${jolokia-core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -69,7 +82,7 @@
             <activation>
                 <file>
                     <!-- Just a way to identify a Spring Boot application -->
-                    <exists>src/main/resources/bootstrap.yml</exists>
+                    <exists>src/main/resources/application.yml</exists>
                 </file>
             </activation>
             <build>
@@ -77,13 +90,6 @@
                     <plugin>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-maven-plugin</artifactId>
-                        <configuration>
-                            <fork>true</fork>
-                            <!-- Layered jars optimizes Docker images -->
-                            <layers>
-                                <enabled>true</enabled>
-                            </layers>
-                        </configuration>
                         <executions>
                             <execution>
                                 <!-- Spring Boot Actuator displays build-related information if a META-INF/build-info.properties file is present -->
@@ -94,8 +100,7 @@
                                     <additionalProperties>
                                         <encoding.source>${project.build.sourceEncoding}</encoding.source>
                                         <encoding.reporting>${project.reporting.outputEncoding}</encoding.reporting>
-                                        <java.source>${maven.compiler.source}</java.source>
-                                        <java.target>${maven.compiler.target}</java.target>
+                                        <java.version>${java.version}</java.version>
                                     </additionalProperties>
                                 </configuration>
                             </execution>
@@ -104,8 +109,8 @@
 
                     <!-- Spring Boot Actuator displays build-related information if a META-INF/build-info.properties file is present -->
                     <plugin>
-                        <groupId>pl.project13.maven</groupId>
-                        <artifactId>git-commit-id-plugin</artifactId>
+                        <groupId>io.github.git-commit-id</groupId>
+                        <artifactId>git-commit-id-maven-plugin</artifactId>
                         <executions>
                             <execution>
                                 <goals>
@@ -132,38 +137,37 @@
                 <pluginManagement>
                     <plugins>
                         <plugin>
-                            <groupId>com.spotify</groupId>
-                            <artifactId>docker-maven-plugin</artifactId>
-                            <version>${docker.plugin.version}</version>
+                            <groupId>org.codehaus.mojo</groupId>
+                            <artifactId>exec-maven-plugin</artifactId>
+                            <version>3.1.1</version>
                             <executions>
                                 <execution>
+                                    <id>docker-build</id>
                                     <phase>install</phase>
                                     <goals>
-                                        <goal>build</goal>
+                                        <goal>exec</goal>
                                     </goals>
+                                    <configuration>
+                                        <executable>${container.executable}</executable>
+                                        <workingDirectory>${docker.image.dockerfile.dir}</workingDirectory>
+                                        <arguments>
+                                            <argument>build</argument>
+                                            <argument>-f</argument>
+                                            <argument>Dockerfile</argument>
+                                            <argument>--build-arg</argument>
+                                            <argument>ARTIFACT_NAME=${project.build.finalName}</argument>
+                                            <argument>--build-arg</argument>
+                                            <argument>EXPOSED_PORT=${docker.image.exposed.port}</argument>
+                                            <argument>--platform</argument>
+                                            <argument>${container.platform}</argument>
+                                            <argument>${container.build.extraarg}</argument>
+                                            <argument>-t</argument>
+                                            <argument>${docker.image.prefix}/${project.artifactId}</argument>
+                                            <argument>${project.build.directory}</argument>
+                                        </arguments>
+                                    </configuration>
                                 </execution>
                             </executions>
-                            <configuration>
-                                <imageName>${docker.image.prefix}/${project.artifactId}</imageName>
-                                <dockerDirectory>${docker.image.dockerfile.dir}</dockerDirectory>
-                                <serverId>docker-hub</serverId>
-                                <registryUrl>https://index.docker.io/v1/</registryUrl>
-                                <resources>
-                                    <resource>
-                                        <targetPath>/</targetPath>
-                                        <directory>${project.build.directory}</directory>
-                                        <include>${project.build.finalName}.jar</include>
-                                    </resource>
-                                </resources>
-                                <buildArgs>
-                                    <ARTIFACT_NAME>${project.build.finalName}</ARTIFACT_NAME>
-                                    <EXPOSED_PORT>${docker.image.exposed.port}</EXPOSED_PORT>
-                                    <DOCKERIZE_VERSION>${docker.image.dockerize.version}</DOCKERIZE_VERSION>
-                                </buildArgs>
-                                <imageTags>
-                                    <imageTag>1.1</imageTag>
-                                </imageTags>
-                            </configuration>
                         </plugin>
                     </plugins>
                 </pluginManagement>

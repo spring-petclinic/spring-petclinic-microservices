@@ -16,6 +16,7 @@
 package org.springframework.samples.petclinic.customers.web;
 
 import io.micrometer.core.annotation.Timed;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -30,6 +31,7 @@ import java.util.Optional;
  * @author Ken Krebs
  * @author Arjen Poutsma
  * @author Maciej Szarlinski
+ * @author Ramazan Sakin
  */
 @RestController
 @Timed("petclinic.pet")
@@ -52,7 +54,7 @@ class PetResource {
         @RequestBody PetRequest petRequest,
         @PathVariable("ownerId") int ownerId) throws Exception {
 
-        validatePetType(petRequest.getTypeId());
+        validatePetType(petRequest.typeId());
 
         final Pet pet = new Pet();
         final Optional<Owner> optionalOwner = ownerRepository.findById(ownerId);
@@ -65,7 +67,7 @@ class PetResource {
     @PutMapping("/owners/*/pets/{petId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void processUpdateForm(@RequestBody PetRequest petRequest) {
-        int petId = petRequest.getId();
+        int petId = petRequest.id();
         Pet pet = findPetById(petId);
         save(pet, petRequest);
     }
@@ -95,10 +97,10 @@ class PetResource {
 
     private Pet save(final Pet pet, final PetRequest petRequest) {
 
-        pet.setName(petRequest.getName());
-        pet.setBirthDate(petRequest.getBirthDate());
+        pet.setName(petRequest.name());
+        pet.setBirthDate(petRequest.birthDate());
 
-        petRepository.findPetTypeById(petRequest.getTypeId())
+        petRepository.findPetTypeById(petRequest.typeId())
             .ifPresent(pet::setType);
 
         log.info("Saving pet {}", pet);
