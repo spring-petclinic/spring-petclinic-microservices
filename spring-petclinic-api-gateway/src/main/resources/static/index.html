@@ -49,28 +49,27 @@
 
     <script src="/scripts/infrastructure/infrastructure.js"></script>
     <script src="/scripts/infrastructure/httpErrorHandlingInterceptor.js"></script>
-    {{- if and $.rum_realm $.rum_auth }}
-        <script src="https://cdn.signalfx.com/o11y-gdi-rum/latest/splunk-otel-web.js" crossorigin="anonymous"></script>
-        <script src="https://cdn.signalfx.com/o11y-gdi-rum/latest/splunk-otel-web-session-recorder.js" crossorigin="anonymous"></script>
-        <script>
-            window.SplunkRum && window.SplunkRum.init({ 
-                beaconUrl: 'https://rum-ingest.{{ $.rum_realm }}.signalfx.com/v1/rum',
-                rumAuth: '{{ $.rum_auth }}',
-                 app: '{{ $.rum_app_name }}',
-                 version: '1',
-                 environment: '{{ $.rum_environment }}'
-            });
-            SplunkSessionRecorder.init({
-                beaconUrl: 'https://rum-ingest.{{ $.rum_realm }}.signalfx.com/v1/rumreplay',
-                rumAuth: '{{ $.rum_auth }}'
-            });
-        </script>
-        <script>
-            const Provider = SplunkRum.provider; 
-            var tracer=Provider.getTracer('appModuleLoader');
-        </script>
-        {{- end }}
-
+ 
+{{/*      <script src="https://cdn.signalfx.com/o11y-gdi-rum/latest/splunk-otel-web.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.signalfx.com/o11y-gdi-rum/latest/splunk-otel-web-session-recorder.js" crossorigin="anonymous"></script>
+    <script>
+        window.SplunkRum && window.SplunkRum.init({ 
+            beaconUrl: 'https://rum-ingest{REALM}.signalfx.com/v1/rum',
+            rumAuth: '{RUM_TOKEN}',
+             app: '{APP_NAME}',
+             version: '1',
+             environment: '{ENV-NAme}'
+        });
+        SplunkSessionRecorder.init({
+            beaconUrl: 'https://rum-ingest.{REALM}.signalfx.com/v1/rumreplay',
+            rumAuth: '{RUM_TOKEN}'
+        });
+    </script>
+    <script>
+        const Provider = SplunkRum.provider; 
+        var tracer=Provider.getTracer('appModuleLoader');
+    </script>
+  */}}
 </head>
 
 <body class="container">
