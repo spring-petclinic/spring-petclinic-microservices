@@ -49,27 +49,35 @@
 
     <script src="/scripts/infrastructure/infrastructure.js"></script>
     <script src="/scripts/infrastructure/httpErrorHandlingInterceptor.js"></script>
- 
-{{/*      <script src="https://cdn.signalfx.com/o11y-gdi-rum/latest/splunk-otel-web.js" crossorigin="anonymous"></script>
+    <script src="env.js"></script>  
+    <script src="https://cdn.signalfx.com/o11y-gdi-rum/latest/splunk-otel-web.js" crossorigin="anonymous"></script>
     <script src="https://cdn.signalfx.com/o11y-gdi-rum/latest/splunk-otel-web-session-recorder.js" crossorigin="anonymous"></script>
     <script>
-        window.SplunkRum && window.SplunkRum.init({ 
-            beaconUrl: 'https://rum-ingest{REALM}.signalfx.com/v1/rum',
-            rumAuth: '{RUM_TOKEN}',
-             app: '{APP_NAME}',
-             version: '1',
-             environment: '{ENV-NAme}'
-        });
-        SplunkSessionRecorder.init({
-            beaconUrl: 'https://rum-ingest.{REALM}.signalfx.com/v1/rumreplay',
-            rumAuth: '{RUM_TOKEN}'
-        });
+        var realm = env.RUM_REALM;
+        console.log('Realm:', realm);
+        var auth = env.RUM_AUTH;
+        var appName = env.RUM_APP_NAME;
+        var environmentName = env.RUM_ENVIRONMENT
+        if (realm && auth) {
+            window.SplunkRum && window.SplunkRum.init({ 
+                beaconUrl: 'https://rum-ingest.' + realm + '.signalfx.com/v1/rum',
+                rumAuth: auth,
+                app: appName,
+                version: '1',
+                environment: environmentName
+
+            });
+            SplunkSessionRecorder.init({
+                beaconUrl: 'https://rum-ingest.' + realm + '.signalfx.com/v1/rumreplay',
+                rumAuth: auth
+            });
+            const Provider = SplunkRum.provider; 
+            var tracer=Provider.getTracer('appModuleLoader');
+        } else {
+        // Realm or auth is empty, provide default values or skip initialization
+        console.log("Realm or auth is empty. Skipping SplunkRum initialization.");
+    }
     </script>
-    <script>
-        const Provider = SplunkRum.provider; 
-        var tracer=Provider.getTracer('appModuleLoader');
-    </script>
-  */}}
 </head>
 
 <body class="container">
