@@ -1,0 +1,1 @@
+ docker buildx --platform=linux/amd64,linux/arm64 --build-arg="ARTIFACT_NAME=spring-petclinic-admin-server-0.0.1,EXPOSED_PORT=9090,DOCKERIZE_VERSION=0.6.1" -t spring-petclinic-admin-server:0.0.3 --file /Users/phagen/GIT/spring-petclinic-microservices/docker/Dockerfile .

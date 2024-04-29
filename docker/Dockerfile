@@ -1,4 +1,4 @@
-FROM --platform=amd64 eclipse-temurin:17 as builder
+FROM  eclipse-temurin:17 AS builder
 WORKDIR /application
 ARG ARTIFACT_NAME
 COPY ${ARTIFACT_NAME}.jar application.jar
@@ -10,7 +10,7 @@ RUN wget -O dockerize.tar.gz https://github.com/jwilder/dockerize/releases/downl
 RUN tar xzf dockerize.tar.gz
 RUN chmod +x dockerize
 
-FROM --platform=amd64 eclipse-temurin:17
+FROM  eclipse-temurin:17
 
 WORKDIR /application
 
@@ -18,8 +18,8 @@ WORKDIR /application
 COPY --from=builder /application/dockerize ./
 
 RUN mkdir -p /opt/otel
-WORKDIR /opt/otel
-RUN curl -L https://github.com/signalfx/splunk-otel-java/releases/download/v1.30.0/splunk-otel-javaagent-all.jar -o splunk-otel-javaagent-all.jar
+#WORKDIR /opt/otel
+#RUN curl -L https://github.com/signalfx/splunk-otel-java/releases/download/v1.30.0/splunk-otel-javaagent-all.jar -o splunk-otel-javaagent-all.jar
 
 ARG EXPOSED_PORT
 EXPOSE ${EXPOSED_PORT}

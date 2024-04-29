@@ -59,24 +59,25 @@
         var appName = env.RUM_APP_NAME;
         var environmentName = env.RUM_ENVIRONMENT
         if (realm && auth) {
-            window.SplunkRum && window.SplunkRum.init({ 
-                beaconUrl: 'https://rum-ingest.' + realm + '.signalfx.com/v1/rum',
-                rumAuth: auth,
-                app: appName,
-                version: '1',
-                environment: environmentName
-
+            SplunkRum.init({
+                realm: realm,
+                rumAccessToken: auth,
+                applicationName: appName,
+                deploymentEnvironment: environmentName,
+                version: '1.0.0',
             });
+    
             SplunkSessionRecorder.init({
-                beaconUrl: 'https://rum-ingest.' + realm + '.signalfx.com/v1/rumreplay',
-                rumAuth: auth
+                app: appName,
+                realm: realm,
+                rumAccessToken: auth
             });
             const Provider = SplunkRum.provider; 
             var tracer=Provider.getTracer('appModuleLoader');
         } else {
         // Realm or auth is empty, provide default values or skip initialization
-        console.log("Realm or auth is empty. Skipping SplunkRum initialization.");
-    }
+        console.log("Realm or auth is empty. Skipping Splunk Rum initialization.");
+        }
     </script>
 </head>
 
