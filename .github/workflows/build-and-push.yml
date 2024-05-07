@@ -44,5 +44,5 @@ jobs:
 
       - name: Push Docker images to Docker Hub
         run: |
-          ./scripts/pushImages.sh
+          REPOSITORY_PREFIX=inspectit VERSION=1.2-snapshot ./scripts/pushImages.sh
           
