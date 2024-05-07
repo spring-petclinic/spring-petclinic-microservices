@@ -38,6 +38,7 @@
 
         <docker.image.prefix>inspectit</docker.image.prefix>
         <docker.image.exposed.port>9090</docker.image.exposed.port>
+        <docker.image.tag>1.2-snapshot</docker.image.tag>
         <docker.image.dockerfile.dir>${basedir}</docker.image.dockerfile.dir>
         <!-- podman is also supported -->
         <container.executable>docker</container.executable>
@@ -162,7 +163,7 @@
                                             <argument>${container.platform}</argument>
                                             <argument>${container.build.extraarg}</argument>
                                             <argument>-t</argument>
-                                            <argument>${docker.image.prefix}/${project.artifactId}</argument>
+                                            <argument>${docker.image.prefix}/${project.artifactId}:${docker.image.tag}</argument>
                                             <argument>${project.build.directory}</argument>
                                         </arguments>
                                     </configuration>
