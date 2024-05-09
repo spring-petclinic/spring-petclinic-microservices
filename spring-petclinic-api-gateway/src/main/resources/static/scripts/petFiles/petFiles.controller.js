@@ -4,7 +4,7 @@ angular.module('petFiles')
     .controller('PetFilesController', ['$http', '$state', '$stateParams', '$filter', function ($http, $state, $stateParams, $filter) {
         var self = this;
         var petId = $stateParams.petId || 0;
-        var url = "api/files/owners/" + ($stateParams.ownerId || 0) + "/pets/" + petId + "/files";
+        var url = "api/customer/owners/" + ($stateParams.ownerId || 0) + "/pets/" + petId + "/files";
         self.date = new Date();
         self.desc = "";
 
