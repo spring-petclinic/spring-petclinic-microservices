@@ -58,24 +58,24 @@ public class Pet {
     @JoinColumn(name = "owner_id")
     @JsonIgnore
     private Owner owner;
-//
-//    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "pet")
-//    private Set<PetFile> files;
-//
-//    protected Set<PetFile> getFilesInternal() {
-//        if (this.files == null) {
-//            this.files = new HashSet<>();
-//        }
-//        return this.files;
-//    }
-//
-//    public List<PetFile> getFiles() {
-//        return new ArrayList<>(getFilesInternal());
-//    }
-//
-//    public void addFile(PetFile file) {
-//        files.add(file);
-//    }
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "pet")
+    private Set<PetFile> files;
+
+    protected Set<PetFile> getFilesInternal() {
+        if (this.files == null) {
+            this.files = new HashSet<>();
+        }
+        return this.files;
+    }
+
+    public List<PetFile> getFiles() {
+        return new ArrayList<>(getFilesInternal());
+    }
+
+    public void addFile(PetFile file) {
+        files.add(file);
+    }
 
     @Override
     public String toString() {
