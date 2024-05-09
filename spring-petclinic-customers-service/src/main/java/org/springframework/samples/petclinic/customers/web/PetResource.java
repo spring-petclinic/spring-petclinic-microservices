@@ -38,9 +38,9 @@ import java.util.List;
 @Slf4j
 class PetResource {
 
+    //private final PetFileRepository petFileRepository;
     private final PetRepository petRepository;
     private final OwnerRepository ownerRepository;
-
 
     @GetMapping("/petTypes")
     public List<PetType> getPetTypes() {
@@ -60,6 +60,37 @@ class PetResource {
         owner.addPet(pet);
         return save(pet, petRequest);
     }
+
+//    @GetMapping("/owners/{ownerId}/pets/{petId}/files")
+//    public List<PetFile> getFiles(@PathVariable("petId") int petId){
+//        Pet pet = petRepository.findById(petId)
+//            .orElseThrow(()-> new ResourceNotFoundException("Pet "+petId+" not found"));
+//        return pet.getFiles();
+//    }
+//
+//
+//    @PostMapping("/owners/{ownerId}/pets/{petId}/files")
+//    @ResponseStatus(HttpStatus.CREATED)
+//    public void handleFileUpload(@RequestBody PetFileRequest fileRequest,
+//                                 @PathVariable("petId") @Min(1) int petId
+//                           ){
+//            Pet pet = petRepository.findById(petId)
+//                .orElseThrow(()-> new ResourceNotFoundException("Pet "+petId+" not found"));
+//
+//            final PetFile file = new PetFile();
+//            pet.addFile(file);
+//            file.setPet(pet);
+//            saveFile(file, fileRequest);
+//
+//    }
+//
+//    private void saveFile(final PetFile file, final PetFileRequest fileRequest) {
+//        file.setData(fileRequest.file());
+//        file.setDescription(fileRequest.description());
+//        file.setDate(fileRequest.date());
+//        petFileRepository.save(file);
+//
+//    }
 
     @PutMapping("/owners/*/pets/{petId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
