@@ -17,12 +17,17 @@ package org.springframework.samples.petclinic.customers.web;
 
 import io.micrometer.core.annotation.Timed;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.samples.petclinic.customers.model.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -71,25 +76,33 @@ class PetResource {
 
     @PostMapping("/owners/{ownerId}/pets/{petId}/files")
     @ResponseStatus(HttpStatus.CREATED)
-    public void handleFileUpload(@RequestBody PetFileRequest fileRequest,
-                                 @PathVariable("petId") @Min(1) int petId
-                           ){
-            Pet pet = petRepository.findById(petId)
-                .orElseThrow(()-> new ResourceNotFoundException("Pet "+petId+" not found"));
+    public void handleFileUpload(@RequestParam("file") MultipartFile file,
+                                 @RequestParam("date") @DateTimeFormat(pattern = "yyyy-MM-dd") Date date,
+                                 @RequestParam("description") @Size(min = 1) String description,
+                                 @PathVariable("petId") @Min(1) int petId) {
+        Pet pet = petRepository.findById(petId)
+            .orElseThrow(() -> new ResourceNotFoundException("Pet " + petId + " not found"));
 
-            final PetFile file = new PetFile();
-            pet.addFile(file);
-            file.setPet(pet);
-            saveFile(file, fileRequest);
+        final PetFile petFile = new PetFile();
+        pet.addFile(petFile);
+        petFile.setPet(pet);
+        saveFile(petFile, file, date, description);
 
     }
 
-    private void saveFile(final PetFile file, final PetFileRequest fileRequest) {
-        file.setData(fileRequest.file());
-        file.setDescription(fileRequest.description());
-        file.setDate(fileRequest.date());
-        petFileRepository.save(file);
+    private void saveFile(final PetFile petFile, final MultipartFile file, final Date date, final String description) {
+        try{
+            petFile.setData(file.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
+        petFile.setDescription(description);
+        petFile.setDate(date);
+        petFileRepository.save(petFile);
+        System.out.printf("DEBUG: File has been uploaded\n" +
+            "Length: %d\n" +
+            "Description: %s\n", petFile.getData().length, petFile.getDescription());
     }
 
     @PutMapping("/owners/*/pets/{petId}")

@@ -8,9 +8,13 @@ angular.module('petFiles')
         self.date = new Date();
         self.desc = "";
 
-        $http.get(url).then(function (resp) {
-            self.files = resp.data;
-        });
+        function getFiles() {
+            $http.get(url).then(function (resp) {
+                self.files = resp.data;
+            });
+        }
+
+        getFiles();
 
         self.uploadFile = function () {
             var file = document.getElementById('file').files[0];
@@ -21,9 +25,13 @@ angular.module('petFiles')
 
             $http.post(url, formData, {
                 transformRequest: angular.identity,
-                headers: { 'Content-Type': undefined }
+                headers: { 'Content-Type': 'multipart/form-data' }
             }).then(function () {
-                $state.go('ownerDetails', { ownerId: $stateParams.ownerId });
+                return $http.get(url);
+            }).then(function (response) {
+                self.files = response.data;
+                $state.go('ownerDetails', { ownerId: ownerId });
             });
         };
+
     }]);

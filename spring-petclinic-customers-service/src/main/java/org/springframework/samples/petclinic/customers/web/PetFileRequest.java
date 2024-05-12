@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Size;
 
 import java.util.Date;
 
-public record PetFileRequest(byte[] file,
+public record   PetFileRequest(byte[] file,
                              @JsonFormat(pattern = "yyyy-MM-dd")
                              Date date,
                              @Size(min = 1)
