@@ -36,7 +36,7 @@
         Should be removed while future upgrading-->
         <lombok.version>1.18.30</lombok.version>
 
-        <docker.image.prefix>springcommunity</docker.image.prefix>
+        <docker.image.prefix>ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash</docker.image.prefix>
         <docker.image.exposed.port>9090</docker.image.exposed.port>
         <docker.image.dockerfile.dir>${basedir}</docker.image.dockerfile.dir>
         <!-- podman is also supported -->
