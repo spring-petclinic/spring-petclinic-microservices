@@ -13,13 +13,13 @@ public class FrontendUsageSimulation extends Simulation {
         .acceptHeader("application/json")
         .contentTypeHeader("application/json");
 
-    ScenarioBuilder frontendUsageScenario = scenario("Frontend Usage")
-        .exec(http("Request 1").get("/"))
-        .pause(1, 3); // Pause von 1 bis 3 Sekunden nach jeder Anfrage
+    ScenarioBuilder frontendUsageScenario = scenario("Owner Usage Scenario")
+        .exec(http("Request 1").get("/api/customer/owners"));
+        //.pause(1, 3); // Pause von 1 bis 3 Sekunden nach jeder Anfrage
 
     {
         setUp(
-            frontendUsageScenario.injectOpen(constantUsersPerSec(200).during(30))
+            frontendUsageScenario.injectOpen(constantUsersPerSec(250).during(30))
         ).protocols(httpProtocol);
     }
 }
