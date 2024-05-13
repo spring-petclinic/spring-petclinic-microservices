@@ -195,6 +195,8 @@ To push Docker image for the `linux/amd64` and the `linux/arm64` platform to you
 mvn clean install -Dmaven.test.skip -P buildDocker -Ddocker.image.prefix=${REPOSITORY_PREFIX} -Dcontainer.build.extraarg="--push" -Dcontainer.platform="linux/amd64,linux/arm64"
 ```
 
+Be sure to turn on "Use containerd for pulling and storing images" in the Docker Desktop settings, when trying to do multi-platform builds.
+
 The `scripts/pushImages.sh` and `scripts/tagImages.sh` shell scripts could also be used once you build your image with the `buildDocker` maven profile.
 The `scripts/tagImages.sh` requires to declare the `VERSION` env variable.
 
