@@ -4,6 +4,8 @@ services:
   config-server:
     image: springcommunity/spring-petclinic-config-server
     container_name: config-server
+    environment:
+      - BRANCH=main
     deploy:
       resources:
         limits:
