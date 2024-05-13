@@ -23,6 +23,7 @@
         <module>spring-petclinic-config-server</module>
         <module>spring-petclinic-discovery-server</module>
         <module>spring-petclinic-api-gateway</module>
+        <module>load-testing</module>
     </modules>
 
     <properties>
@@ -57,6 +58,11 @@
                 <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>eu.rekawek.toxiproxy</groupId>
+                <artifactId>toxiproxy-java</artifactId>
+                <version>2.1.7</version>
             </dependency>
             <dependency>
                 <groupId>de.codecentric</groupId>
