@@ -18,6 +18,11 @@ package org.springframework.samples.petclinic.config;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.config.server.EnableConfigServer;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.env.Environment;
+
+import javax.swing.*;
 
 /**
  * @author Maciej Szarlinski
@@ -29,4 +34,11 @@ public class ConfigServerApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(ConfigServerApplication.class, args);
 	}
+    @Bean
+    ApplicationRunner applicationRunner(Environment environment) {
+        return args -> {
+            System.out.println("Config Repo URL:" + environment.getProperty("spring.cloud.config.server.git.uri"));
+        };
+    }
+
 }
