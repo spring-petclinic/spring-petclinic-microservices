@@ -1,9 +1,10 @@
 # Distributed version of the Spring PetClinic Sample Application built with Spring Cloud 
 
-[![Build Status](https://travis-ci.org/spring-petclinic/spring-petclinic-microservices.svg?branch=master)](https://travis-ci.org/spring-petclinic/spring-petclinic-microservices/) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Build Status](https://github.com/spring-petclinic/spring-petclinic-microservices/actions/workflows/maven-build.yml/badge.svg)](https://github.com/spring-petclinic/spring-petclinic-microservices/actions/workflows/maven-build.yml)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 This microservices branch was initially derived from [AngularJS version](https://github.com/spring-petclinic/spring-petclinic-angular1) to demonstrate how to split sample Spring application into [microservices](http://www.martinfowler.com/articles/microservices.html).
-To achieve that goal we use Spring Cloud Gateway, Spring Cloud Circuit Breaker, Spring Cloud Config, Spring Cloud Sleuth, Resilience4j, Micrometer 
+To achieve that goal, we use Spring Cloud Gateway, Spring Cloud Circuit Breaker, Spring Cloud Config, Micrometer Tracing, Resilience4j, Open Telemetry 
 and the Eureka Service Discovery from the [Spring Cloud Netflix](https://github.com/spring-cloud/spring-cloud-netflix) technology stack.
 
 ## Starting services locally without Docker
@@ -15,7 +16,7 @@ If everything goes well, you can access the following services at given location
 * Config Server - http://localhost:8888
 * AngularJS frontend (API Gateway) - http://localhost:8080
 * Customers, Vets and Visits Services - random port, check Eureka Dashboard 
-* Tracing Server (Zipkin) - http://localhost:9411/zipkin/ (we use [openzipkin](https://github.com/openzipkin/zipkin/tree/master/zipkin-server))
+* Tracing Server (Zipkin) - http://localhost:9411/zipkin/ (we use [openzipkin](https://github.com/openzipkin/zipkin/tree/main/zipkin-server))
 * Admin Server (Spring Boot Admin) - http://localhost:9090
 * Grafana Dashboards - http://localhost:3000
 * Prometheus - http://localhost:9091
@@ -25,14 +26,33 @@ You can tell Config Server to use your local Git repository by using `native` Sp
 `-Dspring.profiles.active=native -DGIT_REPO=/projects/spring-petclinic-microservices-config`
 
 ## Starting services locally with docker-compose
-In order to start entire infrastructure using Docker, you have to build images by executing `./mvnw clean install -P buildDocker` 
-from a project root. Once images are ready, you can start them with a single command
-`docker-compose up`. Containers startup order is coordinated with [`dockerize` script](https://github.com/jwilder/dockerize). 
-After starting services it takes a while for API Gateway to be in sync with service registry,
+In order to start entire infrastructure using Docker, you have to build images by executing
+``bash
+./mvnw clean install -P buildDocker
+``
+This requires `Docker` or `Docker desktop` to be installed and running.
+
+Alternatively you can also build all the images on `Podman`, which requires Podman or Podman Desktop to be installed and running.
+```bash
+./mvnw clean install -PbuildDocker -Dcontainer.executable=podman
+```
+By default, the Docker OCI image is build for an `linux/amd64` platform.
+For other architectures, you could change it by using the `-Dcontainer.platform` maven command line argument.
+For instance, if you target container images for an Apple M2, you could use the command line with the `linux/arm64` architecture:
+```bash
+./mvnw clean install -P buildDocker -Dcontainer.platform="linux/arm64"
+```
+
+Once images are ready, you can start them with a single command
+`docker-compose up` or `podman-compose up`. 
+
+Containers startup order is coordinated with the `service_healthy` condition of the Docker Compose [depends-on](https://github.com/compose-spec/compose-spec/blob/main/spec.md#depends_on) expression 
+and the [healthcheck](https://github.com/compose-spec/compose-spec/blob/main/spec.md#healthcheck) of the service containers. 
+After starting services, it takes a while for API Gateway to be in sync with service registry,
 so don't be scared of initial Spring Cloud Gateway timeouts. You can track services availability using Eureka dashboard
 available by default at http://localhost:8761.
 
-The `master` branch uses an  Alpine linux  with JRE 8 as Docker base. You will find a Java 11 version in the `release/java11` branch.
+The `main` branch uses an Eclipse Temurin with Java 17 as Docker base image.
 
 *NOTE: Under MacOSX or Windows, make sure that the Docker VM has enough memory to run the microservices. The default settings
 are usually not enough and make the `docker-compose up` painfully slow.*
@@ -47,7 +67,7 @@ Each of the java based applications is started with the `chaos-monkey` profile i
 
 [See the presentation of the Spring Petclinic Framework version](http://fr.slideshare.net/AntoineRey/spring-framework-petclinic-sample-application)
 
-[A blog bost introducing the Spring Petclinic Microsevices](http://javaetmoi.com/2018/10/architecture-microservices-avec-spring-cloud/) (french language)
+[A blog post introducing the Spring Petclinic Microsevices](http://javaetmoi.com/2018/10/architecture-microservices-avec-spring-cloud/) (french language)
 
 You can then access petclinic here: http://localhost:8080/
 
@@ -137,13 +157,46 @@ All those three REST controllers `OwnerResource`, `PetResource` and `VisitResour
 | Circuit Breaker                 | [Resilience4j fallback method](spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/boundary/web/ApiGatewayController.java)  |
 | Grafana / Prometheus Monitoring | [Micrometer implementation](https://micrometer.io/), [Spring Boot Actuator Production Ready Metrics] |
 
- Front-end module  | Files |
+|  Front-end module | Files |
 |-------------------|-------|
 | Node and NPM      | [The frontend-maven-plugin plugin downloads/installs Node and NPM locally then runs Bower and Gulp](spring-petclinic-ui/pom.xml)  |
 | Bower             | [JavaScript libraries are defined by the manifest file bower.json](spring-petclinic-ui/bower.json)  |
 | Gulp              | [Tasks automated by Gulp: minify CSS and JS, generate CSS from LESS, copy other static resources](spring-petclinic-ui/gulpfile.js)  |
 | Angular JS        | [app.js, controllers and templates](spring-petclinic-ui/src/scripts/)  |
 
+## Pushing to a Docker registry
+
+Docker images for `linux/amd64` and `linux/arm64` platforms have been published into DockerHub 
+in the [springcommunity](https://hub.docker.com/u/springcommunity) organization.
+You can pull an image:
+```bash
+docker pull springcommunity/spring-petclinic-config-server
+```
+You may prefer to build then push images to your own Docker registry.
+
+### Choose your Docker registry
+
+You need to define your target Docker registry.
+Make sure you're already logged in by running `docker login <endpoint>` or `docker login` if you're just targeting Docker hub.
+
+Setup the `REPOSITORY_PREFIX` env variable to target your Docker registry.
+If you're targeting Docker hub, simple provide your username, for example:
+```bash
+export REPOSITORY_PREFIX=springcommunity
+```
+
+For other Docker registries, provide the full URL to your repository, for example:
+```bash
+export REPOSITORY_PREFIX=harbor.myregistry.com/petclinic
+```
+
+To push Docker image for the `linux/amd64` and the `linux/arm64` platform to your own registry, please use the command line:
+```bash
+mvn clean install -Dmaven.test.skip -P buildDocker -Ddocker.image.prefix=${REPOSITORY_PREFIX} -Dcontainer.build.extraarg="--push" -Dcontainer.platform="linux/amd64,linux/arm64"
+```
+
+The `scripts/pushImages.sh` and `scripts/tagImages.sh` shell scripts could also be used once you build your image with the `buildDocker` maven profile.
+The `scripts/tagImages.sh` requires to declare the `VERSION` env variable.
 
 ## Interesting Spring Petclinic forks
 
@@ -156,7 +209,7 @@ If you have a special interest in a different technology stack
 that could be used to implement the Pet Clinic then please join the community there.
 
 
-# Contributing
+## Contributing
 
 The [issue tracker](https://github.com/spring-petclinic/spring-petclinic-microservices/issues) is the preferred channel for bug reports, features requests and submitting pull requests.
 

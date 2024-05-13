@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,16 @@
 package org.springframework.samples.petclinic.customers.web;
 
 import io.micrometer.core.annotation.Timed;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.samples.petclinic.customers.web.mapper.OwnerEntityMapper;
 import org.springframework.samples.petclinic.customers.model.Owner;
 import org.springframework.samples.petclinic.customers.model.OwnerRepository;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,13 +44,15 @@ import java.util.Optional;
 class OwnerResource {
 
     private final OwnerRepository ownerRepository;
+    private final OwnerEntityMapper ownerEntityMapper;
 
     /**
      * Create Owner
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Owner createOwner(@Valid @RequestBody Owner owner) {
+    public Owner createOwner(@Valid @RequestBody OwnerRequest ownerRequest) {
+        Owner owner = ownerEntityMapper.map(new Owner(), ownerRequest);
         return ownerRepository.save(owner);
     }
 
@@ -56,7 +60,7 @@ class OwnerResource {
      * Read single Owner
      */
     @GetMapping(value = "/{ownerId}")
-    public Optional<Owner> findOwner(@PathVariable("ownerId") int ownerId) {
+    public Optional<Owner> findOwner(@PathVariable("ownerId") @Min(1) int ownerId) {
         return ownerRepository.findById(ownerId);
     }
 
@@ -73,16 +77,10 @@ class OwnerResource {
      */
     @PutMapping(value = "/{ownerId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateOwner(@PathVariable("ownerId") int ownerId, @Valid @RequestBody Owner ownerRequest) {
-        final Optional<Owner> owner = ownerRepository.findById(ownerId);
+    public void updateOwner(@PathVariable("ownerId") @Min(1) int ownerId, @Valid @RequestBody OwnerRequest ownerRequest) {
+        final Owner ownerModel = ownerRepository.findById(ownerId).orElseThrow(() -> new ResourceNotFoundException("Owner " + ownerId + " not found"));
 
-        final Owner ownerModel = owner.orElseThrow(() -> new ResourceNotFoundException("Owner "+ownerId+" not found"));
-        // This is done by hand for simplicity purpose. In a real life use-case we should consider using MapStruct.
-        ownerModel.setFirstName(ownerRequest.getFirstName());
-        ownerModel.setLastName(ownerRequest.getLastName());
-        ownerModel.setCity(ownerRequest.getCity());
-        ownerModel.setAddress(ownerRequest.getAddress());
-        ownerModel.setTelephone(ownerRequest.getTelephone());
+        ownerEntityMapper.map(ownerModel, ownerRequest);
         log.info("Saving owner {}", ownerModel);
         ownerRepository.save(ownerModel);
     }

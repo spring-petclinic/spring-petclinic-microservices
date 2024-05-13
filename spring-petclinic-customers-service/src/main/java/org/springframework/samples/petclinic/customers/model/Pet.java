@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,19 @@ package org.springframework.samples.petclinic.customers.model;
 
 import java.util.Date;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Data;
 import org.springframework.core.style.ToStringCreator;
 
 /**
@@ -38,7 +39,9 @@ import org.springframework.core.style.ToStringCreator;
  * @author Juergen Hoeller
  * @author Sam Brannen
  * @author Maciej Szarlinski
+ * @author Ramazan Sakin
  */
+@Data
 @Entity
 @Table(name = "pets")
 public class Pet {
@@ -61,46 +64,6 @@ public class Pet {
     @JoinColumn(name = "owner_id")
     @JsonIgnore
     private Owner owner;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(final Integer id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return this.name;
-    }
-
-    public void setName(final String name) {
-        this.name = name;
-    }
-
-    public Date getBirthDate() {
-        return birthDate;
-    }
-
-    public void setBirthDate(final Date birthDate) {
-        this.birthDate = birthDate;
-    }
-
-    public PetType getType() {
-        return type;
-    }
-
-    public void setType(final PetType type) {
-        this.type = type;
-    }
-
-    public Owner getOwner() {
-        return owner;
-    }
-
-    public void setOwner(final Owner owner) {
-        this.owner = owner;
-    }
 
     @Override
     public String toString() {

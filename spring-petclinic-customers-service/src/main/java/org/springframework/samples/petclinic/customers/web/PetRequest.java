@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,26 +15,20 @@
  */
 package org.springframework.samples.petclinic.customers.web;
 
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.Size;
 
 import java.util.Date;
-
-import javax.validation.constraints.Size;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * @author mszarlinski@bravurasolutions.com on 2016-12-05.
  */
-@Data
-class PetRequest {
-    private int id;
+record PetRequest(int id,
+                  @JsonFormat(pattern = "yyyy-MM-dd")
+                  Date birthDate,
+                  @Size(min = 1)
+                  String name,
+                  int typeId
+) {
 
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private Date birthDate;
-
-    @Size(min = 1)
-    private String name;
-
-    private int typeId;
 }
