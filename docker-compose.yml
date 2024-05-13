@@ -2,7 +2,7 @@ version: '3'
 
 services:
   config-server:
-    image: springcommunity/spring-petclinic-config-server
+    image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-config-server
     container_name: config-server
     environment:
       - BRANCH=main
@@ -19,7 +19,7 @@ services:
      - 8888:8888
 
   discovery-server:
-    image: springcommunity/spring-petclinic-discovery-server
+    image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-discovery-server
     container_name: discovery-server
     deploy:
       resources:
@@ -37,7 +37,7 @@ services:
      - 8761:8761
 
   customers-service:
-    image: springcommunity/spring-petclinic-customers-service
+    image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-customers-service
     container_name: customers-service
     deploy:
       resources:
@@ -52,7 +52,7 @@ services:
     - 8081:8081
 
   visits-service:
-    image: springcommunity/spring-petclinic-visits-service
+    image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-visits-service
     container_name: visits-service
     deploy:
       resources:
@@ -67,7 +67,7 @@ services:
      - 8082:8082
 
   vets-service:
-    image: springcommunity/spring-petclinic-vets-service
+    image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-vets-service
     container_name: vets-service
     deploy:
       resources:
@@ -82,7 +82,7 @@ services:
      - 8083:8083
 
   api-gateway:
-    image: springcommunity/spring-petclinic-api-gateway
+    image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-api-gateway
     container_name: api-gateway
     deploy:
       resources:
@@ -109,7 +109,7 @@ services:
      - 9411:9411
 
   admin-server:
-    image: springcommunity/spring-petclinic-admin-server
+    image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-admin-server
     container_name: admin-server
     deploy:
       resources:
