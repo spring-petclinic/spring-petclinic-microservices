@@ -36,6 +36,8 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
 
@@ -65,6 +67,9 @@ public class ApiGatewayApplication {
     @Value("classpath:/static/index.html")
     private Resource indexHtml;
 
+    @Value("${EUM_HOST:localhost}")
+    private String eumHost;
+
     /**
      * workaround solution for forwarding to index.html
      * @see <a href="https://github.com/spring-projects/spring-boot/issues/9785">#9785</a>
@@ -73,8 +78,25 @@ public class ApiGatewayApplication {
     RouterFunction<?> routerFunction() {
         RouterFunction router = RouterFunctions.resources("/**", new ClassPathResource("static/"))
             .andRoute(RequestPredicates.GET("/"),
-                request -> ServerResponse.ok().contentType(MediaType.TEXT_HTML).bodyValue(indexHtml));
+                request -> ServerResponse.ok().contentType(MediaType.TEXT_HTML)
+                    .bodyValue(injectDynamicEumHost())
+            );
         return router;
+    }
+
+    /**
+     * workaround solution to use dynamic hosts for EUM instead of just localhost
+     * @return content of index.html with injected EUM-Host
+     */
+    private String injectDynamicEumHost() {
+        try {
+            String indexHtmlContent = new String(indexHtml.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+
+            // Replace the placeholder with the actual host value
+            return indexHtmlContent.replace("${EUM_HOST}", eumHost);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not read index.html");
+        }
     }
 
     /**

@@ -50,15 +50,17 @@
     <script src="/scripts/infrastructure/infrastructure.js"></script>
     <script src="/scripts/infrastructure/httpErrorHandlingInterceptor.js"></script>
 
-    <script src="http://localhost:8085/boomerang/boomerang.js"></script>
-    <script src="http://localhost:8085/boomerang/plugins/boomerang-opentelemetry.js"></script>
-    <script src="http://localhost:8085/boomerang/plugins/rt.js"></script>
-    <script src="http://localhost:8085/boomerang/plugins/auto-xhr.js"></script>
-    <script src="http://localhost:8085/boomerang/plugins/spa.js"></script>
-    <script src="http://localhost:8085/boomerang/plugins/history.js"></script>
+    <!-- ${EUM_HOST} will be replaced with an actual host, while loading the file -->
+    <!-- see ApiGatewayApplication#injectDynamicEumHost() -->
+    <script src="http://${EUM_HOST}:8085/boomerang/boomerang.js"></script>
+    <script src="http://${EUM_HOST}:8085/boomerang/plugins/boomerang-opentelemetry.js"></script>
+    <script src="http://${EUM_HOST}:8085/boomerang/plugins/rt.js"></script>
+    <script src="http://${EUM_HOST}:8085/boomerang/plugins/auto-xhr.js"></script>
+    <script src="http://${EUM_HOST}:8085/boomerang/plugins/spa.js"></script>
+    <script src="http://${EUM_HOST}:8085/boomerang/plugins/history.js"></script>
     <script>
         BOOMR.init({
-            beacon_url: "http://localhost:8085/beacon/"
+            beacon_url: "http://${EUM_HOST}:8085/beacon/"
         });
     </script>
 
