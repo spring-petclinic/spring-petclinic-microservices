@@ -19,3 +19,5 @@ target/
 
 # Branch switching
 generated/
+
+.DS_Store
