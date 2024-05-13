@@ -25,7 +25,7 @@ angular.module('petFiles')
 
             $http.post(url, formData, {
                 transformRequest: angular.identity,
-                headers: { 'Content-Type': 'multipart/form-data' }
+                headers: { 'Content-Type': undefined }
             }).then(function () {
                 return $http.get(url);
             }).then(function (response) {
