@@ -34,11 +34,5 @@ public class ConfigServerApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(ConfigServerApplication.class, args);
 	}
-    @Bean
-    ApplicationRunner applicationRunner(Environment environment) {
-        return args -> {
-            System.out.println("Config Repo URL:" + environment.getProperty("spring.cloud.config.server.git.uri"));
-        };
-    }
 
 }
