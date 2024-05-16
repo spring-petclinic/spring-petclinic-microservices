@@ -27,11 +27,13 @@ angular.module('petFiles')
                 transformRequest: angular.identity,
                 headers: { 'Content-Type': undefined }
             }).then(function () {
+                alert("File: " + file.name + " was uploaded successfully!\n" +"file size: "+ file.size/1024/1024 + " MB");
                 return $http.get(url);
             }).then(function (response) {
                 self.files = response.data;
                 $state.go('ownerDetails', { ownerId: ownerId });
             });
+
         };
 
     }]);
