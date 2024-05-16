@@ -24,6 +24,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  */
 @EnableDiscoveryClient
 @SpringBootApplication
+//@EnableJpaRepositories(basePackages = "org.springframework.samples.petclinic.customers")
 public class CustomersServiceApplication {
 
 	public static void main(String[] args) {
