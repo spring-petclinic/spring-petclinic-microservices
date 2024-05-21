@@ -15,12 +15,15 @@
     "@mui/material": "^5.15.18",
     "@mui/styled-engine-sc": "^6.0.0-alpha.18",
     "bootstrap": "^5.3.3",
+    "dotenv": "^16.4.5",
     "react": "^18.2.0",
+    "react-axios": "^2.0.6",
     "react-bootstrap": "^2.10.2",
     "react-dom": "^18.2.0",
     "styled-components": "^6.1.11"
   },
   "devDependencies": {
+    "@types/node": "^20.12.12",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@typescript-eslint/eslint-plugin": "^7.2.0",

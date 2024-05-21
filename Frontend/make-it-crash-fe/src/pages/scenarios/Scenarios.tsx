@@ -1,4 +1,3 @@
-import React from "react"
 import Scenario from "./Scenario"
 
 function Scenarios() {
