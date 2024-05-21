@@ -1,0 +1,37 @@
+RUN	org.springframework.samples.petclinic.gatling.simulations.VetsCustomers	vetscustomers	1716297326134	 	3.10.5
+USER	Owner Usage Scenario	START	1716297326311
+USER	Vets Usage Scenario	START	1716297326311
+REQUEST		vets	1716297326311	1716297326312	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716297326311	1716297326312	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716297326312
+USER	Vets Usage Scenario	END	1716297326312
+USER	Owner Usage Scenario	START	1716297326479
+USER	Vets Usage Scenario	START	1716297326480
+REQUEST		vets	1716297326479	1716297326481	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716297326478	1716297326482	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716297326482
+USER	Owner Usage Scenario	END	1716297326482
+USER	Vets Usage Scenario	START	1716297326646
+USER	Owner Usage Scenario	START	1716297326646
+REQUEST		vets	1716297326645	1716297326648	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716297326645	1716297326648	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716297326649
+USER	Vets Usage Scenario	END	1716297326649
+USER	Vets Usage Scenario	START	1716297326813
+USER	Owner Usage Scenario	START	1716297326814
+REQUEST		vets	1716297326812	1716297326816	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716297326812	1716297326816	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716297326817
+USER	Vets Usage Scenario	END	1716297326817
+USER	Vets Usage Scenario	START	1716297326979
+USER	Owner Usage Scenario	START	1716297326979
+REQUEST		owners	1716297326978	1716297326981	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716297326978	1716297326981	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716297326982
+USER	Owner Usage Scenario	END	1716297326982
+USER	Vets Usage Scenario	START	1716297327146
+USER	Owner Usage Scenario	START	1716297327146
+REQUEST		vets	1716297327145	1716297327149	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716297327145	1716297327149	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716297327149
+USER	Vets Usage Scenario	END	1716297327150

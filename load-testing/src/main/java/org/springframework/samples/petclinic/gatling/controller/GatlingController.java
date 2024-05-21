@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 
 @RestController("API")
 @RequestMapping("/api")
+@CrossOrigin(origins = "*")
 public class GatlingController {
 
     @GetMapping("/")
@@ -64,7 +65,7 @@ public class GatlingController {
                 if (System.getProperty("os.name").startsWith("Windows")) {
                     resultsPath = resultsPath.substring(1);
                 }else{
-                    resultsPath = resultsPath;
+                    path = resultsPath;
                 }
 
                 path += "/js/stats.json";

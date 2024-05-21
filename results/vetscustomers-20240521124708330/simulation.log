@@ -1,0 +1,1201 @@
+RUN	org.springframework.samples.petclinic.gatling.simulations.VetsCustomers	vetscustomers	1716295628330	 	3.10.5
+USER	Vets Usage Scenario	START	1716295628483
+USER	Owner Usage Scenario	START	1716295628486
+REQUEST		vets	1716295628483	1716295628488	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295628485	1716295628488	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295628493
+USER	Vets Usage Scenario	END	1716295628493
+USER	Vets Usage Scenario	START	1716295628585
+USER	Owner Usage Scenario	START	1716295628586
+REQUEST		vets	1716295628584	1716295628588	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295628585	1716295628589	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295628589
+USER	Owner Usage Scenario	END	1716295628589
+USER	Vets Usage Scenario	START	1716295628685
+USER	Owner Usage Scenario	START	1716295628685
+REQUEST		owners	1716295628684	1716295628688	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295628690
+REQUEST		vets	1716295628684	1716295628690	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295628690
+USER	Vets Usage Scenario	START	1716295628785
+USER	Owner Usage Scenario	START	1716295628786
+REQUEST		owners	1716295628784	1716295628788	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295628784	1716295628788	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295628789
+USER	Owner Usage Scenario	END	1716295628789
+USER	Vets Usage Scenario	START	1716295628885
+USER	Owner Usage Scenario	START	1716295628885
+REQUEST		vets	1716295628884	1716295628888	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295628885	1716295628888	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295628889
+USER	Owner Usage Scenario	END	1716295628889
+USER	Vets Usage Scenario	START	1716295628985
+USER	Owner Usage Scenario	START	1716295628986
+REQUEST		vets	1716295628984	1716295628987	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295628985	1716295628987	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295628987
+USER	Owner Usage Scenario	END	1716295628987
+USER	Vets Usage Scenario	START	1716295629085
+USER	Owner Usage Scenario	START	1716295629085
+REQUEST		vets	1716295629084	1716295629086	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295629085	1716295629086	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295629086
+USER	Vets Usage Scenario	END	1716295629086
+USER	Vets Usage Scenario	START	1716295629186
+USER	Owner Usage Scenario	START	1716295629186
+REQUEST		owners	1716295629185	1716295629188	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295629185	1716295629188	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295629189
+USER	Vets Usage Scenario	END	1716295629189
+USER	Vets Usage Scenario	START	1716295629286
+USER	Owner Usage Scenario	START	1716295629286
+REQUEST		vets	1716295629285	1716295629288	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295629285	1716295629288	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295629288
+USER	Owner Usage Scenario	END	1716295629288
+USER	Owner Usage Scenario	START	1716295629385
+USER	Vets Usage Scenario	START	1716295629386
+REQUEST		owners	1716295629384	1716295629388	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295629386	1716295629388	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295629389
+USER	Vets Usage Scenario	END	1716295629389
+USER	Owner Usage Scenario	START	1716295629485
+USER	Vets Usage Scenario	START	1716295629486
+REQUEST		owners	1716295629484	1716295629486	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295629487
+REQUEST		vets	1716295629486	1716295629487	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295629487
+USER	Vets Usage Scenario	START	1716295629585
+USER	Owner Usage Scenario	START	1716295629585
+REQUEST		vets	1716295629584	1716295629586	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295629584	1716295629586	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295629586
+USER	Vets Usage Scenario	END	1716295629586
+USER	Owner Usage Scenario	START	1716295629685
+USER	Vets Usage Scenario	START	1716295629686
+REQUEST		owners	1716295629685	1716295629687	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295629685	1716295629687	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295629687
+USER	Vets Usage Scenario	END	1716295629687
+USER	Owner Usage Scenario	START	1716295629784
+USER	Vets Usage Scenario	START	1716295629787
+REQUEST		owners	1716295629784	1716295629788	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295629788
+REQUEST		vets	1716295629787	1716295629788	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295629789
+USER	Owner Usage Scenario	START	1716295629885
+USER	Vets Usage Scenario	START	1716295629887
+REQUEST		vets	1716295629886	1716295629888	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295629884	1716295629887	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295629888
+USER	Owner Usage Scenario	END	1716295629888
+USER	Owner Usage Scenario	START	1716295629984
+USER	Vets Usage Scenario	START	1716295629985
+REQUEST		owners	1716295629984	1716295629986	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295629985	1716295629986	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295629986
+USER	Vets Usage Scenario	END	1716295629986
+USER	Owner Usage Scenario	START	1716295630084
+USER	Vets Usage Scenario	START	1716295630086
+REQUEST		owners	1716295630084	1716295630086	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295630087
+REQUEST		vets	1716295630085	1716295630087	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295630088
+USER	Owner Usage Scenario	START	1716295630185
+USER	Vets Usage Scenario	START	1716295630185
+REQUEST		vets	1716295630185	1716295630186	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295630185	1716295630186	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295630187
+USER	Vets Usage Scenario	END	1716295630187
+USER	Owner Usage Scenario	START	1716295630285
+USER	Vets Usage Scenario	START	1716295630286
+REQUEST		owners	1716295630284	1716295630287	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295630288
+REQUEST		vets	1716295630286	1716295630287	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295630288
+USER	Owner Usage Scenario	START	1716295630384
+USER	Vets Usage Scenario	START	1716295630387
+REQUEST		owners	1716295630384	1716295630386	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295630387
+REQUEST		vets	1716295630387	1716295630388	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295630389
+USER	Vets Usage Scenario	START	1716295630484
+USER	Owner Usage Scenario	START	1716295630484
+REQUEST		owners	1716295630484	1716295630486	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295630484	1716295630486	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295630487
+USER	Owner Usage Scenario	END	1716295630487
+USER	Owner Usage Scenario	START	1716295630584
+USER	Vets Usage Scenario	START	1716295630584
+REQUEST		owners	1716295630583	1716295630585	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295630583	1716295630586	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295630587
+USER	Vets Usage Scenario	END	1716295630587
+USER	Owner Usage Scenario	START	1716295630684
+USER	Vets Usage Scenario	START	1716295630684
+REQUEST		owners	1716295630684	1716295630686	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295630684	1716295630686	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295630687
+USER	Owner Usage Scenario	END	1716295630687
+USER	Vets Usage Scenario	START	1716295630784
+USER	Owner Usage Scenario	START	1716295630784
+REQUEST		owners	1716295630784	1716295630786	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295630784	1716295630786	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295630787
+USER	Owner Usage Scenario	END	1716295630787
+USER	Owner Usage Scenario	START	1716295630883
+USER	Vets Usage Scenario	START	1716295630883
+REQUEST		vets	1716295630883	1716295630884	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295630883	1716295630884	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295630884
+USER	Owner Usage Scenario	END	1716295630884
+USER	Vets Usage Scenario	START	1716295630983
+USER	Owner Usage Scenario	START	1716295630984
+REQUEST		vets	1716295630983	1716295630985	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295630983	1716295630985	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295630985
+USER	Owner Usage Scenario	END	1716295630985
+USER	Vets Usage Scenario	START	1716295631083
+USER	Owner Usage Scenario	START	1716295631083
+REQUEST		owners	1716295631083	1716295631085	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295631083	1716295631085	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295631086
+USER	Owner Usage Scenario	END	1716295631086
+USER	Owner Usage Scenario	START	1716295631184
+USER	Vets Usage Scenario	START	1716295631184
+REQUEST		owners	1716295631184	1716295631186	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295631184	1716295631187	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295631187
+USER	Vets Usage Scenario	END	1716295631187
+USER	Owner Usage Scenario	START	1716295631283
+USER	Vets Usage Scenario	START	1716295631284
+REQUEST		owners	1716295631283	1716295631285	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295631284	1716295631285	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295631285
+USER	Vets Usage Scenario	END	1716295631285
+USER	Owner Usage Scenario	START	1716295631386
+USER	Vets Usage Scenario	START	1716295631386
+REQUEST		vets	1716295631385	1716295631399	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295631400
+REQUEST		owners	1716295631385	1716295631400	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295631400
+USER	Owner Usage Scenario	START	1716295631484
+USER	Vets Usage Scenario	START	1716295631485
+REQUEST		owners	1716295631484	1716295631487	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295631485	1716295631487	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295631488
+USER	Vets Usage Scenario	END	1716295631488
+USER	Vets Usage Scenario	START	1716295631583
+USER	Owner Usage Scenario	START	1716295631584
+REQUEST		vets	1716295631583	1716295631585	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295631584	1716295631585	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295631586
+USER	Owner Usage Scenario	END	1716295631586
+USER	Vets Usage Scenario	START	1716295631684
+USER	Owner Usage Scenario	START	1716295631684
+REQUEST		owners	1716295631683	1716295631686	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295631683	1716295631686	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295631687
+USER	Vets Usage Scenario	END	1716295631687
+USER	Vets Usage Scenario	START	1716295631784
+USER	Owner Usage Scenario	START	1716295631785
+REQUEST		vets	1716295631783	1716295631786	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295631784	1716295631786	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295631787
+USER	Owner Usage Scenario	END	1716295631787
+USER	Owner Usage Scenario	START	1716295631884
+USER	Vets Usage Scenario	START	1716295631884
+REQUEST		owners	1716295631884	1716295631886	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295631884	1716295631886	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295631887
+USER	Vets Usage Scenario	END	1716295631887
+USER	Owner Usage Scenario	START	1716295631985
+USER	Vets Usage Scenario	START	1716295631985
+REQUEST		vets	1716295631984	1716295631987	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295631988
+REQUEST		owners	1716295631984	1716295631988	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295631988
+USER	Vets Usage Scenario	START	1716295632084
+USER	Owner Usage Scenario	START	1716295632084
+REQUEST		owners	1716295632084	1716295632086	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295632084	1716295632086	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295632087
+USER	Vets Usage Scenario	END	1716295632087
+USER	Vets Usage Scenario	START	1716295632184
+USER	Owner Usage Scenario	START	1716295632184
+REQUEST		owners	1716295632184	1716295632186	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295632184	1716295632186	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295632187
+USER	Owner Usage Scenario	END	1716295632187
+USER	Owner Usage Scenario	START	1716295632284
+USER	Vets Usage Scenario	START	1716295632284
+REQUEST		owners	1716295632284	1716295632286	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295632284	1716295632286	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295632287
+USER	Owner Usage Scenario	END	1716295632287
+USER	Vets Usage Scenario	START	1716295632384
+USER	Owner Usage Scenario	START	1716295632384
+REQUEST		vets	1716295632384	1716295632387	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295632384	1716295632387	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295632388
+USER	Vets Usage Scenario	END	1716295632388
+USER	Vets Usage Scenario	START	1716295632485
+USER	Owner Usage Scenario	START	1716295632485
+REQUEST		owners	1716295632485	1716295632487	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295632485	1716295632487	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295632488
+USER	Vets Usage Scenario	END	1716295632488
+USER	Owner Usage Scenario	START	1716295632584
+USER	Vets Usage Scenario	START	1716295632584
+REQUEST		owners	1716295632583	1716295632585	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295632587
+REQUEST		vets	1716295632583	1716295632586	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295632587
+USER	Vets Usage Scenario	START	1716295632683
+USER	Owner Usage Scenario	START	1716295632683
+REQUEST		owners	1716295632683	1716295632685	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295632683	1716295632685	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295632686
+USER	Owner Usage Scenario	END	1716295632686
+USER	Owner Usage Scenario	START	1716295632784
+USER	Vets Usage Scenario	START	1716295632784
+REQUEST		vets	1716295632784	1716295632786	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295632783	1716295632786	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295632787
+USER	Owner Usage Scenario	END	1716295632787
+USER	Owner Usage Scenario	START	1716295632884
+USER	Vets Usage Scenario	START	1716295632884
+REQUEST		owners	1716295632883	1716295632885	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295632884	1716295632885	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295632886
+USER	Vets Usage Scenario	END	1716295632886
+USER	Owner Usage Scenario	START	1716295632984
+USER	Vets Usage Scenario	START	1716295632984
+REQUEST		owners	1716295632983	1716295632985	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295632984	1716295632985	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295632985
+USER	Vets Usage Scenario	END	1716295632985
+USER	Owner Usage Scenario	START	1716295633084
+USER	Vets Usage Scenario	START	1716295633085
+REQUEST		owners	1716295633084	1716295633085	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295633085
+REQUEST		vets	1716295633085	1716295633085	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295633086
+USER	Vets Usage Scenario	START	1716295633184
+USER	Owner Usage Scenario	START	1716295633184
+REQUEST		owners	1716295633184	1716295633186	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295633184	1716295633186	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295633186
+USER	Owner Usage Scenario	END	1716295633186
+USER	Owner Usage Scenario	START	1716295633284
+USER	Vets Usage Scenario	START	1716295633284
+REQUEST		owners	1716295633283	1716295633285	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295633285
+REQUEST		vets	1716295633284	1716295633285	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295633285
+USER	Owner Usage Scenario	START	1716295633384
+USER	Vets Usage Scenario	START	1716295633385
+REQUEST		owners	1716295633384	1716295633385	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295633386
+REQUEST		vets	1716295633385	1716295633386	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295633386
+USER	Owner Usage Scenario	START	1716295633484
+USER	Vets Usage Scenario	START	1716295633484
+REQUEST		owners	1716295633484	1716295633485	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295633484	1716295633485	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295633486
+USER	Owner Usage Scenario	END	1716295633486
+USER	Owner Usage Scenario	START	1716295633583
+USER	Vets Usage Scenario	START	1716295633583
+REQUEST		vets	1716295633583	1716295633585	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295633585
+REQUEST		owners	1716295633583	1716295633586	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295633586
+USER	Vets Usage Scenario	START	1716295633684
+USER	Owner Usage Scenario	START	1716295633684
+REQUEST		vets	1716295633683	1716295633685	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295633684	1716295633685	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295633685
+USER	Owner Usage Scenario	END	1716295633685
+USER	Owner Usage Scenario	START	1716295633784
+USER	Vets Usage Scenario	START	1716295633784
+REQUEST		vets	1716295633783	1716295633786	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295633783	1716295633786	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295633786
+USER	Vets Usage Scenario	END	1716295633786
+USER	Owner Usage Scenario	START	1716295633884
+USER	Vets Usage Scenario	START	1716295633884
+REQUEST		owners	1716295633883	1716295633886	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295633884	1716295633886	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295633887
+USER	Vets Usage Scenario	END	1716295633887
+USER	Owner Usage Scenario	START	1716295633984
+USER	Vets Usage Scenario	START	1716295633984
+REQUEST		owners	1716295633984	1716295633986	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295633984	1716295633986	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295633987
+USER	Vets Usage Scenario	END	1716295633987
+USER	Vets Usage Scenario	START	1716295634084
+USER	Owner Usage Scenario	START	1716295634084
+REQUEST		owners	1716295634083	1716295634086	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295634083	1716295634086	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295634087
+USER	Owner Usage Scenario	END	1716295634087
+USER	Vets Usage Scenario	START	1716295634184
+USER	Owner Usage Scenario	START	1716295634184
+REQUEST		vets	1716295634183	1716295634185	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295634183	1716295634185	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295634186
+USER	Owner Usage Scenario	END	1716295634186
+USER	Owner Usage Scenario	START	1716295634284
+USER	Vets Usage Scenario	START	1716295634284
+REQUEST		owners	1716295634283	1716295634286	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295634284	1716295634286	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295634287
+USER	Owner Usage Scenario	END	1716295634287
+USER	Vets Usage Scenario	START	1716295634385
+USER	Owner Usage Scenario	START	1716295634385
+REQUEST		owners	1716295634385	1716295634387	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295634385	1716295634387	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295634387
+USER	Vets Usage Scenario	END	1716295634387
+USER	Vets Usage Scenario	START	1716295634484
+USER	Owner Usage Scenario	START	1716295634484
+REQUEST		owners	1716295634484	1716295634487	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295634484	1716295634486	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295634487
+USER	Owner Usage Scenario	END	1716295634487
+USER	Owner Usage Scenario	START	1716295634584
+USER	Vets Usage Scenario	START	1716295634584
+REQUEST		owners	1716295634584	1716295634586	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295634584	1716295634586	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295634587
+USER	Vets Usage Scenario	END	1716295634587
+USER	Vets Usage Scenario	START	1716295634684
+USER	Owner Usage Scenario	START	1716295634684
+REQUEST		vets	1716295634684	1716295634686	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295634687
+REQUEST		owners	1716295634684	1716295634686	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295634687
+USER	Vets Usage Scenario	START	1716295634787
+USER	Owner Usage Scenario	START	1716295634787
+REQUEST		owners	1716295634784	1716295634789	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295634784	1716295634789	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295634790
+USER	Owner Usage Scenario	END	1716295634790
+USER	Vets Usage Scenario	START	1716295634884
+USER	Owner Usage Scenario	START	1716295634884
+REQUEST		vets	1716295634884	1716295634886	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295634886
+REQUEST		owners	1716295634884	1716295634886	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295634887
+USER	Vets Usage Scenario	START	1716295634985
+USER	Owner Usage Scenario	START	1716295634985
+REQUEST		owners	1716295634984	1716295634987	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295634984	1716295634987	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295634988
+USER	Vets Usage Scenario	END	1716295634988
+USER	Owner Usage Scenario	START	1716295635085
+USER	Vets Usage Scenario	START	1716295635085
+REQUEST		vets	1716295635084	1716295635087	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295635085	1716295635087	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295635087
+USER	Owner Usage Scenario	END	1716295635087
+USER	Owner Usage Scenario	START	1716295635184
+USER	Vets Usage Scenario	START	1716295635185
+REQUEST		owners	1716295635184	1716295635186	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295635184	1716295635186	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295635187
+USER	Vets Usage Scenario	END	1716295635187
+USER	Vets Usage Scenario	START	1716295635285
+USER	Owner Usage Scenario	START	1716295635285
+REQUEST		vets	1716295635284	1716295635287	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295635284	1716295635287	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295635288
+USER	Owner Usage Scenario	END	1716295635288
+USER	Owner Usage Scenario	START	1716295635385
+USER	Vets Usage Scenario	START	1716295635385
+REQUEST		vets	1716295635384	1716295635387	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295635384	1716295635387	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295635388
+USER	Vets Usage Scenario	END	1716295635388
+USER	Owner Usage Scenario	START	1716295635485
+USER	Vets Usage Scenario	START	1716295635485
+REQUEST		vets	1716295635484	1716295635487	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295635484	1716295635488	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295635488
+USER	Owner Usage Scenario	END	1716295635488
+USER	Owner Usage Scenario	START	1716295635584
+USER	Vets Usage Scenario	START	1716295635584
+REQUEST		vets	1716295635584	1716295635586	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295635583	1716295635586	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295635586
+USER	Owner Usage Scenario	END	1716295635587
+USER	Owner Usage Scenario	START	1716295635684
+USER	Vets Usage Scenario	START	1716295635684
+REQUEST		owners	1716295635683	1716295635685	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295635683	1716295635685	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295635686
+USER	Vets Usage Scenario	END	1716295635686
+USER	Owner Usage Scenario	START	1716295635783
+USER	Vets Usage Scenario	START	1716295635784
+REQUEST		owners	1716295635783	1716295635785	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295635784	1716295635785	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295635785
+USER	Vets Usage Scenario	END	1716295635785
+USER	Owner Usage Scenario	START	1716295635884
+USER	Vets Usage Scenario	START	1716295635885
+REQUEST		owners	1716295635883	1716295635885	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295635886
+REQUEST		vets	1716295635884	1716295635885	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295635886
+USER	Owner Usage Scenario	START	1716295635984
+USER	Vets Usage Scenario	START	1716295635986
+REQUEST		owners	1716295635983	1716295635986	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295635986
+REQUEST		vets	1716295635985	1716295635986	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295635987
+USER	Owner Usage Scenario	START	1716295636084
+USER	Vets Usage Scenario	START	1716295636084
+REQUEST		vets	1716295636084	1716295636086	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295636083	1716295636086	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295636086
+USER	Owner Usage Scenario	END	1716295636087
+USER	Owner Usage Scenario	START	1716295636183
+USER	Vets Usage Scenario	START	1716295636184
+REQUEST		owners	1716295636183	1716295636186	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295636184	1716295636186	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295636187
+USER	Vets Usage Scenario	END	1716295636187
+USER	Vets Usage Scenario	START	1716295636285
+USER	Owner Usage Scenario	START	1716295636285
+REQUEST		vets	1716295636285	1716295636287	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295636284	1716295636287	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295636287
+USER	Vets Usage Scenario	END	1716295636287
+USER	Owner Usage Scenario	START	1716295636384
+USER	Vets Usage Scenario	START	1716295636385
+REQUEST		owners	1716295636384	1716295636386	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295636385	1716295636386	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295636387
+USER	Vets Usage Scenario	END	1716295636387
+USER	Owner Usage Scenario	START	1716295636484
+USER	Vets Usage Scenario	START	1716295636484
+REQUEST		vets	1716295636484	1716295636486	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295636484	1716295636486	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295636487
+USER	Owner Usage Scenario	END	1716295636487
+USER	Vets Usage Scenario	START	1716295636584
+USER	Owner Usage Scenario	START	1716295636584
+REQUEST		vets	1716295636584	1716295636586	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295636583	1716295636586	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295636587
+USER	Owner Usage Scenario	END	1716295636587
+USER	Owner Usage Scenario	START	1716295636684
+USER	Vets Usage Scenario	START	1716295636685
+REQUEST		owners	1716295636683	1716295636686	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295636687
+REQUEST		vets	1716295636685	1716295636687	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295636687
+USER	Owner Usage Scenario	START	1716295636784
+USER	Vets Usage Scenario	START	1716295636785
+REQUEST		owners	1716295636783	1716295636786	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295636787
+REQUEST		vets	1716295636785	1716295636787	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295636787
+USER	Owner Usage Scenario	START	1716295636884
+USER	Vets Usage Scenario	START	1716295636885
+REQUEST		owners	1716295636883	1716295636886	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295636884	1716295636887	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295636887
+USER	Vets Usage Scenario	END	1716295636887
+USER	Owner Usage Scenario	START	1716295636983
+USER	Vets Usage Scenario	START	1716295636984
+REQUEST		owners	1716295636983	1716295636985	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295636985
+REQUEST		vets	1716295636984	1716295636985	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295636985
+USER	Owner Usage Scenario	START	1716295637085
+USER	Vets Usage Scenario	START	1716295637085
+REQUEST		vets	1716295637085	1716295637087	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295637084	1716295637087	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295637088
+USER	Vets Usage Scenario	END	1716295637088
+USER	Vets Usage Scenario	START	1716295637184
+USER	Owner Usage Scenario	START	1716295637184
+REQUEST		owners	1716295637184	1716295637186	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295637184	1716295637186	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295637187
+USER	Vets Usage Scenario	END	1716295637187
+USER	Owner Usage Scenario	START	1716295637285
+USER	Vets Usage Scenario	START	1716295637285
+REQUEST		vets	1716295637285	1716295637287	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295637288
+REQUEST		owners	1716295637284	1716295637288	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295637288
+USER	Owner Usage Scenario	START	1716295637384
+USER	Vets Usage Scenario	START	1716295637385
+REQUEST		owners	1716295637383	1716295637386	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295637387
+REQUEST		vets	1716295637385	1716295637387	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295637387
+USER	Owner Usage Scenario	START	1716295637485
+USER	Vets Usage Scenario	START	1716295637486
+REQUEST		owners	1716295637484	1716295637486	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295637487
+REQUEST		vets	1716295637485	1716295637487	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295637487
+USER	Vets Usage Scenario	START	1716295637583
+USER	Owner Usage Scenario	START	1716295637584
+REQUEST		vets	1716295637583	1716295637585	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295637586
+REQUEST		owners	1716295637584	1716295637586	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295637587
+USER	Vets Usage Scenario	START	1716295637684
+USER	Owner Usage Scenario	START	1716295637684
+REQUEST		vets	1716295637683	1716295637686	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295637684	1716295637686	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295637687
+USER	Owner Usage Scenario	END	1716295637687
+USER	Vets Usage Scenario	START	1716295637784
+USER	Owner Usage Scenario	START	1716295637784
+REQUEST		owners	1716295637784	1716295637786	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295637783	1716295637786	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295637787
+USER	Vets Usage Scenario	END	1716295637787
+USER	Vets Usage Scenario	START	1716295637884
+USER	Owner Usage Scenario	START	1716295637884
+REQUEST		vets	1716295637883	1716295637886	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295637884	1716295637886	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295637886
+USER	Owner Usage Scenario	END	1716295637886
+USER	Owner Usage Scenario	START	1716295637984
+USER	Vets Usage Scenario	START	1716295637984
+REQUEST		owners	1716295637983	1716295637986	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295637983	1716295637986	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295637986
+USER	Vets Usage Scenario	END	1716295637986
+USER	Vets Usage Scenario	START	1716295638084
+USER	Owner Usage Scenario	START	1716295638084
+REQUEST		vets	1716295638084	1716295638086	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295638084	1716295638086	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295638087
+USER	Vets Usage Scenario	END	1716295638087
+USER	Vets Usage Scenario	START	1716295638184
+USER	Owner Usage Scenario	START	1716295638184
+REQUEST		owners	1716295638184	1716295638185	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295638183	1716295638185	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295638185
+USER	Vets Usage Scenario	END	1716295638185
+USER	Owner Usage Scenario	START	1716295638284
+USER	Vets Usage Scenario	START	1716295638284
+REQUEST		owners	1716295638283	1716295638285	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295638283	1716295638285	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295638285
+USER	Owner Usage Scenario	END	1716295638285
+USER	Vets Usage Scenario	START	1716295638384
+USER	Owner Usage Scenario	START	1716295638385
+REQUEST		owners	1716295638384	1716295638385	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295638384	1716295638385	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295638385
+USER	Owner Usage Scenario	END	1716295638385
+USER	Vets Usage Scenario	START	1716295638484
+USER	Owner Usage Scenario	START	1716295638484
+REQUEST		vets	1716295638484	1716295638485	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295638484	1716295638485	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295638486
+USER	Owner Usage Scenario	END	1716295638486
+USER	Owner Usage Scenario	START	1716295638584
+USER	Vets Usage Scenario	START	1716295638584
+REQUEST		vets	1716295638583	1716295638585	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295638583	1716295638585	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295638586
+USER	Owner Usage Scenario	END	1716295638586
+USER	Owner Usage Scenario	START	1716295638684
+USER	Vets Usage Scenario	START	1716295638684
+REQUEST		owners	1716295638684	1716295638686	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295638683	1716295638686	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295638687
+USER	Vets Usage Scenario	END	1716295638687
+USER	Owner Usage Scenario	START	1716295638783
+USER	Vets Usage Scenario	START	1716295638783
+REQUEST		owners	1716295638783	1716295638785	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295638783	1716295638785	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295638786
+USER	Vets Usage Scenario	END	1716295638786
+USER	Owner Usage Scenario	START	1716295638884
+USER	Vets Usage Scenario	START	1716295638884
+REQUEST		vets	1716295638883	1716295638886	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295638884	1716295638886	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295638887
+USER	Vets Usage Scenario	END	1716295638887
+USER	Vets Usage Scenario	START	1716295638984
+USER	Owner Usage Scenario	START	1716295638984
+REQUEST		owners	1716295638984	1716295638985	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295638983	1716295638985	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295638986
+USER	Vets Usage Scenario	END	1716295638986
+USER	Owner Usage Scenario	START	1716295639084
+USER	Vets Usage Scenario	START	1716295639084
+REQUEST		owners	1716295639083	1716295639086	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295639083	1716295639087	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295639087
+USER	Vets Usage Scenario	END	1716295639087
+USER	Vets Usage Scenario	START	1716295639184
+USER	Owner Usage Scenario	START	1716295639184
+REQUEST		vets	1716295639183	1716295639186	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295639184	1716295639186	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295639186
+USER	Owner Usage Scenario	END	1716295639186
+USER	Owner Usage Scenario	START	1716295639283
+USER	Vets Usage Scenario	START	1716295639283
+REQUEST		vets	1716295639283	1716295639285	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295639283	1716295639285	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295639285
+USER	Owner Usage Scenario	END	1716295639285
+USER	Owner Usage Scenario	START	1716295639385
+USER	Vets Usage Scenario	START	1716295639385
+REQUEST		owners	1716295639384	1716295639387	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295639384	1716295639387	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295639388
+USER	Owner Usage Scenario	END	1716295639388
+USER	Vets Usage Scenario	START	1716295639484
+USER	Owner Usage Scenario	START	1716295639484
+REQUEST		owners	1716295639483	1716295639486	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295639483	1716295639486	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295639487
+USER	Owner Usage Scenario	END	1716295639487
+USER	Vets Usage Scenario	START	1716295639583
+USER	Owner Usage Scenario	START	1716295639584
+REQUEST		vets	1716295639583	1716295639584	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295639585
+REQUEST		owners	1716295639584	1716295639585	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295639585
+USER	Vets Usage Scenario	START	1716295639683
+USER	Owner Usage Scenario	START	1716295639684
+REQUEST		owners	1716295639684	1716295639685	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295639683	1716295639685	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295639686
+USER	Vets Usage Scenario	END	1716295639686
+USER	Vets Usage Scenario	START	1716295639783
+USER	Owner Usage Scenario	START	1716295639784
+REQUEST		vets	1716295639783	1716295639786	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295639786
+REQUEST		owners	1716295639784	1716295639786	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295639787
+USER	Vets Usage Scenario	START	1716295639883
+USER	Owner Usage Scenario	START	1716295639884
+REQUEST		owners	1716295639884	1716295639885	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295639883	1716295639885	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295639886
+USER	Vets Usage Scenario	END	1716295639886
+USER	Owner Usage Scenario	START	1716295639983
+USER	Vets Usage Scenario	START	1716295639984
+REQUEST		owners	1716295639983	1716295639985	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295639983	1716295639985	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295639985
+USER	Vets Usage Scenario	END	1716295639985
+USER	Owner Usage Scenario	START	1716295640084
+USER	Vets Usage Scenario	START	1716295640084
+REQUEST		owners	1716295640083	1716295640085	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295640083	1716295640085	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295640086
+USER	Vets Usage Scenario	END	1716295640086
+USER	Vets Usage Scenario	START	1716295640183
+USER	Owner Usage Scenario	START	1716295640184
+REQUEST		owners	1716295640184	1716295640185	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295640183	1716295640185	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295640186
+USER	Vets Usage Scenario	END	1716295640186
+USER	Vets Usage Scenario	START	1716295640284
+USER	Owner Usage Scenario	START	1716295640285
+REQUEST		vets	1716295640284	1716295640286	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295640285	1716295640286	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295640287
+USER	Owner Usage Scenario	END	1716295640287
+USER	Owner Usage Scenario	START	1716295640385
+USER	Vets Usage Scenario	START	1716295640385
+REQUEST		vets	1716295640384	1716295640387	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295640384	1716295640387	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295640388
+USER	Owner Usage Scenario	END	1716295640388
+USER	Vets Usage Scenario	START	1716295640485
+USER	Owner Usage Scenario	START	1716295640485
+REQUEST		owners	1716295640484	1716295640487	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295640484	1716295640487	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295640488
+USER	Owner Usage Scenario	END	1716295640488
+USER	Vets Usage Scenario	START	1716295640583
+USER	Owner Usage Scenario	START	1716295640583
+REQUEST		vets	1716295640583	1716295640585	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295640583	1716295640585	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295640585
+USER	Vets Usage Scenario	END	1716295640585
+USER	Owner Usage Scenario	START	1716295640684
+USER	Vets Usage Scenario	START	1716295640684
+REQUEST		vets	1716295640684	1716295640686	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295640683	1716295640686	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295640687
+USER	Owner Usage Scenario	END	1716295640687
+USER	Vets Usage Scenario	START	1716295640784
+USER	Owner Usage Scenario	START	1716295640784
+REQUEST		vets	1716295640783	1716295640786	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295640783	1716295640786	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295640786
+USER	Owner Usage Scenario	END	1716295640786
+USER	Owner Usage Scenario	START	1716295640884
+USER	Vets Usage Scenario	START	1716295640885
+REQUEST		owners	1716295640883	1716295640885	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295640886
+REQUEST		vets	1716295640885	1716295640886	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295640886
+USER	Vets Usage Scenario	START	1716295640984
+USER	Owner Usage Scenario	START	1716295640984
+REQUEST		vets	1716295640984	1716295640985	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295640984	1716295640985	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295640986
+USER	Vets Usage Scenario	END	1716295640986
+USER	Owner Usage Scenario	START	1716295641083
+USER	Vets Usage Scenario	START	1716295641084
+REQUEST		owners	1716295641083	1716295641085	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295641085
+REQUEST		vets	1716295641084	1716295641085	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295641086
+USER	Owner Usage Scenario	START	1716295641184
+USER	Vets Usage Scenario	START	1716295641184
+REQUEST		vets	1716295641184	1716295641186	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295641184	1716295641187	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295641187
+USER	Owner Usage Scenario	END	1716295641187
+USER	Vets Usage Scenario	START	1716295641285
+USER	Owner Usage Scenario	START	1716295641285
+REQUEST		owners	1716295641284	1716295641286	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295641287
+REQUEST		vets	1716295641284	1716295641286	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295641287
+USER	Owner Usage Scenario	START	1716295641384
+USER	Vets Usage Scenario	START	1716295641385
+REQUEST		owners	1716295641384	1716295641386	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295641384	1716295641386	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295641387
+USER	Owner Usage Scenario	END	1716295641387
+USER	Owner Usage Scenario	START	1716295641483
+USER	Vets Usage Scenario	START	1716295641484
+REQUEST		vets	1716295641484	1716295641485	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295641483	1716295641486	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295641486
+USER	Vets Usage Scenario	END	1716295641486
+USER	Vets Usage Scenario	START	1716295641584
+USER	Owner Usage Scenario	START	1716295641584
+REQUEST		owners	1716295641583	1716295641586	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295641583	1716295641586	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295641587
+USER	Vets Usage Scenario	END	1716295641587
+USER	Vets Usage Scenario	START	1716295641684
+USER	Owner Usage Scenario	START	1716295641684
+REQUEST		owners	1716295641684	1716295641686	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295641687
+REQUEST		vets	1716295641684	1716295641686	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295641688
+USER	Owner Usage Scenario	START	1716295641783
+USER	Vets Usage Scenario	START	1716295641783
+REQUEST		owners	1716295641783	1716295641785	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295641783	1716295641785	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295641785
+USER	Vets Usage Scenario	END	1716295641785
+USER	Vets Usage Scenario	START	1716295641884
+USER	Owner Usage Scenario	START	1716295641884
+REQUEST		vets	1716295641884	1716295641886	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295641884	1716295641886	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295641887
+USER	Owner Usage Scenario	END	1716295641887
+USER	Owner Usage Scenario	START	1716295641984
+USER	Vets Usage Scenario	START	1716295641984
+REQUEST		vets	1716295641983	1716295641985	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295641983	1716295641985	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295641986
+USER	Vets Usage Scenario	END	1716295641986
+USER	Owner Usage Scenario	START	1716295642084
+USER	Vets Usage Scenario	START	1716295642084
+REQUEST		vets	1716295642084	1716295642086	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295642083	1716295642086	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295642087
+USER	Vets Usage Scenario	END	1716295642087
+USER	Owner Usage Scenario	START	1716295642184
+USER	Vets Usage Scenario	START	1716295642184
+REQUEST		vets	1716295642184	1716295642186	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295642184	1716295642186	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295642187
+USER	Owner Usage Scenario	END	1716295642187
+USER	Vets Usage Scenario	START	1716295642284
+USER	Owner Usage Scenario	START	1716295642284
+REQUEST		owners	1716295642284	1716295642286	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295642283	1716295642286	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295642286
+USER	Vets Usage Scenario	END	1716295642286
+USER	Owner Usage Scenario	START	1716295642384
+USER	Vets Usage Scenario	START	1716295642384
+REQUEST		vets	1716295642383	1716295642385	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295642384	1716295642385	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295642386
+USER	Owner Usage Scenario	END	1716295642386
+USER	Owner Usage Scenario	START	1716295642484
+USER	Vets Usage Scenario	START	1716295642484
+REQUEST		owners	1716295642484	1716295642485	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295642484	1716295642485	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295642486
+USER	Vets Usage Scenario	END	1716295642486
+USER	Vets Usage Scenario	START	1716295642583
+USER	Owner Usage Scenario	START	1716295642584
+REQUEST		vets	1716295642583	1716295642584	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295642585
+REQUEST		owners	1716295642584	1716295642585	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295642585
+USER	Vets Usage Scenario	START	1716295642683
+USER	Owner Usage Scenario	START	1716295642684
+REQUEST		vets	1716295642682	1716295642684	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295642685
+REQUEST		owners	1716295642684	1716295642685	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295642685
+USER	Vets Usage Scenario	START	1716295642783
+USER	Owner Usage Scenario	START	1716295642783
+REQUEST		vets	1716295642782	1716295642785	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295642783	1716295642785	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295642785
+USER	Vets Usage Scenario	END	1716295642785
+USER	Vets Usage Scenario	START	1716295642883
+USER	Owner Usage Scenario	START	1716295642884
+REQUEST		vets	1716295642883	1716295642884	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295642886
+REQUEST		owners	1716295642884	1716295642886	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295642887
+USER	Vets Usage Scenario	START	1716295642983
+USER	Owner Usage Scenario	START	1716295642984
+REQUEST		owners	1716295642984	1716295642985	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295642983	1716295642985	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295642985
+USER	Owner Usage Scenario	END	1716295642985
+USER	Vets Usage Scenario	START	1716295643083
+REQUEST		vets	1716295643083	1716295643084	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295643084
+USER	Owner Usage Scenario	START	1716295643084
+REQUEST		owners	1716295643084	1716295643085	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295643085
+USER	Vets Usage Scenario	START	1716295643184
+USER	Owner Usage Scenario	START	1716295643184
+REQUEST		vets	1716295643183	1716295643184	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295643184	1716295643184	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295643185
+USER	Vets Usage Scenario	END	1716295643185
+USER	Owner Usage Scenario	START	1716295643284
+USER	Vets Usage Scenario	START	1716295643284
+REQUEST		owners	1716295643283	1716295643285	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295643283	1716295643285	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295643286
+USER	Vets Usage Scenario	END	1716295643286
+USER	Owner Usage Scenario	START	1716295643383
+USER	Vets Usage Scenario	START	1716295643383
+REQUEST		owners	1716295643383	1716295643385	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295643383	1716295643385	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295643385
+USER	Owner Usage Scenario	END	1716295643385
+USER	Vets Usage Scenario	START	1716295643483
+USER	Owner Usage Scenario	START	1716295643484
+REQUEST		vets	1716295643483	1716295643484	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295643486
+REQUEST		owners	1716295643484	1716295643486	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295643486
+USER	Vets Usage Scenario	START	1716295643583
+USER	Owner Usage Scenario	START	1716295643584
+REQUEST		vets	1716295643583	1716295643584	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295643584
+REQUEST		owners	1716295643583	1716295643584	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295643584
+USER	Owner Usage Scenario	START	1716295643684
+USER	Vets Usage Scenario	START	1716295643684
+REQUEST		owners	1716295643683	1716295643685	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295643685
+REQUEST		vets	1716295643683	1716295643685	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295643685
+USER	Owner Usage Scenario	START	1716295643784
+USER	Vets Usage Scenario	START	1716295643784
+REQUEST		vets	1716295643784	1716295643785	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295643784	1716295643785	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295643785
+USER	Owner Usage Scenario	END	1716295643785
+USER	Vets Usage Scenario	START	1716295643884
+USER	Owner Usage Scenario	START	1716295643884
+REQUEST		owners	1716295643884	1716295643885	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295643883	1716295643885	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295643885
+USER	Vets Usage Scenario	END	1716295643885
+USER	Vets Usage Scenario	START	1716295643984
+USER	Owner Usage Scenario	START	1716295643984
+REQUEST		owners	1716295643983	1716295643985	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295643983	1716295643985	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295643985
+USER	Vets Usage Scenario	END	1716295643985
+USER	Owner Usage Scenario	START	1716295644084
+USER	Vets Usage Scenario	START	1716295644084
+REQUEST		owners	1716295644084	1716295644086	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295644084	1716295644086	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295644086
+USER	Vets Usage Scenario	END	1716295644086
+USER	Vets Usage Scenario	START	1716295644184
+USER	Owner Usage Scenario	START	1716295644185
+REQUEST		owners	1716295644184	1716295644186	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295644184	1716295644186	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295644186
+USER	Vets Usage Scenario	END	1716295644186
+USER	Vets Usage Scenario	START	1716295644284
+USER	Owner Usage Scenario	START	1716295644285
+REQUEST		vets	1716295644283	1716295644286	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295644286
+REQUEST		owners	1716295644284	1716295644286	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295644286
+USER	Vets Usage Scenario	START	1716295644384
+USER	Owner Usage Scenario	START	1716295644384
+REQUEST		owners	1716295644384	1716295644385	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295644383	1716295644386	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295644386
+USER	Vets Usage Scenario	END	1716295644386
+USER	Vets Usage Scenario	START	1716295644485
+USER	Owner Usage Scenario	START	1716295644485
+REQUEST		owners	1716295644485	1716295644486	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295644486
+REQUEST		vets	1716295644484	1716295644486	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295644486
+USER	Owner Usage Scenario	START	1716295644584
+USER	Vets Usage Scenario	START	1716295644584
+REQUEST		vets	1716295644583	1716295644585	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295644583	1716295644585	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295644586
+USER	Owner Usage Scenario	END	1716295644586
+USER	Vets Usage Scenario	START	1716295644684
+USER	Owner Usage Scenario	START	1716295644684
+REQUEST		owners	1716295644683	1716295644686	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295644683	1716295644686	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295644686
+USER	Owner Usage Scenario	END	1716295644687
+USER	Owner Usage Scenario	START	1716295644784
+USER	Vets Usage Scenario	START	1716295644785
+REQUEST		owners	1716295644784	1716295644786	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295644784	1716295644786	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295644786
+USER	Vets Usage Scenario	END	1716295644786
+USER	Owner Usage Scenario	START	1716295644884
+USER	Vets Usage Scenario	START	1716295644884
+REQUEST		owners	1716295644883	1716295644886	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295644884	1716295644886	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295644886
+USER	Owner Usage Scenario	END	1716295644886
+USER	Owner Usage Scenario	START	1716295644985
+USER	Vets Usage Scenario	START	1716295644985
+REQUEST		vets	1716295644984	1716295644987	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295644984	1716295644987	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295644988
+USER	Vets Usage Scenario	END	1716295644988
+USER	Owner Usage Scenario	START	1716295645084
+USER	Vets Usage Scenario	START	1716295645084
+REQUEST		owners	1716295645083	1716295645085	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295645085
+REQUEST		vets	1716295645084	1716295645085	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295645085
+USER	Vets Usage Scenario	START	1716295645185
+USER	Owner Usage Scenario	START	1716295645185
+REQUEST		vets	1716295645184	1716295645187	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295645184	1716295645187	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295645187
+USER	Vets Usage Scenario	END	1716295645187
+USER	Owner Usage Scenario	START	1716295645284
+USER	Vets Usage Scenario	START	1716295645284
+REQUEST		vets	1716295645284	1716295645286	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295645283	1716295645286	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295645286
+USER	Vets Usage Scenario	END	1716295645286
+USER	Owner Usage Scenario	START	1716295645385
+USER	Vets Usage Scenario	START	1716295645385
+REQUEST		owners	1716295645384	1716295645386	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295645384	1716295645386	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295645387
+USER	Vets Usage Scenario	END	1716295645387
+USER	Owner Usage Scenario	START	1716295645488
+USER	Vets Usage Scenario	START	1716295645488
+REQUEST		owners	1716295645487	1716295645489	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295645487	1716295645489	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295645489
+USER	Owner Usage Scenario	END	1716295645489
+USER	Vets Usage Scenario	START	1716295645584
+USER	Owner Usage Scenario	START	1716295645584
+REQUEST		owners	1716295645583	1716295645585	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295645583	1716295645585	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295645585
+USER	Owner Usage Scenario	END	1716295645585
+USER	Owner Usage Scenario	START	1716295645684
+USER	Vets Usage Scenario	START	1716295645684
+REQUEST		owners	1716295645683	1716295645686	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295645683	1716295645686	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295645686
+USER	Vets Usage Scenario	END	1716295645686
+USER	Owner Usage Scenario	START	1716295645783
+USER	Vets Usage Scenario	START	1716295645784
+REQUEST		vets	1716295645784	1716295645785	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295645783	1716295645785	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295645785
+USER	Owner Usage Scenario	END	1716295645785
+USER	Owner Usage Scenario	START	1716295645884
+USER	Vets Usage Scenario	START	1716295645884
+REQUEST		vets	1716295645884	1716295645884	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295645883	1716295645884	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295645885
+USER	Owner Usage Scenario	END	1716295645885
+USER	Owner Usage Scenario	START	1716295645983
+USER	Vets Usage Scenario	START	1716295645983
+REQUEST		vets	1716295645983	1716295645984	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295645983	1716295645984	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295645984
+USER	Vets Usage Scenario	END	1716295645984
+USER	Owner Usage Scenario	START	1716295646083
+USER	Vets Usage Scenario	START	1716295646083
+REQUEST		owners	1716295646083	1716295646084	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295646083	1716295646084	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295646084
+USER	Vets Usage Scenario	END	1716295646084
+USER	Owner Usage Scenario	START	1716295646183
+USER	Vets Usage Scenario	START	1716295646183
+REQUEST		vets	1716295646183	1716295646184	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295646183	1716295646184	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295646185
+USER	Owner Usage Scenario	END	1716295646185
+USER	Owner Usage Scenario	START	1716295646284
+USER	Vets Usage Scenario	START	1716295646284
+REQUEST		vets	1716295646284	1716295646286	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295646284	1716295646286	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295646287
+USER	Owner Usage Scenario	END	1716295646287
+USER	Vets Usage Scenario	START	1716295646384
+USER	Owner Usage Scenario	START	1716295646384
+REQUEST		owners	1716295646384	1716295646386	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295646384	1716295646386	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295646387
+USER	Owner Usage Scenario	END	1716295646387
+USER	Vets Usage Scenario	START	1716295646484
+USER	Owner Usage Scenario	START	1716295646484
+REQUEST		owners	1716295646484	1716295646485	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295646484	1716295646485	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295646486
+USER	Owner Usage Scenario	END	1716295646486
+USER	Vets Usage Scenario	START	1716295646584
+REQUEST		vets	1716295646583	1716295646585	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	START	1716295646585
+USER	Vets Usage Scenario	END	1716295646585
+REQUEST		owners	1716295646585	1716295646586	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295646586
+USER	Vets Usage Scenario	START	1716295646683
+USER	Owner Usage Scenario	START	1716295646684
+REQUEST		owners	1716295646684	1716295646685	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295646683	1716295646685	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295646685
+USER	Vets Usage Scenario	END	1716295646685
+USER	Vets Usage Scenario	START	1716295646784
+USER	Owner Usage Scenario	START	1716295646784
+REQUEST		vets	1716295646783	1716295646785	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295646785
+REQUEST		owners	1716295646784	1716295646785	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295646786
+USER	Vets Usage Scenario	START	1716295646883
+REQUEST		vets	1716295646883	1716295646884	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	START	1716295646885
+USER	Vets Usage Scenario	END	1716295646885
+REQUEST		owners	1716295646885	1716295646886	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295646887
+USER	Vets Usage Scenario	START	1716295646984
+USER	Owner Usage Scenario	START	1716295646984
+REQUEST		vets	1716295646984	1716295646986	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295646984	1716295646986	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295646987
+USER	Owner Usage Scenario	END	1716295646987
+USER	Vets Usage Scenario	START	1716295647084
+USER	Owner Usage Scenario	START	1716295647085
+REQUEST		owners	1716295647084	1716295647086	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295647084	1716295647086	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295647087
+USER	Vets Usage Scenario	END	1716295647087
+USER	Owner Usage Scenario	START	1716295647185
+USER	Vets Usage Scenario	START	1716295647185
+REQUEST		vets	1716295647184	1716295647187	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295647184	1716295647187	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295647187
+USER	Owner Usage Scenario	END	1716295647187
+USER	Vets Usage Scenario	START	1716295647284
+USER	Owner Usage Scenario	START	1716295647284
+REQUEST		owners	1716295647284	1716295647285	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295647284	1716295647285	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295647285
+USER	Vets Usage Scenario	END	1716295647285
+USER	Vets Usage Scenario	START	1716295647384
+USER	Owner Usage Scenario	START	1716295647384
+REQUEST		vets	1716295647384	1716295647385	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295647384	1716295647385	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295647386
+USER	Vets Usage Scenario	END	1716295647386
+USER	Owner Usage Scenario	START	1716295647484
+USER	Vets Usage Scenario	START	1716295647485
+REQUEST		owners	1716295647483	1716295647485	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295647486
+REQUEST		vets	1716295647484	1716295647486	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295647486
+USER	Owner Usage Scenario	START	1716295647584
+USER	Vets Usage Scenario	START	1716295647584
+REQUEST		vets	1716295647584	1716295647586	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295647583	1716295647586	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295647587
+USER	Owner Usage Scenario	END	1716295647587
+USER	Owner Usage Scenario	START	1716295647683
+USER	Vets Usage Scenario	START	1716295647684
+REQUEST		owners	1716295647683	1716295647685	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295647685
+REQUEST		vets	1716295647684	1716295647685	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295647685
+USER	Vets Usage Scenario	START	1716295647784
+USER	Owner Usage Scenario	START	1716295647784
+REQUEST		vets	1716295647784	1716295647786	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295647784	1716295647786	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295647787
+USER	Owner Usage Scenario	END	1716295647787
+USER	Owner Usage Scenario	START	1716295647884
+USER	Vets Usage Scenario	START	1716295647884
+REQUEST		vets	1716295647884	1716295647886	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295647884	1716295647886	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295647887
+USER	Owner Usage Scenario	END	1716295647887
+USER	Vets Usage Scenario	START	1716295647984
+USER	Owner Usage Scenario	START	1716295647984
+REQUEST		vets	1716295647984	1716295647987	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716295647984	1716295647987	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295647987
+USER	Owner Usage Scenario	END	1716295647987
+USER	Owner Usage Scenario	START	1716295648083
+REQUEST		owners	1716295648083	1716295648084	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295648084
+USER	Vets Usage Scenario	START	1716295648085
+REQUEST		vets	1716295648084	1716295648086	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295648086
+USER	Owner Usage Scenario	START	1716295648184
+USER	Vets Usage Scenario	START	1716295648184
+REQUEST		owners	1716295648183	1716295648185	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295648185
+REQUEST		vets	1716295648184	1716295648185	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295648185
+USER	Owner Usage Scenario	START	1716295648284
+USER	Vets Usage Scenario	START	1716295648285
+REQUEST		owners	1716295648283	1716295648286	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716295648284	1716295648286	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295648287
+USER	Vets Usage Scenario	END	1716295648287
+USER	Owner Usage Scenario	START	1716295648383
+REQUEST		owners	1716295648383	1716295648384	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716295648384
+USER	Vets Usage Scenario	START	1716295648384
+REQUEST		vets	1716295648384	1716295648385	KO	j.n.ConnectException: Connection refused
+USER	Vets Usage Scenario	END	1716295648386
