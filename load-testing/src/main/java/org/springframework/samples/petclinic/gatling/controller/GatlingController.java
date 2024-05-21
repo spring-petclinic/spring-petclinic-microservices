@@ -1,8 +1,6 @@
 package org.springframework.samples.petclinic.gatling.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import io.gatling.app.Gatling;
 import io.gatling.core.config.GatlingPropertiesBuilder;
 import io.gatling.core.config.GatlingFiles;
@@ -15,7 +13,9 @@ import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@RestController
+
+@RestController("API")
+@RequestMapping("/api")
 public class GatlingController {
 
     @GetMapping("/")
@@ -23,7 +23,7 @@ public class GatlingController {
         return "Gatling test controller.";
     }
 
-    @GetMapping("/run/custom")
+    @GetMapping("/run")
     public String runCustomGatlingTest(
         @RequestParam(value = "users", defaultValue = "60") int users,
         @RequestParam(value = "duration", defaultValue = "30") int duration) {
@@ -61,7 +61,12 @@ public class GatlingController {
             String path = "";
             if (matcher.find()) {
                 resultsPath = matcher.group(1).replace("%20", " ");
-                path = resultsPath.substring(1);
+                if (System.getProperty("os.name").startsWith("Windows")) {
+                    resultsPath = resultsPath.substring(1);
+                }else{
+                    resultsPath = resultsPath;
+                }
+
                 path += "/js/stats.json";
             }
             System.out.println("Results path: " + path);
