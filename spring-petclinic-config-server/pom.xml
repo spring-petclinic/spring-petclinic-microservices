@@ -27,6 +27,20 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/net.bull.javamelody/javamelody-core -->
+        <dependency>
+            <groupId>net.bull.javamelody</groupId>
+            <artifactId>javamelody-core</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/net.bull.javamelody/javamelody-spring-boot-starter -->
+        <dependency>
+            <groupId>net.bull.javamelody</groupId>
+            <artifactId>javamelody-spring-boot-starter</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+
         <!-- Spring Cloud -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
