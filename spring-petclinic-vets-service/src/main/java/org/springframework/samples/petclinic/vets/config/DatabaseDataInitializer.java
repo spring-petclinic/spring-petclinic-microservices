@@ -4,11 +4,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
+import java.util.Random;
 
 @Component
 public class DatabaseDataInitializer {
 
     private final JdbcTemplate jdbcTemplate;
+    private final Random random = new Random();
 
     public DatabaseDataInitializer(DataSource dataSource) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
@@ -21,9 +23,15 @@ public class DatabaseDataInitializer {
         String[] lastNames = {"Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin"};
 
         for (int i = 0; i < numberOfInserts; i++) {
-            int index = i % 20;
-            String firstName = firstNames[index];
-            String lastName = lastNames[index];
+            String firstName = firstNames[random.nextInt(firstNames.length)];
+            String lastNameBase = lastNames[random.nextInt(lastNames.length)];
+
+            // Check if the last name already exists
+            String countSql = "SELECT COUNT(*) FROM vets WHERE last_name LIKE ?";
+            int count = jdbcTemplate.queryForObject(countSql, new Object[]{lastNameBase + "%"}, Integer.class);
+
+            // If count is greater than 0, append the count to the last name
+            String lastName = count > 0 ? lastNameBase + (count + 1) : lastNameBase;
 
             String sql = String.format("INSERT INTO vets (first_name, last_name) VALUES ('%s', '%s');",
                 firstName, lastName);
