@@ -6,6 +6,7 @@ services:
     image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-customers-service
     container_name: customers-service
     environment:
+      - HOST=141.22.10.82
       - SPRING_PROFILES_ACTIVE=vm
     deploy:
       resources:
@@ -18,6 +19,7 @@ services:
     image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-visits-service
     container_name: visits-service
     environment:
+      - HOST=141.22.10.82
       - SPRING_PROFILES_ACTIVE=vm
     deploy:
       resources:
@@ -30,6 +32,7 @@ services:
     image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-vets-service
     container_name: vets-service
     environment:
+      - HOST=141.22.10.82
       - SPRING_PROFILES_ACTIVE=vm
     deploy:
       resources:

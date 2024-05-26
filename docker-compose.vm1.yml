@@ -6,6 +6,7 @@ services:
     container_name: config-server
     environment:
       - BRANCH=vm
+      - HOST=141.22.10.81
       - SPRING_PROFILES_ACTIVE=vm
     deploy:
       resources:
@@ -23,6 +24,7 @@ services:
     image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-discovery-server
     container_name: discovery-server
     environment:
+      - HOST=141.22.10.81
       - SPRING_PROFILES_ACTIVE=vm
     deploy:
       resources:
@@ -43,6 +45,7 @@ services:
     image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-api-gateway
     container_name: api-gateway
     environment:
+      - HOST=141.22.10.81
       - SPRING_PROFILES_ACTIVE=vm
     deploy:
       resources:
@@ -60,6 +63,7 @@ services:
     image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-admin-server
     container_name: admin-server
     environment:
+      - HOST=141.22.10.81
       - SPRING_PROFILES_ACTIVE=vm
     deploy:
       resources:
