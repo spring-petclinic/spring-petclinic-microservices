@@ -16,4 +16,4 @@ spring:
   config:
     activate:
       on-profile: vm
-  import: configserver:http://141.22.10.81:8888
+    import: configserver:http://141.22.10.81:8888
