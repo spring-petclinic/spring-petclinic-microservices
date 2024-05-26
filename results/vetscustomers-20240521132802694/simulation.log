@@ -1,0 +1,13 @@
+RUN	org.springframework.samples.petclinic.gatling.simulations.VetsCustomers	vetscustomers	1716298082694	 	3.10.5
+USER	Vets Usage Scenario	START	1716298082848
+USER	Owner Usage Scenario	START	1716298082848
+REQUEST		owners	1716298082848	1716298082850	KO	j.n.ConnectException: Connection refused
+REQUEST		vets	1716298082847	1716298082850	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716298082852
+USER	Vets Usage Scenario	END	1716298082852
+USER	Vets Usage Scenario	START	1716298083851
+USER	Owner Usage Scenario	START	1716298083851
+REQUEST		vets	1716298083849	1716298083855	KO	j.n.ConnectException: Connection refused
+REQUEST		owners	1716298083849	1716298083855	KO	j.n.ConnectException: Connection refused
+USER	Owner Usage Scenario	END	1716298083856
+USER	Vets Usage Scenario	END	1716298083856

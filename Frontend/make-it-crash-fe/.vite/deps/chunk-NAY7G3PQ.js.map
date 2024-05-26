@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../node_modules/react-bootstrap/esm/Container.js"],
+  "sourcesContent": ["\"use client\";\n\nimport classNames from 'classnames';\nimport * as React from 'react';\nimport { useBootstrapPrefix } from './ThemeProvider';\nimport { jsx as _jsx } from \"react/jsx-runtime\";\nconst Container = /*#__PURE__*/React.forwardRef(({\n  bsPrefix,\n  fluid = false,\n  // Need to define the default \"as\" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595\n  as: Component = 'div',\n  className,\n  ...props\n}, ref) => {\n  const prefix = useBootstrapPrefix(bsPrefix, 'container');\n  const suffix = typeof fluid === 'string' ? `-${fluid}` : '-fluid';\n  return /*#__PURE__*/_jsx(Component, {\n    ref: ref,\n    ...props,\n    className: classNames(className, fluid ? `${prefix}${suffix}` : prefix)\n  });\n});\nContainer.displayName = 'Container';\nexport default Container;"],
+  "mappings": ";;;;;;;;;;;;;AAEA,wBAAuB;AACvB,YAAuB;AAEvB,yBAA4B;AAC5B,IAAM,YAA+B,iBAAW,CAAC;AAAA,EAC/C;AAAA,EACA,QAAQ;AAAA;AAAA,EAER,IAAI,YAAY;AAAA,EAChB;AAAA,EACA,GAAG;AACL,GAAG,QAAQ;AACT,QAAM,SAAS,mBAAmB,UAAU,WAAW;AACvD,QAAM,SAAS,OAAO,UAAU,WAAW,IAAI,KAAK,KAAK;AACzD,aAAoB,mBAAAA,KAAK,WAAW;AAAA,IAClC;AAAA,IACA,GAAG;AAAA,IACH,eAAW,kBAAAC,SAAW,WAAW,QAAQ,GAAG,MAAM,GAAG,MAAM,KAAK,MAAM;AAAA,EACxE,CAAC;AACH,CAAC;AACD,UAAU,cAAc;AACxB,IAAO,oBAAQ;",
+  "names": ["_jsx", "classNames"]
+}
