@@ -1,0 +1,75 @@
+version: '3'
+
+services:
+  config-server:
+    image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-config-server
+    container_name: config-server
+    environment:
+      - BRANCH=vm
+      - SPRING_PROFILES_ACTIVE=vm
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-I", "http://config-server:8888"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+     - 8888:8888
+
+  discovery-server:
+    image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-discovery-server
+    container_name: discovery-server
+    environment:
+      - SPRING_PROFILES_ACTIVE=vm
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://discovery-server:8761"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    depends_on:
+      config-server:
+        condition: service_healthy
+    ports:
+     - 8761:8761
+
+  api-gateway:
+    image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-api-gateway
+    container_name: api-gateway
+    environment:
+      - SPRING_PROFILES_ACTIVE=vm
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    depends_on:
+      config-server:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    ports:
+     - 8080:8080
+
+  admin-server:
+    image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-admin-server
+    container_name: admin-server
+    environment:
+      - SPRING_PROFILES_ACTIVE=vm
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    depends_on:
+      config-server:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    ports:
+     - 9090:9090
+

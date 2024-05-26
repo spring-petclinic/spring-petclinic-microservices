@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+
+  customers-service:
+    image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-customers-service
+    container_name: customers-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=vm
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    ports:
+    - 8081:8081
+
+  visits-service:
+    image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-visits-service
+    container_name: visits-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=vm
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    ports:
+     - 8082:8082
+
+  vets-service:
+    image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-vets-service
+    container_name: vets-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=vm
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    ports:
+     - 8083:8083
