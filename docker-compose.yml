@@ -5,7 +5,8 @@ services:
     image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-config-server
     container_name: config-server
     environment:
-      - BRANCH=main
+      - BRANCH=fix_unbalanced_capacities
+      - SPRING_PROFILES_ACTIVE=docker
     deploy:
       resources:
         limits:
@@ -21,6 +22,8 @@ services:
   discovery-server:
     image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-discovery-server
     container_name: discovery-server
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
     deploy:
       resources:
         limits:
@@ -39,6 +42,8 @@ services:
   customers-service:
     image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-customers-service
     container_name: customers-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
     deploy:
       resources:
         limits:
@@ -54,6 +59,8 @@ services:
   visits-service:
     image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-visits-service
     container_name: visits-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
     deploy:
       resources:
         limits:
@@ -69,6 +76,8 @@ services:
   vets-service:
     image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-vets-service
     container_name: vets-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
     deploy:
       resources:
         limits:
@@ -84,6 +93,8 @@ services:
   api-gateway:
     image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-api-gateway
     container_name: api-gateway
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
     deploy:
       resources:
         limits:
@@ -111,6 +122,8 @@ services:
   admin-server:
     image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/spring-petclinic-admin-server
     container_name: admin-server
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
     deploy:
       resources:
         limits:
