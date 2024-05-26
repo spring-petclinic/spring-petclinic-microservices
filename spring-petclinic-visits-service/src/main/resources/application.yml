@@ -11,3 +11,10 @@ spring:
     activate:
       on-profile: docker
     import: configserver:http://config-server:8888
+
+---
+spring:
+  config:
+    activate:
+      on-profile: vm
+  import: configserver:http://141.22.10.81:8888
