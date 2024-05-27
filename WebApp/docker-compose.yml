@@ -1,12 +1,10 @@
 services:
-  fe:
-    build:
-      dockerfile: make-it-crash-be/Dockerfile
+  make-it-crash-be:
+    image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/make-it-crash-be
     ports:
       - "8081:8081"
-  be:
-    build:
-      dockerfile: make-it-crash-fe/Dockerfile
+  make-it-crash-fe:
+    image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/make-it-crash-fe
     ports:
       - "80:80"
 
