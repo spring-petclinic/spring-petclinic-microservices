@@ -3,4 +3,4 @@
 
 ./docker/push-images.sh
 
-docker compose up
+#docker compose up
