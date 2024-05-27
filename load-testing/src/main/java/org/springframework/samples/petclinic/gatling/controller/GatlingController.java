@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 @CrossOrigin(origins = "*")
 public class GatlingController {
 
-    @GetMapping("/")
+    @GetMapping()
     public String index() {
         return "Gatling test controller.";
     }
