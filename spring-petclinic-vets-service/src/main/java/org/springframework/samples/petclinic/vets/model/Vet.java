@@ -71,6 +71,17 @@ public class Vet {
     @Setter
     private String lastName;
 
+    @Column(name = "substitue")
+    @Getter
+    @Setter
+    private Integer substitute;
+
+    @Column(name = "available")
+    @Getter
+    @Setter
+    private boolean available;
+
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "vet_specialties", joinColumns = @JoinColumn(name = "vet_id"),
         inverseJoinColumns = @JoinColumn(name = "specialty_id"))
