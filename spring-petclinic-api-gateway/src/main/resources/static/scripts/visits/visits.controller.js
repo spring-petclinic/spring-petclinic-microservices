@@ -7,15 +7,21 @@ angular.module('visits')
         var url = "api/visit/owners/" + ($stateParams.ownerId || 0) + "/pets/" + petId + "/visits";
         self.date = new Date();
         self.desc = "";
+        self.selectedVetId = null;
 
         $http.get(url).then(function (resp) {
             self.visits = resp.data;
         });
 
+        $http.get('api/vet/vets').then(function (resp) {
+            self.vetList = resp.data;
+        });
+
         self.submit = function () {
             var data = {
                 date: $filter('date')(self.date, "yyyy-MM-dd"),
-                description: self.desc
+                description: self.desc,
+                //vet: self.selectedVetId
             };
 
             $http.post(url, data).then(function () {
