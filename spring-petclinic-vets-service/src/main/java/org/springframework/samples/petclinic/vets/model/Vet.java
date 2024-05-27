@@ -71,7 +71,7 @@ public class Vet {
     @Setter
     private String lastName;
 
-    @Column(name = "substitue")
+    @Column(name = "substitute")
     @Getter
     @Setter
     private Integer substitute;
@@ -79,7 +79,7 @@ public class Vet {
     @Column(name = "available")
     @Getter
     @Setter
-    private boolean available;
+    private Boolean available;
 
 
     @ManyToMany(fetch = FetchType.EAGER)
