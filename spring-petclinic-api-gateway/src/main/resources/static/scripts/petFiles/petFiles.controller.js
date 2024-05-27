@@ -18,6 +18,15 @@ angular.module('petFiles')
 
         self.uploadFile = function () {
             var file = document.getElementById('file').files[0];
+
+            // Timeout fix for file upload
+
+            // var filsizeLimit = 1024 * 1024 * 20;
+            // if (file.size > filsizeLimit) {
+            //     alert("Die Datei ist zu groß. Bitte laden Sie eine Datei hoch, die kleiner als 20MB ist.");
+            //     return;
+            // }
+
             var formData = new FormData();
             formData.append('file', file);
             formData.append('date', $filter('date')(self.date, "yyyy-MM-dd"));
@@ -46,19 +55,20 @@ angular.module('petFiles')
                     self.files = response.data;
                     $state.go('ownerDetails', { ownerId: ownerId });
                 }).catch(function (error) {
-                    //alert("Es gibt einen Fehler beim Hochladen der Datei: " + error.message);
+                    alert("Es gibt einen Fehler beim Hochladen der Datei: " + error.message);
                 });
 
+                // Das hier mus beim Fix raus
                 setTimeout(function() {
                     if (uploadCompleted) {
                         repeatUpload = false;
                     } else {
                         repeatUpload = true;
                         //alert("Upload dauert zu lange, versuche erneut... jbt2");
-                        console.log("Upload dauert zu lange, versuche erneut...11:13");
+                        console.log("Upload dauert zu lange, versuche erneut...15:07");
                         upload();
                     }
-                }, 10000);
+                }, 5000);
             };
 
             upload();
