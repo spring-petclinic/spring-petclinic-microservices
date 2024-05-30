@@ -3,11 +3,11 @@
 <table class="table table-striped">
     <tr>
         <th class="col-sm-3">Name</th>
-        <td><b>{{$ctrl.vet.firstName}} {{$ctrl.vet.lastName}} {{$ctrl.vet.id}}</b></td>
+        <td><b>{{$ctrl.vet.firstName}} {{$ctrl.vet.lastName}}</b></td>
         <td>
             <form action="/submit-form">
                 <label for="available">Verfügbar</label>
-                <input type="checkbox" id="available" name="available"  ng-model="$ctrl.available" ng-change="$ctrl.setAvailable()" >
+                <input type="checkbox" id="available" name="available" ng-checked="$ctrl.available" ng-model="$ctrl.available" ng-change="$ctrl.setAvailable()" >
                 <!-- <input type="submit" value="Submit"> -->
             </form>
         </td>

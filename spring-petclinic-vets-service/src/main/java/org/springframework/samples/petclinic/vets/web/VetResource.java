@@ -59,6 +59,7 @@ class VetResource {
         Vet vet = vetRepository.findById(vetId).
             orElseThrow();
         vet.setSubstitute(sub);
+        vetRepository.save(vet);
 
         System.out.printf("DEBUG: Der Sub von %d wurde auf %d gestellt.\n",vetId,sub);
     }
@@ -71,7 +72,18 @@ class VetResource {
         Vet vet = vetRepository.findById(vetId).
             orElseThrow();
         vet.setAvailable(available);
+        vetRepository.save(vet);
 
-        System.out.printf("DEBUG: Die Verfügbarkeit wurde auf %b gestellt.\n", available);
+        System.out.printf("DEBUG: Die Verfügbarkeit von %s wurde auf %b gestellt.\n", vet.getFirstName(), vet.getAvailable());
+    }
+
+    @GetMapping(value = "/{vetId}/available")
+    public boolean getAvailable(
+        @PathVariable("vetId") @Min(1) int vetId){
+        Vet vet = vetRepository.findById(vetId).
+            orElseThrow();
+        System.out.println("DEBUG: Available von "+vet.getFirstName()+"="+vet.getAvailable());
+        if(vet.getAvailable()==null) return false;
+        return vet.getAvailable();
     }
 }

@@ -13,6 +13,10 @@ angular.module('vetDetails')
             self.vet = resp.data;
         });
 
+        $http.get('api/vet/vets/' + $stateParams.vetId+'/available').then(function (resp){
+            self.available = resp.data;
+        });
+
         let aktuelleZeit = new Date();
         let stunden = aktuelleZeit.getHours();
         let minuten = aktuelleZeit.getMinutes();
