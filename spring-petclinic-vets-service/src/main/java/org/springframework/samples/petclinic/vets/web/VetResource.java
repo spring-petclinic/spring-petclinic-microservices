@@ -62,4 +62,16 @@ class VetResource {
 
         System.out.printf("DEBUG: Der Sub von %d wurde auf %d gestellt.\n",vetId,sub);
     }
+
+
+    @PostMapping(value = "/{vetId}/available")
+    public void setAvailable(
+        @RequestBody boolean available,
+        @PathVariable("vetId") @Min(1) int vetId){
+        Vet vet = vetRepository.findById(vetId).
+            orElseThrow();
+        vet.setAvailable(available);
+
+        System.out.printf("DEBUG: Die Verfügbarkeit wurde auf %b gestellt.\n", available);
+    }
 }

@@ -19,26 +19,12 @@ angular.module('vetDetails')
         let sekunden = aktuelleZeit.getSeconds();
         console.log(`Aktuelle Zeit: ${stunden}:${minuten}:${sekunden}`);
 
-        self.updateSubstituteInfo = function() {
-            console.log('Available:', self.available);
-            console.log('Selected Vet ID:', self.selectedVetId);
-            console.log('Vet ID:',);
 
-            var data = {
-                available: self.available,
-                substitute: self.selectedVetId
-            };
-            var req;
-            req = $http.put('api/vet/details/${self.vet.id}', data).then(function(response) {
-                console.log('Data saved successfully');
-            }, function(error) {
-                console.log('An error occurred:', error);
-            });
+        self.setAvailable = function(){
+            let vetId = self.vet.id;
+            $http.post("api/vet/vets/" + vetId + "/available", self.available);
+        }
 
-            // req.then(function () {
-            //     $state.go('ownerDetails', {ownerId: ownerId});
-            // });
-        };
         self.submitVet =  function () {
             if (self.selectedVetId == null){
                 return;
@@ -49,5 +35,10 @@ angular.module('vetDetails')
 
             $http.post("api/vet/vets/" + vetId + "/sub", substitute);
         }
+
+            // req.then(function () {
+            //     $state.go('vetDetails', {vetId: self.vet.id});
+            // });
+
 
     }]);
