@@ -13,24 +13,31 @@ angular.module('vetDetails')
             self.vet = resp.data;
         });
 
-        self.saveSubscription = function() {
-            console.log('Subscribe:', self.subscribe);
+        let aktuelleZeit = new Date();
+        let stunden = aktuelleZeit.getHours();
+        let minuten = aktuelleZeit.getMinutes();
+        let sekunden = aktuelleZeit.getSeconds();
+        console.log(`Aktuelle Zeit: ${stunden}:${minuten}:${sekunden}`);
+
+        self.updateSubstituteInfo = function() {
+            console.log('Available:', self.available);
             console.log('Selected Vet ID:', self.selectedVetId);
+            console.log('Vet ID:',);
 
             var data = {
-                subscribe: self.subscribe,
-                selectedVetId: self.selectedVetId
+                available: self.available,
+                substitute: self.selectedVetId
             };
             var req;
-            req = $http.post('api/subscription', data).then(function(response) {
+            req = $http.put('api/vet/details/${self.vet.id}', data).then(function(response) {
                 console.log('Data saved successfully');
             }, function(error) {
                 console.log('An error occurred:', error);
             });
 
-            req.then(function () {
-                $state.go('ownerDetails', {ownerId: ownerId});
-            });
+            // req.then(function () {
+            //     $state.go('ownerDetails', {ownerId: ownerId});
+            // });
         };
 
     }]);

@@ -3,11 +3,11 @@
 <table class="table table-striped">
     <tr>
         <th class="col-sm-3">Name</th>
-        <td><b>{{$ctrl.vet.firstName}} {{$ctrl.vet.lastName}}</b></td>
+        <td><b>{{$ctrl.vet.firstName}} {{$ctrl.vet.lastName}} {{$ctrl.vet.id}}</b></td>
         <td>
             <form action="/submit-form">
-                <label for="subscribe">Verfügbar</label>
-                <input type="checkbox" id="subscribe" name="subscribe"  ng-model="$ctrl.subscribe">
+                <label for="available">Verfügbar</label>
+                <input type="checkbox" id="available" name="available"  ng-model="$ctrl.available">
                 <!-- <input type="submit" value="Submit"> -->
             </form>
         </td>
@@ -21,7 +21,7 @@
                 </select>
             </div>
 
-            <a ui-sref="vetNew({vetId: $ctrl.vet.id})" class="btn btn-default" ng-click="$ctrl.saveSubscription()">Choose substitute</a>
+            <a ui-sref="vetNew({vetId: $ctrl.vet.id})" class="btn btn-default" ng-click="$ctrl.updateSubstituteInfo()">Choose substitute</a>
         </td>
 
     </tr>
