@@ -74,12 +74,12 @@ public class Vet {
     @Column(name = "substitute")
     @Getter
     @Setter
-    private Integer substitute;
+    private Integer substitute; // sollte das nicht eher ein String sein?
 
     @Column(name = "available")
     @Getter
     @Setter
-    private Boolean available;
+    private Boolean available; // sollte das nicht ein boolean sein
 
 
     @ManyToMany(fetch = FetchType.EAGER)

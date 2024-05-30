@@ -13,5 +13,24 @@ angular.module('vetDetails')
             self.vet = resp.data;
         });
 
+        self.saveSubscription = function() {
+            console.log('Subscribe:', self.subscribe);
+            console.log('Selected Vet ID:', self.selectedVetId);
+
+            var data = {
+                subscribe: self.subscribe,
+                selectedVetId: self.selectedVetId
+            };
+            var req;
+            req = $http.post('api/subscription', data).then(function(response) {
+                console.log('Data saved successfully');
+            }, function(error) {
+                console.log('An error occurred:', error);
+            });
+
+            req.then(function () {
+                $state.go('ownerDetails', {ownerId: ownerId});
+            });
+        };
 
     }]);
