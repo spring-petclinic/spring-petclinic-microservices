@@ -21,13 +21,11 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.samples.petclinic.vets.model.Vet;
 import org.springframework.samples.petclinic.vets.model.VetRepository;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @author Juergen Hoeller
@@ -52,5 +50,16 @@ class VetResource {
     @GetMapping(value = "/{vetId}")
     public Optional<Vet> findVet(@PathVariable("vetId") @Min(1) int vetId){
         return vetRepository.findById(vetId);
+    }
+
+    @PostMapping(value = "/{vetId}/sub")
+    public void selectSubstitute(
+        @RequestBody int sub,
+        @PathVariable("vetId") @Min(1) int vetId){
+        Vet vet = vetRepository.findById(vetId).
+            orElseThrow();
+        vet.setSubstitute(sub);
+
+        System.out.printf("DEBUG: Der Sub von %d wurde auf %d gestellt.\n",vetId,sub);
     }
 }
