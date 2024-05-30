@@ -13,5 +13,15 @@ angular.module('vetDetails')
             self.vet = resp.data;
         });
 
+        self.submitVet =  function () {
+            if (self.selectedVetId == null){
+                return;
+            }
+
+            var vetId = $stateParams.vetId;
+            var substitute = self.selectedVetId;
+
+            $http.post("api/vet/vets/" + vetId + "/sub", substitute);
+        }
 
     }]);

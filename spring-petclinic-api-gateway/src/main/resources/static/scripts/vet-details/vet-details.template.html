@@ -21,7 +21,7 @@
                 </select>
             </div>
 
-            <a ui-sref="vetNew({vetId: $ctrl.vet.id})" class="btn btn-default">Choose substitute</a>
+            <a ng-click="$ctrl.submitVet()" ui-sref="vetNew({vetId: $ctrl.vet.id})" class="btn btn-default">Choose substitute</a>
         </td>
 
     </tr>
