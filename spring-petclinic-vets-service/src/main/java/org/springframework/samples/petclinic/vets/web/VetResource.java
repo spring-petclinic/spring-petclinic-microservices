@@ -24,6 +24,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.samples.petclinic.vets.model.Vet;
 import org.springframework.samples.petclinic.vets.model.VetRepository;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * @author Juergen Hoeller
@@ -62,6 +63,23 @@ class VetResource {
         System.out.printf("DEBUG: Der Sub von %d wurde auf %d gestellt.\n",vetId,sub);
     }
 
+    @GetMapping(value = "/{vetId}/chose")
+    private int choseVet(@PathVariable("vetId") @Min(1) int vetId) {
+
+        Boolean isAvailable = isAvailable(vetId);
+
+        if (isAvailable != null && isAvailable) {
+            return (vetId);
+        } else {
+            try {
+                int substitute = getSubstitute(vetId);
+                return choseVet(substitute);
+            } catch (RuntimeException e) {
+                throw new RuntimeException("No available vet found");
+            }
+        }
+    }
+
     @GetMapping(value = "/{vetId}/sub")
     public int getSubstitute(
         @PathVariable("vetId") @Min(1) int vetId){
@@ -86,10 +104,15 @@ class VetResource {
     @GetMapping(value = "/{vetId}/available")
     public boolean getAvailable(
         @PathVariable("vetId") @Min(1) int vetId){
+
+        if(isAvailable(vetId)==null) return false;
+        return isAvailable(vetId);
+    }
+
+    private Boolean isAvailable(int vetId) {
         Vet vet = vetRepository.findById(vetId).
             orElseThrow();
         System.out.println("DEBUG: Available von "+vet.getFirstName()+"="+vet.getAvailable());
-        if(vet.getAvailable()==null) return false;
         return vet.getAvailable();
     }
 
