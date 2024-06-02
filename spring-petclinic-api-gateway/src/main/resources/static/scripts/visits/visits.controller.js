@@ -18,6 +18,9 @@ angular.module('visits')
         });
 
         self.submit = function () {
+            $http.get('api/vet/vets/'+ self.selectedVetId + '/chose').then(function (resp) {
+                self.selectedVet = resp.data;
+            });
             var data = {
                 date: $filter('date')(self.date, "yyyy-MM-dd"),
                 description: self.desc,
