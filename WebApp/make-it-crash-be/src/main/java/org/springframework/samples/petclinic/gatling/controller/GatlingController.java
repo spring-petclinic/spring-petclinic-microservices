@@ -25,7 +25,7 @@ public class GatlingController {
     }
 
     @GetMapping("/loadtest/vets")
-    public String runCustomGatlingTest(
+    public String runVetsLoadtest(
         @RequestParam(value = "users", defaultValue = "60") int users,
         @RequestParam(value = "duration", defaultValue = "30") int duration) {
 
@@ -34,7 +34,7 @@ public class GatlingController {
         return GatlingTests(simulationClass, users, duration);
     }
     @GetMapping("/loadtest/owners")
-    public String runCustomGatlingTest(
+    public String runOwnersLoadtest(
         @RequestParam(value = "users", defaultValue = "60") int users,
         @RequestParam(value = "duration", defaultValue = "30") int duration) {
 
@@ -44,7 +44,7 @@ public class GatlingController {
     }
 
     @GetMapping("/loadtest/customers")
-    public String runCustomGatlingTest(
+    public String runCusomersLoadtest(
         @RequestParam(value = "users", defaultValue = "60") int users,
         @RequestParam(value = "duration", defaultValue = "30") int duration) {
 
