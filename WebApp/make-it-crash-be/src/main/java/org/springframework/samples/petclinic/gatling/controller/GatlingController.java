@@ -24,12 +24,31 @@ public class GatlingController {
         return "Gatling test controller.";
     }
 
-    @GetMapping("/run")
+    @GetMapping("/loadtest/vets")
     public String runCustomGatlingTest(
         @RequestParam(value = "users", defaultValue = "60") int users,
         @RequestParam(value = "duration", defaultValue = "30") int duration) {
 
         String simulationClass = "org.springframework.samples.petclinic.gatling.simulations.VetsCustomers";
+
+        return GatlingTests(simulationClass, users, duration);
+    }
+    @GetMapping("/loadtest/owners")
+    public String runCustomGatlingTest(
+        @RequestParam(value = "users", defaultValue = "60") int users,
+        @RequestParam(value = "duration", defaultValue = "30") int duration) {
+
+        String simulationClass = "org.springframework.samples.petclinic.gatling.simulations.OwnerInformationLoadTest";
+
+        return GatlingTests(simulationClass, users, duration);
+    }
+
+    @GetMapping("/loadtest/customers")
+    public String runCustomGatlingTest(
+        @RequestParam(value = "users", defaultValue = "60") int users,
+        @RequestParam(value = "duration", defaultValue = "30") int duration) {
+
+        String simulationClass = "org.springframework.samples.petclinic.gatling.simulations.CustomersLoadTest";
 
         return GatlingTests(simulationClass, users, duration);
     }
