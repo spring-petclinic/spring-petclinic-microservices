@@ -1,4 +1,4 @@
-package lastTesting;
+package org.springframework.samples.petclinic.gatling.simulations;
 
 import io.gatling.javaapi.core.ScenarioBuilder;
 import io.gatling.javaapi.core.Simulation;
