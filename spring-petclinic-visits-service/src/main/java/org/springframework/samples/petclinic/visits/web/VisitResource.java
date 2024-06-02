@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * @author Juergen Hoeller
@@ -54,13 +55,33 @@ class VisitResource {
     @ResponseStatus(HttpStatus.CREATED)
     public Visit create(
         @Valid @RequestBody Visit visit,
-        @PathVariable("petId") @Min(1) int petId,
-        @RequestParam("vetId") @Min(1) int vetId) {
+        @PathVariable("petId") @Min(1) int petId) {
 
         visit.setPetId(petId);
-        visit.setVetId(vetId);
+
+        int vetID =(choseVet(visit.getVetId()));
+        visit.setVetId(vetID);
+
         log.info("Saving visit {}", visit);
         return visitRepository.save(visit);
+    }
+
+    private int choseVet(int vetId) {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "api/vets/" + vetId + "/available";
+        Boolean isAvailable = restTemplate.getForObject(url, Boolean.class);
+
+        if (isAvailable != null && isAvailable) {
+            return (vetId);
+        } else {
+            url = "api/vets/" + vetId + "/sub";
+            Integer substitute = restTemplate.getForObject(url, Integer.class);
+            if (substitute != null) {
+                return choseVet(substitute);
+            }else {
+                throw new RuntimeException("No available vet found");
+            }
+        }
     }
 
     @GetMapping("owners/*/pets/{petId}/visits")
