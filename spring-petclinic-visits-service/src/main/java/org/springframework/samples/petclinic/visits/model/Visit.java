@@ -64,4 +64,7 @@ public class Visit {
     @Column(name = "pet_id")
     private int petId;
 
+    @Column(name = "vet_id")
+    private int vetId;
+
 }

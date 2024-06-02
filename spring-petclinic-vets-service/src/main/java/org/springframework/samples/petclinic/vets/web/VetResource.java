@@ -20,8 +20,6 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.Optional;
-
-import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.samples.petclinic.vets.model.Vet;
 import org.springframework.samples.petclinic.vets.model.VetRepository;

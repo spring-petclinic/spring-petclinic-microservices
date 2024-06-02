@@ -21,7 +21,7 @@ angular.module('visits')
             var data = {
                 date: $filter('date')(self.date, "yyyy-MM-dd"),
                 description: self.desc,
-                //vet: self.selectedVetId
+                vet: self.selectedVetId
             };
 
             $http.post(url, data).then(function () {
