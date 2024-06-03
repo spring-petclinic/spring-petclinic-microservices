@@ -47,11 +47,13 @@
                 <tr>
                     <th>Visit Date</th>
                     <th>Description</th>
+                    <th>Veterinarian</th>
                 </tr>
                 </thead>
                 <tr ng-repeat="visit in pet.visits track by visit.id">
                     <td>{{visit.date | date:'yyyy MMM dd'}}</td>
                     <td>{{visit.description}}</td>
+                    <td>{{visit.vetId}}</td>
                 </tr>
                 <tr>
                     <td>
