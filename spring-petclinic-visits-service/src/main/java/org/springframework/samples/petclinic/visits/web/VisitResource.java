@@ -55,9 +55,10 @@ class VisitResource {
     @ResponseStatus(HttpStatus.CREATED)
     public Visit create(
         @Valid @RequestBody Visit visit,
-        @PathVariable("petId") @Min(1) int petId) {
+        @PathVariable("petId") @Min(1) int petId){
         visit.setPetId(petId);
-        log.info("Saving visit {}", visit);
+        //log.info("Saving visit {}", visit);
+        System.out.println("Vet Id: " + visit.getVetId());
         return visitRepository.save(visit);
     }
 
