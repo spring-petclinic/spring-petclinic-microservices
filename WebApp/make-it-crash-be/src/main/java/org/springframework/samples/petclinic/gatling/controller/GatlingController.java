@@ -4,16 +4,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import io.gatling.app.Gatling;
 import io.gatling.core.config.GatlingPropertiesBuilder;
-import io.gatling.core.config.GatlingFiles;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 
 @RestController("API")
 @RequestMapping("/api")
@@ -39,29 +36,29 @@ public class GatlingController {
         @RequestParam(value = "duration", defaultValue = "30") int duration) {
 
         String simulationClass = "org.springframework.samples.petclinic.gatling.simulations.VetsCustomers";
-
+        System.out.println("Running Vets Loadtest with users: " + users + " and duration: " + duration);
         return GatlingTests(simulationClass, users, duration);
     }
+
     @GetMapping("/loadtest/owners")
     public String runOwnersLoadtest(
         @RequestParam(value = "users", defaultValue = "60") int users,
         @RequestParam(value = "duration", defaultValue = "30") int duration) {
 
         String simulationClass = "org.springframework.samples.petclinic.gatling.simulations.OwnerInformationLoadTest";
-
+        System.out.println("Running Owners Loadtest with users: " + users + " and duration: " + duration);
         return GatlingTests(simulationClass, users, duration);
     }
 
     @GetMapping("/loadtest/customers")
-    public String runCusomersLoadtest(
+    public String runCustomersLoadtest(
         @RequestParam(value = "users", defaultValue = "60") int users,
         @RequestParam(value = "duration", defaultValue = "30") int duration) {
 
         String simulationClass = "org.springframework.samples.petclinic.gatling.simulations.CustomersLoadTest";
-
+        System.out.println("Running Customers Loadtest with users: " + users + " and duration: " + duration);
         return GatlingTests(simulationClass, users, duration);
     }
-
 
     public static String GatlingTests(String simulationClass, int users, int duration) {
         GatlingPropertiesBuilder props = new GatlingPropertiesBuilder();
@@ -75,36 +72,44 @@ public class GatlingController {
         PrintStream old = System.out;
         System.setOut(ps);
         String resultsPath = "";
+        String path = "";
 
         try {
+            System.out.println("Starting Gatling test with simulationClass: " + simulationClass);
             Gatling.fromMap(props.build());
 
             System.out.flush();
             System.setOut(old);
 
             String gatlingOutput = baos.toString();
+            System.out.println("Gatling output: " + gatlingOutput);
 
             Pattern pattern = Pattern.compile("file://(.*?)/index.html");
             Matcher matcher = pattern.matcher(gatlingOutput);
             resultsPath = "not found";
-            String path = "";
+
             if (matcher.find()) {
                 resultsPath = matcher.group(1).replace("%20", " ");
                 if (System.getProperty("os.name").startsWith("Windows")) {
                     resultsPath = resultsPath.substring(1);
-                }else{
+                } else {
                     path = resultsPath;
                 }
 
                 path += "/js/stats.json";
             }
-            System.out.println("Results path: " + path);
-            System.out.println("Gatling output: " + gatlingOutput);
+
+            System.out.println("Results path after processing: " + resultsPath);
+            System.out.println("Final Results path: " + path);
 
             File file = new File(path);
             if (file.exists()) {
-                return new String(Files.readAllBytes(file.toPath()));
+                System.out.println("File exists: " + path);
+                String content = new String(Files.readAllBytes(file.toPath()));
+                System.out.println("File content length: " + content.length());
+                return content;
             } else {
+                System.out.println("File does not exist: " + path);
                 return "HTML results file not found at path: " + path;
             }
         } catch (Exception e) {
@@ -113,16 +118,18 @@ public class GatlingController {
         } finally {
             System.setOut(old);
             ps.close();
-            File file = new File(resultsPath);
-            deleteFolder(file);
+            if (!resultsPath.equals("not found")) {
+                File file = new File(resultsPath);
+                deleteFolder(file);
+            }
         }
     }
 
     public static void deleteFolder(File folder) {
         File[] files = folder.listFiles();
-        if(files!=null) { //some JVMs return null for empty dirs
-            for(File f: files) {
-                if(f.isDirectory()) {
+        if (files != null) { // some JVMs return null for empty dirs
+            for (File f : files) {
+                if (f.isDirectory()) {
                     deleteFolder(f);
                 } else {
                     f.delete();
