@@ -15,12 +15,9 @@ import static io.gatling.javaapi.http.HttpDsl.http;
 
 public class CustomersLoadTest extends Simulation {
 
-    @Value("${gateway.url}")
-    private String gatewayUrl;
-
     int users = Integer.parseInt(System.getProperty("gatling.users", "60"));
     int duration = Integer.parseInt(System.getProperty("gatling.duration", "30"));
-    HttpProtocolBuilder httpProtocol = http.baseUrl(gatewayUrl)
+    HttpProtocolBuilder httpProtocol = http.baseUrl("http://141.22.10.81:8080")
         .acceptHeader("application/json")
         .contentTypeHeader("application/json");
 
