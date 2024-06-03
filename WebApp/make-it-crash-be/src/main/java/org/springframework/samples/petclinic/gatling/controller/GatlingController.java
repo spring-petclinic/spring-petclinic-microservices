@@ -112,6 +112,7 @@ public class GatlingController {
             return "Error executing Gatling test.";
         } finally {
             System.setOut(old);
+            ps.close();
             File file = new File(resultsPath);
             deleteFolder(file);
         }
