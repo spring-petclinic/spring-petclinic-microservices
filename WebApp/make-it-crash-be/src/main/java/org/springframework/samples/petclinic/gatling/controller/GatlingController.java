@@ -79,7 +79,6 @@ public class GatlingController {
             Gatling.fromMap(props.build());
 
             System.out.flush();
-            System.setOut(old);
 
             String gatlingOutput = baos.toString();
             System.out.println("Gatling output: " + gatlingOutput);
