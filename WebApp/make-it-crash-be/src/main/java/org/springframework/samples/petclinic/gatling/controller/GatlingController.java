@@ -4,6 +4,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import io.gatling.app.Gatling;
 import io.gatling.core.config.GatlingPropertiesBuilder;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.stream.Stream;
+import java.io.IOException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -67,63 +71,38 @@ public class GatlingController {
         System.setProperty("gatling.users", String.valueOf(users));
         System.setProperty("gatling.duration", String.valueOf(duration));
 
-//        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//        PrintStream ps = new PrintStream(baos);
-//        PrintStream old = System.out;
-//        System.setOut(ps);
-//        String resultsPath = "";
-//        String path = "";
+        String resultsDir = "";
+        String resultsPath = "";
+
 
         try {
-//            System.out.println("Starting Gatling test with simulationClass: " + simulationClass);
             Gatling.fromMap(props.build());
 
-//            System.out.flush();
-//            System.setOut(old);
-//
-//            String gatlingOutput = baos.toString();
-//            System.out.println("Gatling output: " + gatlingOutput);
-//
-//            Pattern pattern = Pattern.compile("file://(.*?)/index.html");
-//            Matcher matcher = pattern.matcher(gatlingOutput);
-//            resultsPath = "not found";
-//
-//            if (matcher.find()) {
-//                resultsPath = matcher.group(1).replace("%20", " ");
-//                if (System.getProperty("os.name").startsWith("Windows")) {
-//                    resultsPath = resultsPath.substring(1);
-//                } else {
-//                    path = resultsPath;
-//                }
-//
-//                path += "/js/stats.json";
-//            }
-//
-//            System.out.println("Results path after processing: " + resultsPath);
-//            System.out.println("Final Results path: " + path);
-//
-//            File file = new File(path);
-//            if (file.exists()) {
-//                System.out.println("File exists: " + path);
-//                String content = new String(Files.readAllBytes(file.toPath()));
-//                System.out.println("File content length: " + content.length());
-//                return content;
-//            } else {
-//                System.out.println("File does not exist: " + path);
-//                return "HTML results file not found at path: " + path;
-//            }
+            Path directory = Paths.get("~/app/results/");
+
+
+
+            try (Stream<Path> paths = Files.list(directory)) {
+                resultsDir = String.valueOf(paths.findFirst());
+                resultsPath = resultsDir + "/js/stats.json";
+            } catch (IOException e) {
+                e.printStackTrace();
+                resultsPath = "not found";
+            }
+
+            File file = new File(resultsPath);
+            byte[] fileContent = Files.readAllBytes(file.toPath());
+            return new String(fileContent);
+
         } catch (Exception e) {
             e.printStackTrace();
             return "Error executing Gatling test.";
         } finally {
-//            System.setOut(old);
-//            ps.close();
-//            if (!resultsPath.equals("not found")) {
-//                File file = new File(resultsPath);
-//                deleteFolder(file);
-//            }
+            if (!resultsPath.equals("not found")) {
+                File file = new File(resultsDir);
+                deleteFolder(file);
+            }
         }
-        return "Gatling test executed successfully.";
     }
 
     public static void deleteFolder(File folder) {
