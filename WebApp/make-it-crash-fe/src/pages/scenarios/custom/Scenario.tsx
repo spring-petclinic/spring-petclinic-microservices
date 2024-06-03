@@ -1,7 +1,8 @@
 import Button from '@mui/material/Button';
 import axios from 'axios';
 import { useCollapse } from "react-collapsed";
-
+import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
+import KeyboardDoubleArrowDownIcon from '@mui/icons-material/KeyboardDoubleArrowDown';
 
 function Scenario({ title, text, path }: { title: string, text: string, path: string }) {
     const startTest = () => {
@@ -12,12 +13,13 @@ function Scenario({ title, text, path }: { title: string, text: string, path: st
         });
     }
 
-    const { getCollapseProps, getToggleProps } = useCollapse();
+    const { getCollapseProps, getToggleProps, isExpanded } = useCollapse();
 
     return (
         <div className="collapsible">
             <div className="header" {...getToggleProps()}>
-                {/* {isExpanded ? `${title} - Klicke zum Schließen` : `${title} - Klicke zum Erweitern`} */}
+                {!isExpanded && <KeyboardDoubleArrowRightIcon />}
+                {isExpanded && <KeyboardDoubleArrowDownIcon />}
                 {title}
             </div>
             <div {...getCollapseProps()}>
