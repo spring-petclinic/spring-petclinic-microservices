@@ -23,7 +23,7 @@
         <module>spring-petclinic-config-server</module>
         <module>spring-petclinic-discovery-server</module>
         <module>spring-petclinic-api-gateway</module>
-        <module>load-testing</module>
+        <module>WebApp/make-it-crash-be</module>
     </modules>
 
     <properties>

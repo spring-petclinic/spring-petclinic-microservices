@@ -1,5 +1,6 @@
 package org.springframework.samples.petclinic.gatling.controller;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import io.gatling.app.Gatling;
 import io.gatling.core.config.GatlingPropertiesBuilder;
@@ -19,17 +20,44 @@ import java.util.regex.Pattern;
 @CrossOrigin(origins = "*")
 public class GatlingController {
 
+    @Value("${gateway.url}")
+    private String gatewayUrl;
+
     @GetMapping()
     public String index() {
         return "Gatling test controller.";
     }
 
-    @GetMapping("/run")
-    public String runCustomGatlingTest(
+    @GetMapping("/url")
+    public String url() {
+        return gatewayUrl;
+    }
+
+    @GetMapping("/loadtest/vets")
+    public String runVetsLoadtest(
         @RequestParam(value = "users", defaultValue = "60") int users,
         @RequestParam(value = "duration", defaultValue = "30") int duration) {
 
         String simulationClass = "org.springframework.samples.petclinic.gatling.simulations.VetsCustomers";
+
+        return GatlingTests(simulationClass, users, duration);
+    }
+    @GetMapping("/loadtest/owners")
+    public String runOwnersLoadtest(
+        @RequestParam(value = "users", defaultValue = "60") int users,
+        @RequestParam(value = "duration", defaultValue = "30") int duration) {
+
+        String simulationClass = "org.springframework.samples.petclinic.gatling.simulations.OwnerInformationLoadTest";
+
+        return GatlingTests(simulationClass, users, duration);
+    }
+
+    @GetMapping("/loadtest/customers")
+    public String runCusomersLoadtest(
+        @RequestParam(value = "users", defaultValue = "60") int users,
+        @RequestParam(value = "duration", defaultValue = "30") int duration) {
+
+        String simulationClass = "org.springframework.samples.petclinic.gatling.simulations.CustomersLoadTest";
 
         return GatlingTests(simulationClass, users, duration);
     }
