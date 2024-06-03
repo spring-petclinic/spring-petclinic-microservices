@@ -18,6 +18,7 @@ package org.springframework.samples.petclinic.vets.web;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.cache.annotation.Cacheable;
@@ -64,20 +65,19 @@ class VetResource {
     }
 
     @GetMapping(value = "/{vetId}/chose")
-    private int choseVet(@PathVariable("vetId") @Min(1) int vetId) {
+    public int choseVet(@PathVariable("vetId") @Min(1) int vetId) {
 
-        Boolean isAvailable = isAvailable(vetId);
+        Vet current = vetRepository.findById(vetId).orElseThrow();
 
-        if (isAvailable != null && isAvailable) {
-            return (vetId);
-        } else {
-            try {
-                int substitute = getSubstitute(vetId);
-                return choseVet(substitute);
-            } catch (RuntimeException e) {
-                throw new RuntimeException("No available vet found");
+        while(current.getAvailable()== null || !current.getAvailable()){
+            try{
+                current = vetRepository.findById(current.getSubstitute()).orElseThrow();
+            } catch (IllegalArgumentException e){
+                return -1;
             }
         }
+
+        return current.getId();
     }
 
     @GetMapping(value = "/{vetId}/sub")
