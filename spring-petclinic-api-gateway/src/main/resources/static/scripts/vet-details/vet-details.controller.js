@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('vetDetails')
-    .controller('VetDetailsController', ['$http', '$stateParams', function ($http, $stateParams) {
+    .controller('VetDetailsController', ['$http', '$state', '$stateParams', function ($http, $state, $stateParams) {
         var self = this;
         self.selectedVetId = null;
 
@@ -29,6 +29,7 @@ angular.module('vetDetails')
             $http.post("api/vet/vets/" + vetId + "/available", self.available);
         }
 
+        var req;
         self.submitVet =  function () {
             if (self.selectedVetId == null){
                 return;
@@ -37,12 +38,9 @@ angular.module('vetDetails')
             var vetId = $stateParams.vetId;
             var substitute = self.selectedVetId;
 
-            $http.post("api/vet/vets/" + vetId + "/sub", substitute);
+            req = $http.post("api/vet/vets/" + vetId + "/sub", substitute);
+            req.then(function () {
+                $state.go('vets');
+            });
         }
-
-            // req.then(function () {
-            //     $state.go('vetDetails', {vetId: self.vet.id});
-            // });
-
-
     }]);
