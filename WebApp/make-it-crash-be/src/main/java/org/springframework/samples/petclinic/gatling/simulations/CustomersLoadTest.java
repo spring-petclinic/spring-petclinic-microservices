@@ -7,6 +7,10 @@ import io.gatling.javaapi.http.HttpProtocolBuilder;
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.http;
 
+
+@Value("${gateway.url}")
+private String gatewayUrl;
+
 /**
  * This Load Test checks the performance of getting all owners..
  */
@@ -14,7 +18,7 @@ public class CustomersLoadTest extends Simulation {
 
     int users = Integer.parseInt(System.getProperty("gatling.users", "60"));
     int duration = Integer.parseInt(System.getProperty("gatling.duration", "30"));
-    HttpProtocolBuilder httpProtocol = http.baseUrl("http://localhost:8080")
+    HttpProtocolBuilder httpProtocol = http.baseUrl(gatewayUrl)
         .acceptHeader("application/json")
         .contentTypeHeader("application/json");
 
