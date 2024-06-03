@@ -78,7 +78,9 @@ public class GatlingController {
             System.out.println("Starting Gatling test with simulationClass: " + simulationClass);
             Gatling.fromMap(props.build());
 
+            System.setOut(old);
             System.out.flush();
+
 
             String gatlingOutput = baos.toString();
             System.out.println("Gatling output: " + gatlingOutput);
