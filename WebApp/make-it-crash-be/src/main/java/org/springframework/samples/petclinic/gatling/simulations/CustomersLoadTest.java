@@ -3,18 +3,20 @@ package org.springframework.samples.petclinic.gatling.simulations;
 import io.gatling.javaapi.core.ScenarioBuilder;
 import io.gatling.javaapi.core.Simulation;
 import io.gatling.javaapi.http.HttpProtocolBuilder;
+import org.springframework.beans.factory.annotation.Value;
 
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.http;
 
 
-@Value("${gateway.url}")
-private String gatewayUrl;
-
 /**
  * This Load Test checks the performance of getting all owners..
  */
+
 public class CustomersLoadTest extends Simulation {
+
+    @Value("${gateway.url}")
+    private String gatewayUrl;
 
     int users = Integer.parseInt(System.getProperty("gatling.users", "60"));
     int duration = Integer.parseInt(System.getProperty("gatling.duration", "30"));
