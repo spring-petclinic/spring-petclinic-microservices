@@ -10,12 +10,11 @@ import static io.gatling.javaapi.core.CoreDsl.scenario;
 import static io.gatling.javaapi.http.HttpDsl.http;
 
 
-
-
 public class VetsCustomers extends Simulation {
 
     @Value("${gateway.url}")
     private String gatewayUrl;
+
 
     int users = Integer.parseInt(System.getProperty("gatling.users", "60"));
     int duration = Integer.parseInt(System.getProperty("gatling.duration", "30"));

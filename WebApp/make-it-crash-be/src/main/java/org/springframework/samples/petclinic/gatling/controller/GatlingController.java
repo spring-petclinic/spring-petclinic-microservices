@@ -1,5 +1,6 @@
 package org.springframework.samples.petclinic.gatling.controller;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import io.gatling.app.Gatling;
 import io.gatling.core.config.GatlingPropertiesBuilder;
@@ -19,9 +20,17 @@ import java.util.regex.Pattern;
 @CrossOrigin(origins = "*")
 public class GatlingController {
 
+    @Value("${gateway.url}")
+    private String gatewayUrl;
+
     @GetMapping()
     public String index() {
         return "Gatling test controller.";
+    }
+
+    @GetMapping("/url")
+    public String url() {
+        return gatewayUrl;
     }
 
     @GetMapping("/loadtest/vets")
