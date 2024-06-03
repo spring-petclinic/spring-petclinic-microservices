@@ -99,7 +99,7 @@ public class GatlingController {
                 path += "/js/stats.json";
             }
             System.out.println("Results path: " + path);
-            //System.out.println("Gatling output: " + gatlingOutput);
+            System.out.println("Gatling output: " + gatlingOutput);
 
             File file = new File(path);
             if (file.exists()) {
