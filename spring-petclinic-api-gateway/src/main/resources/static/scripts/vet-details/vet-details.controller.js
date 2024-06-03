@@ -3,7 +3,7 @@
 angular.module('vetDetails')
     .controller('VetDetailsController', ['$http', '$state', '$stateParams', function ($http, $state, $stateParams) {
         var self = this;
-        self.selectedVetId = null;
+        //self.selectedVetId = null;
 
         $http.get('api/vet/vets').then(function (resp) {
             self.vetList = resp.data;
@@ -17,12 +17,12 @@ angular.module('vetDetails')
             self.available = resp.data;
         });
 
-        let aktuelleZeit = new Date();
-        let stunden = aktuelleZeit.getHours();
-        let minuten = aktuelleZeit.getMinutes();
-        let sekunden = aktuelleZeit.getSeconds();
-        console.log(`Aktuelle Zeit: ${stunden}:${minuten}:${sekunden}`);
-
+        $http.get('api/vet/vets/' + $stateParams.vetId+'/sub').then(function (resp){
+            self.selectedVetId = resp.data;
+            if(self.selectedVetId === -1){
+                self.selectedVetId = 0;
+            }
+        });
 
         self.setAvailable = function(){
             let vetId = self.vet.id;

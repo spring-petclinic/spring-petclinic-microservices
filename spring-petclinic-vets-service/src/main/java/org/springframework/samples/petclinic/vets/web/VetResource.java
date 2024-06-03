@@ -86,4 +86,14 @@ class VetResource {
         if(vet.getAvailable()==null) return false;
         return vet.getAvailable();
     }
+
+    @GetMapping(value = "/{vetId}/sub")
+    public int getSubstitute(
+        @PathVariable("vetId") @Min(1) int vetId){
+        Vet vet = vetRepository.findById(vetId).
+            orElseThrow();
+        System.out.printf("DEBUG: Substitute von %d wurde ist Bereits %d.\n",vetId,vet.getSubstitute());
+        if(vet.getSubstitute()==null) return -1;
+        return vet.getSubstitute();
+    }
 }
