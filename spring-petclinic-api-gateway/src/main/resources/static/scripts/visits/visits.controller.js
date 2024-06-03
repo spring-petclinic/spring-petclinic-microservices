@@ -18,17 +18,18 @@ angular.module('visits')
         });
 
         self.submit = function () {
-            $http.get('api/vet/vets/'+ self.selectedVetId + '/chose').then(function (resp) {
-                self.selectedVet = resp.data;
-            });
-            var data = {
-                date: $filter('date')(self.date, "yyyy-MM-dd"),
-                description: self.desc,
-                vet: self.selectedVetId
-            };
+            $http.get('api/vet/vets/' + self.selectedVetId + '/chose').then(function (resp) {
+                    self.selectedVet = resp.data;
+                    var data = {
+                        date: $filter('date')(self.date, "yyyy-MM-dd"),
+                        description: self.desc,
+                        vet: self.selectedVetId
+                    };
 
-            $http.post(url, data).then(function () {
-                $state.go('ownerDetails', { ownerId: $stateParams.ownerId });
-            });
+                    $http.post(url, data).then(function () {
+                        $state.go('ownerDetails', {ownerId: $stateParams.ownerId});
+                    });
+                }
+            );
         };
     }]);
