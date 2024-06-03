@@ -105,7 +105,7 @@ public class GatlingController {
             if (file.exists()) {
                 return new String(Files.readAllBytes(file.toPath()));
             } else {
-                return "HTML results file not found.";
+                return "HTML results file not found at path: " + path;
             }
         } catch (Exception e) {
             e.printStackTrace();
