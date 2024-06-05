@@ -34,7 +34,10 @@ public class GatlingController {
         return gatewayUrl;
     }
 
-    @GetMapping("/loadtest/vets")
+    @GetMapping(
+        value = "/loadtest/vets",
+        produces = "application/json"
+    )
     public String runVetsLoadtest(
         @RequestParam(value = "users", defaultValue = "60") int users,
         @RequestParam(value = "duration", defaultValue = "30") int duration) {
@@ -44,7 +47,10 @@ public class GatlingController {
         return GatlingTests(simulationClass, users, duration);
     }
 
-    @GetMapping("/loadtest/owners")
+    @GetMapping(
+        value = "/loadtest/owners",
+        produces = "application/json"
+    )
     public String runOwnersLoadtest(
         @RequestParam(value = "users", defaultValue = "60") int users,
         @RequestParam(value = "duration", defaultValue = "30") int duration) {
@@ -54,7 +60,10 @@ public class GatlingController {
         return GatlingTests(simulationClass, users, duration);
     }
 
-    @GetMapping("/loadtest/customers")
+    @GetMapping(
+        value = "/loadtest/customers",
+        produces = "application/json"
+    )
     public String runCustomersLoadtest(
         @RequestParam(value = "users", defaultValue = "60") int users,
         @RequestParam(value = "duration", defaultValue = "30") int duration) {

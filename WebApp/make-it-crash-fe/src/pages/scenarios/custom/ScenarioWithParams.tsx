@@ -55,11 +55,23 @@ const ScenarioWithParams = ({ title, text }) => {
 
         const path = selectedOption.path;
         axios
-            .get(`${process.env.API_URL}/${path}`, {
+            .get(path, {
+                baseURL: process.env.API_URL,
                 params: { users, duration },
+                responseType: 'json',
+                headers: { 'content-type': 'application/json' },
+                proxy: {
+                    protocol: 'http',
+                    host: '127.0.0.1',
+                    port: 8081,
+                  },
             })
             .then((response) => {
                 setShowSpinner(false);
+                if (response.status == 200 && response.data == 'Error executing Gatling test.') {
+                    console.error(response);
+                    return;
+                }
                 setData(response.data);
                 setMockValueReturned(false);
                 console.log(response);

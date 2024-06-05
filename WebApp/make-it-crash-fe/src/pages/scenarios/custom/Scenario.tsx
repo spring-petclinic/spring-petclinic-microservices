@@ -6,7 +6,7 @@ import KeyboardDoubleArrowDownIcon from '@mui/icons-material/KeyboardDoubleArrow
 
 function Scenario({ title, text, path }: { title: string, text: string, path: string }) {
     const startTest = () => {
-        axios.post(`${process.env.API_URL}/${path}`).then((response) => {
+        axios.get(`${process.env.API_URL}/${path}`).then((response) => { // TODO: need's to be fixed (best case outsourced to a service)
             console.log(response);
         }).catch((error) => {
             console.log(error);
