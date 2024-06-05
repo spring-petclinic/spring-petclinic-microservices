@@ -6,5 +6,5 @@ services:
   make-it-crash-fe:
     image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/make-it-crash-fe
     ports:
-      - "80:80"
+      - "8082:80"
 
