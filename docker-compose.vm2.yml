@@ -37,6 +37,7 @@ services:
     deploy:
       resources:
         limits:
+          cpus: '0.3'
           memory: 512M
     ports:
      - 8083:8083
