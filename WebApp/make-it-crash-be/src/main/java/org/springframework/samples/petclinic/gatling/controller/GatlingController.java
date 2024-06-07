@@ -43,6 +43,19 @@ public class GatlingController {
         @RequestParam(value = "users", defaultValue = "60") int users,
         @RequestParam(value = "duration", defaultValue = "30") int duration) {
 
+        String simulationClass = "org.springframework.samples.petclinic.gatling.simulations.VetsLoadTest";
+        System.out.println("Running Vets Loadtest with users: " + users + " and duration: " + duration);
+        return GatlingTests(simulationClass, users, duration);
+    }
+
+    @GetMapping(
+        value = "/loadtest/vets-customers",
+        produces = "application/json"
+    )
+    public String runVetsCustomersLoadtest(
+        @RequestParam(value = "users", defaultValue = "60") int users,
+        @RequestParam(value = "duration", defaultValue = "30") int duration) {
+
         String simulationClass = "org.springframework.samples.petclinic.gatling.simulations.VetsCustomers";
         System.out.println("Running Vets Loadtest with users: " + users + " and duration: " + duration);
         return GatlingTests(simulationClass, users, duration);
