@@ -78,7 +78,7 @@ public class GatlingController {
         try {
             Gatling.fromMap(props.build());
 
-            Path directory = Paths.get("~/app/results/");
+            Path directory = Paths.get("/app/results/");
 
 
 
