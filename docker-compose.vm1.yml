@@ -50,7 +50,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 1G
     depends_on:
       config-server:
         condition: service_healthy
