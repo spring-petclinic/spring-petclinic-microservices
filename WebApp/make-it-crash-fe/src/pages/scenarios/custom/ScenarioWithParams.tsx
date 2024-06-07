@@ -129,7 +129,7 @@ const ScenarioWithParams = ({ title, text }) => {
                                 </Alert>
                             )}
                         </div>
-                        <div>
+                        <div className="mb-3 d-flex flex-column align-items-center">
                             <Button
                                 variant="outlined"
                                 className="mb-3"
