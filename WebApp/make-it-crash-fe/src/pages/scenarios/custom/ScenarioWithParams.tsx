@@ -12,6 +12,8 @@ import {
     KeyboardDoubleArrowRight as RightArrowIcon,
     KeyboardDoubleArrowDown as DownArrowIcon,
 } from '@mui/icons-material';
+import { GATLING_RETURN_VALUE_MOCK } from '../../../testing/GatlingMock';
+import { GatlingResponse } from './GatlingResponseInterfaces';
 
 const options = [
     { label: 'Vets Service', path: 'vets' },
@@ -19,20 +21,22 @@ const options = [
     { label: 'Customers Service', path: 'customers' },
 ];
 
-const Scenario = ({ title, text }) => {
+const ScenarioWithParams = ({ title, text }) => {
     const { getCollapseProps, getToggleProps, isExpanded } = useCollapse();
 
     const [amountUser, setAmountUser] = useState('');
     const [duration, setDuration] = useState('');
     const [inputValue, setInputValue] = useState('');
-    const [data, setData] = useState([]);
+    const [data, setData] = useState<GatlingResponse | null>(null);
 
     const [showSpinner, setShowSpinner] = useState(false);
     const [usersEmpty, setUsersEmpty] = useState(false);
     const [durationEmpty, setDurationEmpty] = useState(false);
     const [serviceEmpty, setServiceEmpty] = useState(false);
 
-    const validateInputs = (users, duration, selectedOption) => {
+    const [mockValueReturned, setMockValueReturned] = useState(false);
+
+    const validateInputs = (users: string, duration: string, selectedOption: { label: string; path: string; }) => {
         setUsersEmpty(users === '');
         setDurationEmpty(duration === '');
         setServiceEmpty(selectedOption === undefined);
@@ -40,7 +44,7 @@ const Scenario = ({ title, text }) => {
         return users !== '' && duration !== '' && selectedOption !== undefined;
     };
 
-    const startTest = (users, duration) => {
+    const startTest = (users: string, duration: string) => {
         setShowSpinner(true);
 
         const selectedOption = options.find((option) => option.label === inputValue);
@@ -51,16 +55,31 @@ const Scenario = ({ title, text }) => {
 
         const path = selectedOption.path;
         axios
-            .get(`${process.env.API_URL}/${path}`, {
+            .get(path, {
+                baseURL: process.env.API_URL,
                 params: { users, duration },
+                responseType: 'json',
+                headers: { 'content-type': 'application/json' },
+                proxy: {
+                    protocol: 'http',
+                    host: '127.0.0.1',
+                    port: 8081,
+                  },
             })
             .then((response) => {
                 setShowSpinner(false);
+                if (response.status == 200 && response.data == 'Error executing Gatling test.') {
+                    console.error(response);
+                    return;
+                }
                 setData(response.data);
+                setMockValueReturned(false);
                 console.log(response);
             })
             .catch((error) => {
                 setShowSpinner(false);
+                setData(GATLING_RETURN_VALUE_MOCK);
+                setMockValueReturned(true);
                 console.error(error);
             });
     };
@@ -98,6 +117,7 @@ const Scenario = ({ title, text }) => {
                                 onInputChange={(event, newInputValue) => {
                                     setInputValue(newInputValue);
                                 }}
+                                isOptionEqualToValue={(option, value) => option.label === value.label}
                                 sx={{ width: 300 }}
                                 renderInput={(params) => (
                                     <TextField {...params} label="Bitte Service auswählen..." />
@@ -120,6 +140,12 @@ const Scenario = ({ title, text }) => {
                             {showSpinner && <CircularProgress />}
                         </div>
                     </form>
+                    <div>
+                        {mockValueReturned && <Alert severity="info">Mock value returned</Alert>}
+                        <div className="mt-3">
+                            {data && <ErrorDataDisplay data={data} />}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -145,4 +171,38 @@ const InputField = ({ label, value, onChange, error, errorMessage }) => (
     </div>
 );
 
-export default Scenario;
+const ErrorDataDisplay = ({ data }) => (
+    <div className="error-data-display">
+        <h3>Gatling</h3>
+
+        <h5 className="mt-3">Total</h5>
+        <p>Mean response time: {data.stats.meanResponseTime.total}</p>
+        <p>Total requests: {data.stats.numberOfRequests.total}</p>
+        <p>OKs: {data.stats.numberOfRequests.ok}</p>
+        <p>KOs: {data.stats.numberOfRequests.ko}</p>
+
+
+        {Object.keys(data.contents).map((key) => {
+            const request = data.contents[key];
+            return (
+                <div key={key}>
+                    <h5 className="mt-5">{capitalizeWords(request.name)}</h5>
+                    <p>Mean response time: {request.stats.meanResponseTime.total}</p>
+                    <p>Total requests: {request.stats.numberOfRequests.total}</p>
+                    <p>OKs: {request.stats.numberOfRequests.ok}</p>
+                    <p>KOs: {request.stats.numberOfRequests.ko}</p>
+                </div>
+            );
+        })}
+
+    </div>
+);
+
+function capitalizeWords(input: string): string {
+    return input
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+}
+
+export default ScenarioWithParams;
