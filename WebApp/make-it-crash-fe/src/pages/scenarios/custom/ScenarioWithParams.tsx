@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useCollapse } from 'react-collapsed';
 import axios from 'axios';
 import {
     Button,
-    CircularProgress,
     TextField,
     Autocomplete,
     Alert,
+    LinearProgress,
+    Box,
 } from '@mui/material';
 import {
     KeyboardDoubleArrowRight as RightArrowIcon,
@@ -35,6 +36,31 @@ const ScenarioWithParams = ({ title, text }) => {
     const [serviceEmpty, setServiceEmpty] = useState(false);
 
     const [mockValueReturned, setMockValueReturned] = useState(false);
+    const [progress, setProgress] = useState(0);
+
+    useEffect(() => {
+        if (showSpinner) {
+            const totalSteps = (parseInt(duration) + 1) * 10;
+            const increment = 100 / totalSteps;
+            let steps = 0;
+
+            const timer = setInterval(() => {
+                setProgress((oldProgress) => {
+                    if (steps >= totalSteps) {
+                        clearInterval(timer);
+                        return 100;
+                    }
+                    steps += 1;
+                    return Math.min(oldProgress + increment, 100);
+                });
+            }, 100);
+
+            return () => {
+                clearInterval(timer);
+                setProgress(0);
+            };
+        }
+    }, [showSpinner]);
 
     const validateInputs = (users: string, duration: string, selectedOption: { label: string; path: string; }) => {
         setUsersEmpty(users === '');
@@ -137,7 +163,11 @@ const ScenarioWithParams = ({ title, text }) => {
                             >
                                 Test starten
                             </Button>
-                            {showSpinner && <CircularProgress />}
+                            {showSpinner && 
+                                <Box sx={{ width: '100%' }}>
+                                    <LinearProgress variant="determinate" value={progress}/>
+                                </Box>
+                            }
                         </div>
                     </form>
                     <div>
