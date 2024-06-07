@@ -6,6 +6,7 @@ import io.gatling.app.Gatling;
 import io.gatling.core.config.GatlingPropertiesBuilder;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Optional;
 import java.util.stream.Stream;
 import java.io.IOException;
 
@@ -83,25 +84,35 @@ public class GatlingController {
         String resultsDir = "";
         String resultsPath = "";
 
-
         try {
             Gatling.fromMap(props.build());
 
             Path directory = Paths.get("/app/results/");
 
-
-
             try (Stream<Path> paths = Files.list(directory)) {
-                resultsDir = String.valueOf(paths.findFirst());
-                resultsPath = resultsDir + "/js/stats.json";
+                Optional<Path> firstPath = paths.findFirst();
+                if (firstPath.isPresent()) {
+                    resultsDir = firstPath.get().toString();
+                    resultsPath = resultsDir + "/js/stats.json";
+                } else {
+                    resultsPath = "not found";
+                }
             } catch (IOException e) {
                 e.printStackTrace();
                 resultsPath = "not found";
             }
 
-            File file = new File(resultsPath);
-            byte[] fileContent = Files.readAllBytes(file.toPath());
-            return new String(fileContent);
+            if (!resultsPath.equals("not found")) {
+                File file = new File(resultsPath);
+                if (file.exists()) {
+                    byte[] fileContent = Files.readAllBytes(file.toPath());
+                    return new String(fileContent);
+                } else {
+                    return "Results file not found.";
+                }
+            } else {
+                return "Results directory not found.";
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
