@@ -20,7 +20,8 @@ import { InputField } from '../../../utils/InputField';
 
 const options = [
     { label: 'Vets Service', path: 'vets' },
-    { label: 'Owners Service', path: 'owners' },
+    { label: 'Vets & Customers Service', path: 'vets-customers' },
+    { label: 'Owners Service', path: 'owners-information' },
     { label: 'Customers Service', path: 'customers' },
 ];
 
@@ -119,7 +120,7 @@ const ScenarioWithParams = ({ title, text }) => {
             </div>
             <div {...getCollapseProps()}>
                 <div className="content">
-                    <p>{text}</p>
+                    <p className="mt-2 fst-italic">{text}</p>
                     <form>
                         <InputField
                             label="Anzahl Nutzer"

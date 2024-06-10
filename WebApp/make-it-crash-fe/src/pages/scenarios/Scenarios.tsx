@@ -4,11 +4,11 @@ import ScenarioWithParams from "./custom/ScenarioWithParams"
 function Scenarios() {
     return (
             <div>
-                <h1>Szenarien</h1>
-                <ul className="list-unstyled">
-                    <li className="mb-3"><Scenario title="Szenario 1" text="I'm a scenario!" path="foo"></Scenario></li>
-                    <li className="mb-3"><Scenario title="Szenario 2" text="Me too!" path="bar"></Scenario></li>
-                    <li className="mb-3"><Scenario title="Szenario 3" text="I'm another scenario!" path="baz"></Scenario></li>
+                <h1 className="fw-bold">Szenarien</h1>
+                <ul className="list-unstyled mt-3">
+                    <li className="mb-3"><Scenario title="Make Vets Crash!" text="Der Service wird ausgelastet und reagiert für eine gewisse Zeit nicht mehr." path="vets" duration="20" users=""></Scenario></li>
+                    <li className="mb-3"><Scenario title="Make Customers Crash!" text="Der Service wird ausgelastet und reagiert für eine gewisse Zeit nicht mehr." path="customers" duration="" users=""></Scenario></li>
+                    <li className="mb-3"><Scenario title="Make Visits Crash!" text="Der Service wird ausgelastet und reagiert für eine gewisse Zeit nicht mehr." path="visits" duration="" users=""></Scenario></li>
                     <li className="mb-3"><ScenarioWithParams title="Szenario mit flexiblen Parametern" text="Wähle in diesem Szenario deine bevorzugten Parameter aus."></ScenarioWithParams></li>
                 </ul>
             </div>

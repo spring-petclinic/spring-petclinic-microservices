@@ -11,7 +11,7 @@ function Home() {
 
     return (
         <div>
-            <h1>Willkommen bei "Make It Crash!"</h1>
+            <h1 className="fw-bold">Willkommen bei "Make It Crash!"</h1>
             <p>Bitte wähle dein gewünschtes Testing Szenario</p>
             <Button variant="outlined" onClick={routeChange}>Zu den Szenarien</Button>
         </div>
