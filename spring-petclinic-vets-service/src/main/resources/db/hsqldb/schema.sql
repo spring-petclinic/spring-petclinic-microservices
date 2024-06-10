@@ -5,7 +5,9 @@ DROP TABLE specialties IF EXISTS;
 CREATE TABLE vets (
   id         INTEGER IDENTITY PRIMARY KEY,
   first_name VARCHAR(30),
-  last_name  VARCHAR(30)
+  last_name  VARCHAR(30),
+  substitute INT,
+  available  BIT
 );
 CREATE INDEX vets_last_name ON vets (last_name);
 
@@ -21,3 +23,4 @@ CREATE TABLE vet_specialties (
 );
 ALTER TABLE vet_specialties ADD CONSTRAINT fk_vet_specialties_vets FOREIGN KEY (vet_id) REFERENCES vets (id);
 ALTER TABLE vet_specialties ADD CONSTRAINT fk_vet_specialties_specialties FOREIGN KEY (specialty_id) REFERENCES specialties (id);
+ALTER TABLE vets ADD CONSTRAINT fk_vet_substitute_vets FOREIGN KEY (substitute) REFERENCES vets (id);
