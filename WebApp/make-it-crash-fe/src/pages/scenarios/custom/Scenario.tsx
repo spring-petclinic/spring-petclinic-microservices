@@ -77,9 +77,9 @@ function Scenario({ title, text, path, duration, users }: { title: string, text:
     return (
         <div className="collapsible">
             <div className="header" {...getToggleProps()}>
-                {!isExpanded && <KeyboardDoubleArrowRightIcon />}
-                {isExpanded && <KeyboardDoubleArrowDownIcon />}
-                {title}
+                    {!isExpanded && <KeyboardDoubleArrowRightIcon />}
+                    {isExpanded && <KeyboardDoubleArrowDownIcon />}
+                    {title}
             </div>
             <div {...getCollapseProps()}>
                 <div className="content">

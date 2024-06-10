@@ -137,7 +137,7 @@ const ScenarioWithParams = ({ title, text }) => {
                             errorMessage="Bitte eine Dauer angeben."
                         />
                         <div className="mb-3 d-flex flex-column align-items-center">
-                            <p>An welchen Service soll der Test gehen:</p>
+                            <p className="fw-bold">An welchen Service soll der Test gehen:</p>
                             <Autocomplete
                                 disablePortal
                                 id="combo-box-service"

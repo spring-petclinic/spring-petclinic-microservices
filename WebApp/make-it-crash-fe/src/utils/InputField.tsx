@@ -2,7 +2,7 @@ import { Alert, TextField } from "@mui/material";
 
 export const InputField = ({ label, value, onChange, error, errorMessage }) => (
     <div className="mb-3 d-flex flex-column align-items-center">
-        <p>{label}:</p>
+        <p className="fw-bold">{label}:</p>
         <TextField
             id="outlined-basic"
             label={label}
