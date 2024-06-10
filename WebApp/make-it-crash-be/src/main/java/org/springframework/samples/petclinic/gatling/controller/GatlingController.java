@@ -62,7 +62,7 @@ public class GatlingController {
     }
 
     @GetMapping(
-        value = "/loadtest/owners",
+        value = "/loadtest/owners-information",
         produces = "application/json"
     )
     public String runOwnersLoadtest(

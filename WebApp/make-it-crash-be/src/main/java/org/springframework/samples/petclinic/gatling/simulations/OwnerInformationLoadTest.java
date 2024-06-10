@@ -28,7 +28,7 @@ public class OwnerInformationLoadTest extends Simulation {
         .contentTypeHeader("application/json");
 
     ScenarioBuilder owners = scenario("owner information Scenario")
-        .exec(http("owner information").get("/api/gateway/owners/5"));
+        .exec(http("owner information").get("/api/gateway/owners/6"));
 
     {
         setUp(
