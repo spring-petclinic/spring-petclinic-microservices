@@ -53,7 +53,7 @@ angular.module('petFiles')
 
                 }).then(function (response) {
                     self.files = response.data;
-                    $state.go('ownerDetails', { ownerId: ownerId });
+                    $state.go('ownerDetails', { ownerId: $stateParams.ownerId });
                 }).catch(function (error) {
                     alert("Es gibt einen Fehler beim Hochladen der Datei: " + error.message);
                 });
