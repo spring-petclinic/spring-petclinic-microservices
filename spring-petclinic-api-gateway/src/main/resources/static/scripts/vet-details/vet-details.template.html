@@ -8,23 +8,18 @@
             <form action="/submit-form">
                 <label for="available">Verfügbar</label>
                 <input type="checkbox" id="available" name="available" ng-checked="$ctrl.available" ng-model="$ctrl.available" ng-change="$ctrl.setAvailable()" >
-                <!-- <input type="submit" value="Submit"> -->
             </form>
         </td>
     </tr>
     <tr>
         <td>
             <div class="form-group">
-                <label>Veterinarian</label>
-                <select class="form-control" ng-model="$ctrl.selectedVetId" required>
-                    <option ng-repeat="vet in $ctrl.vetList" value="{{vet.id}}">{{vet.firstName}} {{vet.lastName}}</option>
+                <label>Substitute </label>
+                <select class="form-control" ng-model="$ctrl.selectedVetId" ng-options="vet.id as (vet.firstName + ' ' + vet.lastName) for vet in $ctrl.vetList" >
                 </select>
             </div>
-
             <a ng-click="$ctrl.submitVet()" ui-sref="vetNew({vetId: $ctrl.vet.id})" class="btn btn-default">Choose substitute</a>
-            <!-- <a ui-sref="vetNew({vetId: $ctrl.vet.id})" class="btn btn-default" ng-click="$ctrl.updateSubstituteInfo()">Choose substitute</a> -->
         </td>
-
     </tr>
 </table>
 
