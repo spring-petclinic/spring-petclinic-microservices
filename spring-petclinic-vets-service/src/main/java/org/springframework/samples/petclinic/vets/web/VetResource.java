@@ -79,13 +79,7 @@ class VetResource {
         }
     }
 
-    @GetMapping(value = "/{vetId}/sub")
-    public int getSubstitute(
-        @PathVariable("vetId") @Min(1) int vetId) {
-        Vet vet = vetRepository.findById(vetId).
-            orElseThrow();
-        return vet.getSubstitute();
-    }
+
 
 
     @PostMapping(value = "/{vetId}/available")
