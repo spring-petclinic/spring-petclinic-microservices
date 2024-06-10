@@ -30,6 +30,9 @@ angular.module('visits')
                         description: self.desc,
                         vetId: availableVet
                     };
+                    if(self.selectedVetId !== data.vetId){
+                        alert("Originally requested vet is not available, substitute was booked instead.")
+                    }
                     console.log("DEBUG: data= "+ data)
                     $http.post(url, data).then(function () {
                         $state.go('ownerDetails', {ownerId: $stateParams.ownerId});
