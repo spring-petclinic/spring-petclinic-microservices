@@ -23,4 +23,4 @@ generated/
 .DS_Store
 docker/GHCR_TOKEN.txt
 
-WebApp/results
+results/
