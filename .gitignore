@@ -19,3 +19,8 @@ target/
 
 # Branch switching
 generated/
+
+.DS_Store
+docker/GHCR_TOKEN.txt
+
+results/

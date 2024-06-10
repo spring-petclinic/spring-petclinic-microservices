@@ -3,4 +3,5 @@ spring:
     config:
       server:
         git:
-          uri: https://github.com/spring-petclinic/spring-petclinic-microservices-config
+          uri: https://github.com/Lon3035/spring-petclinic-microservices-config/tree/${BRANCH}
+
