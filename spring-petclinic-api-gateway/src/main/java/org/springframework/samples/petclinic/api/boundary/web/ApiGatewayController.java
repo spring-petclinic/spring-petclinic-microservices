@@ -22,10 +22,7 @@ import org.springframework.samples.petclinic.api.application.CustomersServiceCli
 import org.springframework.samples.petclinic.api.application.VisitsServiceClient;
 import org.springframework.samples.petclinic.api.dto.OwnerDetails;
 import org.springframework.samples.petclinic.api.dto.Visits;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import java.util.function.Function;
@@ -37,6 +34,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/gateway")
+@CrossOrigin(origins = "*")
 public class ApiGatewayController {
 
     private final CustomersServiceClient customersServiceClient;
