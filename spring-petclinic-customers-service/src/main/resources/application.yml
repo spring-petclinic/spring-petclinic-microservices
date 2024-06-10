@@ -25,5 +25,5 @@ spring:
       on-profile: vm
     import: configserver:http://141.22.10.81:8888
 
-  database:
-    initialize: false
+database:
+  initialize: false
