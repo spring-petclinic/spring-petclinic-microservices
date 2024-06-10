@@ -18,14 +18,24 @@ angular.module('visits')
         });
 
         self.submit = function () {
-            var data = {
-                date: $filter('date')(self.date, "yyyy-MM-dd"),
-                description: self.desc,
-                //vet: self.selectedVetId
-            };
-
-            $http.post(url, data).then(function () {
-                $state.go('ownerDetails', { ownerId: $stateParams.ownerId });
-            });
+            $http.get('api/vet/vets/' + self.selectedVetId + '/chose').then(function (resp) {
+                    var availableVet = resp.data;
+                    console.log("DEBUG: availableVet= "+ availableVet)
+                    if (availableVet === -1) {
+                        alert("Vet and their substitute are not available at this time");
+                        return;
+                    }
+                    var data = {
+                        date: $filter('date')(self.date, "yyyy-MM-dd"),
+                        description: self.desc,
+                        vetId: availableVet
+                    };
+                    console.log("DEBUG: data= "+ data)
+                    $http.post(url, data).then(function () {
+                        $state.go('ownerDetails', {ownerId: $stateParams.ownerId});
+                    });
+                    alert("Visit added")
+                }
+            );
         };
     }]);
