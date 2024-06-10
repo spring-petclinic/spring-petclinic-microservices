@@ -8,9 +8,16 @@ spring:
   profiles:
     active: production
 
+database:
+  initialize: false
+
+
 ---
 spring:
   config:
     activate:
       on-profile: docker
     import: configserver:http://config-server:8888
+
+database:
+  initialize: false
