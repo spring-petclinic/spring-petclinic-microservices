@@ -40,7 +40,6 @@ class VetResource {
     private final VetRepository vetRepository;
 
     @GetMapping
-    @Cacheable("vets")
     public List<Vet> showResourcesVetList() {
         return vetRepository.findAll();
     }

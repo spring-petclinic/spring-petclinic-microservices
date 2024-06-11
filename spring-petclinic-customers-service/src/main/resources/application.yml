@@ -14,7 +14,12 @@ server:
     max-http-form-post-size: 1000GB
   undertow:
     max-http-post-size: 1000GB
+
+database:
+  initialize: false
+
 ---
+
 spring:
   config:
     activate:
@@ -31,3 +36,16 @@ server:
     max-http-form-post-size: 1000GB
   undertow:
     max-http-post-size: 1000GB
+
+database:
+  initialize: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile: vm
+    import: configserver:http://141.22.10.81:8888
+
+database:
+  initialize: false
