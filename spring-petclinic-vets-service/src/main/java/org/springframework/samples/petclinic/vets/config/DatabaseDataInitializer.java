@@ -20,9 +20,9 @@ public class DatabaseDataInitializer {
         this.initialize = initialize;
     }
 
-    @PostConstruct
-    private void init() {
-        if (initialize) {
+//    @PostConstruct
+    public void init() {
+//        if (initialize) {
             int numberOfInserts = 50000;
             String[] firstNames = {"Alice", "Bob", "Emma", "David", "Olivia", "Ethan", "Sophia", "Michael", "Ava", "Daniel", "Isabella", "Matthew", "Mia", "James", "Charlotte", "Alexander", "Amelia", "Benjamin", "Harper", "William"};
             String[] lastNames = {"Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin"};
@@ -42,6 +42,6 @@ public class DatabaseDataInitializer {
                     firstName, lastName);
                 jdbcTemplate.execute(sql);
             }
-        }
+//        }
     }
 }

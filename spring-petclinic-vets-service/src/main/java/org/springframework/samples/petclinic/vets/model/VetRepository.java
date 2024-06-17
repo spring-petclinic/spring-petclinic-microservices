@@ -16,6 +16,12 @@
 package org.springframework.samples.petclinic.vets.model;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * Repository class for <code>Vet</code> domain objects All method names are compliant with Spring Data naming
@@ -28,4 +34,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author Maciej Szarlinski
  */
 public interface VetRepository extends JpaRepository<Vet, Integer> {
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM Vet v WHERE v.id > 6")
+    void deleteVetsWithIdGreaterThanSix();
 }

@@ -17,14 +17,14 @@ package org.springframework.samples.petclinic.vets.web;
 
 import lombok.RequiredArgsConstructor;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.samples.petclinic.vets.config.DatabaseDataInitializer;
 import org.springframework.samples.petclinic.vets.model.Vet;
 import org.springframework.samples.petclinic.vets.model.VetRepository;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @author Juergen Hoeller
@@ -39,10 +39,22 @@ import org.springframework.web.bind.annotation.RestController;
 class VetResource {
 
     private final VetRepository vetRepository;
+    private final DatabaseDataInitializer databaseDataInitializer;
 
     @GetMapping
     @Cacheable("vets")
     public List<Vet> showResourcesVetList() {
         return vetRepository.findAll();
     }
+
+    @PostMapping("/initVets")
+    public void initDatabase() {
+        databaseDataInitializer.init();
+    }
+
+    @DeleteMapping("/deleteVets")
+    public void deleteVetsWithIdGreaterThanSix() {
+        vetRepository.deleteVetsWithIdGreaterThanSix();
+    }
+
 }
