@@ -1,0 +1,27 @@
+<h2>Vet Information</h2>
+
+<table class="table table-striped">
+    <tr>
+        <th class="col-sm-3">Name</th>
+        <td><b>{{$ctrl.vet.firstName}} {{$ctrl.vet.lastName}}</b></td>
+        <td>
+            <form action="/submit-form">
+                <label for="available">Verfügbar</label>
+                <input type="checkbox" id="available" name="available" ng-checked="$ctrl.available" ng-model="$ctrl.available" ng-change="$ctrl.setAvailable()" >
+            </form>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div class="form-group">
+                <label>Substitute </label>
+                <select class="form-control" ng-model="$ctrl.selectedVetId" ng-options="vet.id as (vet.firstName + ' ' + vet.lastName) for vet in $ctrl.vetList" >
+                </select>
+            </div>
+            <a ng-click="$ctrl.submitVet()" ui-sref="vetNew({vetId: $ctrl.vet.id})" class="btn btn-default">Choose substitute</a>
+        </td>
+    </tr>
+</table>
+
+
+

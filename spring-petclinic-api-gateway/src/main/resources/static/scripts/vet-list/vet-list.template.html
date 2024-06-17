@@ -7,8 +7,12 @@
     </tr>
     </thead>
 
-    <tr ng-repeat="vet in $ctrl.vetList">
-        <td>{{vet.firstName}} {{vet.lastName}}</td>
+    <tr ng-repeat="vet in $ctrl.vetList | filter:$ctrl.query track by vet.id">
+        <td>
+            <a ui-sref="vetDetails({ vetId: vet.id })">
+                {{vet.firstName}} {{vet.lastName}}
+            </a>
+        </td>
         <td><span ng-repeat="specialty in vet.specialties">{{specialty.name + ' '}}</span></td>
 
     </tr>

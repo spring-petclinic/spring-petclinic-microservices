@@ -25,6 +25,16 @@ CREATE TABLE pets (
   type_id    INTEGER NOT NULL,
   owner_id   INTEGER NOT NULL
 );
+
+CREATE TABLE files (
+  id        INTEGER IDENTITY PRIMARY KEY,
+  data      BLOB,
+  description   VARCHAR(250),
+  date      DATE,
+  pet_id    INTEGER NOT NULL
+);
+
 ALTER TABLE pets ADD CONSTRAINT fk_pets_owners FOREIGN KEY (owner_id) REFERENCES owners (id);
 ALTER TABLE pets ADD CONSTRAINT fk_pets_types FOREIGN KEY (type_id) REFERENCES types (id);
+ALTER TABLE files ADD CONSTRAINT fk_files_pet FOREIGN KEY (pet_id) REFERENCES pets (id);
 CREATE INDEX pets_name ON pets (name);

@@ -15,21 +15,15 @@
  */
 package org.springframework.samples.petclinic.customers.model;
 
-import java.util.Date;
+import java.io.File;
+import java.util.*;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
+import jakarta.persistence.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import org.springframework.beans.support.MutableSortDefinition;
+import org.springframework.beans.support.PropertyComparator;
 import org.springframework.core.style.ToStringCreator;
 
 /**
@@ -64,6 +58,24 @@ public class Pet {
     @JoinColumn(name = "owner_id")
     @JsonIgnore
     private Owner owner;
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "pet")
+    private Set<PetFile> files;
+
+    protected Set<PetFile> getFilesInternal() {
+        if (this.files == null) {
+            this.files = new HashSet<>();
+        }
+        return this.files;
+    }
+
+    public List<PetFile> getFiles() {
+        return new ArrayList<>(getFilesInternal());
+    }
+
+    public void addFile(PetFile file) {
+        files.add(file);
+    }
 
     @Override
     public String toString() {

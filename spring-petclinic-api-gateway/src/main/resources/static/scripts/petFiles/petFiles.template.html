@@ -1,0 +1,31 @@
+<h2>Pet Files</h2>
+
+<form ng-submit="$ctrl.uploadFile()">
+    <div class="form-group">
+        <label>Date</label>
+        <input type="date" class="form-control" ng-model="$ctrl.date" required>
+    </div>
+
+    <div class="form-group">
+        <label>Description</label>
+        <textarea class="form-control" ng-model="$ctrl.desc" style="resize:vertical;" required></textarea>
+    </div>
+
+    <div class="form-group">
+        <label>File</label>
+        <input type="file" name="file" id="file" required>
+    </div>
+
+    <div class="form-group">
+        <button class="btn btn-default" type="submit">Upload File</button>
+    </div>
+</form>
+
+<h3>Uploaded Files</h3>
+<table class="table">
+    <tr ng-repeat="file in $ctrl.files">
+        <td class="col-sm-2">{{file.date}}</td>
+        <td>{{file.description}}</td>
+        <td><a href="{{file.url}}" target="_blank">Download</a></td>
+    </tr>
+</table>
