@@ -20,9 +20,8 @@ public class DatabaseDataInitializer {
         this.initialize = initialize;
     }
 //    @PostConstruct
-    public void init() {
+    public void init(int numberOfInserts) {
 //        if (initialize) {
-            int numberOfInserts = 50000;
             String[] firstNames = {"George", "Betty", "Eduardo", "Harold", "Peter", "Jean", "Jeff", "Maria", "David", "Carlos", "Lisa", "Paul", "Nina", "Oscar", "Chloe", "Lucas", "Ella", "Mason", "Grace", "Ethan"};
             String[] lastNames = {"Franklin", "Davis", "Rodriquez", "Davis", "McTavish", "Coleman", "Black", "Escobito", "Schroeder", "Estaban", "Parker", "Murphy", "Bailey", "Cooper", "Morgan", "Bell", "Rivera", "Cook", "Griffin", "Kelly"};
             String[] addresses = {"110 W. Liberty St.", "638 Cardinal Ave.", "2693 Commerce St.", "563 Friendly St.", "2387 S. Fair Way", "105 N. Lake St.", "1450 Oak Blvd.", "345 Maple St.", "2749 Blackhawk Trail", "2335 Independence La."};

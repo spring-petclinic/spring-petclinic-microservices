@@ -116,10 +116,10 @@ class VetResource {
         if(vet.getSubstitute()==null) return -1;
         return vet.getSubstitute();
     }
-  
+
     @PostMapping("/initVets")
-    public void initDatabase() {
-        databaseDataInitializer.init();
+    public void initDatabase(@RequestParam(value = "inserts", defaultValue = "50000") int inserts) {
+        databaseDataInitializer.init(inserts);
     }
 
     @DeleteMapping("/deleteVets")

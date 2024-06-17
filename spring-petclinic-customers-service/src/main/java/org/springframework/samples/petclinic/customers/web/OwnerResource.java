@@ -91,8 +91,8 @@ class OwnerResource {
         ownerRepository.save(ownerModel);
     }
     @PostMapping("/initOwner")
-    public void initDatabase() {
-        databaseDataInitializer.init();
+    public void initDatabase(@RequestParam(value = "inserts", defaultValue = "50000") int inserts) {
+        databaseDataInitializer.init(inserts);
     }
 
     @DeleteMapping("/deleteOwners")
