@@ -20,12 +20,17 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.HttpStatus;
+import org.springframework.samples.petclinic.customers.config.DatabaseDataInitializer;
 import org.springframework.samples.petclinic.customers.web.mapper.OwnerEntityMapper;
 import org.springframework.samples.petclinic.customers.model.Owner;
 import org.springframework.samples.petclinic.customers.model.OwnerRepository;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,6 +50,7 @@ class OwnerResource {
 
     private final OwnerRepository ownerRepository;
     private final OwnerEntityMapper ownerEntityMapper;
+    private final DatabaseDataInitializer databaseDataInitializer;
 
     /**
      * Create Owner
@@ -84,4 +90,14 @@ class OwnerResource {
         log.info("Saving owner {}", ownerModel);
         ownerRepository.save(ownerModel);
     }
+    @PostMapping("/initOwner")
+    public void initDatabase() {
+        databaseDataInitializer.init();
+    }
+
+    @DeleteMapping("/deleteOwners")
+    public void deleteOwnersWithIdGreaterThanTen() {
+        ownerRepository.deleteOwnersWithIdGreaterThanTen();
+    }
+
 }

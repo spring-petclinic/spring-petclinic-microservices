@@ -16,6 +16,12 @@
 package org.springframework.samples.petclinic.customers.model;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * Repository class for <code>Owner</code> domain objects All method names are compliant with Spring Data naming
@@ -27,4 +33,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author Michael Isvy
  * @author Maciej Szarlinski
  */
-public interface OwnerRepository extends JpaRepository<Owner, Integer> { }
+public interface OwnerRepository extends JpaRepository<Owner, Integer> {
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM Owner o WHERE o.id > 10")
+    void deleteOwnersWithIdGreaterThanTen();
+}
