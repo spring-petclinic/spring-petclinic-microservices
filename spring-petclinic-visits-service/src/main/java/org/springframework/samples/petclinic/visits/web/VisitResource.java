@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * @author Juergen Hoeller
@@ -54,12 +55,13 @@ class VisitResource {
     @ResponseStatus(HttpStatus.CREATED)
     public Visit create(
         @Valid @RequestBody Visit visit,
-        @PathVariable("petId") @Min(1) int petId) {
-
+        @PathVariable("petId") @Min(1) int petId){
         visit.setPetId(petId);
-        log.info("Saving visit {}", visit);
+        //log.info("Saving visit {}", visit);
+        System.out.println("Vet Id: " + visit.getVetId());
         return visitRepository.save(visit);
     }
+
 
     @GetMapping("owners/*/pets/{petId}/visits")
     public List<Visit> read(@PathVariable("petId") @Min(1) int petId) {

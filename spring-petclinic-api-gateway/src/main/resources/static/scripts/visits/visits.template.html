@@ -13,6 +13,13 @@
     </div>
 
     <div class="form-group">
+        <label>Veterinarian</label>
+        <select class="form-control" ng-model="$ctrl.selectedVetId" required>
+            <option ng-repeat="vet in $ctrl.vetList" value="{{vet.id}}">{{vet.firstName}} {{vet.lastName}}</option>
+        </select>
+    </div>
+
+    <div class="form-group">
         <button class="btn btn-default" type="submit">Add New Visit</button>
     </div>
 

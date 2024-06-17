@@ -47,11 +47,13 @@
                 <tr>
                     <th>Visit Date</th>
                     <th>Description</th>
+                    <th>Veterinarian</th>
                 </tr>
                 </thead>
                 <tr ng-repeat="visit in pet.visits track by visit.id">
                     <td>{{visit.date | date:'yyyy MMM dd'}}</td>
                     <td>{{visit.description}}</td>
+                    <td>{{$ctrl.vetList[visit.vetId-1].firstName}} {{$ctrl.vetList[visit.vetId-1].lastName}}</td>
                 </tr>
                 <tr>
                     <td>
@@ -59,6 +61,9 @@
                     </td>
                     <td>
                         <a ui-sref="visits({ownerId: $ctrl.owner.id, petId: pet.id})">Add Visit</a>
+                    </td>
+                    <td>
+                        <a ui-sref="petFiles({ownerId: $ctrl.owner.id, petId: pet.id})">Add File</a>
                     </td>
                 </tr>
             </table>

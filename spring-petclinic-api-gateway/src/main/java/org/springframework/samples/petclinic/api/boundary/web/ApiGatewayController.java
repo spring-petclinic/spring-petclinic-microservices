@@ -19,8 +19,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreaker;
 import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreakerFactory;
 import org.springframework.samples.petclinic.api.application.CustomersServiceClient;
+import org.springframework.samples.petclinic.api.application.VetServiceClient;
 import org.springframework.samples.petclinic.api.application.VisitsServiceClient;
 import org.springframework.samples.petclinic.api.dto.OwnerDetails;
+import org.springframework.samples.petclinic.api.dto.VetDetails;
 import org.springframework.samples.petclinic.api.dto.Visits;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -41,6 +43,8 @@ public class ApiGatewayController {
 
     private final VisitsServiceClient visitsServiceClient;
 
+    private final VetServiceClient vetServiceClient;
+
     private final ReactiveCircuitBreakerFactory cbFactory;
 
     @GetMapping(value = "owners/{ownerId}")
@@ -54,6 +58,12 @@ public class ApiGatewayController {
                     })
                     .map(addVisitsToOwner(owner))
             );
+
+    }
+
+    @GetMapping(value = "vets/{vetId}")
+    public Mono<VetDetails> getVetDetails(final @PathVariable int vetId) {
+        return vetServiceClient.getVet(vetId);
 
     }
 

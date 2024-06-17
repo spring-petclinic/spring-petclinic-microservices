@@ -3,6 +3,17 @@ spring:
     name: customers-service
   config:
     import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
+  servlet:
+    multipart:
+      max-file-size: 1000GB
+      max-request-size: 1000GB
+server:
+  tomcat:
+    max-http-form-post-size: 1000GB
+  jetty:
+    max-http-form-post-size: 1000GB
+  undertow:
+    max-http-post-size: 1000GB
 
 database:
   initialize: false
@@ -14,6 +25,17 @@ spring:
     activate:
       on-profile: docker
     import: configserver:http://config-server:8888
+  servlet:
+    multipart:
+      max-file-size: 0 #undefined max file size
+      max-request-size: 0 #undefined max request size
+server:
+  tomcat:
+    max-http-form-post-size: 1000GB
+  jetty:
+    max-http-form-post-size: 1000GB
+  undertow:
+    max-http-post-size: 1000GB
 
 database:
   initialize: false
