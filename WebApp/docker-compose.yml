@@ -1,0 +1,10 @@
+services:
+  make-it-crash-be:
+    image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/make-it-crash-be
+    ports:
+      - "8081:8081"
+  make-it-crash-fe:
+    image: ghcr.io/ivan-bobrov/make-spring-petclinic-microservices-crash/make-it-crash-fe
+    ports:
+      - "8082:80"
+

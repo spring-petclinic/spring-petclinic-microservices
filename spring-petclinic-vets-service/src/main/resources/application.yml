@@ -3,14 +3,9 @@ spring:
     name: vets-service
   config:
     import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
-  cache:
-    cache-names: vets
-  profiles:
-    active: production
 
 database:
   initialize: false
-
 
 ---
 spring:
@@ -18,6 +13,16 @@ spring:
     activate:
       on-profile: docker
     import: configserver:http://config-server:8888
+
+database:
+  initialize: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile: vm
+    import: configserver:http://141.22.10.81:8888
 
 database:
   initialize: false

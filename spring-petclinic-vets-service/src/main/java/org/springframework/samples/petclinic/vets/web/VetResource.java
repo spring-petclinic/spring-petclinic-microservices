@@ -42,7 +42,6 @@ class VetResource {
     private final DatabaseDataInitializer databaseDataInitializer;
 
     @GetMapping
-    @Cacheable("vets")
     public List<Vet> showResourcesVetList() {
         return vetRepository.findAll();
     }
