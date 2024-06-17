@@ -90,12 +90,12 @@ class OwnerResource {
         log.info("Saving owner {}", ownerModel);
         ownerRepository.save(ownerModel);
     }
-    @PostMapping("/initOwner")
+    @PostMapping("/init")
     public void initDatabase(@RequestParam(value = "inserts", defaultValue = "50000") int inserts) {
         databaseDataInitializer.init(inserts);
     }
 
-    @DeleteMapping("/deleteOwners")
+    @DeleteMapping("/delete")
     public void deleteOwnersWithIdGreaterThanTen() {
         ownerRepository.deleteOwnersWithIdGreaterThanTen();
     }
