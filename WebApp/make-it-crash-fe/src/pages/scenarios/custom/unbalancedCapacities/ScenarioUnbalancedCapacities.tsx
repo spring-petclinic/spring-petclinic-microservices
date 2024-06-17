@@ -4,12 +4,12 @@ import { useCollapse } from "react-collapsed";
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import KeyboardDoubleArrowDownIcon from '@mui/icons-material/KeyboardDoubleArrowDown';
 import { useEffect, useState } from 'react';
-import { GATLING_RETURN_VALUE_MOCK } from '../../../testing/GatlingMock';
-import { GatlingResponse } from './GatlingResponseInterfaces';
+import { GATLING_RETURN_VALUE_MOCK } from '../../../../testing/GatlingMock';
+import { GatlingResponse } from '../GatlingResponseInterfaces';
 import { Alert, Box, LinearProgress } from '@mui/material';
-import { GatlingDataDisplay } from '../../../utils/DataDisplay';
+import { GatlingDataDisplay } from '../../../../utils/DataDisplay';
 
-function Scenario({ title, text, path, duration, users }: { title: string, text: string, path: string, duration: string, users: string }) {
+function ScenarioUnbalancedCapacities({ title, text, path, duration, users }: { title: string, text: string, path: string, duration: string, users: string }) {
     const [showSpinner, setShowSpinner] = useState(false);
     const [mockValueReturned, setMockValueReturned] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -44,7 +44,7 @@ function Scenario({ title, text, path, duration, users }: { title: string, text:
 
         axios
             .get(path, {
-                baseURL: process.env.API_URL,
+                baseURL: process.env.API_LOADTEST_URL,
                 params: { users, duration},
                 responseType: 'json',
                 headers: { 'content-type': 'application/json' },
@@ -102,4 +102,4 @@ function Scenario({ title, text, path, duration, users }: { title: string, text:
     );
 }
 
-export default Scenario
+export default ScenarioUnbalancedCapacities

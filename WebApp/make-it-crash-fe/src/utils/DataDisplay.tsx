@@ -1,6 +1,6 @@
 import capitalizeWords from "./utils";
 
-export const ErrorDataDisplay = ({ data }) => (
+export const GatlingDataDisplay = ({ data }) => (
     <div className="error-data-display">
         <h3>Gatling</h3>
 

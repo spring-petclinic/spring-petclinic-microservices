@@ -13,10 +13,10 @@ import {
     KeyboardDoubleArrowRight as RightArrowIcon,
     KeyboardDoubleArrowDown as DownArrowIcon,
 } from '@mui/icons-material';
-import { GATLING_RETURN_VALUE_MOCK } from '../../../testing/GatlingMock';
-import { GatlingResponse } from './GatlingResponseInterfaces';
-import { ErrorDataDisplay } from '../../../utils/ErrorDataDisplay';
-import { InputField } from '../../../utils/InputField';
+import { GATLING_RETURN_VALUE_MOCK } from '../../../../testing/GatlingMock';
+import { GatlingResponse } from '../GatlingResponseInterfaces';
+import { GatlingDataDisplay } from '../../../../utils/DataDisplay';
+import { InputField } from '../../../../utils/InputField';
 
 const options = [
     { label: 'Vets Service', path: 'vets' },
@@ -25,7 +25,7 @@ const options = [
     { label: 'Customers Service', path: 'customers' },
 ];
 
-const ScenarioWithParams = ({ title, text }) => {
+const ScenarioUnbalancedCapacitiesWithParams = ({ title, text }) => {
     const { getCollapseProps, getToggleProps, isExpanded } = useCollapse();
 
     const [amountUser, setAmountUser] = useState('');
@@ -85,7 +85,7 @@ const ScenarioWithParams = ({ title, text }) => {
         const path = selectedOption.path;
         axios
             .get(path, {
-                baseURL: process.env.API_URL,
+                baseURL: process.env.API_LOADTEST_URL,
                 params: { users, duration },
                 responseType: 'json',
                 headers: { 'content-type': 'application/json' },
@@ -176,7 +176,7 @@ const ScenarioWithParams = ({ title, text }) => {
                     <div>
                         {mockValueReturned && <Alert severity="info">Mock value returned</Alert>}
                         <div className="mt-3">
-                            {data && <ErrorDataDisplay data={data} />}
+                            {data && <GatlingDataDisplay data={data} />}
                         </div>
                     </div>
                 </div>
@@ -185,4 +185,4 @@ const ScenarioWithParams = ({ title, text }) => {
     );
 };
 
-export default ScenarioWithParams;
+export default ScenarioUnbalancedCapacitiesWithParams;
