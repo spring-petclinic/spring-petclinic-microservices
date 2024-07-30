@@ -15,7 +15,7 @@
     </parent>
 
     <properties>
-        <webjars-bootstrap.version>3.3.7-1</webjars-bootstrap.version>
+        <webjars-bootstrap.version>3.4.0</webjars-bootstrap.version>
         <webjars-jquery.version>3.6.0</webjars-jquery.version>
         <webjars-angular.version>1.8.2</webjars-angular.version>
         <webjars-angular-ui-router.version>1.0.20</webjars-angular-ui-router.version>
