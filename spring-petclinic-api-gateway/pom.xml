@@ -15,6 +15,7 @@
     </parent>
 
     <properties>
+        <!-- Any bootstrap version upgrade must be reported in the wro4j.xml file -->
         <webjars-bootstrap.version>3.4.0</webjars-bootstrap.version>
         <webjars-jquery.version>3.6.0</webjars-jquery.version>
         <webjars-angular.version>1.8.2</webjars-angular.version>
