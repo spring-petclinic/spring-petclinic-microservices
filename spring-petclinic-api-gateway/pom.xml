@@ -152,6 +152,8 @@
                 <version>${wro4j.version}</version>
                 <executions>
                     <execution>
+                        <!-- Configuration tips for VS Code in Dev Container -->
+                        <?m2e execute onConfiguration?>
                         <phase>generate-resources</phase>
                         <goals>
                             <goal>run</goal>
