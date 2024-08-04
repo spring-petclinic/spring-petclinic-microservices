@@ -200,6 +200,17 @@ mvn clean install -Dmaven.test.skip -P buildDocker -Ddocker.image.prefix=${REPOS
 The `scripts/pushImages.sh` and `scripts/tagImages.sh` shell scripts could also be used once you build your image with the `buildDocker` maven profile.
 The `scripts/tagImages.sh` requires to declare the `VERSION` env variable.
 
+## Compiling the CSS
+
+There is a `petclinic.css` in `spring-petclinic-api-gateway/src/main/resources/static/css`.
+It was generated from the `petclinic.scss` source, combined with the [Bootstrap](https://getbootstrap.com/) library.
+If you make changes to the `scss`, or upgrade Bootstrap, you will need to re-compile the CSS resources
+using the Maven profile `css` of the `spring-petclinic-api-gateway`module.
+```bash
+cd spring-petclinic-api-gateway
+mvn generate-resources -P css
+```
+
 ## Interesting Spring Petclinic forks
 
 The Spring Petclinic `main` branch in the main [spring-projects](https://github.com/spring-projects/spring-petclinic)
