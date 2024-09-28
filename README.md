@@ -73,6 +73,19 @@ Each of the java based applications is started with the `chaos-monkey` profile i
 
 You can then access petclinic here: http://localhost:8080/
 
+## Microservices Overview
+
+This project consists of several microservices:
+- **Customers Service**: Manages customer data.
+- **Vets Service**: Handles information about veterinarians.
+- **Visits Service**: Manages pet visit records.
+- **API Gateway**: Routes client requests to the appropriate services.
+- **Config Server**: Centralized configuration management for all services.
+- **Discovery Server**: Eureka-based service registry.
+
+Each service has its own specific role and communicates via REST APIs.
+
+
 ![Spring Petclinic Microservices screenshot](docs/application-screenshot.png)
 
 
