@@ -21,7 +21,7 @@
     <script src="/webjars/angularjs/angular.min.js"></script>
     <script src="/webjars/angular-ui-router/angular-ui-router.min.js"></script>
     <!-- Section added for  RUM -->
-    <script src="/scripts/env.js"></script>  
+    <script src="/env.js"></script>  
     <script src="https://cdn.signalfx.com/o11y-gdi-rum/latest/splunk-otel-web.js" crossorigin="anonymous"></script>
     <script src="https://cdn.signalfx.com/o11y-gdi-rum/latest/splunk-otel-web-session-recorder.js" crossorigin="anonymous"></script>
     <script>
@@ -30,7 +30,7 @@
         var auth = env.RUM_AUTH;
         var appName = env.RUM_APP_NAME;
         var environmentName = env.RUM_ENVIRONMENT
-        if (realm && auth) {
+        if (realm && auth && realm.trim() !== "" && auth.trim() !== "") {
             SplunkRum.init({
                 realm: realm,
                 rumAccessToken: auth,

@@ -17,6 +17,8 @@ package org.springframework.samples.petclinic.api;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
+import jakarta.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -55,6 +57,7 @@ public class ApiGatewayApplication {
     RestTemplate loadBalancedRestTemplate() {
         return new RestTemplate();
     }
+
 
     @Bean
     @LoadBalanced

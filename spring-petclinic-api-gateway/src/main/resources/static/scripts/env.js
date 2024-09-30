@@ -1,7 +1,7 @@
 env = {
-    RUM_REALM: '',
-    RUM_AUTH: '',
-    RUM_APP_NAME: '',
-    RUM_ENVIRONMENT: ''
-  }
+  RUM_REALM: '$REALM',
+  RUM_AUTH: '$RUM_TOKEN',
+  RUM_APP_NAME: '$INSTANCE-store',
+  RUM_ENVIRONMENT: '$INSTANCE-workshop'
+}
   
