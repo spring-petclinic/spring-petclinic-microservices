@@ -79,6 +79,23 @@ services:
     ports:
      - 8083:8083
 
+
+  genai-service:
+    image: springcommunity/spring-petclinic-genai-service
+    container_name: genai-service
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    depends_on:
+      config-server:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    ports:
+     - 8084:8084
+
+
   api-gateway:
     image: springcommunity/spring-petclinic-api-gateway
     container_name: api-gateway
@@ -131,7 +148,7 @@ services:
         limits:
           memory: 256M
     ports:
-    - 3000:3000
+    - 3030:3030
 
   prometheus-server:
     build: ./docker/prometheus

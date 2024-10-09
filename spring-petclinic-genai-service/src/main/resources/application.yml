@@ -1,0 +1,43 @@
+spring:
+  main:
+    web-application-type: reactive
+  application:
+    name: genai-service
+  profiles:
+    active: production
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/},optional:classpath:/creds.yaml
+  #These apply when using spring-ai-azure-openai-spring-boot-starter
+  ai:
+    chat:
+      client:
+        enabled: true
+    azure:
+      openai:
+        chat:
+          options:
+            functions: listOwners,addOwnerToPetclinic,addPetToOwner,listVets
+            temperature: 0.7
+
+logging:
+  level:
+    org:
+      springframework:
+        ai:
+          chat:
+            client:
+              advisor: DEBUG
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+    import: configserver:http://config-server:8888
+  zipkin:
+    baseUrl: http://tracing-server:9411
+server:
+  port: 8084
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://discovery-server:8761/eureka/

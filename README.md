@@ -17,7 +17,7 @@ If everything goes well, you can access the following services at given location
 * Discovery Server - http://localhost:8761
 * Config Server - http://localhost:8888
 * AngularJS frontend (API Gateway) - http://localhost:8080
-* Customers, Vets and Visits Services - random port, check Eureka Dashboard 
+* Customers, Vets, Visits and GenAI Services - random port, check Eureka Dashboard 
 * Tracing Server (Zipkin) - http://localhost:9411/zipkin/ (we use [openzipkin](https://github.com/openzipkin/zipkin/tree/main/zipkin-server))
 * Admin Server (Spring Boot Admin) - http://localhost:9090
 * Grafana Dashboards - http://localhost:3000
@@ -46,7 +46,7 @@ For instance, if you target container images for an Apple M2, you could use the 
 ```
 
 Once images are ready, you can start them with a single command
-`docker-compose up` or `podman-compose up`. 
+`docker compose up` or `podman-compose up`. 
 
 Containers startup order is coordinated with the `service_healthy` condition of the Docker Compose [depends-on](https://github.com/compose-spec/compose-spec/blob/main/spec.md#depends_on) expression 
 and the [healthcheck](https://github.com/compose-spec/compose-spec/blob/main/spec.md#healthcheck) of the service containers. 
@@ -93,7 +93,25 @@ Each service has its own specific role and communicates via REST APIs.
 
 ![Spring Petclinic Microservices architecture](docs/microservices-architecture-diagram.jpg)
 
+## Integrating the Spring AI Chatbot
 
+Spring Petclinic integrates a Chatbot that allows you to interact with the application in a natural language. Here are some examples of what you could ask:
+
+1. Please list the owners that come to the clinic.
+2. Are there any vets that specialize in surgery?
+3. Is there an owner named Betty?
+4. Which owners have dogs?
+5. Add a dog for Betty. Its name is Moopsie.
+6. Create a new owner
+
+![alt text](spring-ai.png)
+
+This Microservice currently supports OpenAI or Azure's OpenAI as the LLM provider.
+In order to enable Spring AI, perform the following steps:
+
+1. Decide which provider you want to use. By default, the `spring-ai-azure-openai-spring-boot-starter` dependency is enabled. You can change it to `spring-ai-openai-spring-boot-starter`in  `pom.xml`.
+2. Copy `src/main/resources/creds-template.yaml` into `src/main/resources/creds.yaml`, and edit its contents with your API key and API endpoint. Refer to OpenAI's or Azure's documentation for further information on how to obtain these. You only need to populate the provider you're using - either openai, or azure-openai.
+3. Boot the `spring-petclinic-genai-service` microservice. 
 ## In case you find a bug/suggested improvement for Spring Petclinic Microservices
 
 Our issue tracker is available here: https://github.com/spring-petclinic/spring-petclinic-microservices/issues
