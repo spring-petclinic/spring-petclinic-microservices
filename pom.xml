@@ -6,12 +6,12 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.7</version>
+        <version>3.3.4</version>
     </parent>
 
     <groupId>org.springframework.samples</groupId>
     <artifactId>spring-petclinic-microservices</artifactId>
-    <version>3.2.7</version>
+    <version>3.3.4</version>
     <name>${project.artifactId}</name>
     <packaging>pom</packaging>
 
@@ -20,6 +20,7 @@
         <module>spring-petclinic-customers-service</module>
         <module>spring-petclinic-vets-service</module>
         <module>spring-petclinic-visits-service</module>
+        <module>spring-petclinic-genai-service</module>
         <module>spring-petclinic-config-server</module>
         <module>spring-petclinic-discovery-server</module>
         <module>spring-petclinic-api-gateway</module>
