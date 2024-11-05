@@ -6,7 +6,7 @@ pipeline {
 
     stages {
         stage('checkout') {
-            step {
+            steps {
                 git url: "https://github.com/tubuochiatoh/spring-petclinic-microservices.git", branch "*"
             }
         }
