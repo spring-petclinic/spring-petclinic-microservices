@@ -5,9 +5,9 @@ pipeline {
     }
 
     stages {
-        stage('checkout') {
+        stage('Build pet clinic') {
             steps {
-                git url: "https://github.com/tubuochiatoh/spring-petclinic-microservices.git", branch "*"
+                sh "mvn clean install"
             }
         }
     }
