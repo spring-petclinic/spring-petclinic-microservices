@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tracing-server
+  labels:
+    app: tracing-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tracing-server
+  template:
+    metadata:
+      labels:
+        app: tracing-server
+    spec:
+      containers:
+        - name: tracing-server
+          image: petdistriacr.azurecr.io/zipkin:latest
+          env:
+            - name: JAVA_OPTS
+              value: -XX:+UnlockExperimentalVMOptions -Djava.security.egd=file:/dev/./urandom
+          ports:
+            - containerPort: 9411
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "400m"
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9411
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9411
+            initialDelaySeconds: 15
+            periodSeconds: 5
+      imagePullSecrets:
+        - name: acr-auth
+      restartPolicy: Always
