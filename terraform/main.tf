@@ -33,8 +33,21 @@ resource "azurerm_resource_group" "resource_group_pet_clinic" {
 }
 
 
+
 module "aks" {
   source              = "./modules/aks"
-  resource_group_name = var.resource_group_name
+  resource_group_name = azurerm_resource_group.resource_group_pet_clinic.name
+  location            = var.location
+}
+
+module "key_vault" {
+  source              = "./modules/key_vault"
+  resource_group_name = azurerm_resource_group.resource_group_pet_clinic.name
+  location            = var.location
+}
+
+module "sql_database" {
+  source              = "./modules/sql_database"
+  resource_group_name = azurerm_resource_group.resource_group_pet_clinic.name
   location            = var.location
 }

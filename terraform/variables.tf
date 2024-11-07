@@ -10,3 +10,9 @@ variable "location" {
   type        = string
   default     = "westus"
 }
+
+variable "tenant_id" {
+  description = "ID del tenant de Azure"
+  type        = string
+  default     = "26a7e7cf-9850-40df-89ab-a3170d67dcbf"
+}
