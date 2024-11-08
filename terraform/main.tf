@@ -51,3 +51,72 @@ resource "azurerm_role_assignment" "aks_acr_role_assignment" {
   role_definition_name = "AcrPull"
   scope                = azurerm_container_registry.acr.id
 }
+
+# Servidor MySQL Flexible actualizado
+resource "azurerm_mysql_flexible_server" "mysql_server" {
+  name                = var.mysql_server_name
+  location            = "westus"
+  resource_group_name = azurerm_resource_group.example_rg.name
+
+  # Configuración de la SKU
+  sku_name = "B_Standard_B1ms"
+
+  # Autenticación de administrador
+  administrator_login    = var.mysql_admin_username
+  administrator_password = var.mysql_admin_password
+
+  # Configuración de almacenamiento
+  storage {
+  size_gb = 20  # Tamaño mínimo en GB
+}
+
+  version                      = "5.7"
+}
+
+# Base de datos en el servidor MySQL
+resource "azurerm_mysql_flexible_database" "petclinic_db" {
+  name                = var.mysql_db_name
+  resource_group_name = azurerm_resource_group.example_rg.name
+  server_name         = azurerm_mysql_flexible_server.mysql_server.name
+  charset             = "utf8"
+  collation           = "utf8_general_ci"
+}
+
+# Datos del cliente necesarios para el Tenant ID
+data "azurerm_client_config" "current" {}
+
+# Azure Key Vault
+resource "azurerm_key_vault" "key_vault" {
+  name                        = var.key_vault_name
+  location                    = "westus"
+  resource_group_name         = azurerm_resource_group.example_rg.name
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  sku_name                    = "standard"
+
+  # Permitir que AKS acceda al Key Vault
+  access_policy {
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  object_id = azurerm_kubernetes_cluster.aks_cluster.identity[0].principal_id
+  secret_permissions = ["Get", "List"]  # Corregido: mayúsculas en los permisos
+}
+}
+
+# Cadena de conexión a MySQL como secreto en Key Vault
+resource "azurerm_key_vault_secret" "db_connection_string" {
+  name         = "DB-Connection-String"
+  value        = "Server=${azurerm_mysql_flexible_server.mysql_server.fqdn};Database=${azurerm_mysql_flexible_database.petclinic_db.name};User Id=${var.mysql_admin_username};Password=${var.mysql_admin_password};"
+  key_vault_id = azurerm_key_vault.key_vault.id
+}
+
+# Secretos adicionales para usuario y contraseña de MySQL en Key Vault
+resource "azurerm_key_vault_secret" "db_username" {
+  name         = "DB-Username"
+  value        = var.mysql_admin_username
+  key_vault_id = azurerm_key_vault.key_vault.id
+}
+
+resource "azurerm_key_vault_secret" "db_password" {
+  name         = "DB-Password"
+  value        = var.mysql_admin_password
+  key_vault_id = azurerm_key_vault.key_vault.id
+}

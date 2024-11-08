@@ -45,3 +45,34 @@ variable "acr_name" {
   description = "Nombre del registro de contenedor de Azure"
   default     = "petDistriACR"
 }
+
+variable "mysql_server_name" {
+  description = "Nombre del servidor MySQL"
+  type        = string
+  default     = "petclinicdbserver"
+}
+
+variable "mysql_admin_username" {
+  description = "Usuario administrador de MySQL"
+  type        = string
+  default     = "adminuser"
+}
+
+variable "mysql_admin_password" {
+  description = "Contraseña del administrador de MySQL"
+  type        = string
+  sensitive   = true
+  default     = "TuContraseñaSegura"  # Cámbialo en producción
+}
+
+variable "mysql_db_name" {
+  description = "Nombre de la base de datos MySQL"
+  type        = string
+  default     = "petclinic"
+}
+
+variable "key_vault_name" {
+  description = "Nombre del Azure Key Vault"
+  type        = string
+  default     = "petclinic-keyvault"
+}
