@@ -151,7 +151,7 @@
 
                                                 For more information, check the project documentation.
                                             </message>
-                                            <version>[${java.version},)</version>
+                                            <version>[${java.version})</version>
                                         </requireJavaVersion>
                                     </rules>
                                     <failFast>true</failFast>
