@@ -93,12 +93,20 @@ resource "azurerm_key_vault" "key_vault" {
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
 
-  # Permitir que AKS acceda al Key Vault
+# Permitir que AKS acceda al Key Vault con permisos adicionales
   access_policy {
-  tenant_id = data.azurerm_client_config.current.tenant_id
-  object_id = azurerm_kubernetes_cluster.aks_cluster.identity[0].principal_id
-  secret_permissions = ["Get", "List"]  # Corregido: mayúsculas en los permisos
-}
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = azurerm_kubernetes_cluster.aks_cluster.identity[0].principal_id
+    secret_permissions = ["Get", "List", "Set"]
+  }
+
+  # Añadir acceso adicional para el objeto que lanza el error, incluyendo "Set"
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = "1179b303-3b91-4deb-ba39-2265ebffcdc8"  # Confirma que este es el object_id correcto
+    secret_permissions = ["Get", "List", "Set"]  # Añadido "Set"
+  }
+
 }
 
 # Cadena de conexión a MySQL como secreto en Key Vault

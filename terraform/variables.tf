@@ -74,5 +74,5 @@ variable "mysql_db_name" {
 variable "key_vault_name" {
   description = "Nombre del Azure Key Vault"
   type        = string
-  default     = "petclinic-keyvault"
+  default     = "kvPetDistri"
 }
