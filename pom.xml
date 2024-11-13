@@ -142,7 +142,7 @@
                                             <message>
                                                 🚫 Java version error: This project requires Java ${java.version} or higher.
 
-                                                Your current Java version is ${java.version.detected}
+                                                Your current Java version is ${java.version}
                                                 To fix this:
                                                 1. Download and install Java 17 or higher from your preferred vendor
                                                 2. Make sure JAVA_HOME points to the new Java installation
