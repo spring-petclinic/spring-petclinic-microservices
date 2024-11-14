@@ -23,7 +23,7 @@ jobs:
           client-secret: ${{ secrets.ARM_CLIENT_SECRET }}
           tenant-id: ${{ secrets.ARM_TENANT_ID }}
           subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-          auth-type: service_principal  # Cambiamos a 'service_principal'
+          auth-type: service_principal  # Autenticación usando client-secret
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
