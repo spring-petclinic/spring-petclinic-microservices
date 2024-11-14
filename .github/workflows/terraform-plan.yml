@@ -3,7 +3,7 @@ name: Terraform Plan and Validate
 on:
   push:
     branches:
-      - main  # Se ejecuta cada vez que se hace push a la rama principal
+      - main
 
 permissions:
   id-token: write
@@ -20,7 +20,7 @@ jobs:
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-          enable-AzPSSession: true  # Permite el uso de Azure PowerShell si es necesario
+          enable-AzPSSession: true
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -29,9 +29,12 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
+        working-directory: ./terraform  # Especifica la carpeta 'terraform'
 
       - name: Terraform Validate
         run: terraform validate
+        working-directory: ./terraform
 
       - name: Terraform Plan
         run: terraform plan
+        working-directory: ./terraform
