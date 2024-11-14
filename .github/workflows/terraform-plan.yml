@@ -1,12 +1,12 @@
-name: Terraform Plan
+name: Terraform Plan and Validate
 
 on:
   push:
     branches:
-      - main
+      - main  # Se ejecuta cada vez que se hace push a la rama principal
 
 permissions:
-  id-token: write  # Habilita el id-token para autenticación con Azure
+  id-token: write
   contents: read
 
 jobs:
@@ -17,13 +17,10 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Azure Login
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
-          client-id: ${{ secrets.ARM_CLIENT_ID }}
-          client-secret: ${{ secrets.ARM_CLIENT_SECRET }}
-          tenant-id: ${{ secrets.ARM_TENANT_ID }}
-          subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-          auth-type: service_principal  # Autenticación usando client-secret
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true  # Permite el uso de Azure PowerShell si es necesario
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -32,6 +29,9 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
 
       - name: Terraform Plan
         run: terraform plan
