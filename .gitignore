@@ -1,3 +1,5 @@
+Cuál de estos quito del git ignore para que se arregle:
+
 # Maven
 target/
 !.mvn/wrapper/maven-wrapper.jar
