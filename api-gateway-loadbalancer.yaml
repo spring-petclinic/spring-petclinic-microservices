@@ -5,7 +5,7 @@ metadata:
 spec:
   type: LoadBalancer
   selector:
-    app: api-gateway  # Asegúrate de que esta etiqueta coincida con la del pod de `api-gateway`
+    app: api-gateway  # Esta etiqueta debe coincidir con la del pod de `api-gateway`
   ports:
     - protocol: TCP
       port: 80            # Puerto de exposición para acceder externamente
