@@ -3,7 +3,7 @@ provider "azurerm" {
   subscription_id = var.subscription_id
 }
 
-# Grupo de recursos david molta
+# Grupo de recursos
 resource "azurerm_resource_group" "example_rg" {
   name     = var.resource_group_name
   location = var.location
@@ -20,6 +20,13 @@ resource "azurerm_kubernetes_cluster" "aks_cluster" {
     name       = "default"
     node_count = 1
     vm_size    = "standard_b2als_v2"
+
+    # Configuración explícita para evitar cambios constantes
+    upgrade_settings {
+      drain_timeout_in_minutes      = 0
+      max_surge                     = "10%"
+      node_soak_duration_in_minutes = 0
+    }
   }
 
   identity {
@@ -52,7 +59,7 @@ resource "azurerm_role_assignment" "aks_acr_role_assignment" {
   scope                = azurerm_container_registry.acr.id
 }
 
-# Servidor MySQL Flexible actualizado
+# Servidor MySQL Flexible
 resource "azurerm_mysql_flexible_server" "mysql_server" {
   name                = var.mysql_server_name
   location            = "westus"
@@ -67,10 +74,10 @@ resource "azurerm_mysql_flexible_server" "mysql_server" {
 
   # Configuración de almacenamiento
   storage {
-  size_gb = 20  # Tamaño mínimo en GB
-}
+    size_gb = 20  # Tamaño mínimo en GB
+  }
 
-  version                      = "5.7"
+  version = "5.7"
 }
 
 # Base de datos en el servidor MySQL
@@ -93,20 +100,19 @@ resource "azurerm_key_vault" "key_vault" {
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
 
-# Permitir que AKS acceda al Key Vault con permisos adicionales
+  # Permitir que AKS acceda al Key Vault con permisos adicionales
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = azurerm_kubernetes_cluster.aks_cluster.identity[0].principal_id
     secret_permissions = ["Get", "List", "Set", "Delete", "Purge", "Recover", "Backup", "Restore"]
   }
 
-  # Añadir acceso adicional para el objeto que lanza el error, incluyendo "Set"
+  # Añadir acceso adicional para el objeto especificado
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = "1179b303-3b91-4deb-ba39-2265ebffcdc8"  # Confirma que este es el object_id correcto
-    secret_permissions = ["Get", "List", "Set", "Delete", "Purge", "Recover", "Backup", "Restore"]  # Añadido "Set"
+    object_id = "1179b303-3b91-4deb-ba39-2265ebffcdc8"  # Confirmar que este es el object_id correcto
+    secret_permissions = ["Get", "List", "Set", "Delete", "Purge", "Recover", "Backup", "Restore"]
   }
-
 }
 
 # Cadena de conexión a MySQL como secreto en Key Vault
