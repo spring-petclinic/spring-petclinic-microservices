@@ -1,0 +1,46 @@
+name: Terraform Plan
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/*.tf'
+      - '**/*.tfvars'
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Terraform
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          tterraform_wrapper: false
+
+      # Step 3: Configure Azure credentials
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.ARM_CLIENT_ID }}
+          tenant-id: ${{ secrets.ARM_TENANT_ID }}
+          subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          client-secret: ${{ secrets.ARM_CLIENT_SECRET }}
+
+      # Step 4: Initialize Terraform
+      - name: Terraform Init
+        run: terraform init
+
+      # Step 5: Validate Terraform syntax
+      - name: Terraform Validate
+        run: terraform validate
+
+      # Step 6: Run Terraform Plan
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan
