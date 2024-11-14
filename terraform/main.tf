@@ -3,7 +3,7 @@ provider "azurerm" {
   subscription_id = var.subscription_id
 }
 
-# Grupo de recursos
+# Grupo de recursos probando lo nuevo que hice
 resource "azurerm_resource_group" "example_rg" {
   name     = var.resource_group_name
   location = var.location
@@ -18,7 +18,7 @@ resource "azurerm_kubernetes_cluster" "aks_cluster" {
 
   default_node_pool {
     name       = "default"
-    node_count = 1
+    node_count = 2
     vm_size    = "standard_b2als_v2"
   }
 
