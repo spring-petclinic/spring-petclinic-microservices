@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tracing
+  labels:
+    app: tracing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tracing
+  template:
+    metadata:
+      labels:
+        app: tracing
+    spec:
+      containers:
+        - name: tracing
+          image: springcommunity/spring-petclinic-tracing-server:latest
+          ports:
+            - containerPort: 9411
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9411
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9411
+            initialDelaySeconds: 15
+            periodSeconds: 5
+      restartPolicy: Always

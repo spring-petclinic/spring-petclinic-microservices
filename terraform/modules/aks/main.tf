@@ -18,7 +18,7 @@ resource "azurerm_kubernetes_cluster" "aks_pet" {
 
   default_node_pool {
     name       = "petnodepool"
-    node_count = 1
+    node_count = 2
     vm_size    = "standard_b2als_v2"
   }
 
