@@ -97,14 +97,14 @@ resource "azurerm_key_vault" "key_vault" {
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = azurerm_kubernetes_cluster.aks_cluster.identity[0].principal_id
-    secret_permissions = ["Get", "List", "Set"]
+    secret_permissions = ["Get", "List", "Set", "Delete", "Purge", "Recover", "Backup", "Restore"]
   }
 
   # Añadir acceso adicional para el objeto que lanza el error, incluyendo "Set"
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = "1179b303-3b91-4deb-ba39-2265ebffcdc8"  # Confirma que este es el object_id correcto
-    secret_permissions = ["Get", "List", "Set"]  # Añadido "Set"
+    secret_permissions = ["Get", "List", "Set", "Delete", "Purge", "Recover", "Backup", "Restore"]  # Añadido "Set"
   }
 
 }
