@@ -3,7 +3,7 @@ provider "azurerm" {
   subscription_id = var.subscription_id
 }
 
-# Grupo de recursos probando lo nuevo que hice
+# Grupo de recursos probando
 resource "azurerm_resource_group" "example_rg" {
   name     = var.resource_group_name
   location = var.location
