@@ -7,9 +7,7 @@ terraform {
   backend "azurerm" {}
 }
 
-
-
-# Grupo de recursos terraform apply
+# Grupo de recursos
 resource "azurerm_resource_group" "example_rg" {
   name     = var.resource_group_name
   location = var.location
@@ -22,7 +20,6 @@ resource "azurerm_kubernetes_cluster" "aks_cluster" {
   resource_group_name = azurerm_resource_group.example_rg.name
   dns_prefix          = var.dns_prefix
 
- 
   default_node_pool {
     name       = "default"
     node_count = 2
@@ -114,11 +111,18 @@ resource "azurerm_key_vault" "key_vault" {
     secret_permissions = ["Get", "List", "Set", "Delete", "Purge", "Recover", "Backup", "Restore"]
   }
 
-  # Añadir acceso adicional para el objeto especificado
+  # Añadir acceso adicional para el objeto 1179b303-3b91-4deb-ba39-2265ebffcdc8
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = "1179b303-3b91-4deb-ba39-2265ebffcdc8"  # Confirmar que este es el object_id correcto
+    object_id = "1179b303-3b91-4deb-ba39-2265ebffcdc8"
     secret_permissions = ["Get", "List", "Set", "Delete", "Purge", "Recover", "Backup", "Restore"]
+  }
+
+  # Nueva política para el objeto 4410248c-0868-4814-ba94-d8f8bc53ae99
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = "4410248c-0868-4814-ba94-d8f8bc53ae99"
+    secret_permissions = ["Get", "List"]
   }
 }
 
