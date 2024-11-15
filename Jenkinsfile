@@ -10,7 +10,7 @@ pipeline {
             steps {
                 script {
                     def buildUrl = env.BUILD_URL
-                    sh '/path/to/gitleaks detect --source .'
+                    sh "/path/to/gitleaks detect --source ."
                 }
             }
         }    
