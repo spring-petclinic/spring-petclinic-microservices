@@ -16,10 +16,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Azure Login
-        uses: azure/login@v1
+      - name: Azure CLI Login and Set Environment Variables
+        uses: azure/cli-action@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}  # Usa el Service Principal desde los secretos
+          azureSubscription: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        env:
+          AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+        run: |
+          export ARM_CLIENT_ID=$(echo $AZURE_CREDENTIALS | jq -r .clientId)
+          export ARM_CLIENT_SECRET=$(echo $AZURE_CREDENTIALS | jq -r .clientSecret)
+          export ARM_TENANT_ID=$(echo $AZURE_CREDENTIALS | jq -r .tenantId)
+          export ARM_SUBSCRIPTION_ID=$(echo $AZURE_CREDENTIALS | jq -r .subscriptionId)
+          
+          echo "Azure credentials set successfully"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
