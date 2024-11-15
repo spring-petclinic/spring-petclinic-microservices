@@ -76,3 +76,16 @@ variable "key_vault_name" {
   type        = string
   default     = "kvPetDistri"
 }
+
+variable "storage_account_name" {
+  type        = string
+  description = "Nombre de la cuenta de almacenamiento de Azure"
+  default = "terraformState"
+}
+
+variable "container_name" {
+  type        = string
+  description = "Nombre del contenedor de almacenamiento en la cuenta de almacenamiento"
+  default = "tfstate"
+}
+

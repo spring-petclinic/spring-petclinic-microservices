@@ -3,7 +3,13 @@ provider "azurerm" {
   subscription_id = var.subscription_id
 }
 
-# Grupo de recursos
+terraform {
+  backend "azurerm" {}
+}
+
+
+
+# Grupo de recursos terraform apply
 resource "azurerm_resource_group" "example_rg" {
   name     = var.resource_group_name
   location = var.location
@@ -16,6 +22,7 @@ resource "azurerm_kubernetes_cluster" "aks_cluster" {
   resource_group_name = azurerm_resource_group.example_rg.name
   dns_prefix          = var.dns_prefix
 
+ 
   default_node_pool {
     name       = "default"
     node_count = 1
