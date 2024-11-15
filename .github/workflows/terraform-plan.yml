@@ -1,13 +1,14 @@
 name: Terraform Plan and Validate
 
 on:
-  push:
+  pull_request:
     branches:
       - main
 
 permissions:
   id-token: write
   contents: read
+  pull-requests: write # Permiso para comentar en el Pull Request
 
 jobs:
   terraform:
@@ -43,5 +44,15 @@ jobs:
         working-directory: ./terraform
 
       - name: Terraform Plan
-        run: terraform plan
+        id: terraform-plan
+        run: terraform plan -no-color > plan_output.txt
         working-directory: ./terraform
+
+      - name: Post Plan Result to Pull Request
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          header: Terraform Plan Result
+          message: |
+            ```hcl
+            $(cat ./terraform/plan_output.txt)
+            ```
