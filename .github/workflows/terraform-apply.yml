@@ -1,0 +1,43 @@
+name: Terraform Apply
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform-apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Export Azure Credentials for Terraform
+        run: |
+          echo "Exporting Azure credentials for Terraform..."
+          echo "ARM_CLIENT_ID=$(echo '${{ secrets.AZURE_CREDENTIALS }}' | jq -r '.clientId')" >> $GITHUB_ENV
+          echo "ARM_CLIENT_SECRET=$(echo '${{ secrets.AZURE_CREDENTIALS }}' | jq -r '.clientSecret')" >> $GITHUB_ENV
+          echo "ARM_SUBSCRIPTION_ID=$(echo '${{ secrets.AZURE_CREDENTIALS }}' | jq -r '.subscriptionId')" >> $GITHUB_ENV
+          echo "ARM_TENANT_ID=$(echo '${{ secrets.AZURE_CREDENTIALS }}' | jq -r '.tenantId')" >> $GITHUB_ENV
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        run: terraform init -backend-config="resource_group_name=${{ secrets.RESOURCE_GROUP_NAME }}" -backend-config="storage_account_name=${{ secrets.STORAGE_ACCOUNT_NAME }}" -backend-config="container_name=${{ secrets.CONTAINER_NAME }}" -backend-config="key=${{ secrets.STATE_KEY }}"
+        working-directory: ./terraform
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        working-directory: ./terraform
