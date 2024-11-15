@@ -28,8 +28,11 @@ jobs:
           terraform_wrapper: false
 
       - name: Terraform Init
-        run: terraform init
-        working-directory: ./terraform  # Especifica la carpeta 'terraform'
+        run: terraform init -backend-config="resource_group_name=${{ secrets.RESOURCE_GROUP_NAME }}" \
+                              -backend-config="storage_account_name=${{ secrets.STORAGE_ACCOUNT_NAME }}" \
+                              -backend-config="container_name=${{ secrets.CONTAINER_NAME }}" \
+                              -backend-config="key=${{ secrets.STATE_KEY }}"
+        working-directory: ./terraform
 
       - name: Terraform Validate
         run: terraform validate
