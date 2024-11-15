@@ -19,5 +19,5 @@ pipeline {
                     def buildUrl = env.BUILD_URL
                     sh "gitleaks detect -v --no-git --source . --report-format json --report-path secrets.json || exit 0"
                 }
-            }
-        }
+            }
+    }
