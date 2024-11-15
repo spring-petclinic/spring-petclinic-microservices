@@ -17,10 +17,10 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Azure Login
-        uses: azure/login@v2
+        uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-          enable-AzPSSession: true
+          enable-AzPSSession: false  # Desactiva la sesión de Az CLI, no es necesaria para Terraform
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -28,9 +28,16 @@ jobs:
           terraform_wrapper: false
 
       - name: Terraform Init
-        run: terraform init -backend-config="resource_group_name=${{ secrets.RESOURCE_GROUP_NAME }}" -backend-config="storage_account_name=${{ secrets.STORAGE_ACCOUNT_NAME }}" -backend-config="container_name=${{ secrets.CONTAINER_NAME }}" -backend-config="key=${{ secrets.STATE_KEY }}"
+        env:
+          ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
+          ARM_CLIENT_SECRET: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}
+          ARM_SUBSCRIPTION_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}
+          ARM_TENANT_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).tenantId }}
+        run: terraform init -backend-config="resource_group_name=${{ secrets.RESOURCE_GROUP_NAME }}" \
+                            -backend-config="storage_account_name=${{ secrets.STORAGE_ACCOUNT_NAME }}" \
+                            -backend-config="container_name=${{ secrets.CONTAINER_NAME }}" \
+                            -backend-config="key=${{ secrets.STATE_KEY }}"
         working-directory: ./terraform
-
 
       - name: Terraform Validate
         run: terraform validate
