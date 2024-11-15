@@ -28,18 +28,18 @@ jobs:
 
       - name: Export Azure Credentials for Terraform
         run: |
-          echo "Setting Azure credentials for Terraform..."
           echo "ARM_CLIENT_ID=${{ secrets.CLIENT_ID }}" >> $GITHUB_ENV
           echo "ARM_CLIENT_SECRET=${{ secrets.CLIENT_SECRET }}" >> $GITHUB_ENV
           echo "ARM_SUBSCRIPTION_ID=${{ secrets.SUBSCRIPTION_ID }}" >> $GITHUB_ENV
           echo "ARM_TENANT_ID=${{ secrets.TENANT_ID }}" >> $GITHUB_ENV
 
       - name: Terraform Init
-        run: terraform init \
-          -backend-config="resource_group_name=${{ secrets.RESOURCE_GROUP_NAME }}" \
-          -backend-config="storage_account_name=${{ secrets.STORAGE_ACCOUNT_NAME }}" \
-          -backend-config="container_name=${{ secrets.CONTAINER_NAME }}" \
-          -backend-config="key=${{ secrets.STATE_KEY }}"
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=${{ secrets.RESOURCE_GROUP_NAME }}" \
+            -backend-config="storage_account_name=${{ secrets.STORAGE_ACCOUNT_NAME }}" \
+            -backend-config="container_name=${{ secrets.CONTAINER_NAME }}" \
+            -backend-config="key=${{ secrets.STATE_KEY }}"
         working-directory: ./terraform
 
       - name: Terraform Validate
