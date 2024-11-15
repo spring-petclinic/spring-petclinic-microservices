@@ -45,24 +45,14 @@ jobs:
 
       - name: Terraform Plan
         id: terraform-plan
-        run: |
-          terraform plan -no-color > plan_output.txt
-          cat plan_output.txt
+        run: terraform plan -no-color > plan_output.txt
         working-directory: ./terraform
 
-      - name: Read Plan Output
-        id: read-plan-output
-        run: |
-          PLAN_OUTPUT=$(cat ./terraform/plan_output.txt)
-          echo "plan_output<<EOF" >> $GITHUB_ENV
-          echo "$PLAN_OUTPUT" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
       - name: Post Plan Result to Pull Request
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@v3
         with:
           header: Terraform Plan Result
           message: |
             ```hcl
-            ${{ env.plan_output }}
+            $(cat ./terraform/plan_output.txt)
             ```
