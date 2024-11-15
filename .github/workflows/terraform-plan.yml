@@ -20,7 +20,7 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-          enable-AzPSSession: false  # Desactiva la sesión de Az CLI, no es necesaria para Terraform
+          enable-AzPSSession: false
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -33,10 +33,7 @@ jobs:
           ARM_CLIENT_SECRET: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}
           ARM_SUBSCRIPTION_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}
           ARM_TENANT_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).tenantId }}
-        run: terraform init -backend-config="resource_group_name=${{ secrets.RESOURCE_GROUP_NAME }}" \
-                            -backend-config="storage_account_name=${{ secrets.STORAGE_ACCOUNT_NAME }}" \
-                            -backend-config="container_name=${{ secrets.CONTAINER_NAME }}" \
-                            -backend-config="key=${{ secrets.STATE_KEY }}"
+        run: terraform init -backend-config="resource_group_name=${{ secrets.RESOURCE_GROUP_NAME }}" -backend-config="storage_account_name=${{ secrets.STORAGE_ACCOUNT_NAME }}" -backend-config="container_name=${{ secrets.CONTAINER_NAME }}" -backend-config="key=${{ secrets.STATE_KEY }}"
         working-directory: ./terraform
 
       - name: Terraform Validate
