@@ -8,12 +8,6 @@ spring:
   profiles:
     active: production
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health
-
 
 ---
 spring:

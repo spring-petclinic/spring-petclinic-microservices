@@ -5,13 +5,6 @@ spring:
     import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
 
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health
-
-
 ---
 spring:
   config:
