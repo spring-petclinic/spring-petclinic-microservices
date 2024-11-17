@@ -4,6 +4,8 @@ spring:
   config:
     import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
   cloud:
+    loadbalancer:
+      configurations: health-check
     gateway:
       routes:
         - id: vets-service
