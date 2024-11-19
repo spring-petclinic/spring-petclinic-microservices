@@ -10,7 +10,7 @@ pipeline {
             steps {
                 script {
                     def buildUrl = env.BUILD_URL
-                    sh "gitleaks detect -v --no-git --source . --report-format json --report-path secrets.json || exit 0"
+                    sh "gitleaks detect -v --no-git --source /home/ec2-user/workspace/Testproject1_mcroservice-project/ --report-format json --report-path secrets.json || exit 0"
                 }
             }
         }
