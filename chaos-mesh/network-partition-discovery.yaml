@@ -1,0 +1,20 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: network-partition-discovery
+  namespace: chaos-testing
+spec:
+  action: partition
+  mode: one
+  selector:
+    namespaces:
+      - default
+    labelSelectors:
+      app: discovery-server
+  direction: to
+  target:
+    mode: all
+    selector:
+      namespaces:
+        - default
+  duration: "30s"

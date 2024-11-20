@@ -1,0 +1,34 @@
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  namespace: chaos-testing
+  name: account-chaos-testing-manager-eumvl
+
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: chaos-testing
+  name: role-chaos-testing-manager-eumvl
+rules:
+- apiGroups: [""]
+  resources: ["pods", "namespaces"]
+  verbs: ["get", "watch", "list"]
+- apiGroups: ["chaos-mesh.org"]
+  resources: ["*"]
+  verbs: ["get", "list", "watch", "create", "delete", "patch", "update"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: bind-chaos-testing-manager-eumvl
+  namespace: chaos-testing
+subjects:
+- kind: ServiceAccount
+  name: account-chaos-testing-manager-eumvl
+  namespace: chaos-testing
+roleRef:
+  kind: Role
+  name: role-chaos-testing-manager-eumvl
+  apiGroup: rbac.authorization.k8s.io
