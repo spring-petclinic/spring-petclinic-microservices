@@ -9,20 +9,24 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Login to Azure
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Azure CLI Login
       run: |
+        echo "Logging into Azure using Service Principal..."
         az login --service-principal \
-          --username ${{ secrets.AZURE_CLIENT_ID }} \
-          --password ${{ secrets.AZURE_CLIENT_SECRET }} \
-          --tenant ${{ secrets.AZURE_TENANT_ID }}
+          --username a3b1930b-4c9a-48fe-9a91-b921625ba9e4 \
+          --password 7~68Q~ihGdNP4uSKUTfaURYE4HMU5ETprZyxiao9 \
+          --tenant e994072b-523e-4bfe-86e2-442c5e10b244
 
-    - name: Get AKS Credentials
-      run: |
-        az aks get-credentials \
-          --resource-group petclinic-resource-group \
-          --name petclinic-aks-cluster \
-          --overwrite-existing
+        echo "Setting subscription..."
+        az account set --subscription 26a7e7cf-9850-40df-89ab-a3170d67dcbf
 
-    - name: Deploy to Kubernetes
-      run: kubectl apply -f k8s/ --recursive
+        echo "Getting AKS credentials..."
+        az aks get-credentials --resource-group petclinic-resource-group --name petclinic-aks-cluster
+
+        echo "Listing AKS nodes..."
+        kubectl get nodes
