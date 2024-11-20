@@ -2,40 +2,27 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: prometheus-server
-  labels:
-    app: prometheus-server
+  namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: prometheus-server
+      app: prometheus
   template:
     metadata:
       labels:
-        app: prometheus-server
+        app: prometheus
     spec:
       containers:
-        - name: prometheus-server
-          image: springcommunity/prometheus:latest
-          ports:
-            - containerPort: 9090
-          resources:
-            limits:
-              memory: "256Mi"
-              cpu: "200m"
-            requests:
-              memory: "128Mi"
-              cpu: "100m"
-          livenessProbe:
-            httpGet:
-              path: /api/v1/status/flags
-              port: 9090
-            initialDelaySeconds: 30
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /api/v1/status/flags
-              port: 9090
-            initialDelaySeconds: 15
-            periodSeconds: 5
-      restartPolicy: Always
+      - name: prometheus
+        image: prom/prometheus:v2.40.0
+        ports:
+        - containerPort: 9090
+        volumeMounts:
+        - name: prometheus-config
+          mountPath: /etc/prometheus
+          subPath: prometheus.yml
+      volumes:
+      - name: prometheus-config
+        configMap:
+          name: prometheus-config
