@@ -5,7 +5,7 @@ metadata:
   namespace: default
 spec:
   scaleTargetRef:
-    name: admin-server-deployment.yaml
+    name: admin-server-deployment
   triggers:
   - type: prometheus
     metadata:
