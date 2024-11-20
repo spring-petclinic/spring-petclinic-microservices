@@ -5,10 +5,10 @@ metadata:
   labels:
     app: api-gateway
 spec:
-  ports:
-    - name: http
-      port: 8080
-      targetPort: 8080
   selector:
     app: api-gateway
-  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080 
+  type: LoadBalancer
