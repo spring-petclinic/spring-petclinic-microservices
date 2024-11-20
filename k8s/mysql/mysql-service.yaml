@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+spec:
+  selector:
+    app: mysql  # Selecciona el pod con la etiqueta 'app: mysql'
+  ports:
+    - protocol: TCP
+      port: 3306  # Puerto accesible dentro del clúster
+      targetPort: 3306  # Puerto en el contenedor
+  clusterIP: None  # Esto crea un servicio headless, lo cual es útil para bases de datos

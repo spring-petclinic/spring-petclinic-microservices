@@ -1,24 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: customers-service
+  name: visit-service
   labels:
-    app: customers-service
+    app: visit-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: customers-service
+      app: visit-service
   template:
     metadata:
       labels:
-        app: customers-service
+        app: visit-service
     spec:
       containers:
-        - name: customers-service
-          image: springcommunity/spring-petclinic-customers-service:latest
+        - name: visit-service
+          image: springcommunity/spring-petclinic-visits-service:latest
           ports:
-            - containerPort: 8081
+            - containerPort: 8082
+            
           resources:
             limits:
               memory: "512Mi"
@@ -29,13 +30,13 @@ spec:
           livenessProbe:
             httpGet:
               path: /actuator/health
-              port: 8081
+              port: 8082
             initialDelaySeconds: 30
             periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /actuator/health
-              port: 8081
+              port: 8082
             initialDelaySeconds: 15
             periodSeconds: 5
       restartPolicy: Always

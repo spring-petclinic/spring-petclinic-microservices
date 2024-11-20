@@ -1,24 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: admin-server
+  name: vets-service
   labels:
-    app: admin-server
+    app: vets-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: admin-server
+      app: vets-service
   template:
     metadata:
       labels:
-        app: admin-server
+        app: vets-service
     spec:
       containers:
-        - name: admin-server
-          image: springcommunity/spring-petclinic-admin-server:latest
+        - name: vets-service
+          image: springcommunity/spring-petclinic-vets-service:latest
           ports:
-            - containerPort: 9090
+            - containerPort: 8083
+        
           resources:
             limits:
               memory: "512Mi"
@@ -29,13 +30,13 @@ spec:
           livenessProbe:
             httpGet:
               path: /actuator/health
-              port: 9090
+              port: 8083
             initialDelaySeconds: 30
             periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /actuator/health
-              port: 9090
+              port: 8083
             initialDelaySeconds: 15
             periodSeconds: 5
       restartPolicy: Always
