@@ -6,7 +6,7 @@ pipeline {
 
     stages {
         
-        stage('Credential Scanner') {
+        stage('Credential Scanner for detecting Secrets') {
             steps {
                 script {
                     def buildUrl = env.BUILD_URL
