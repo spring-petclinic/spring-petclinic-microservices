@@ -18,15 +18,15 @@ jobs:
       run: |
         echo "Logging into Azure using Service Principal..."
         az login --service-principal \
-          --username a3b1930b-4c9a-48fe-9a91-b921625ba9e4 \
-          --password 7~68Q~ihGdNP4uSKUTfaURYE4HMU5ETprZyxiao9 \
-          --tenant e994072b-523e-4bfe-86e2-442c5e10b244
+          --username ${{ secrets.AZURE_CLIENT_ID }} \
+          --password ${{ secrets.AZURE_CLIENT_SECRET }} \
+          --tenant ${{ secrets.AZURE_TENANT_ID }}
 
         echo "Setting subscription..."
-        az account set --subscription 26a7e7cf-9850-40df-89ab-a3170d67dcbf
+        az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
         echo "Getting AKS credentials..."
-        az aks get-credentials --resource-group petclinic-resource-group --name petclinic-aks-cluster
+        az aks get-credentials --resource-group ${{ secrets.AKS_RESOURCE_GROUP }} --name ${{ secrets.AKS_CLUSTER_NAME }}
 
         echo "Listing AKS nodes..."
         kubectl get nodes
