@@ -1,14 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: grafana-server
+  name: grafana
   labels:
-    app: grafana-server
+    app: grafana
 spec:
+  type: LoadBalancer
   ports:
-    - name: http
-      port: 3000
+    - port: 9090
       targetPort: 3000
   selector:
-    app: grafana-server
-  type: ClusterIP
+    app: grafana

@@ -1,41 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: grafana-server
+  name: grafana
   labels:
-    app: grafana-server
+    app: grafana
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: grafana-server
+      app: grafana
   template:
     metadata:
       labels:
-        app: grafana-server
+        app: grafana
     spec:
       containers:
-        - name: grafana-server
-          image: springcommunity/grafana:latest
-          ports:
-            - containerPort: 3000
-          resources:
-            limits:
-              memory: "256Mi"
-              cpu: "250m"
-            requests:
-              memory: "128Mi"
-              cpu: "100m"
-          livenessProbe:
-            httpGet:
-              path: /api/health
-              port: 3000
-            initialDelaySeconds: 30
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /api/health
-              port: 3000
-            initialDelaySeconds: 15
-            periodSeconds: 5
-      restartPolicy: Always
+      - name: grafana
+        image: grafana/grafana:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: GF_SECURITY_ADMIN_PASSWORD
+          value: "admin"
+        volumeMounts:
+        - name: grafana-storage
+          mountPath: /var/lib/grafana
+      volumes:
+      - name: grafana-storage
+        persistentVolumeClaim:
+          claimName: grafana-pvc
