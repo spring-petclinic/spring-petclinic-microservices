@@ -9,8 +9,21 @@ spring:
     active: production
 
 ---
+
 spring:
   config:
     activate:
       on-profile: docker
     import: configserver:http://config-server:8888
+
+---
+
+spring:
+  datasource:
+    url: jdbc:mysql://database-service:3306/vetsdb
+    username: ${DB-USERNAME}
+    password: ${DB-PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true

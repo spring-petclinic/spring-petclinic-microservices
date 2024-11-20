@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-deployment
+spec:
+  replicas: 1  # Número de réplicas del pod
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:5.7.8
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "petclinic"  # Contraseña del root
+            - name: MYSQL_DATABASE
+              value: "petclinic"  # Base de datos por defecto
+          ports:
+            - containerPort: 3306  # El puerto que se expone dentro del pod
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql  # Montaje para almacenamiento persistente
+      volumes:
+        - name: mysql-storage
+          emptyDir: {}  # Esto es para almacenamiento temporal. Usa un volumen persistente en producción.
