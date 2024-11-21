@@ -231,3 +231,116 @@ For pull requests, editor preferences are available in the [editor config](.edit
 
 [Configuration repository]: https://github.com/spring-petclinic/spring-petclinic-microservices-config
 [Spring Boot Actuator Production Ready Metrics]: https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-metrics.html
+
+---
+
+# 📋 Guía de Pruebas en Chaos Mesh
+
+Esta guía describe los pasos para realizar pruebas utilizando **Chaos Mesh** en el `discovery-server` y validar su impacto desde los servicios `api-gateway` y `customers-service`.
+
+---
+
+## 🛠 **Ejecutar el Archivo de Chaos**
+
+1. Asegúrate de que el archivo YAML del experimento está listo. Por ejemplo, `network-partition-discovery.yaml`.
+
+2. **Ejecuta el experimento:**
+   ```bash
+   kubectl apply -f network-partition-discovery.yaml
+   ```
+
+3. **Verifica que el experimento está corriendo:**
+   ```bash
+   kubectl get networkchaos -n chaos-testing
+   ```
+   Deberías ver el experimento en estado `Running`.
+
+4. **Detener el experimento (opcional):**
+   ```bash
+   kubectl delete -f network-partition-discovery.yaml
+   ```
+
+---
+
+## 🧪 **Prueba desde `api-gateway`**
+
+### **Acceder al pod del `api-gateway`**
+```bash
+kubectl exec -it api-gateway-585764bcd6-l59x6 -n default -- sh
+```
+
+### **Comandos para probar conectividad**
+1. **Probar conexión al `discovery-server`:**
+   ```bash
+   curl http://discovery-server:8761
+   ```
+   - **Esperado sin caos:** Respuesta válida del `discovery-server`.
+   - **Esperado con caos:** Error de conexión.
+
+2. **Probar resolución de DNS dentro del clúster:**
+   ```bash
+   nslookup discovery-server
+   ```
+   - **Esperado sin caos:** Dirección IP válida del `discovery-server`.
+   - **Esperado con caos:** Error o tiempo de espera.
+
+---
+
+## 🧪 **Prueba desde `customers-service`**
+
+### **Acceder al pod del `customers-service`**
+```bash
+kubectl exec -it customers-service-75df9c98d5-j8cz6 -n default -- sh
+```
+
+### **Comandos para probar conectividad**
+1. **Probar conexión al `discovery-server`:**
+   ```bash
+   curl http://discovery-server:8761
+   ```
+   - **Esperado sin caos:** Respuesta válida del `discovery-server`.
+   - **Esperado con caos:** Error de conexión.
+
+2. **Enviar una solicitud de prueba desde el servicio:**
+   ```bash
+   curl http://discovery-server:8761/eureka/apps
+   ```
+   - Esto intenta listar los servicios registrados en el `discovery-server`.
+
+---
+
+## 🔍 **Validar Recuperación del Sistema**
+
+### **Revisar registros del `discovery-server`**
+1. Ver logs del pod del `discovery-server`:
+   ```bash
+   kubectl logs <discovery-server-pod> -n default
+   ```
+
+2. Busca mensajes como:
+   - "Heartbeat failed" (indicando que un servicio no pudo conectarse).
+   - "Registered instance" (indicando que un servicio volvió a registrarse tras la recuperación).
+
+---
+
+## 📈 **Validar Impacto con `kubectl`**
+1. Ver estado de los pods:
+   ```bash
+   kubectl get pods -n default -w
+   ```
+   - Observa si los servicios se reinician o cambian de estado durante el experimento.
+
+2. Ver eventos del clúster:
+   ```bash
+   kubectl get events -n default
+   ```
+   - Busca eventos relacionados con fallos de red o reintentos de conexión.
+
+---
+
+## 🚀 **Ejemplo de Recuperación Manual**
+1. Si el `discovery-server` sigue inaccesible después del caos, prueba reiniciarlo manualmente:
+   ```bash
+   kubectl rollout restart deployment discovery-server -n default
+   ```
+
