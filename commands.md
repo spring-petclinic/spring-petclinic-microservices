@@ -75,7 +75,3 @@ helm repo update
 helm install prometheus prometheus-community/prometheus --namespace monitoring --create-namespace
 kubectl apply --server-side -f https://github.com/kedacore/keda/releases/download/v2.16.0/keda-2.16.0-crds.yaml
 kubectl apply -f k8s/ --recursive
-helm repo add grafana https://grafana.github.io/helm-charts
-helm repo update
-helm install grafana grafana/grafana --namespace monitoring --create-namespace
-kubectl port-forward -n monitoring svc/grafana 3000:80
