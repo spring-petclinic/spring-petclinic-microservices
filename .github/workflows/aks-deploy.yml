@@ -30,68 +30,53 @@ jobs:
 
         echo "Listing AKS nodes..."
         kubectl get nodes
-    
-    - name: Install Linkerd
-      run: |
-        echo "Installing Linkerd..."
-        curl -sL https://run.linkerd.io/install | sh
-        export PATH=$PATH:/home/$(whoami)/.linkerd2/bin
 
-        echo "Validating Linkerd installation..."
+    - name: Generate and Install Linkerd
+      run: |
+        # Install Linkerd
+        curl -sL https://run.linkerd.io/install | sh
+
+        # Add Linkerd CLI to PATH (if not done already)
+        export PATH=$PATH:/home/ubuntu/.linkerd2/bin
+
+        # Validate Linkerd installation
         linkerd check --pre
 
-        echo "Installing Linkerd CRDs..."
+        # Install Linkerd CRDs
         linkerd install --crds | kubectl apply -f -
 
-        echo "Installing Linkerd control plane..."
+        # Install Linkerd control plane
         linkerd install | kubectl apply -f -
 
-        echo "Checking Linkerd installation..."
+        # Check Linkerd installation
         linkerd check
 
-        echo "Installing Linkerd Viz extension for monitoring..."
+        # Install Linkerd Viz extension for monitoring (optional)
         linkerd viz install | kubectl apply -f -
         linkerd viz check
 
-        echo "Injecting Linkerd into existing deployments..."
-        kubectl get deploy -o yaml | linkerd inject - | kubectl apply -f -
-
-    - name: Verify Linkerd installation
+    - name: Inject Linkerd into existing deployments
       run: |
-        echo "Verifying Linkerd CRDs..."
-        kubectl get crds | grep linkerd
-
-        echo "Verifying Linkerd ConfigMaps..."
-        kubectl get configmap -n linkerd
-
-        echo "Verifying Linkerd pod status..."
-        kubectl get pods
-
-        echo "Verifying pods after Linkerd injection..."
-        kubectl get pods -o wide
-
-    - name: Install KEDA
-      run: |
-        echo "Adding KEDA Helm chart repository..."
-        helm repo add kedacore https://kedacore.github.io/charts
-        helm repo update
-
-        echo "Installing KEDA..."
-        helm install keda kedacore/keda --namespace keda --create-namespace
-
-        echo "Adding Prometheus Helm chart repository..."
-        helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-        helm repo update
-
-        echo "Installing Prometheus..."
-        helm install prometheus prometheus-community/prometheus --namespace monitoring --create-namespace
-
-        echo "Applying KEDA CRDs..."
-        kubectl apply --server-side -f https://github.com/kedacore/keda/releases/download/v2.16.0/keda-2.16.0-crds.yaml
-
-        echo "Applying Kubernetes resources recursively..."
-        kubectl apply -f k8s/ --recursive
+        # Apply Linkerd injection to deployments in the specified namespace
+        kubectl get deploy -o yaml --namespace <your-namespace> | linkerd inject - | kubectl apply -f -
 
     - name: Apply Kubernetes resources
       run: |
+        # Apply Kubernetes resources from the k8s directory
+        kubectl apply -f k8s/ --recursive
+
+    - name: Install KEDA and Prometheus
+      run: |
+        # Install KEDA
+        helm repo add kedacore https://kedacore.github.io/charts
+        helm repo update
+        helm install keda kedacore/keda --namespace keda --create-namespace
+
+        # Install Prometheus for monitoring
+        helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+        helm repo update
+        helm install prometheus prometheus-community/prometheus --namespace monitoring --create-namespace
+
+        # Apply KEDA CRDs
+        kubectl apply --server-side -f https://github.com/kedacore/keda/releases/download/v2.16.0/keda-2.16.0-crds.yaml
         kubectl apply -f k8s/ --recursive
