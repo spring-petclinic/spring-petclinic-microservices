@@ -1,0 +1,14 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: vets-service-scaledobject
+  namespace: default
+spec:
+  scaleTargetRef:
+    name: vets-service
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: "http://prometheus-server.default.svc.cluster.local:9090"
+        metricName: "http_requests_total"
+        threshold: "100"
