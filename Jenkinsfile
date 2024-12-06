@@ -29,7 +29,7 @@ pipeline {
             }
             post {
                 always {
-                    //Archive and publish test results
+                    //Archive and publish test results of the spring-petclinic"
                     junit '**/target/surefire-reports/*.xml'
                 }
             }
