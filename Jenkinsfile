@@ -43,7 +43,7 @@ pipeline {
             }
             post {
                 success {
-                    // Archive the package artifact
+                    // Archive the package artifact and put in a folder
                     archiveArtifacts artifacts: 'spring-petclinic-*/target/*.jar', allowEmptyArchive: true
                 }
             }
