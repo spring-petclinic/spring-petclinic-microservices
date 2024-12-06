@@ -37,7 +37,7 @@ pipeline {
         stage('Package Petclinic App') {
             steps {
                 script {
-                    // Package the application (e.g., create a JAR or WAR file)
+                    // Package the application (For example, create a JAR or WAR file)
                     sh 'mvn package'
                 }
             }
