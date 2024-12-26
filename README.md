@@ -104,7 +104,7 @@ Spring Petclinic integrates a Chatbot that allows you to interact with the appli
 5. Add a dog for Betty. Its name is Moopsie.
 6. Create a new owner
 
-![alt text](spring-ai.png)
+![alt text](docs/spring-ai.png)
 
 This Microservice currently supports OpenAI or Azure's OpenAI as the LLM provider.
 In order to enable Spring AI, perform the following steps:
