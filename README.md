@@ -79,6 +79,7 @@ This project consists of several microservices:
 - **Customers Service**: Manages customer data.
 - **Vets Service**: Handles information about veterinarians.
 - **Visits Service**: Manages pet visit records.
+- **GenAI Service**: Provides a chatbot interface to the application.
 - **API Gateway**: Routes client requests to the appropriate services.
 - **Config Server**: Centralized configuration management for all services.
 - **Discovery Server**: Eureka-based service registry.
@@ -102,16 +103,33 @@ Spring Petclinic integrates a Chatbot that allows you to interact with the appli
 3. Is there an owner named Betty?
 4. Which owners have dogs?
 5. Add a dog for Betty. Its name is Moopsie.
-6. Create a new owner
+6. Create a new owner.
 
-![alt text](docs/spring-ai.png)
+![Screenshot of the chat dialog](docs/spring-ai.png)
 
-This Microservice currently supports OpenAI or Azure's OpenAI as the LLM provider.
-In order to enable Spring AI, perform the following steps:
+This `spring-petlinic-genai-service` microservice currently supports **OpenAI** (default) or **Azure's OpenAI** as the LLM provider.
+In order to start the microservice, perform the following steps:
 
-1. Decide which provider you want to use. By default, the `spring-ai-azure-openai-spring-boot-starter` dependency is enabled. You can change it to `spring-ai-openai-spring-boot-starter`in  `pom.xml`.
-2. Copy `src/main/resources/creds-template.yaml` into `src/main/resources/creds.yaml`, and edit its contents with your API key and API endpoint. Refer to OpenAI's or Azure's documentation for further information on how to obtain these. You only need to populate the provider you're using - either openai, or azure-openai.
-3. Boot the `spring-petclinic-genai-service` microservice. 
+1. Decide which provider you want to use. By default, the `spring-ai-openai-spring-boot-starter` dependency is enabled. 
+   You can change it to `spring-ai-azure-openai-spring-boot-starter`in the `pom.xml`.
+2. Create an OpenAI API key or a Azure OpenAI resource in your Azure Portal.
+   Refer to the [OpenAI's quickstart](https://platform.openai.com/docs/quickstart) or [Azure's documentation](https://learn.microsoft.com/en-us/azure/ai-services/openai/) for further information on how to obtain these.
+   You only need to populate the provider you're using - either openai, or azure-openai.
+   If you don't have your own OpenAI API key, don't worry!
+   You can temporarily use the `demo` key, which OpenAI provides free of charge for demonstration purposes.
+   This `demo` key has a quota, is limited to the `gpt-4o-mini` model, and is intended solely for demonstration use.
+   With your own OpenAI account, you can test the `gpt-4o` model by modifying the `deployment-name` property of the `application.yml` file.
+3. Export your API keys and endpoint as environment variables:
+    * either OpenAI:
+    ```bash
+    export OPENAI_API_KEY="your_api_key_here"
+    ```
+    * or Azure OpenAI:
+    ```bash
+    export AZURE_OPENAI_ENDPOINT="https://your_resource.openai.azure.com"
+    export AZURE_OPENAI_KEY="your_api_key_here"
+    ```
+
 ## In case you find a bug/suggested improvement for Spring Petclinic Microservices
 
 Our issue tracker is available here: https://github.com/spring-petclinic/spring-petclinic-microservices/issues
