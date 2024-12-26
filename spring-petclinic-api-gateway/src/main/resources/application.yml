@@ -14,7 +14,7 @@ spring:
           args:
             retries: 1
             statuses: SERVICE_UNAVAILABLE
-            methods: GET, POST
+            methods: POST
       routes:
         - id: vets-service
           uri: lb://vets-service
