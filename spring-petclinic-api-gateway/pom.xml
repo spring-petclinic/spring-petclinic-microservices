@@ -11,7 +11,7 @@
     <parent>
         <groupId>org.springframework.samples</groupId>
         <artifactId>spring-petclinic-microservices</artifactId>
-        <version>3.2.7</version>
+        <version>3.3.4</version>
     </parent>
 
     <properties>
@@ -19,6 +19,8 @@
         <webjars-font-awesome.version>4.7.0</webjars-font-awesome.version>
         <webjars-angular.version>1.8.3</webjars-angular.version>
         <webjars-angular-ui-router.version>1.0.30</webjars-angular-ui-router.version>
+        <webjars-marked.version>14.1.2</webjars-marked.version>
+
         <libsass-maven-plugin.version>0.2.29</libsass-maven-plugin.version>
         <docker.image.exposed.port>8081</docker.image.exposed.port>
         <docker.image.dockerfile.dir>${basedir}/../docker</docker.image.dockerfile.dir>
@@ -123,6 +125,11 @@
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>webjars-locator-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>marked</artifactId>
+            <version>${webjars-marked.version}</version>
         </dependency>
 
         <!-- Testing -->

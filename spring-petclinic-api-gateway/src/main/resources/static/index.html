@@ -22,6 +22,7 @@
     <script src="/webjars/angular-ui-router/angular-ui-router.min.js"></script>
 
     <script src="/scripts/app.js"></script>
+    <script src="/scripts/genai/chat.js"></script>
 
     <script src="/scripts/owner-list/owner-list.js"></script>
     <script src="/scripts/owner-list/owner-list.controller.js"></script>
@@ -58,6 +59,36 @@
         <div ui-view=""></div>
     </div>
 </div>
+
+<div class="chatbox" id="chatbox">
+    <button class="chatbox-header" onclick="toggleChatbox()">
+        Chat with Us!
+    </button>
+    <div class="chatbox-content" id="chatbox-content">
+        <div class="chatbox-messages" id="chatbox-messages">
+            <!-- Chat messages will be dynamically inserted here -->
+        </div>
+        <div class="chatbox-footer">
+            <input type="text" id="chatbox-input" placeholder="Type a message..." onkeydown="handleKeyPress(event)" />
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for handling chatbox interaction -->
+<script>
+
+    // Call loadChatMessages when the page loads
+    window.onload = loadChatMessages;
+
+    // Ensure messages are saved when navigating away
+    window.onbeforeunload = saveChatMessages;
+</script>
+
+
+
+<script src="/webjars/marked/marked.min.js"></script>
+
 <layout-footer></layout-footer>
 </body>
 

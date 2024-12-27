@@ -1,0 +1,53 @@
+spring:
+  main:
+    web-application-type: reactive
+  application:
+    name: genai-service
+  profiles:
+    active: production
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/},optional:classpath:/creds.yaml
+  ai:
+    chat:
+      client:
+        enabled: true
+    # These apply when using spring-ai-azure-openai-spring-boot-starter
+    azure:
+      openai:
+        api-key: ${AZURE_OPENAI_KEY}
+        endpoint: ${AZURE_OPENAI_ENDPOINT}
+        chat:
+          options:
+            temperature: 0.7
+            deployment-name: gpt-4o
+    # These apply when using spring-ai-openai-spring-boot-starter
+    openai:
+      api-key: ${OPENAI_API_KEY:demo}
+      chat:
+        options:
+            temperature: 0.7
+            model: gpt-4o-mini
+
+
+logging:
+  level:
+    org:
+      springframework:
+        ai:
+          chat:
+            client:
+              advisor: DEBUG
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+    import: configserver:http://config-server:8888
+  zipkin:
+    baseUrl: http://tracing-server:9411
+server:
+  port: 8084
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://discovery-server:8761/eureka/

@@ -5,6 +5,16 @@ spring:
     import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
   cloud:
     gateway:
+      default-filters:
+        - name: CircuitBreaker
+          args:
+            name: defaultCircuitBreaker
+            fallbackUri: forward:/fallback
+        - name: Retry
+          args:
+            retries: 1
+            statuses: SERVICE_UNAVAILABLE
+            methods: POST
       routes:
         - id: vets-service
           uri: lb://vets-service
@@ -24,8 +34,13 @@ spring:
             - Path=/api/customer/**
           filters:
             - StripPrefix=2
-
-
+        - id: genai-service
+          uri: lb://genai-service
+          predicates:
+            - Path=/api/genai/**
+          filters:
+            - StripPrefix=2
+            - CircuitBreaker=name=genaiCircuitBreaker,fallbackUri=/fallback
 
 ---
 spring:
