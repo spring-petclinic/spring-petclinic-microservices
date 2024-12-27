@@ -15,15 +15,10 @@
  */
 package org.springframework.samples.petclinic.genai.dto;
 
-import lombok.Data;
-
 /**
  * Simple Data Transfer Object representing a Pet type.
- * 
+ *
  * @author Oded Shopen
  */
-@Data
-public class PetType {
-
-    private String name;
+public record PetType(String name) {
 }

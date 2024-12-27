@@ -15,39 +15,20 @@
  */
 package org.springframework.samples.petclinic.genai.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
-
-import java.util.ArrayList;
 import java.util.List;
-
-import static java.util.stream.Collectors.toList;
 
 /**
  * Simple Data Transfer Object representing an owner.
+ *
  * @author Oded Shopen
  */
-@Data
-public class OwnerDetails {
-
-    private int id;
-
-    private String firstName;
-
-    private String lastName;
-
-    private String address;
-
-    private String city;
-
-    private String telephone;
-
-    private final List<PetDetails> pets = new ArrayList<>();
-
-    @JsonIgnore
-    public List<Integer> getPetIds() {
-        return pets.stream()
-            .map(PetDetails::getId)
-            .collect(toList());
-    }
+public record OwnerDetails(
+    int id,
+    String firstName,
+    String lastName,
+    String address,
+    String city,
+    String telephone,
+    List<PetDetails> pets
+) {
 }

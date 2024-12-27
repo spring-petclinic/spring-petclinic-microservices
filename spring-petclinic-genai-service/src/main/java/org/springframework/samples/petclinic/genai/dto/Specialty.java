@@ -15,23 +15,14 @@
  */
 package org.springframework.samples.petclinic.genai.dto;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-
 /**
  * Simple Data Transfer Object representing a vet's specialty.
  *
  * @author Oded Shopen
  */
 
-@Data
-public class Specialty {
-    @Getter
-    private Integer id;
-
-    @Getter
-    @Setter
-    private String name;
-
+public record Specialty(
+    Integer id,
+    String name
+) {
 }

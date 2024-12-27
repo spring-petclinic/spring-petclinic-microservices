@@ -15,23 +15,14 @@
  */
 package org.springframework.samples.petclinic.genai.dto;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 /**
  * Simple Data Transfer Object representing a customer visit.
  *
  * @author Oded Shopen
  */
-@Data
-@NoArgsConstructor
-public class VisitDetails {
-
-    private Integer id = null;
-
-    private Integer petId = null;
-
-    private String date = null;
-
-    private String description = null;
+public record VisitDetails(
+    Integer id,
+    Integer petId,
+    String date,
+    String description) {
 }

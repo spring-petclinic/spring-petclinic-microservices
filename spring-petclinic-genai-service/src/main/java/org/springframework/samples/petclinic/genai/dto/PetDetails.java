@@ -15,27 +15,18 @@
  */
 package org.springframework.samples.petclinic.genai.dto;
 
-import lombok.Data;
-
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Simple Data Transfer Object representing a pet data type.
- * 
+ *
  * @author Oded Shopen
  */
-@Data
-public class PetDetails {
-
-    private int id;
-
-    private String name;
-
-    private String birthDate;
-
-    private PetType type;
-
-    private final List<VisitDetails> visits = new ArrayList<>();
-
+public record PetDetails(
+    int id,
+    String name,
+    String birthDate,
+    PetType type,
+    List<VisitDetails> visits
+){
 }
