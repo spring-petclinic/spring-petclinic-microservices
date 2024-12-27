@@ -16,20 +16,9 @@
 package org.springframework.samples.petclinic.visits.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
+
 import java.util.Date;
 
 /**
@@ -41,17 +30,12 @@ import java.util.Date;
  */
 @Entity
 @Table(name = "visits")
-@Builder(builderMethodName = "visit")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class Visit {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Builder.Default
     @Column(name = "visit_date")
     @Temporal(TemporalType.TIMESTAMP)
     @JsonFormat(pattern = "yyyy-MM-dd")
@@ -64,4 +48,79 @@ public class Visit {
     @Column(name = "pet_id")
     private int petId;
 
+    public Integer getId() {
+        return this.id;
+    }
+
+    public Date getDate() {
+        return this.date;
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
+
+    public int getPetId() {
+        return this.petId;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setPetId(int petId) {
+        this.petId = petId;
+    }
+
+
+    public static final class VisitBuilder {
+        private Integer id;
+        private Date date;
+        private @Size(max = 8192) String description;
+        private int petId;
+
+        private VisitBuilder() {
+        }
+
+        public static VisitBuilder aVisit() {
+            return new VisitBuilder();
+        }
+
+        public VisitBuilder id(Integer id) {
+            this.id = id;
+            return this;
+        }
+
+        public VisitBuilder date(Date date) {
+            this.date = date;
+            return this;
+        }
+
+        public VisitBuilder description(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public VisitBuilder petId(int petId) {
+            this.petId = petId;
+            return this;
+        }
+
+        public Visit build() {
+            Visit visit = new Visit();
+            visit.setId(id);
+            visit.setDate(date);
+            visit.setDescription(description);
+            visit.setPetId(petId);
+            return visit;
+        }
+    }
 }

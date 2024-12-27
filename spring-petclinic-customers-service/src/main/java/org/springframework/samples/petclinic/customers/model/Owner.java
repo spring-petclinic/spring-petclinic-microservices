@@ -15,29 +15,14 @@
  */
 package org.springframework.samples.petclinic.customers.model;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
-
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.beans.support.MutableSortDefinition;
 import org.springframework.beans.support.PropertyComparator;
 import org.springframework.core.style.ToStringCreator;
+
+import java.util.*;
 
 /**
  * Simple JavaBean domain object representing an owner.
@@ -55,35 +40,24 @@ public class Owner {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Getter
     private Integer id;
 
-    @Getter
-    @Setter
     @Column(name = "first_name")
     @NotBlank
     private String firstName;
 
-    @Getter
-    @Setter
     @Column(name = "last_name")
     @NotBlank
     private String lastName;
 
-    @Getter
-    @Setter
     @Column(name = "address")
     @NotBlank
     private String address;
 
-    @Getter
-    @Setter
     @Column(name = "city")
     @NotBlank
     private String city;
 
-    @Getter
-    @Setter
     @Column(name = "telephone")
     @NotBlank
     @Digits(fraction = 0, integer = 12)
@@ -120,5 +94,49 @@ public class Owner {
             .append("city", this.city)
             .append("telephone", this.telephone)
             .toString();
+    }
+
+    public Integer getId() {
+        return this.id;
+    }
+
+    public String getFirstName() {
+        return this.firstName;
+    }
+
+    public String getLastName() {
+        return this.lastName;
+    }
+
+    public String getAddress() {
+        return this.address;
+    }
+
+    public String getCity() {
+        return this.city;
+    }
+
+    public String getTelephone() {
+        return this.telephone;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public void setTelephone(String telephone) {
+        this.telephone = telephone;
     }
 }

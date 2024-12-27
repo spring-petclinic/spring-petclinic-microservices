@@ -16,37 +16,82 @@
 package org.springframework.samples.petclinic.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author Maciej Szarlinski
  */
-@Data
-public class OwnerDetails {
-
-    private int id;
-
-    private String firstName;
-
-    private String lastName;
-
-    private String address;
-
-    private String city;
-
-    private String telephone;
-
-    private final List<PetDetails> pets = new ArrayList<>();
+public record OwnerDetails(
+    int id,
+    String firstName,
+    String lastName,
+    String address,
+    String city,
+    String telephone,
+    List<PetDetails> pets) {
 
     @JsonIgnore
     public List<Integer> getPetIds() {
         return pets.stream()
-            .map(PetDetails::getId)
-            .collect(toList());
+            .map(PetDetails::id)
+            .toList();
+    }
+
+
+    public static final class OwnerDetailsBuilder {
+        private int id;
+        private String firstName;
+        private String lastName;
+        private String address;
+        private String city;
+        private String telephone;
+        private List<PetDetails> pets;
+
+        private OwnerDetailsBuilder() {
+        }
+
+        public static OwnerDetailsBuilder anOwnerDetails() {
+            return new OwnerDetailsBuilder();
+        }
+
+        public OwnerDetailsBuilder id(int id) {
+            this.id = id;
+            return this;
+        }
+
+        public OwnerDetailsBuilder firstName(String firstName) {
+            this.firstName = firstName;
+            return this;
+        }
+
+        public OwnerDetailsBuilder lastName(String lastName) {
+            this.lastName = lastName;
+            return this;
+        }
+
+        public OwnerDetailsBuilder address(String address) {
+            this.address = address;
+            return this;
+        }
+
+        public OwnerDetailsBuilder city(String city) {
+            this.city = city;
+            return this;
+        }
+
+        public OwnerDetailsBuilder telephone(String telephone) {
+            this.telephone = telephone;
+            return this;
+        }
+
+        public OwnerDetailsBuilder pets(List<PetDetails> pets) {
+            this.pets = pets;
+            return this;
+        }
+
+        public OwnerDetails build() {
+            return new OwnerDetails(id, firstName, lastName, address, city, telephone, pets);
+        }
     }
 }

@@ -17,8 +17,8 @@ package org.springframework.samples.petclinic.customers.web;
 
 import io.micrometer.core.annotation.Timed;
 import jakarta.validation.constraints.Min;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.samples.petclinic.customers.model.*;
 import org.springframework.web.bind.annotation.*;
@@ -34,13 +34,17 @@ import java.util.List;
  */
 @RestController
 @Timed("petclinic.pet")
-@RequiredArgsConstructor
-@Slf4j
 class PetResource {
+
+    private static final Logger log = LoggerFactory.getLogger(PetResource.class);
 
     private final PetRepository petRepository;
     private final OwnerRepository ownerRepository;
 
+    PetResource(PetRepository petRepository, OwnerRepository ownerRepository) {
+        this.petRepository = petRepository;
+        this.ownerRepository = ownerRepository;
+    }
 
     @GetMapping("/petTypes")
     public List<PetType> getPetTypes() {
