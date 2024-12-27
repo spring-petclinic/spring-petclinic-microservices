@@ -81,6 +81,10 @@ services:
   genai-service:
     image: springcommunity/spring-petclinic-genai-service
     container_name: genai-service
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - AZURE_OPENAI_KEY=${AZURE_OPENAI_KEY}
+      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
     deploy:
       resources:
         limits:
