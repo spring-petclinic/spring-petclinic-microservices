@@ -121,7 +121,8 @@ services:
         limits:
           memory: 512M
     environment:
-    - JAVA_OPTS=-XX:+UnlockExperimentalVMOptions -Djava.security.egd=file:/dev/./urandom
+    # Waiting for https://github.com/openzipkin/zipkin/issues/3786
+    - JAVA_OPTS=-XX:UseSVE=0
     ports:
      - 9411:9411
 
