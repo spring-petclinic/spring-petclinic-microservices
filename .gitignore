@@ -21,4 +21,3 @@ target/
 generated/
 
 **/.DS_Store
-**/creds.yaml
