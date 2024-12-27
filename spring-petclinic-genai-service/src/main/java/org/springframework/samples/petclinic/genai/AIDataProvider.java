@@ -24,11 +24,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class AIDataProvider {
 
 	private final VectorStore vectorStore;
-    private String ownersHostname = "http://customers-service/";
-    
+    private final String ownersHostname = "http://customers-service/";
+
     private final WebClient webClient;
 
-	
+
 	public AIDataProvider(WebClient.Builder webClientBuilder, VectorStore vectorStore) {
 		this.webClient = webClientBuilder.build();
 		this.vectorStore = vectorStore;
@@ -54,12 +54,11 @@ public class AIDataProvider {
 		}
 
 		List<Document> topMatches = this.vectorStore.similaritySearch(sr);
-		List<String> results = topMatches.stream().map(document -> document.getContent()).toList();
+		List<String> results = topMatches.stream().map(Document::getContent).toList();
 		return new VetResponse(results);
 	}
 
 	public AddedPetResponse addPetToOwner(AddPetRequest request) {
-		
 		return new AddedPetResponse(webClient
 	            .post()
 	            .uri(ownersHostname + "owners/"+request.ownerId()+"/pets")
@@ -73,7 +72,6 @@ public class AIDataProvider {
 	            .uri(ownersHostname + "owners")
 	            .bodyValue(ownerRequest)
 	            .retrieve().bodyToMono(OwnerDetails.class).block());
-
 	}
 
 }
