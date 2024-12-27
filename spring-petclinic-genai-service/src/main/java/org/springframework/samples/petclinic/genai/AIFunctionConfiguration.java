@@ -31,18 +31,14 @@ class AIFunctionConfiguration {
 	@Bean
 	@Description("List the owners that the pet clinic has")
 	public Function<OwnerRequest, OwnersResponse> listOwners(AIDataProvider petclinicAiProvider) {
-		return request -> {
-			return petclinicAiProvider.getAllOwners();
-		};
+		return request -> petclinicAiProvider.getAllOwners();
 	}
 
 	@Bean
 	@Description("Add a new pet owner to the pet clinic. " + "The Owner must include a first name and a last name "
 			+ "as two separate words, " + "plus an address and a 10-digit phone number")
 	public Function<OwnerRequest, OwnerResponse> addOwnerToPetclinic(AIDataProvider petclinicAiDataProvider) {
-		return request -> {
-			return petclinicAiDataProvider.addOwnerToPetclinic(request);
-		};
+		return petclinicAiDataProvider::addOwnerToPetclinic;
 	}
 
 	@Bean
@@ -64,35 +60,32 @@ class AIFunctionConfiguration {
 			+ "The allowed Pet types IDs are only: " + "1 - cat" + "2 - dog" + "3 - lizard" + "4 - snake" + "5 - bird"
 			+ "6 - hamster")
 	public Function<AddPetRequest, AddedPetResponse> addPetToOwner(AIDataProvider petclinicAiProvider) {
-		return request -> {
-			return petclinicAiProvider.addPetToOwner(request);
-		};
+		return petclinicAiProvider::addPetToOwner;
 	}
 
 }
 
 record AddPetRequest(PetRequest pet, Integer ownerId) {
-};
+}
 
 record OwnersResponse(List<OwnerDetails> owners) {
-};
+}
 
 record OwnerResponse(OwnerDetails owner) {
-};
+}
 
 record AddedPetResponse(PetDetails pet) {
-};
+}
 
 record VetResponse(List<String> vet) {
-};
+}
 
 record VetRequest(Vet vet) {
-
-};
+}
 
 record OwnerRequest(@NotBlank String firstName,
         @NotBlank String lastName,
         @NotBlank String address,
         @NotBlank String city,
         @NotBlank @Digits(fraction = 0, integer = 12) String telephone) {
-};
+}
