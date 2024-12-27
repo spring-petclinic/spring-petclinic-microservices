@@ -3,6 +3,8 @@ package org.springframework.samples.petclinic.genai;
 import java.util.List;
 import java.util.function.Function;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Description;
@@ -27,6 +29,8 @@ import jakarta.validation.constraints.NotBlank;
 @Configuration
 class AIFunctionConfiguration {
 
+    private static final Logger LOG = LoggerFactory.getLogger(AIFunctionConfiguration.class);
+
 	// The @Description annotation helps the model understand when to call the function
 	@Bean
 	@Description("List the owners that the pet clinic has")
@@ -49,7 +53,7 @@ class AIFunctionConfiguration {
 				return petclinicAiProvider.getVets(request);
 			}
 			catch (JsonProcessingException e) {
-				e.printStackTrace();
+                LOG.error("Error processing JSON in the listVets function", e);
 				return null;
 			}
 		};

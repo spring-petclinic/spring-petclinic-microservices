@@ -2,8 +2,14 @@ package org.springframework.samples.petclinic.genai;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.List;
+import java.util.Set;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.document.Document;
@@ -36,9 +42,8 @@ public class VectorStoreController {
 
 	private final VectorStore vectorStore;
     private final WebClient webClient;
-    private final String vetsHostname = "http://vets-service/";
-		
-	public VectorStoreController(VectorStore vectorStore, WebClient.Builder webClientBuilder) throws IOException {
+
+    public VectorStoreController(VectorStore vectorStore, WebClient.Builder webClientBuilder) {
 		this.webClient = webClientBuilder.build();
 		this.vectorStore = vectorStore;
 	}
@@ -61,7 +66,8 @@ public class VectorStoreController {
 		// If vectorstore.json is deleted, the data will be loaded on startup every time.
 		// Warning - this can be costly in terms of credits used with the AI provider.
 		// Fetches all Vet entites and creates a document per vet
-			List<Vet> vets = webClient
+        String vetsHostname = "http://vets-service/";
+        List<Vet> vets = webClient
 	            .get()
 	            .uri(vetsHostname + "vets")
 	            .retrieve()
@@ -77,7 +83,18 @@ public class VectorStoreController {
 		this.vectorStore.add(documents);
 
 		if (vectorStore instanceof SimpleVectorStore) {
-			var file = File.createTempFile("vectorstore", ".json");
+            File file;
+            if(SystemUtils.IS_OS_UNIX) {
+                // java:S5443 Sonar rule: Using publicly writable directories is security-sensitive
+                FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"));
+                file = Files.createTempFile("vectorstore", ".json", attr).toFile();
+            }
+            else {
+                file= Files.createTempFile("vectorstore", ".json").toFile();
+                file.setReadable(true, true);
+                file.setWritable(true, true);
+                file.setExecutable(true, true);
+            }
 			((SimpleVectorStore) this.vectorStore).save(file);
 			logger.info("vector store contents written to {}", file.getAbsolutePath());
 		}
@@ -98,7 +115,7 @@ public class VectorStoreController {
 			return new ByteArrayResource(jsonBytes);
 		}
 		catch (JsonProcessingException e) {
-			e.printStackTrace();
+            logger.error("Error processing JSON in the convertListToJsonResource function", e);
 			return null;
 		}
 	}
