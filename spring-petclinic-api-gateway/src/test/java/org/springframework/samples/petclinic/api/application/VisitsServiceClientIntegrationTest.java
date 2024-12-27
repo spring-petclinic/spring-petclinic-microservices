@@ -49,10 +49,10 @@ class VisitsServiceClientIntegrationTest {
 
 
     private void assertVisitDescriptionEquals(Visits visits, int petId, String description) {
-        assertEquals(1, visits.getItems().size());
-        assertNotNull(visits.getItems().get(0));
-        assertEquals(petId, visits.getItems().get(0).getPetId());
-        assertEquals(description, visits.getItems().get(0).getDescription());
+        assertEquals(1, visits.items().size());
+        assertNotNull(visits.items().get(0));
+        assertEquals(petId, visits.items().get(0).petId());
+        assertEquals(description, visits.items().get(0).description());
     }
 
     private void prepareResponse(Consumer<MockResponse> consumer) {

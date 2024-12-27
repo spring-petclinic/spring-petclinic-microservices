@@ -15,15 +15,7 @@
  */
 package org.springframework.samples.petclinic.vets.model;
 
-import lombok.Getter;
-import lombok.Setter;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 /**
  * Models a {@link Vet Vet's} specialty (for example, dentistry).
@@ -37,12 +29,20 @@ import jakarta.persistence.Table;
 public class Specialty {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Getter
     private Integer id;
 
-    @Getter
-    @Setter
     @Column(name = "name")
     private String name;
 
+    public Integer getId() {
+        return this.id;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 }

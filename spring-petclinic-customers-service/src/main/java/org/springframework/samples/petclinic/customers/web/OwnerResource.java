@@ -18,8 +18,8 @@ package org.springframework.samples.petclinic.customers.web;
 import io.micrometer.core.annotation.Timed;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.samples.petclinic.customers.web.mapper.OwnerEntityMapper;
 import org.springframework.samples.petclinic.customers.model.Owner;
@@ -39,12 +39,17 @@ import java.util.Optional;
 @RequestMapping("/owners")
 @RestController
 @Timed("petclinic.owner")
-@RequiredArgsConstructor
-@Slf4j
 class OwnerResource {
+
+    private static final Logger log = LoggerFactory.getLogger(OwnerResource.class);
 
     private final OwnerRepository ownerRepository;
     private final OwnerEntityMapper ownerEntityMapper;
+
+    OwnerResource(OwnerRepository ownerRepository, OwnerEntityMapper ownerEntityMapper) {
+        this.ownerRepository = ownerRepository;
+        this.ownerEntityMapper = ownerEntityMapper;
+    }
 
     /**
      * Create Owner

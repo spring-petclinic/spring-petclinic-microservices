@@ -20,9 +20,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 
 import io.micrometer.core.annotation.Timed;
-import lombok.RequiredArgsConstructor;
-import lombok.Value;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.samples.petclinic.visits.model.Visit;
 import org.springframework.samples.petclinic.visits.model.VisitRepository;
@@ -43,12 +42,16 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Ramazan Sakin
  */
 @RestController
-@RequiredArgsConstructor
-@Slf4j
 @Timed("petclinic.visit")
 class VisitResource {
 
+    private static final Logger log = LoggerFactory.getLogger(VisitResource.class);
+
     private final VisitRepository visitRepository;
+
+    VisitResource(VisitRepository visitRepository) {
+        this.visitRepository = visitRepository;
+    }
 
     @PostMapping("owners/*/pets/{petId}/visits")
     @ResponseStatus(HttpStatus.CREATED)
@@ -72,8 +75,8 @@ class VisitResource {
         return new Visits(byPetIdIn);
     }
 
-    @Value
-    static class Visits {
-        List<Visit> items;
+    record Visits(
+        List<Visit> items
+    ) {
     }
 }

@@ -15,7 +15,6 @@
  */
 package org.springframework.samples.petclinic.api.dto;
 
-import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,17 +22,60 @@ import java.util.List;
 /**
  * @author Maciej Szarlinski
  */
-@Data
-public class PetDetails {
+public record PetDetails(
+    int id,
+    String name,
+    String birthDate,
+    PetType type,
+    List<VisitDetails> visits) {
 
-    private int id;
+    public PetDetails {
+        if (visits == null) {
+            visits = new ArrayList<>();
+        }
+    }
 
-    private String name;
+    public static final class PetDetailsBuilder {
+        private int id;
+        private String name;
+        private String birthDate;
+        private PetType type;
+        private List<VisitDetails> visits;
 
-    private String birthDate;
+        private PetDetailsBuilder() {
+        }
 
-    private PetType type;
+        public static PetDetailsBuilder aPetDetails() {
+            return new PetDetailsBuilder();
+        }
 
-    private final List<VisitDetails> visits = new ArrayList<>();
+        public PetDetailsBuilder id(int id) {
+            this.id = id;
+            return this;
+        }
 
+        public PetDetailsBuilder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public PetDetailsBuilder birthDate(String birthDate) {
+            this.birthDate = birthDate;
+            return this;
+        }
+
+        public PetDetailsBuilder type(PetType type) {
+            this.type = type;
+            return this;
+        }
+
+        public PetDetailsBuilder visits(List<VisitDetails> visits) {
+            this.visits = visits;
+            return this;
+        }
+
+        public PetDetails build() {
+            return new PetDetails(id, name, birthDate, type, visits);
+        }
+    }
 }

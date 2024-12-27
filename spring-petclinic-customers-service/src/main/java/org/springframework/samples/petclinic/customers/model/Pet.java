@@ -15,22 +15,12 @@
  */
 package org.springframework.samples.petclinic.customers.model;
 
-import java.util.Date;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
+import jakarta.persistence.*;
 import org.springframework.core.style.ToStringCreator;
+
+import java.util.Date;
+import java.util.Objects;
 
 /**
  * Simple business object representing a pet.
@@ -41,7 +31,6 @@ import org.springframework.core.style.ToStringCreator;
  * @author Maciej Szarlinski
  * @author Ramazan Sakin
  */
-@Data
 @Entity
 @Table(name = "pets")
 public class Pet {
@@ -77,4 +66,59 @@ public class Pet {
             .toString();
     }
 
+    public Integer getId() {
+        return this.id;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public Date getBirthDate() {
+        return this.birthDate;
+    }
+
+    public PetType getType() {
+        return this.type;
+    }
+
+    public Owner getOwner() {
+        return this.owner;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setBirthDate(Date birthDate) {
+        this.birthDate = birthDate;
+    }
+
+    public void setType(PetType type) {
+        this.type = type;
+    }
+
+    public void setOwner(Owner owner) {
+        this.owner = owner;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Pet pet = (Pet) o;
+        return Objects.equals(id, pet.id)
+            && Objects.equals(name, pet.name)
+            && Objects.equals(birthDate, pet.birthDate)
+            && Objects.equals(type, pet.type)
+            && Objects.equals(owner, pet.owner);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, birthDate, type, owner);
+    }
 }
