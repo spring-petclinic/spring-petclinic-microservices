@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   config-server:
     image: springcommunity/spring-petclinic-config-server
