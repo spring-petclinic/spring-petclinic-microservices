@@ -11,7 +11,7 @@
     <parent>
         <groupId>org.springframework.samples</groupId>
         <artifactId>spring-petclinic-microservices</artifactId>
-        <version>3.3.4</version>
+        <version>3.4.1</version>
     </parent>
 
     <properties>
@@ -20,6 +20,7 @@
         <webjars-angular.version>1.8.3</webjars-angular.version>
         <webjars-angular-ui-router.version>1.0.30</webjars-angular-ui-router.version>
         <webjars-marked.version>14.1.2</webjars-marked.version>
+        <squareup-okhttp3.version>4.12.0</squareup-okhttp3.version>
 
         <libsass-maven-plugin.version>0.2.29</libsass-maven-plugin.version>
         <docker.image.exposed.port>8081</docker.image.exposed.port>
@@ -41,6 +42,10 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -95,6 +100,10 @@
             <groupId>io.zipkin.reporter2</groupId>
             <artifactId>zipkin-reporter-brave</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
 
         <!-- Webjars -->
         <dependency>
@@ -141,6 +150,7 @@
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>mockwebserver</artifactId>
+            <version>${squareup-okhttp3.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
