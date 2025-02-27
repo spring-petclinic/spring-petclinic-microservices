@@ -8,17 +8,23 @@ pipeline {
         stage('Detect Changes') {
             steps {
                 script {
-                    // Fetch full history of main branch
-                    sh 'git fetch origin main --prune --unshallow'
+                    // Check if the repository is shallow before running unshallow
+                    def isShallow = sh(script: "git rev-parse --is-shallow-repository", returnStdout: true).trim()
 
-                    // Compare against tip of origin/main
-                    def baseCommit = sh(script: "git rev-parse origin/main", returnStdout: true).trim()
+                    if (isShallow == "true") {
+                        echo "Repository is shallow. Fetching full history..."
+                        sh 'git fetch origin main --prune --unshallow'
+                    } else {
+                        echo "Repository is already complete. Skipping --unshallow."
+                        sh 'git fetch origin main --prune'
+                    }
 
-                    // Identify changes
-                    def changes = sh(
-                        script: "git diff --name-only ${baseCommit}..HEAD",
-                        returnStdout: true
-                    ).trim().split("\n")
+                    // Get the actual common ancestor commit
+                    def baseCommit = sh(script: "git merge-base origin/main HEAD", returnStdout: true).trim()
+                    echo "Base commit: ${baseCommit}"
+
+                    // Get the list of changed files compared to baseCommit
+                    def changes = sh(script: "git diff --name-only ${baseCommit} HEAD", returnStdout: true).trim().split("\n")
 
                     // Log detected changes for debugging
                     echo "Changed files detected: ${changes.join(',')}"
@@ -33,15 +39,12 @@ pipeline {
                         "spring-petclinic-genai-service"
                     ]
 
-                    // If you literally want to detect changes in 'test/' or 'test/huy/', adapt this logic
+                    // Identify which services changed
                     def changedServices = services.findAll { service ->
                         changes.any { file ->
-                            file.startsWith("${service}/") || // Matches changes in service directories
-                            file.contains(service) || // Broad matching
-                            file.startsWith("test/") // Ensures test changes are detected
+                            file.startsWith("${service}/") || file.contains(service) || file.startsWith("test/")
                         }
                     }
-
 
                     if (changedServices.isEmpty()) {
                         error("No relevant changes detected, skipping pipeline")
@@ -52,6 +55,7 @@ pipeline {
                 }
             }
         }
+
 
 
 
