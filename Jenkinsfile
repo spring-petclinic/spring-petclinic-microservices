@@ -52,7 +52,10 @@ pipeline {
 
                                     // Kiểm tra test coverage
                                     script {
-                                        def coverage = sh(script: "grep -Po '(?<=<counter type=\"LINE\" missed=\"\\d+\" covered=\")\\d+(?=\"/>)' target/site/jacoco/jacoco.xml | awk '{sum += $1} END {print sum}'", returnStdout: true).trim()
+                                        def coverage = sh(script: '''
+                                            grep -Po '(?<=<counter type="LINE" missed="\\d+" covered=")\\d+(?="/>)' target/site/jacoco/jacoco.xml |
+                                            awk '{sum += $1} END {print sum}'
+                                        ''', returnStdout: true).trim()
                                         if (coverage.toInteger() < 70) {
                                             error("Test coverage for ${service} is below 70%")
                                         }
