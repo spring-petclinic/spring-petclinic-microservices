@@ -107,7 +107,7 @@ pipeline {
                     servicesList.each { service ->
                         parallelStages["Test & Coverage: ${service}"] = {
                             dir(service) {
-                                sh '../mvnw test'
+                                sh '../mvnw test -PbuildDocker'
 
                                 // Validate if JaCoCo coverage report exists
                                 if (fileExists("target/site/jacoco/jacoco.xml")) {
