@@ -49,7 +49,7 @@ pipeline {
                     // Identify which services changed
                     def changedServices = services.findAll { service ->
                         normalizedChanges.any { file ->
-                            file.tokenize('/')[0] == service || file.startsWith("test/")
+                            file.startsWith("${service}/") || file.contains("${service}/") || file.startsWith("test/")
                         }
                     }
 
@@ -62,6 +62,7 @@ pipeline {
                 }
             }
         }
+
 
 
 
