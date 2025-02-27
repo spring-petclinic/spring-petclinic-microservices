@@ -9,32 +9,42 @@ pipeline {
             steps {
                 script {
                     // Check if the repository is shallow before running unshallow
+                    echo "🔍 Checking if the repository is shallow..."
                     def isShallow = sh(script: "git rev-parse --is-shallow-repository", returnStdout: true).trim()
+                    echo "⏳ Is repository shallow? ${isShallow}"
 
                     if (isShallow == "true") {
-                        echo "Repository is shallow. Fetching full history..."
+                        echo "📂 Repository is shallow. Fetching full history..."
                         sh 'git fetch origin main --prune --unshallow'
                     } else {
-                        echo "Repository is already complete. Skipping --unshallow."
+                        echo "✅ Repository is already complete. Skipping --unshallow."
                         sh 'git fetch origin main --prune'
                     }
 
                     // Get the actual common ancestor commit
                     def baseCommit = sh(script: "git merge-base origin/main HEAD", returnStdout: true).trim()
-                    echo "Base commit: ${baseCommit}"
+                    echo "🔍 Base commit: ${baseCommit}"
+
+                    if (!baseCommit) {
+                        error("❌ Base commit not found! Check if 'git merge-base origin/main HEAD' returns a valid commit.")
+                    }
 
                     // Get the list of changed files compared to baseCommit
                     def changes = sh(script: "git diff --name-only ${baseCommit} HEAD", returnStdout: true).trim().split("\n")
 
                     // Log detected changes for debugging
-                    echo "Changed files detected: ${changes.join(',')}"
+                    echo "📜 Raw changed files:\n${changes}"
+
+                    if (!changes) {
+                        error("❌ No changed files detected! Check if 'git diff --name-only ${baseCommit} HEAD' returns valid output.")
+                    }
 
                     // Normalize paths to handle absolute vs relative path mismatches
                     def normalizedChanges = changes.collect { file ->
                         file.replaceFirst("^.*?/spring-petclinic-microservices/", "")
                     }
 
-                    echo "Normalized changed files: ${normalizedChanges.join(',')}"
+                    echo "✅ Normalized changed files: ${normalizedChanges.join(', ')}"
 
                     def services = [
                         "spring-petclinic-customers-service",
@@ -46,6 +56,17 @@ pipeline {
                         "spring-petclinic-genai-service"
                     ]
 
+                    services.each { service ->
+                        def matchedFiles = normalizedChanges.findAll { file ->
+                            return file.startsWith("${service}/") || file.contains("${service}/") || file.matches(".*${service}.*")
+                        }
+
+                        if (!matchedFiles.isEmpty()) {
+                            echo "✅ Service '${service}' detected changes in files: ${matchedFiles.join(', ')}"
+                        }
+                    }
+
+
                     // Identify which services changed
                     def changedServices = services.findAll { service ->
                         normalizedChanges.any { file ->
@@ -53,12 +74,14 @@ pipeline {
                         }
                     }
 
+                    echo "📢 Final changed services list: ${changedServices.join(', ')}"
+
                     if (changedServices.isEmpty()) {
-                        error("No relevant changes detected, skipping pipeline")
+                        error("❌ No relevant services detected. Check if the paths in 'normalizedChanges' match the expected service names.")
                     }
 
                     env.SERVICES_CHANGED = changedServices.join(',')
-                    echo "Services changed: ${env.SERVICES_CHANGED}"
+                    echo "🚀 Services changed: ${env.SERVICES_CHANGED}"
                 }
             }
         }
