@@ -27,4 +27,5 @@ import org.springframework.context.annotation.Profile;
 @EnableCaching
 @Profile("production")
 class CacheConfig {
+    //
 }

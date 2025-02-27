@@ -8,11 +8,14 @@ pipeline {
         stage('Detect Changes') {
             steps {
                 script {
-                    // Ensure the main branch is fetched
+                    // Fetch the latest changes from main branch
                     sh 'git fetch origin main --depth=1'
 
-                    // Get the list of changed files compared to main branch
-                    def changes = sh(script: "git diff --name-only origin/main", returnStdout: true).trim().split("\n")
+                    // Get the common ancestor commit of current branch and main
+                    def baseCommit = sh(script: "git merge-base origin/main HEAD", returnStdout: true).trim()
+
+                    // Get the list of changed files compared to the common base commit
+                    def changes = sh(script: "git diff --name-only ${baseCommit}", returnStdout: true).trim().split("\n")
 
                     // Define microservices directories
                     def services = [
@@ -25,17 +28,17 @@ pipeline {
                         "spring-petclinic-genai-service"
                     ]
 
-                    // Identify changed services
+                    // Identify changed services, including test changes
                     def changedServices = services.findAll { service ->
-                        changes.any { it.startsWith(service + "/") }
+                        changes.any { file -> file.startsWith(service + "/") || file.startsWith("src/test/java/${service}") }
                     }
 
-                    // If no relevant changes, abort pipeline
+                    // Ensure at least one service is detected as changed
                     if (changedServices.isEmpty()) {
                         error("No relevant changes detected, skipping pipeline")
                     }
 
-                    // Convert list to a comma-separated string for compatibility
+                    // Convert list to a comma-separated string
                     env.SERVICES_CHANGED = changedServices.join(',')
                     echo "Services changed: ${env.SERVICES_CHANGED}"
                 }
