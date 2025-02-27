@@ -1,12 +1,7 @@
+def SERVICES_CHANGED = ""
+
 pipeline {
     agent any
-    environment {
-        SERVICES_CHANGED = ""  // Global variable to track changed services
-    }
-
-    parameters {
-        string(name: 'SERVICES_CHANGED', defaultValue: '')
-    }
 
     stages {
         stage('Detect Changes') {
@@ -86,6 +81,7 @@ pipeline {
                     ])
 
                     env.SERVICES_CHANGED = changedServices.join(',')
+                    SERVICES_CHANGED = changedServices.join(',')
                     echo "🚀 Services changed (Global ENV): ${env.SERVICES_CHANGED}"
                 }
             }
@@ -95,7 +91,7 @@ pipeline {
             steps {
                 script {
                     env.SERVICES_CHANGED = params.SERVICES_CHANGED
-                    echo "🔄 Restored SERVICES_CHANGED: ${env.SERVICES_CHANGED}"
+                    echo "🔄 Restored SERVICES_CHANGED: ${SERVICES_CHANGED}"
 
                     if (!env.SERVICES_CHANGED?.trim()) {
                         error("❌ SERVICES_CHANGED is missing. Ensure 'Detect Changes' stage executed correctly.")
@@ -107,12 +103,12 @@ pipeline {
 
         stage('Test & Coverage Check') {
             when {
-                expression { env.SERVICES_CHANGED?.trim() != "" }
+                expression { SERVICES_CHANGED?.trim() != "" }
             }
             steps {
                 script {
                     def parallelStages = [:]
-                    def servicesList = env.SERVICES_CHANGED.tokenize(',')
+                    def servicesList = SERVICES_CHANGED.tokenize(',')
 
                     if (servicesList.isEmpty()) {
                         error("❌ No changed services found. Verify 'Detect Changes' stage.")
@@ -146,12 +142,12 @@ pipeline {
 
         stage('Build') {
             when {
-                expression { env.SERVICES_CHANGED?.trim() != "" }
+                expression { SERVICES_CHANGED?.trim() != "" }
             }
             steps {
                 script {
                     def parallelBuilds = [:]
-                    def servicesList = env.SERVICES_CHANGED.tokenize(',')
+                    def servicesList = SERVICES_CHANGED.tokenize(',')
 
                     if (servicesList.isEmpty()) {
                         error("❌ No changed services found. Verify 'Detect Changes' stage.")
@@ -171,12 +167,12 @@ pipeline {
 
         stage('Docker Build') {
             when {
-                expression { env.SERVICES_CHANGED?.trim() != "" }
+                expression { SERVICES_CHANGED?.trim() != "" }
             }
             steps {
                 script {
                     def parallelDockerBuilds = [:]
-                    def servicesList = env.SERVICES_CHANGED.tokenize(',')
+                    def servicesList = SERVICES_CHANGED.tokenize(',')
 
                     if (servicesList.isEmpty()) {
                         error("❌ No changed services found. Verify 'Detect Changes' stage.")
