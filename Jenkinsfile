@@ -1,5 +1,6 @@
 def SERVICES_CHANGED = ""
 
+
 pipeline {
     agent { 
         node {
