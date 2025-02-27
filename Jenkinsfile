@@ -128,6 +128,7 @@ pipeline {
                                     }
 
                                     echo "🚀 Test coverage for ${service} is ${coverage}%"
+                                }
                             }
                         }
                     }
