@@ -118,16 +118,22 @@ pipeline {
                                     echo "⚠️ JaCoCo report not found. Skipping coverage validation."
                                 } else {
                                     echo "✅ Found JaCoCo report: ${jacocoFile}"
-                                    def coverage = sh(script: '''
-                                        grep -Po '(?<=<counter type="LINE" missed="\\d+" covered=")\\d+(?="/>)' ${jacocoFile} |
-                                        awk '{sum += $1} END {print sum}'
-                                    ''', returnStdout: true).trim()
+                                    
+                                    def missed = sh(script: "xmllint --xpath 'sum(//counter[@type=\"LINE\"]/@missed)' ${jacocoFile}", returnStdout: true).trim()
+                                    def covered = sh(script: "xmllint --xpath 'sum(//counter[@type=\"LINE\"]/@covered)' ${jacocoFile}", returnStdout: true).trim()
 
-                                    if (coverage.isNumber() && coverage.toInteger() < 70) {
-                                        error("❌ Test coverage for ${service} is below 70% threshold.")
+                                    if (!missed.isNumber() || !covered.isNumber()) {
+                                        error("❌ Could not extract JaCoCo coverage data from ${jacocoFile}")
                                     }
 
-                                    echo "🚀 Test coverage for ${service} is ${coverage}%"
+                                    def total = missed.toInteger() + covered.toInteger()
+                                    def coveragePercent = (total > 0) ? (covered.toInteger() * 100 / total) : 0
+
+                                    echo "🚀 Test coverage for ${service} is ${coveragePercent}%"
+
+                                    if (coveragePercent < 70) {
+                                        error("❌ Test coverage for ${service} is below 70% threshold.")
+                                    }
                                 }
                             }
                         }
