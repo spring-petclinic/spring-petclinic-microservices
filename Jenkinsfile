@@ -151,30 +151,30 @@ pipeline {
             }
         }
 
-        stage('Docker Build') {
-            when {
-                expression { SERVICES_CHANGED?.trim() != "" }
-            }
-            steps {
-                script {
-                    def parallelDockerBuilds = [:]
-                    def servicesList = SERVICES_CHANGED.tokenize(',')
-
-                    if (servicesList.isEmpty()) {
-                        error("❌ No changed services found. Verify 'Detect Changes' stage.")
-                    }
-
-                    servicesList.each { service ->
-                        parallelDockerBuilds["Docker Build: ${service}"] = {
-                            dir(service) {
-                                sh "docker build --no-cache -t myrepo/${service}:latest ."
-                            }
-                        }
-                    }
-                    parallel parallelDockerBuilds
-                }
-            }
-        }
+//         stage('Docker Build') {
+//             when {
+//                 expression { SERVICES_CHANGED?.trim() != "" }
+//             }
+//             steps {
+//                 script {
+//                     def parallelDockerBuilds = [:]
+//                     def servicesList = SERVICES_CHANGED.tokenize(',')
+//
+//                     if (servicesList.isEmpty()) {
+//                         error("❌ No changed services found. Verify 'Detect Changes' stage.")
+//                     }
+//
+//                     servicesList.each { service ->
+//                         parallelDockerBuilds["Docker Build: ${service}"] = {
+//                             dir(service) {
+//                                 sh "docker build --no-cache -t myrepo/${service}:latest ."
+//                             }
+//                         }
+//                     }
+//                     parallel parallelDockerBuilds
+//                 }
+//             }
+//         }
     }
 
     post {
