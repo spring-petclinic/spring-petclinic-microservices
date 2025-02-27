@@ -8,16 +8,18 @@ pipeline {
         stage('Detect Changes') {
             steps {
                 script {
-                    // Fetch latest changes from main branch
-                    sh 'git fetch origin main --depth=1'
+                    // Fetch full history of main branch
+                    sh 'git fetch origin main --prune --unshallow'
 
-                    // Get the common ancestor commit of main and the current branch
-                    def baseCommit = sh(script: "git merge-base origin/main HEAD", returnStdout: true).trim()
+                    // Compare against tip of origin/main
+                    def baseCommit = sh(script: "git rev-parse origin/main", returnStdout: true).trim()
 
-                    // Get the list of changed files compared to baseCommit
-                    def changes = sh(script: "git diff --name-only ${baseCommit} HEAD", returnStdout: true).trim().split("\n")
+                    // Identify changes
+                    def changes = sh(
+                        script: "git diff --name-only ${baseCommit}..HEAD",
+                        returnStdout: true
+                    ).trim().split("\n")
 
-                    // Define microservices directories
                     def services = [
                         "spring-petclinic-customers-service",
                         "spring-petclinic-vets-service",
@@ -28,22 +30,25 @@ pipeline {
                         "spring-petclinic-genai-service"
                     ]
 
-                    // Identify changed services, including test changes
+                    // If you literally want to detect changes in 'test/' or 'test/huy/', adapt this logic
                     def changedServices = services.findAll { service ->
-                        changes.any { file -> file.startsWith(service + "/") || file.contains(service) || file.startsWith("test/") }
+                        changes.any { file ->
+                            file.startsWith("${service}/") || // e.g. 'spring-petclinic-vets-service/src/...'
+                            file.contains(service) ||
+                            file.startsWith("test/")
+                        }
                     }
 
-                    // Ensure at least one service is detected as changed
                     if (changedServices.isEmpty()) {
                         error("No relevant changes detected, skipping pipeline")
                     }
 
-                    // Convert list to a comma-separated string
                     env.SERVICES_CHANGED = changedServices.join(',')
                     echo "Services changed: ${env.SERVICES_CHANGED}"
                 }
             }
         }
+
 
 
         stage('Test & Coverage Check') {
