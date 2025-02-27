@@ -29,6 +29,13 @@ pipeline {
                     // Log detected changes for debugging
                     echo "Changed files detected: ${changes.join(',')}"
 
+                    // Normalize paths to handle absolute vs relative path mismatches
+                    def normalizedChanges = changes.collect { file ->
+                        file.replaceFirst("^.*?/spring-petclinic-microservices/", "")
+                    }
+
+                    echo "Normalized changed files: ${normalizedChanges.join(',')}"
+
                     def services = [
                         "spring-petclinic-customers-service",
                         "spring-petclinic-vets-service",
@@ -41,8 +48,8 @@ pipeline {
 
                     // Identify which services changed
                     def changedServices = services.findAll { service ->
-                        changes.any { file ->
-                            file.startsWith("${service}/") || file.contains(service) || file.startsWith("test/")
+                        normalizedChanges.any { file ->
+                            file.tokenize('/')[0] == service || file.startsWith("test/")
                         }
                     }
 
@@ -55,6 +62,7 @@ pipeline {
                 }
             }
         }
+
 
 
 
