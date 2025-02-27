@@ -103,7 +103,7 @@ pipeline {
                     servicesList.each { service ->
                         parallelStages["Test & Coverage: ${service}"] = {
                             dir(service) {
-                                sh './mvnw test'
+                                sh '../mvnw test'
 
                                 // Validate if JaCoCo coverage report exists
                                 if (fileExists("target/site/jacoco/jacoco.xml")) {
@@ -142,7 +142,7 @@ pipeline {
                     servicesList.each { service ->
                         parallelBuilds["Build: ${service}"] = {
                             dir(service) {
-                                sh './mvnw package -DskipTests'
+                                sh '../mvnw package -DskipTests'
                             }
                         }
                     }
