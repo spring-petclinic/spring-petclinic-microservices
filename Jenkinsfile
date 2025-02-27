@@ -1,18 +1,18 @@
 pipeline {
     agent any
     environment {
-        SERVICES_CHANGED = ""
+        SERVICES_CHANGED = ""  // Global variable to track changed services
     }
 
     stages {
         stage('Detect Changes') {
             steps {
                 script {
-                    // Check if the repository is shallow before running unshallow
                     echo "🔍 Checking if the repository is shallow..."
                     def isShallow = sh(script: "git rev-parse --is-shallow-repository", returnStdout: true).trim()
                     echo "⏳ Is repository shallow? ${isShallow}"
 
+                    // Ensure the full git history is available for accurate change detection
                     if (isShallow == "true") {
                         echo "📂 Repository is shallow. Fetching full history..."
                         sh 'git fetch origin main --prune --unshallow'
@@ -21,29 +21,25 @@ pipeline {
                         sh 'git fetch origin main --prune'
                     }
 
-                    // Get the actual common ancestor commit
+                    // Determine the base commit to compare against
                     def baseCommit = sh(script: "git merge-base origin/main HEAD", returnStdout: true).trim()
                     echo "🔍 Base commit: ${baseCommit}"
 
                     if (!baseCommit) {
-                        error("❌ Base commit not found! Check if 'git merge-base origin/main HEAD' returns a valid commit.")
+                        error("❌ Base commit not found! Ensure 'git merge-base origin/main HEAD' returns a valid commit.")
                     }
 
-                    // Get the list of changed files compared to baseCommit
+                    // Get the list of changed files relative to the base commit
                     def changes = sh(script: "git diff --name-only ${baseCommit} HEAD", returnStdout: true).trim().split("\n")
 
-                    // Log detected changes for debugging
                     echo "📜 Raw changed files:\n${changes}"
 
-                    if (!changes) {
-                        error("❌ No changed files detected! Check if 'git diff --name-only ${baseCommit} HEAD' returns valid output.")
+                    if (!changes || changes.isEmpty()) {
+                        error("❌ No changed files detected! Ensure 'git diff --name-only ${baseCommit} HEAD' provides valid output.")
                     }
 
-                    // Normalize paths to handle absolute vs relative path mismatches
-                    def normalizedChanges = changes.collect { file ->
-                        file.replaceFirst("^.*?/spring-petclinic-microservices/", "")
-                    }
-
+                    // Normalize paths to ensure they match expected service directories
+                    def normalizedChanges = changes.collect { file -> file.replaceFirst("^.*?/spring-petclinic-microservices/", "") }
                     echo "✅ Normalized changed files: ${normalizedChanges.join(', ')}"
 
                     def services = [
@@ -56,39 +52,38 @@ pipeline {
                         "spring-petclinic-genai-service"
                     ]
 
-                    services.each { service ->
-                        def matchedFiles = normalizedChanges.findAll { file ->
-                            return file.startsWith("${service}/") || file.contains("${service}/") || file.matches(".*${service}.*")
-                        }
-
-                        if (!matchedFiles.isEmpty()) {
-                            echo "✅ Service '${service}' detected changes in files: ${matchedFiles.join(', ')}"
-                        }
-                    }
-
-
-                    // Identify which services changed
+                    // Identify which services have changes
                     def changedServices = services.findAll { service ->
                         normalizedChanges.any { file ->
-                            return file.startsWith("${service}/") || file.contains("${service}/") || file.matches(".*${service}.*")
+                            file.startsWith("${service}/") || file.contains("${service}/") || file.matches(".*${service}.*")
                         }
                     }
 
                     echo "📢 Final changed services list: ${changedServices.join(', ')}"
 
                     if (changedServices.isEmpty()) {
-                        error("❌ No relevant services detected. Check if the paths in 'normalizedChanges' match the expected service names.")
+                        error("❌ No relevant services detected. Verify file path matching logic.")
                     }
 
-//                     def servicesList = changedServices.join(',')
-//                     echo "🔧 Setting env.SERVICES_CHANGED = '${servicesList}'"
-//
-//                     withEnv(["SERVICES_CHANGED=${servicesList}"]) {
-//                         echo "🚀 Services changed (after withEnv): ${env.SERVICES_CHANGED}"
-//                     }
-
+                    // Store changed services in environment variable and build description
                     env.SERVICES_CHANGED = changedServices.join(',')
                     echo "🚀 Services changed (Global ENV): ${env.SERVICES_CHANGED}"
+
+                    currentBuild.description = "Changed Services: ${env.SERVICES_CHANGED}"
+                }
+            }
+        }
+
+        stage('Load Changed Services') {
+            steps {
+                script {
+                    // Restore the SERVICES_CHANGED variable from build description
+                    if (currentBuild.description?.contains("Changed Services: ")) {
+                        env.SERVICES_CHANGED = currentBuild.description.replace("Changed Services: ", "").trim()
+                        echo "🔄 Restored SERVICES_CHANGED: ${env.SERVICES_CHANGED}"
+                    } else {
+                        error("❌ SERVICES_CHANGED is missing. Ensure 'Detect Changes' stage executed correctly.")
+                    }
                 }
             }
         }
@@ -100,12 +95,18 @@ pipeline {
             steps {
                 script {
                     def parallelStages = [:]
-                    env.SERVICES_CHANGED.tokenize(',').each { service ->
+                    def servicesList = env.SERVICES_CHANGED.tokenize(',')
+
+                    if (servicesList.isEmpty()) {
+                        error("❌ No changed services found. Verify 'Detect Changes' stage.")
+                    }
+
+                    servicesList.each { service ->
                         parallelStages["Test & Coverage: ${service}"] = {
                             dir(service) {
                                 sh './mvnw test'
 
-                                // Ensure jacoco.xml exists before attempting coverage check
+                                // Validate if JaCoCo coverage report exists
                                 if (fileExists("target/site/jacoco/jacoco.xml")) {
                                     def coverage = sh(script: '''
                                         grep -Po '(?<=<counter type="LINE" missed="\\d+" covered=")\\d+(?="/>)' target/site/jacoco/jacoco.xml |
@@ -113,10 +114,10 @@ pipeline {
                                     ''', returnStdout: true).trim()
 
                                     if (coverage.isNumber() && coverage.toInteger() < 70) {
-                                        error("Test coverage for ${service} is below 70%")
+                                        error("Test coverage for ${service} is below 70% threshold.")
                                     }
                                 } else {
-                                    echo "Coverage file not found for ${service}, skipping coverage check"
+                                    echo "⚠️ Coverage file not found for ${service}, skipping coverage validation."
                                 }
                             }
                         }
@@ -133,7 +134,13 @@ pipeline {
             steps {
                 script {
                     def parallelBuilds = [:]
-                    env.SERVICES_CHANGED.tokenize(',').each { service ->
+                    def servicesList = env.SERVICES_CHANGED.tokenize(',')
+
+                    if (servicesList.isEmpty()) {
+                        error("❌ No changed services found. Verify 'Detect Changes' stage.")
+                    }
+
+                    servicesList.each { service ->
                         parallelBuilds["Build: ${service}"] = {
                             dir(service) {
                                 sh './mvnw package -DskipTests'
@@ -147,12 +154,18 @@ pipeline {
 
         stage('Docker Build') {
             when {
-                expression { env.SERVICES_CHANGED?.trim() != ""}
+                expression { env.SERVICES_CHANGED?.trim() != "" }
             }
             steps {
                 script {
                     def parallelDockerBuilds = [:]
-                    env.SERVICES_CHANGED.tokenize(',').each { service ->
+                    def servicesList = env.SERVICES_CHANGED.tokenize(',')
+
+                    if (servicesList.isEmpty()) {
+                        error("❌ No changed services found. Verify 'Detect Changes' stage.")
+                    }
+
+                    servicesList.each { service ->
                         parallelDockerBuilds["Docker Build: ${service}"] = {
                             dir(service) {
                                 sh "docker build --no-cache -t myrepo/${service}:latest ."
@@ -167,7 +180,7 @@ pipeline {
 
     post {
         always {
-            echo "Pipeline finished for services: ${env.SERVICES_CHANGED}"
+            echo "✅ Pipeline execution completed for services: ${env.SERVICES_CHANGED}"
         }
     }
 }
