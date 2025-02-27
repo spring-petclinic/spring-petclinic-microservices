@@ -76,16 +76,16 @@ pipeline {
 
                     echo "📢 Final changed services list: ${changedServices.join(', ')}"
 
-                    if (changedServices == null || changedServices.isEmpty()) {
+                    if (changedServices.isEmpty()) {
                         error("❌ No relevant services detected. Check if the paths in 'normalizedChanges' match the expected service names.")
-                    } else {
-                        echo "✅ Assigning changed services to environment variable..."
-                        def servicesList = changedServices.join(',')
-                        echo "🔧 Setting env.SERVICES_CHANGED = '${servicesList}'"
-                        env.SERVICES_CHANGED = servicesList
                     }
 
-                    echo "🚀 Services changed: ${env.SERVICES_CHANGED}"
+                    def servicesList = changedServices.join(',')
+                    echo "🔧 Setting env.SERVICES_CHANGED = '${servicesList}'"
+
+                    withEnv(["SERVICES_CHANGED=${servicesList}"]) {
+                        echo "🚀 Services changed (after withEnv): ${env.SERVICES_CHANGED}"
+                    }
                 }
             }
         }
