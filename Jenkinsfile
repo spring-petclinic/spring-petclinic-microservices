@@ -25,21 +25,29 @@ pipeline {
                     def baseCommit = sh(script: "git merge-base origin/main HEAD", returnStdout: true).trim()
                     echo "🔍 Base commit: ${baseCommit}"
 
+                    // Ensure base commit is valid
                     if (!baseCommit) {
                         error("❌ Base commit not found! Ensure 'git merge-base origin/main HEAD' returns a valid commit.")
                     }
 
                     // Get the list of changed files relative to the base commit
-                    def changes = sh(script: "git diff --name-only ${baseCommit} HEAD", returnStdout: true).trim().split("\n")
+                    def changes = sh(script: "git diff --name-only ${baseCommit} HEAD", returnStdout: true).trim()
 
                     echo "📜 Raw changed files:\n${changes}"
 
-                    if (!changes || changes.isEmpty()) {
+                    // Ensure changes are not empty
+                    if (!changes) {
                         error("❌ No changed files detected! Ensure 'git diff --name-only ${baseCommit} HEAD' provides valid output.")
                     }
 
+                    // Convert the list into an array
+                    def changedFiles = changes.split("\n")
+
                     // Normalize paths to ensure they match expected service directories
-                    def normalizedChanges = changes.collect { file -> file.replaceFirst("^.*?/spring-petclinic-microservices/", "") }
+                    def normalizedChanges = changedFiles.collect { file ->
+                        file.replaceFirst("^.*?/spring-petclinic-microservices/", "")
+                    }
+
                     echo "✅ Normalized changed files: ${normalizedChanges.join(', ')}"
 
                     def services = [
@@ -55,20 +63,22 @@ pipeline {
                     // Identify which services have changes
                     def changedServices = services.findAll { service ->
                         normalizedChanges.any { file ->
-                            file.startsWith("${service}/") || file.contains("${service}/") || file.matches(".*${service}.*")
+                            file.startsWith("${service}/") || file.contains("${service}/")
                         }
                     }
 
                     echo "📢 Final changed services list: ${changedServices.join(', ')}"
 
+                    // Ensure we have at least one changed service
                     if (changedServices.isEmpty()) {
                         error("❌ No relevant services detected. Verify file path matching logic.")
                     }
 
-                    // Store changed services in environment variable and build description
+                    // Store changed services in environment variable
                     env.SERVICES_CHANGED = changedServices.join(',')
                     echo "🚀 Services changed (Global ENV): ${env.SERVICES_CHANGED}"
 
+                    // Also store in build description for persistence
                     currentBuild.description = "Changed Services: ${env.SERVICES_CHANGED}"
                 }
             }
@@ -77,7 +87,7 @@ pipeline {
         stage('Load Changed Services') {
             steps {
                 script {
-                    // Restore the SERVICES_CHANGED variable from build description
+                    // Restore SERVICES_CHANGED from build description
                     if (currentBuild.description?.contains("Changed Services: ")) {
                         env.SERVICES_CHANGED = currentBuild.description.replace("Changed Services: ", "").trim()
                         echo "🔄 Restored SERVICES_CHANGED: ${env.SERVICES_CHANGED}"
