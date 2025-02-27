@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        SERVICES_CHANGED = []
+        SERVICES_CHANGED = ""
     }
 
     stages {
@@ -42,47 +42,58 @@ pipeline {
         }
 
         stage('Test & Coverage Check') {
-            parallel {
+            steps {
                 script {
-                    SERVICES_CHANGED.each { service ->
-                        stage("Test & Coverage: ${service}") {
-                            steps {
-                                dir(service) {
-                                    sh './mvnw test'
+                    def parallelStages = [:]
+                    SERVICES_CHANGED.split(',').each { service ->
+                        parallelStages["Test & Coverage: ${service}"] = {
+                            stage("Test & Coverage: ${service}") {
+                                steps {
+                                    dir(service) {
+                                        sh './mvnw test'
 
-                                    // Kiểm tra test coverage
-                                    script {
-                                        def coverage = sh(script: '''
-                                            grep -Po '(?<=<counter type="LINE" missed="\\d+" covered=")\\d+(?="/>)' target/site/jacoco/jacoco.xml |
-                                            awk '{sum += $1} END {print sum}'
-                                        ''', returnStdout: true).trim()
-                                        if (coverage.toInteger() < 70) {
-                                            error("Test coverage for ${service} is below 70%")
+                                        // Kiểm tra test coverage
+                                        script {
+                                            def coverage = sh(script: '''
+                                                grep -Po '(?<=<counter type="LINE" missed="\\d+" covered=")\\d+(?="/>)' target/site/jacoco/jacoco.xml |
+                                                awk '{sum += $1} END {print sum}'
+                                            ''', returnStdout: true).trim()
+
+                                            if (coverage.toInteger() < 70) {
+                                                error("Test coverage for ${service} is below 70%")
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
+                    parallel parallelStages
                 }
             }
         }
 
+
         stage('Build') {
-            parallel {
+            steps {
                 script {
-                    SERVICES_CHANGED.each { service ->
-                        stage("Build: ${service}") {
-                            steps {
-                                dir(service) {
-                                    sh './mvnw package -DskipTests'
+                    def parallelBuilds = [:]
+                    SERVICES_CHANGED.split(',').each { service ->
+                        parallelBuilds["Build: ${service}"] = {
+                            stage("Build: ${service}") {
+                                steps {
+                                    dir(service) {
+                                        sh './mvnw package -DskipTests'
+                                    }
                                 }
                             }
                         }
                     }
+                    parallel parallelBuilds
                 }
             }
         }
+
 
         stage('Docker Build') {
             parallel {
