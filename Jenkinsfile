@@ -8,14 +8,14 @@ pipeline {
         stage('Detect Changes') {
             steps {
                 script {
-                    // Fetch the latest changes from main branch
+                    // Fetch latest changes from main branch
                     sh 'git fetch origin main --depth=1'
 
-                    // Get the common ancestor commit of current branch and main
-                    def baseCommit = sh(script: "git merge-base origin/main HEAD", returnStdout: true).trim()
+                    // Get the latest commit on main branch
+                    def baseCommit = sh(script: "git rev-parse origin/main", returnStdout: true).trim()
 
-                    // Get the list of changed files compared to the common base commit
-                    def changes = sh(script: "git diff --name-only ${baseCommit}", returnStdout: true).trim().split("\n")
+                    // Get the list of changed files compared to main
+                    def changes = sh(script: "git diff --name-only ${baseCommit}...HEAD", returnStdout: true).trim().split("\n")
 
                     // Define microservices directories
                     def services = [
@@ -30,7 +30,7 @@ pipeline {
 
                     // Identify changed services, including test changes
                     def changedServices = services.findAll { service ->
-                        changes.any { file -> file.startsWith(service + "/") || file.startsWith("src/test/java/${service}") }
+                        changes.any { file -> file.startsWith(service + "/") || file.contains(service) }
                     }
 
                     // Ensure at least one service is detected as changed
