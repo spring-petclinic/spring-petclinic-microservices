@@ -32,7 +32,7 @@ pipeline {
                         error("No relevant changes detected, skipping pipeline")
                     }
 
-                    // Convert list to a comma-separated string
+                    // Convert list to a comma-separated string for compatibility
                     SERVICES_CHANGED = changedServices.join(',')
                     echo "Services changed: ${SERVICES_CHANGED}"
                 }
@@ -43,7 +43,7 @@ pipeline {
             steps {
                 script {
                     def parallelStages = [:]
-                    SERVICES_CHANGED.split(',').each { service ->
+                    SERVICES_CHANGED.tokenize(',').each { service ->
                         parallelStages["Test & Coverage: ${service}"] = {
                             stage("Test & Coverage: ${service}") {
                                 steps {
@@ -66,7 +66,9 @@ pipeline {
                             }
                         }
                     }
-                    parallel parallelStages
+                    if (!parallelStages.isEmpty()) {
+                        parallel parallelStages
+                    }
                 }
             }
         }
@@ -75,7 +77,7 @@ pipeline {
             steps {
                 script {
                     def parallelBuilds = [:]
-                    SERVICES_CHANGED.split(',').each { service ->
+                    SERVICES_CHANGED.tokenize(',').each { service ->
                         parallelBuilds["Build: ${service}"] = {
                             stage("Build: ${service}") {
                                 steps {
@@ -86,7 +88,9 @@ pipeline {
                             }
                         }
                     }
-                    parallel parallelBuilds
+                    if (!parallelBuilds.isEmpty()) {
+                        parallel parallelBuilds
+                    }
                 }
             }
         }
@@ -95,7 +99,7 @@ pipeline {
             steps {
                 script {
                     def parallelDockerBuilds = [:]
-                    SERVICES_CHANGED.split(',').each { service ->
+                    SERVICES_CHANGED.tokenize(',').each { service ->
                         parallelDockerBuilds["Docker Build: ${service}"] = {
                             stage("Docker Build: ${service}") {
                                 steps {
@@ -106,7 +110,9 @@ pipeline {
                             }
                         }
                     }
-                    parallel parallelDockerBuilds
+                    if (!parallelDockerBuilds.isEmpty()) {
+                        parallel parallelDockerBuilds
+                    }
                 }
             }
         }
