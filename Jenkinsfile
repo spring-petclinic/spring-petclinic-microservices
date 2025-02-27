@@ -107,23 +107,27 @@ pipeline {
                     servicesList.each { service ->
                         parallelStages["Test & Coverage: ${service}"] = {
                             dir(service) {
-                                sh '../mvnw test -PbuildDocker'
+                                sh '../mvnw clean verify -PbuildDocker'
 
-                                // Validate if JaCoCo coverage report exists
-                                if (fileExists("target/site/jacoco/jacoco.xml")) {
+                                sh 'pwd && ls -lah target/site/jacoco'
+
+                                // Find JaCoCo file
+                                def jacocoFile = sh(script: "find target -name jacoco.xml", returnStdout: true).trim()
+
+                                if (!jacocoFile) {
+                                    echo "⚠️ JaCoCo report not found. Skipping coverage validation."
+                                } else {
+                                    echo "✅ Found JaCoCo report: ${jacocoFile}"
                                     def coverage = sh(script: '''
-                                        grep -Po '(?<=<counter type="LINE" missed="\\d+" covered=")\\d+(?="/>)' target/site/jacoco/jacoco.xml |
+                                        grep -Po '(?<=<counter type="LINE" missed="\\d+" covered=")\\d+(?="/>)' ${jacocoFile} |
                                         awk '{sum += $1} END {print sum}'
                                     ''', returnStdout: true).trim()
 
                                     if (coverage.isNumber() && coverage.toInteger() < 70) {
-                                        error("Test coverage for ${service} is below 70% threshold.")
+                                        error("❌ Test coverage for ${service} is below 70% threshold.")
                                     }
- 
+
                                     echo "🚀 Test coverage for ${service} is ${coverage}%"
-                                } else {
-                                    echo "⚠️ Coverage file not found for ${service}, skipping coverage validation."
-                                }
                             }
                         }
                     }
