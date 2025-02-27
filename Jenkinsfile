@@ -80,24 +80,22 @@ pipeline {
                         error("❌ No relevant services detected. Check if the paths in 'normalizedChanges' match the expected service names.")
                     }
 
-                    def servicesList = changedServices.join(',')
-                    echo "🔧 Setting env.SERVICES_CHANGED = '${servicesList}'"
+//                     def servicesList = changedServices.join(',')
+//                     echo "🔧 Setting env.SERVICES_CHANGED = '${servicesList}'"
+//
+//                     withEnv(["SERVICES_CHANGED=${servicesList}"]) {
+//                         echo "🚀 Services changed (after withEnv): ${env.SERVICES_CHANGED}"
+//                     }
 
-                    withEnv(["SERVICES_CHANGED=${servicesList}"]) {
-                        echo "🚀 Services changed (after withEnv): ${env.SERVICES_CHANGED}"
-                    }
+                    env.SERVICES_CHANGED = changedServices.join(',')
+                    echo "🚀 Services changed (Global ENV): ${env.SERVICES_CHANGED}"
                 }
             }
         }
 
-
-
-
-
-
         stage('Test & Coverage Check') {
             when {
-                expression { env.SERVICES_CHANGED?.trim() }
+                expression { env.SERVICES_CHANGED?.trim() != "" }
             }
             steps {
                 script {
@@ -130,7 +128,7 @@ pipeline {
 
         stage('Build') {
             when {
-                expression { env.SERVICES_CHANGED?.trim() }
+                expression { env.SERVICES_CHANGED?.trim() != "" }
             }
             steps {
                 script {
@@ -149,7 +147,7 @@ pipeline {
 
         stage('Docker Build') {
             when {
-                expression { env.SERVICES_CHANGED?.trim() }
+                expression { env.SERVICES_CHANGED?.trim() != ""}
             }
             steps {
                 script {
