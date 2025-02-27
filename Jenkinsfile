@@ -4,6 +4,10 @@ pipeline {
         SERVICES_CHANGED = ""  // Global variable to track changed services
     }
 
+    parameters {
+        string(name: 'SERVICES_CHANGED', defaultValue: '')
+    }
+
     stages {
         stage('Detect Changes') {
             steps {
