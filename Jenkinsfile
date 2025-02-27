@@ -118,9 +118,14 @@ pipeline {
                                     echo "⚠️ JaCoCo report not found. Skipping coverage validation."
                                 } else {
                                     echo "✅ Found JaCoCo report: ${jacocoFile}"
-                                    
-                                    def missed = sh(script: "xmllint --xpath 'sum(//counter[@type=\"LINE\"]/@missed)' ${jacocoFile}", returnStdout: true).trim()
-                                    def covered = sh(script: "xmllint --xpath 'sum(//counter[@type=\"LINE\"]/@covered)' ${jacocoFile}", returnStdout: true).trim()
+
+                                    def missed = sh(script: """
+                                        awk -F 'missed="' '/<counter type="LINE"/ {gsub(/".*/, "", \$2); sum += \$2} END {print sum}' ${jacocoFile}
+                                    """, returnStdout: true).trim()
+
+                                    def covered = sh(script: """
+                                        awk -F 'covered="' '/<counter type="LINE"/ {gsub(/".*/, "", \$2); sum += \$2} END {print sum}' ${jacocoFile}
+                                    """, returnStdout: true).trim()
 
                                     if (!missed.isNumber() || !covered.isNumber()) {
                                         error("❌ Could not extract JaCoCo coverage data from ${jacocoFile}")
