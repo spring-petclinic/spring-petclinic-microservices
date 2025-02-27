@@ -108,6 +108,10 @@ pipeline {
                     servicesList.each { service ->
                         parallelStages["Test & Coverage: ${service}"] = {
                             dir(service) {
+                                sh 'rm -rf ~/.m2/wrapper/dists/apache-maven* || true'
+
+                                sh '../mvnw dependency:purge-local-repository -DskipTests'
+
                                 sh '../mvnw clean verify -PbuildDocker'
 
                                 sh 'pwd && ls -lah target/site/jacoco'
@@ -165,7 +169,7 @@ pipeline {
                     servicesList.each { service ->
                         parallelBuilds["Build: ${service}"] = {
                             dir(service) {
-                                sh '../mvnw package -DskipTests'
+                                sh '../mvnw package -DskipTests -T 1C'
                             }
                         }
                     }
