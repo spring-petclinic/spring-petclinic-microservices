@@ -80,22 +80,8 @@ pipeline {
                         ])
                     ])
 
-                    env.SERVICES_CHANGED = changedServices.join(',')
                     SERVICES_CHANGED = changedServices.join(',')
-                    echo "🚀 Services changed (Global ENV): ${env.SERVICES_CHANGED}"
-                }
-            }
-        }
-
-        stage('Load Changed Services') {
-            steps {
-                script {
-                    env.SERVICES_CHANGED = params.SERVICES_CHANGED
-                    echo "🔄 Restored SERVICES_CHANGED: ${SERVICES_CHANGED}"
-
-                    if (!env.SERVICES_CHANGED?.trim()) {
-                        error("❌ SERVICES_CHANGED is missing. Ensure 'Detect Changes' stage executed correctly.")
-                    }
+                    echo "🚀 Services changed (Global ENV): ${SERVICES_CHANGED}"
                 }
             }
         }
@@ -193,7 +179,7 @@ pipeline {
 
     post {
         always {
-            echo "✅ Pipeline execution completed for services: ${env.SERVICES_CHANGED}"
+            echo "✅ Pipeline execution completed for services: ${SERVICES_CHANGED}"
         }
     }
 }
