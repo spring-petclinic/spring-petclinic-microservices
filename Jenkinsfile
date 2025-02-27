@@ -45,7 +45,7 @@ pipeline {
                     def parallelStages = [:]
                     SERVICES_CHANGED.tokenize(',').each { service ->
                         parallelStages["Test & Coverage: ${service}"] = {
-                            stage("Test & Coverage: ${service}") {
+                            stage("Test & Coverage: ${service}") { // Ensure each service has a proper stage
                                 steps {
                                     dir(service) {
                                         sh './mvnw test'
@@ -101,10 +101,10 @@ pipeline {
                     def parallelDockerBuilds = [:]
                     SERVICES_CHANGED.tokenize(',').each { service ->
                         parallelDockerBuilds["Docker Build: ${service}"] = {
-                            stage("Docker Build: ${service}") {
+                            stage("Docker Build: ${service}") { // Ensure each service has a proper stage
                                 steps {
                                     dir(service) {
-                                        sh "docker build -t myrepo/${service}:latest ."
+                                        sh "docker build --no-cache -t myrepo/${service}:latest ." // Added --no-cache for clean builds
                                     }
                                 }
                             }
