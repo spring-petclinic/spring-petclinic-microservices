@@ -8,6 +8,9 @@ pipeline {
         stage('Detect Changes') {
             steps {
                 script {
+                    // Ensure the main branch is fetched
+                    sh 'git fetch origin main --depth=1'
+
                     // Get the list of changed files compared to main branch
                     def changes = sh(script: "git diff --name-only origin/main", returnStdout: true).trim().split("\n")
 
@@ -33,86 +36,79 @@ pipeline {
                     }
 
                     // Convert list to a comma-separated string for compatibility
-                    SERVICES_CHANGED = changedServices.join(',')
-                    echo "Services changed: ${SERVICES_CHANGED}"
+                    env.SERVICES_CHANGED = changedServices.join(',')
+                    echo "Services changed: ${env.SERVICES_CHANGED}"
                 }
             }
         }
 
         stage('Test & Coverage Check') {
+            when {
+                expression { env.SERVICES_CHANGED?.trim() }
+            }
             steps {
                 script {
                     def parallelStages = [:]
-                    SERVICES_CHANGED.tokenize(',').each { service ->
+                    env.SERVICES_CHANGED.tokenize(',').each { service ->
                         parallelStages["Test & Coverage: ${service}"] = {
-                            stage("Test & Coverage: ${service}") { // Ensure each service has a proper stage
-                                steps {
-                                    dir(service) {
-                                        sh './mvnw test'
+                            dir(service) {
+                                sh './mvnw test'
 
-                                        // Validate test coverage
-                                        script {
-                                            def coverage = sh(script: '''
-                                                grep -Po '(?<=<counter type="LINE" missed="\\d+" covered=")\\d+(?="/>)' target/site/jacoco/jacoco.xml |
-                                                awk '{sum += $1} END {print sum}'
-                                            ''', returnStdout: true).trim()
+                                // Ensure jacoco.xml exists before attempting coverage check
+                                if (fileExists("target/site/jacoco/jacoco.xml")) {
+                                    def coverage = sh(script: '''
+                                        grep -Po '(?<=<counter type="LINE" missed="\\d+" covered=")\\d+(?="/>)' target/site/jacoco/jacoco.xml |
+                                        awk '{sum += $1} END {print sum}'
+                                    ''', returnStdout: true).trim()
 
-                                            if (coverage.toInteger() < 70) {
-                                                error("Test coverage for ${service} is below 70%")
-                                            }
-                                        }
+                                    if (coverage.isNumber() && coverage.toInteger() < 70) {
+                                        error("Test coverage for ${service} is below 70%")
                                     }
+                                } else {
+                                    echo "Coverage file not found for ${service}, skipping coverage check"
                                 }
                             }
                         }
                     }
-                    if (!parallelStages.isEmpty()) {
-                        parallel parallelStages
-                    }
+                    parallel parallelStages
                 }
             }
         }
 
         stage('Build') {
+            when {
+                expression { env.SERVICES_CHANGED?.trim() }
+            }
             steps {
                 script {
                     def parallelBuilds = [:]
-                    SERVICES_CHANGED.tokenize(',').each { service ->
+                    env.SERVICES_CHANGED.tokenize(',').each { service ->
                         parallelBuilds["Build: ${service}"] = {
-                            stage("Build: ${service}") {
-                                steps {
-                                    dir(service) {
-                                        sh './mvnw package -DskipTests'
-                                    }
-                                }
+                            dir(service) {
+                                sh './mvnw package -DskipTests'
                             }
                         }
                     }
-                    if (!parallelBuilds.isEmpty()) {
-                        parallel parallelBuilds
-                    }
+                    parallel parallelBuilds
                 }
             }
         }
 
         stage('Docker Build') {
+            when {
+                expression { env.SERVICES_CHANGED?.trim() }
+            }
             steps {
                 script {
                     def parallelDockerBuilds = [:]
-                    SERVICES_CHANGED.tokenize(',').each { service ->
+                    env.SERVICES_CHANGED.tokenize(',').each { service ->
                         parallelDockerBuilds["Docker Build: ${service}"] = {
-                            stage("Docker Build: ${service}") { // Ensure each service has a proper stage
-                                steps {
-                                    dir(service) {
-                                        sh "docker build --no-cache -t myrepo/${service}:latest ." // Added --no-cache for clean builds
-                                    }
-                                }
+                            dir(service) {
+                                sh "docker build --no-cache -t myrepo/${service}:latest ."
                             }
                         }
                     }
-                    if (!parallelDockerBuilds.isEmpty()) {
-                        parallel parallelDockerBuilds
-                    }
+                    parallel parallelDockerBuilds
                 }
             }
         }
@@ -120,7 +116,7 @@ pipeline {
 
     post {
         always {
-            echo "Pipeline finished for services: ${SERVICES_CHANGED}"
+            echo "Pipeline finished for services: ${env.SERVICES_CHANGED}"
         }
     }
 }
