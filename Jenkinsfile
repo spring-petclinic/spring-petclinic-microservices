@@ -119,6 +119,8 @@ pipeline {
                                     if (coverage.isNumber() && coverage.toInteger() < 70) {
                                         error("Test coverage for ${service} is below 70% threshold.")
                                     }
+ 
+                                    echo "🚀 Test coverage for ${service} is ${coverage}%"
                                 } else {
                                     echo "⚠️ Coverage file not found for ${service}, skipping coverage validation."
                                 }
