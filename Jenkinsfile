@@ -110,7 +110,7 @@ pipeline {
                             dir(service) {
                                 sh 'rm -rf ~/.m2/wrapper/dists/apache-maven* || true'
 
-                                sh '../mvnw dependency:purge-local-repository -DskipTests'
+//                                 sh '../mvnw dependency:purge-local-repository -DskipTests'
 
                                 sh '../mvnw clean verify -PbuildDocker'
 
