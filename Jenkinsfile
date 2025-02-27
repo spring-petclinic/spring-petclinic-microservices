@@ -74,12 +74,15 @@ pipeline {
                         error("❌ No relevant services detected. Verify file path matching logic.")
                     }
 
-                    // Store changed services in environment variable
+                    // Use properties() to persist the value
+                    properties([
+                        parameters([
+                            string(name: 'SERVICES_CHANGED', defaultValue: changedServices.join(','), description: 'Services that changed in this build')
+                        ])
+                    ])
+
                     env.SERVICES_CHANGED = changedServices.join(',')
                     echo "🚀 Services changed (Global ENV): ${env.SERVICES_CHANGED}"
-
-                    // Also store in build description for persistence
-                    currentBuild.description = "Changed Services: ${env.SERVICES_CHANGED}"
                 }
             }
         }
@@ -87,16 +90,16 @@ pipeline {
         stage('Load Changed Services') {
             steps {
                 script {
-                    // Restore SERVICES_CHANGED from build description
-                    if (currentBuild.description?.contains("Changed Services: ")) {
-                        env.SERVICES_CHANGED = currentBuild.description.replace("Changed Services: ", "").trim()
-                        echo "🔄 Restored SERVICES_CHANGED: ${env.SERVICES_CHANGED}"
-                    } else {
+                    env.SERVICES_CHANGED = params.SERVICES_CHANGED
+                    echo "🔄 Restored SERVICES_CHANGED: ${env.SERVICES_CHANGED}"
+
+                    if (!env.SERVICES_CHANGED?.trim()) {
                         error("❌ SERVICES_CHANGED is missing. Ensure 'Detect Changes' stage executed correctly.")
                     }
                 }
             }
         }
+
 
         stage('Test & Coverage Check') {
             when {
