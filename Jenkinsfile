@@ -8,10 +8,10 @@ pipeline {
         stage('Detect Changes') {
             steps {
                 script {
-                    // Lấy danh sách file thay đổi so với main branch
+                    // Get the list of changed files compared to main branch
                     def changes = sh(script: "git diff --name-only origin/main", returnStdout: true).trim().split("\n")
 
-                    // Danh sách thư mục service
+                    // Define microservices directories
                     def services = [
                         "spring-petclinic-customers-service",
                         "spring-petclinic-vets-service",
@@ -22,21 +22,19 @@ pipeline {
                         "spring-petclinic-genai-service"
                     ]
 
-                    // Kiểm tra thư mục nào có thay đổi
-                    def changedServices = []
-                    for (service in services) {
-                        if (changes.any { it.startsWith(service + "/") }) {
-                            changedServices.add(service)
-                        }
+                    // Identify changed services
+                    def changedServices = services.findAll { service ->
+                        changes.any { it.startsWith(service + "/") }
                     }
 
-                    // Nếu không có service nào thay đổi thì dừng pipeline
+                    // If no relevant changes, abort pipeline
                     if (changedServices.isEmpty()) {
                         error("No relevant changes detected, skipping pipeline")
                     }
 
-                    SERVICES_CHANGED = changedServices
-                    echo "Services changed: ${SERVICES_CHANGED.join(', ')}"
+                    // Convert list to a comma-separated string
+                    SERVICES_CHANGED = changedServices.join(',')
+                    echo "Services changed: ${SERVICES_CHANGED}"
                 }
             }
         }
@@ -52,7 +50,7 @@ pipeline {
                                     dir(service) {
                                         sh './mvnw test'
 
-                                        // Kiểm tra test coverage
+                                        // Validate test coverage
                                         script {
                                             def coverage = sh(script: '''
                                                 grep -Po '(?<=<counter type="LINE" missed="\\d+" covered=")\\d+(?="/>)' target/site/jacoco/jacoco.xml |
@@ -72,7 +70,6 @@ pipeline {
                 }
             }
         }
-
 
         stage('Build') {
             steps {
@@ -94,19 +91,22 @@ pipeline {
             }
         }
 
-
         stage('Docker Build') {
-            parallel {
+            steps {
                 script {
-                    SERVICES_CHANGED.each { service ->
-                        stage("Docker Build: ${service}") {
-                            steps {
-                                dir(service) {
-                                    sh "docker build -t myrepo/${service}:latest ."
+                    def parallelDockerBuilds = [:]
+                    SERVICES_CHANGED.split(',').each { service ->
+                        parallelDockerBuilds["Docker Build: ${service}"] = {
+                            stage("Docker Build: ${service}") {
+                                steps {
+                                    dir(service) {
+                                        sh "docker build -t myrepo/${service}:latest ."
+                                    }
                                 }
                             }
                         }
                     }
+                    parallel parallelDockerBuilds
                 }
             }
         }
@@ -114,7 +114,7 @@ pipeline {
 
     post {
         always {
-            echo "Pipeline finished for services: ${SERVICES_CHANGED.join(', ')}"
+            echo "Pipeline finished for services: ${SERVICES_CHANGED}"
         }
     }
 }
