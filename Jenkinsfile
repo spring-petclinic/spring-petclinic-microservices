@@ -11,11 +11,11 @@ pipeline {
                     // Fetch latest changes from main branch
                     sh 'git fetch origin main --depth=1'
 
-                    // Get the latest commit on main branch
-                    def baseCommit = sh(script: "git rev-parse origin/main", returnStdout: true).trim()
+                    // Get the common ancestor commit of main and the current branch
+                    def baseCommit = sh(script: "git merge-base origin/main HEAD", returnStdout: true).trim()
 
-                    // Get the list of changed files compared to main
-                    def changes = sh(script: "git diff --name-only ${baseCommit}...HEAD", returnStdout: true).trim().split("\n")
+                    // Get the list of changed files compared to baseCommit
+                    def changes = sh(script: "git diff --name-only ${baseCommit} HEAD", returnStdout: true).trim().split("\n")
 
                     // Define microservices directories
                     def services = [
@@ -30,7 +30,7 @@ pipeline {
 
                     // Identify changed services, including test changes
                     def changedServices = services.findAll { service ->
-                        changes.any { file -> file.startsWith(service + "/") || file.contains(service) }
+                        changes.any { file -> file.startsWith(service + "/") || file.contains(service) || file.startsWith("test/") }
                     }
 
                     // Ensure at least one service is detected as changed
@@ -44,6 +44,7 @@ pipeline {
                 }
             }
         }
+
 
         stage('Test & Coverage Check') {
             when {
