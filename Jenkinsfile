@@ -20,6 +20,9 @@ pipeline {
                         returnStdout: true
                     ).trim().split("\n")
 
+                    // Log detected changes for debugging
+                    echo "Changed files detected: ${changes.join(',')}"
+
                     def services = [
                         "spring-petclinic-customers-service",
                         "spring-petclinic-vets-service",
@@ -33,11 +36,12 @@ pipeline {
                     // If you literally want to detect changes in 'test/' or 'test/huy/', adapt this logic
                     def changedServices = services.findAll { service ->
                         changes.any { file ->
-                            file.startsWith("${service}/") || // e.g. 'spring-petclinic-vets-service/src/...'
-                            file.contains(service) ||
-                            file.startsWith("test/")
+                            file.startsWith("${service}/") || // Matches changes in service directories
+                            file.contains(service) || // Broad matching
+                            file.startsWith("test/") // Ensures test changes are detected
                         }
                     }
+
 
                     if (changedServices.isEmpty()) {
                         error("No relevant changes detected, skipping pipeline")
