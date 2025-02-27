@@ -13,4 +13,5 @@ class SpecialtyTest {
         assertNull(specialty.getId(), "ID should be null before persisting");
         assertEquals("Dentistry", specialty.getName(), "Specialty name should be correctly set");
     }
+    //
 }
