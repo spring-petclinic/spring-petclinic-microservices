@@ -1,12 +1,11 @@
 def SERVICES_CHANGED = ""
 
 pipeline {
-    agent {
-        docker {
-            image 'hzeroxium/petclinic-jenkins-agent:v1'
-            args '--user root -v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent { 
+        node {
+            label 'docker-agent-petclinic'
+            }
+      }
 
     stages {
         stage('Detect Changes') {
