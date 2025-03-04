@@ -18,22 +18,20 @@ pipeline {
                 
                 // Run tests and generate JaCoCo reports for all modules.
                 // Running from the root POM, Maven will process all modules.
-                bat 'mvn -Dmaven.test.failure.ignore=true clean package jacoco:report'
+                bat 'mvn -Dmaven.test.failure.ignore=true clean package'
                 //  bat 'mvn clean test jacoco:report'
             }
             post {
                 success {
                     // Collect test reports from all modules using a recursive wildcard
-                    junit '**/target/surefire-reports/TEST-*.xml'
+                    junit '**/target/surefire-reports/*.xml'
                     
                     // Collect JaCoCo coverage XML reports from each module.
                     // This pattern will find all jacoco.xml files in submodule directories.
-                    jacoco(
-                        execPattern: '**/target/*.exec',      // Use a recursive pattern if needed
-                        classPattern: '**/target/classes',     // Adjust if your classes are in a different path
-                        sourcePattern: '**/src/main/java',     // Use a recursive pattern for multi-module projects
-                        exclusionPattern: '**/src/test*'        // Exclude test sources
-                    )
+                    recordCoverage tools: [
+                        jacocoAdapter('**/target/jacoco-ut/jacoco.xml')
+                    ]
+
                 }
             }
         }
