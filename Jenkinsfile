@@ -31,7 +31,7 @@ pipeline {
         }
         stage('Build') {
             steps {
-                bat 'mvn package'
+                bat "mvn -B package --file pom.xml"
             }
         }
     }
