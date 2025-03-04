@@ -21,7 +21,7 @@ pipeline {
                 bat 'mvn -Dmaven.test.failure.ignore=true clean package'
             }
             post {
-                always {
+                success {
                     // Collect test reports from all modules using a recursive wildcard
                     junit '**/target/surefire-reports/TEST-*.xml'
                     
