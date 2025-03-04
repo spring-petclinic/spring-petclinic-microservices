@@ -166,6 +166,7 @@
                             <execution>
                             <!-- Generate the JaCoCo report after tests -->
                             <id>report</id>
+                            <phase>test</phase>
                             <goals>
                                 <goal>report</goal>
                             </goals>
