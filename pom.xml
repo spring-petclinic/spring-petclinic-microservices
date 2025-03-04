@@ -151,6 +151,24 @@
                             </execution>
                         </executions>
                     </plugin>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>0.8.9</version>
+                        <executions>
+                        <execution>
+                            <goals>
+                            <goal>prepare-agent</goal>
+                            <goal>report</goal>
+                            </goals>
+                        </execution>
+                        </executions>
+                        <configuration>
+                        <!-- Enable XML report generation -->
+                        <dataFile>target/jacoco.exec</dataFile>
+                        <outputDirectory>${project.reporting.outputDirectory}/jacoco</outputDirectory>
+                        </configuration>
+                    </plugin>
                 </plugins>
             </build>
         </profile>

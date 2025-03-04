@@ -11,12 +11,27 @@ pipeline {
     }
 
     stages {
+        stage('Test') {
+            steps {
+                checkout scm
+                // Run tests and generate JaCoCo XML coverage report
+                bat 'mvn clean test jacoco:report'
+            }
+            post {
+                always {
+                    // Publish JUnit test results
+                    junit '**/target/surefire-reports/TEST-*.xml'
+
+                    // Publish coverage using the Coverage plugin
+                    recordCoverage tools: [
+                        jacocoAdapter('**/target/site/jacoco/jacoco.xml')
+                    ]
+                }
+            }
+        }
         stage('Build') {
             steps {
-                // Checkout code from your Git repository
-                checkout scm
-                // Use bat to run Maven (this now should find cmd.exe)
-                bat "mvn -B package --file pom.xml"
+                bat 'mvn package'
             }
         }
     }
