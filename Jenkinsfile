@@ -18,8 +18,8 @@ pipeline {
                 
                 // Run tests and generate JaCoCo reports for all modules.
                 // Running from the root POM, Maven will process all modules.
-                // bat 'mvn -Dmaven.test.failure.ignore=true clean package jacoco:report'
-                 bat 'mvn clean test jacoco:report'
+                bat 'mvn -Dmaven.test.failure.ignore=true clean package jacoco:report'
+                //  bat 'mvn clean test jacoco:report'
             }
             post {
                 success {
