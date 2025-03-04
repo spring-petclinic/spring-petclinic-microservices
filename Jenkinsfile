@@ -18,19 +18,15 @@ pipeline {
                 
                 // Run tests and generate JaCoCo reports for all modules.
                 // Running from the root POM, Maven will process all modules.
-                bat './mvnw package'
                 bat 'mvn clean test jacoco:report'
             }
             post {
                 always {
                     // Collect test reports from all modules using a recursive wildcard
-                    junit '**/target/surefire-reports/*.xml'
+                    junit '**/target/surefire-reports/TEST-*.xml'
                     
                     // Collect JaCoCo coverage XML reports from each module.
                     // This pattern will find all jacoco.xml files in submodule directories.
-                    recordCoverage tools: [
-                        jacocoAdapter('**/target/site/jacoco/jacoco.xml')
-                    ]
                 }
             }
         }
