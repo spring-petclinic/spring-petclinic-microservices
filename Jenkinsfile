@@ -28,9 +28,15 @@ pipeline {
                     
                     // Collect JaCoCo coverage XML reports from each module.
                     // This pattern will find all jacoco.xml files in submodule directories.
-                    recordCoverage tools: [
-                        jacocoAdapter('**/target/jacoco-ut/jacoco.xml')
-                    ]
+                    recordCoverage(
+                        tools: [
+                            [
+                                parser: 'JACOCO', 
+                                pattern: '**/target/site/jacoco/jacoco.xml'
+                            ]
+                        ]
+                    )
+
 
                 }
             }
