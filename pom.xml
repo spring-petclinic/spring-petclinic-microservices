@@ -158,15 +158,14 @@
                         <executions>
                             <execution>
                             <!-- Prepare JaCoCo agent before tests -->
-                            <id>prepare-agent</id>
-                            <goals>
-                                <goal>prepare-agent</goal>
-                            </goals>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
                             </execution>
                             <execution>
                             <!-- Generate the JaCoCo report after tests -->
                             <id>report</id>
-                            <phase>test</phase>
+                            <phase>prepare-package</phase>
                             <goals>
                                 <goal>report</goal>
                             </goals>
