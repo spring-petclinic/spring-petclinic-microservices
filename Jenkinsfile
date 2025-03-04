@@ -7,22 +7,26 @@ pipeline {
     }
 
     tools {
-        maven "M3"
+        maven "M3" // Ensure this matches your Maven installation configured in Jenkins
     }
 
     stages {
         stage('Test') {
             steps {
+                // Checkout your source code from SCM
                 checkout scm
-                // Run tests and generate JaCoCo XML coverage report
+                
+                // Run tests and generate JaCoCo reports for all modules.
+                // Running from the root POM, Maven will process all modules.
                 bat 'mvn clean test jacoco:report'
             }
             post {
                 always {
-                    // Publish JUnit test results
-                    junit '**/target/surefire-reports/TEST-*.xml'
-
-                    // Publish coverage using the Coverage plugin
+                    // Collect test reports from all modules using a recursive wildcard
+                    junit '**/target/surefire-reports/*.xml'
+                    
+                    // Collect JaCoCo coverage XML reports from each module.
+                    // This pattern will find all jacoco.xml files in submodule directories.
                     recordCoverage tools: [
                         jacocoAdapter('**/target/site/jacoco/jacoco.xml')
                     ]
@@ -31,7 +35,8 @@ pipeline {
         }
         stage('Build') {
             steps {
-                bat "mvn -B package --file pom.xml"
+                // Build the project (this will package all modules)
+                bat 'mvn -B package'
             }
         }
     }
