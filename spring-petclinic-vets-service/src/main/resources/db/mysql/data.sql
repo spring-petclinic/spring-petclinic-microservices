@@ -14,3 +14,4 @@ INSERT IGNORE INTO vet_specialties VALUES (3, 2);
 INSERT IGNORE INTO vet_specialties VALUES (3, 3);
 INSERT IGNORE INTO vet_specialties VALUES (4, 2);
 INSERT IGNORE INTO vet_specialties VALUES (5, 1);
+-- hello
