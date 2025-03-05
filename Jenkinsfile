@@ -1,6 +1,8 @@
 pipeline {
     agent any
-
+    environment {
+        SONARQUBE_ENV = 'sonarqube'
+    }
     tools {
         maven 'Maven 3.8.6'
         jdk 'Java 17'
