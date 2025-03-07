@@ -82,7 +82,7 @@ pipeline {
 
         stage('Build & Test Customers Service') {
             agent { label 'customers-agent' }
-            when { changeset "*/spring-petclinic-customers-service/**/" }
+            when { changeset "*/spring-petclinic-customers-service/**/*" }
             steps {
                 checkout scm
                 bat 'mvn -pl spring-petclinic-customers-service -am clean package'
@@ -145,7 +145,7 @@ pipeline {
 
         stage('Build & Test Vets Service') {
             agent { label 'vets-agent' }
-            when { changeset "*/spring-petclinic-vets-service/**/" }
+            when { changeset "*/spring-petclinic-vets-service/**/*" }
             steps {
                 checkout scm
                 bat 'mvn -pl spring-petclinic-vets-service -am clean package'
@@ -166,7 +166,7 @@ pipeline {
 
         stage('Build & Test Visits Service') {
             agent { label 'visits-agent' }
-            when { changeset "*/spring-petclinic-visits-service/**/" }
+            when { changeset "*/spring-petclinic-visits-service/**/*" }
             steps {
                 checkout scm
                 bat 'mvn -pl spring-petclinic-visits-service -am clean package'
