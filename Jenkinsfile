@@ -145,14 +145,14 @@ pipeline {
 
         stage('Build & Test Vets Service') {
             agent { label 'vets-agent' }
-            when { changeset "*/spring-petclinic-vets-service/**/*" }
+            when { changeset "**/spring-petclinic-vets-service/**/*" }
             steps {
                 checkout scm
                 bat 'mvn -pl spring-petclinic-vets-service -am clean package'
             }
             post {
                 always {
-                    junit '*/spring-petclinic-vets-service/target/surefire-reports/.xml'
+                    junit '**/spring-petclinic-vets-service/target/surefire-reports/*.xml'
                     recordCoverage(
                         tools: [[parser: 'JACOCO']],
                         qualityGates: [
