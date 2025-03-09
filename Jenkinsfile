@@ -6,7 +6,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 script {
-                    echo "Checking out code from branch: main"
+                    echo "Checking out code from branch: ${env.BRANCH_NAME}"
                     checkout scm
                 }
             }
@@ -22,7 +22,7 @@ pipeline {
         stage('Run Unit Tests') {
             steps {
                 script {
-                    echo "Running tests for ${params.SERVICE}"
+                    echo "Running tests for all"
                     sh "./mvnw test"
                 }
             }
@@ -42,7 +42,7 @@ pipeline {
     }
 
     post {
-        success { echo "Integrate successfully" }
-        failure { echo "Integrate failed!" }
+        success { echo "Run pipeline for ${env.BRANCH_NAME} successfully" }
+        failure { echo "Run pipeline for ${env.BRANCH_NAME} failed!" }
     }
 }
