@@ -1,14 +1,6 @@
 pipeline {
     agent any
 
-    // parameters {
-    //     choice(name: 'SERVICE', choices: ['customers-service' , 'genai-service', 'vets-service'], description: 'Select microservice to build')
-    // }
-    def branchName = env.BRANCH_NAME.replace('feature/', '')
-
-    parameters {
-        string(name: 'SERVICE', defaultValue: branchName, description: 'Branch name')
-    }
 
     stages {
         stage('Checkout Code') {
@@ -30,8 +22,8 @@ pipeline {
         stage('Run Unit Tests') {
             steps {
                 script {
-                    echo "Running tests for ${params.SERVICE}"
-                    sh "./mvnw -pl spring-petclinic-${params.SERVICE} test"
+                    echo "Running tests for all"
+                    sh "./mvnw test"
                 }
             }
             post {
@@ -44,13 +36,13 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh "./mvnw clean install -pl spring-petclinic-${params.SERVICE}"
+                sh "./mvnw clean install"
             }
         }
     }
 
     post {
-        success { echo "Pipeline completed successfully!" }
-        failure { echo "Pipeline failed!" }
+        success { echo "Run pipeline for ${env.BRANCH_NAME} successfully" }
+        failure { echo "Run pipeline for ${env.BRANCH_NAME} failed!" }
     }
 }
