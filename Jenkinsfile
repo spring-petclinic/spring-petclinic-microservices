@@ -7,9 +7,16 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/DinhVuHuan/test_devopps.git'
             }
         }
-        stage('Hello Jenkins') {
+        stage('Test') {
             steps {
-                echo "Jenkins đang hoạt động!"
+                echo "Chạy unit test..."
+                sh './mvnw test'
+            }
+        }
+        stage('Build') {
+            steps {
+                echo "Build ứng dụng..."
+                sh './mvnw package'
             }
         }
     }
