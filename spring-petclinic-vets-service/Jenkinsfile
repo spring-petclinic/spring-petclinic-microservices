@@ -6,7 +6,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 script {
-                    echo "Checking out code from branch: main"
+                    echo "Checking out code from branch: ${env.BRANCH_NAME}"
                     checkout scm
                 }
             }
@@ -23,7 +23,7 @@ pipeline {
             steps {
                 script {
                     echo "Running tests for ${params.SERVICE}"
-                    sh "./mvnw test"
+                    sh "./mvnw -pl spring-petclinic-vets-service test"
                 }
             }
             post {
@@ -36,13 +36,13 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh "./mvnw clean install"
+                sh "./mvnw clean install -pl spring-petclinic-vets-service"
             }
         }
     }
 
     post {
-        success { echo "Integrate successfully" }
-        failure { echo "Integrate failed!" }
+        success { echo "Pipeline completed successfully!" }
+        failure { echo "Pipeline failed!" }
     }
 }
