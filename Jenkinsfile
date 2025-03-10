@@ -1,9 +1,10 @@
 pipeline {
     agent any
     tools {
-        jdk 'JDK17'
-        maven 'Maven3'
+        jdk 'JDK21'
+        // maven 'Maven3'
     }
+
     stages {
         stage('Check Java & Maven') {
             steps {
@@ -11,8 +12,6 @@ pipeline {
                 sh 'mvn -version'
             }
         }
-    }
-    stages {
         stage('Checkout Code') {
             steps {
                 script {
@@ -27,7 +26,7 @@ pipeline {
         //         sh 'sudo dnf install -y java-17-openjdk maven'
         //         sh 'sudo dnf install maven -y'
         //     }
-        // }    
+        // }
 
         stage('Run Unit Tests') {
             steps {
