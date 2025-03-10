@@ -5,12 +5,13 @@ pipeline {
             steps {
                 script {
                     def changedFiles = sh(script: 'git diff --name-only origin/main', returnStdout: true).trim().split("\n")
-                    def services = ['spring-petclinic-customers-service', 'spring-petclinic-genain-service', 'spring-petclinic-vets-service', 'spring-petclinic-visits-service']
+                    echo "Changed file: ${changedFile}"
+                    def services = ['spring-petclinic-customers-service', 'spring-petclinic-genai-service', 'spring-petclinic-vets-service', 'spring-petclinic-visits-service']
                     def detectedServices = services.findAll { service -> 
                         changedFiles.any { it.startsWith(service) }
                     }
 
-                    if (detectedServices.size() > 0) {
+                    if (detectedServices) {
                         env.CHANGED_SERVICES = detectedServices.join(',')
                         echo "Detected changes in: ${env.CHANGED_SERVICES}"
                     } else {
