@@ -17,7 +17,7 @@ pipeline {
         stage('Detect Changes') {
             steps {
                 script {
-                    def changedFiles = sh(script: 'git diff --name-only $(git rev-parse HEAD~1 || echo HEAD)', returnStdout: true).trim().split("\n")
+                    def changedFiles = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim().split("\n")
                     env.CHANGED_SERVICES = []
 
                     def services = [
