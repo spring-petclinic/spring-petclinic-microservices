@@ -5,7 +5,7 @@ pipeline {
             steps {
                 script {
                     def changedFiles = sh(script: 'git diff --name-only origin/main', returnStdout: true).trim().split("\n")
-                    def services = ['customers-service', 'vets-service', 'visits-service']
+                    def services = ['spring-petclinic-customers-service', 'spring-petclinic-genain-service', 'spring-petclinic-vets-service', 'spring-petclinic-visits-service']
                     def detectedServices = services.findAll { service -> 
                         changedFiles.any { it.startsWith(service) }
                     }
