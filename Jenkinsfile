@@ -9,6 +9,7 @@ pipeline {
                 script {
                     def changedFiles = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim().split("\n")
                     def services = ['customers-service', 'genai-service', 'vets-service', 'visits-service']
+                    echo "File changed: $changedFiles"
                     def detectedService = services.find { service -> 
                         changedFiles.any { it.startsWith(service) }
                     }
