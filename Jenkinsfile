@@ -3,6 +3,9 @@ pipeline {
     environment {
         DOCKER_BUILDKIT = '1' // Enable Docker BuildKit for efficient builds (if needed)
     }
+    tools {
+        maven 'Maven 3' // Use the Maven installation from Jenkins tools
+    }
     stages {
         stage('Detect Changes') {
             steps {
