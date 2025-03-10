@@ -1,68 +1,139 @@
 pipeline {
     agent any
+    environment {
+        DOCKER_BUILDKIT = '1' // Enable Docker BuildKit for efficient builds (if needed)
+    }
     stages {
         stage('Detect Changes') {
             steps {
                 script {
-                    def changedFiles = sh(script: 'git diff --name-only origin/main', returnStdout: true).trim().split("\n")
-                    echo "Changed file: ${changedFile}"
-                    def services = ['spring-petclinic-customers-service', 'spring-petclinic-genai-service', 'spring-petclinic-vets-service', 'spring-petclinic-visits-service']
-                    def detectedServices = services.findAll { service -> 
-                        changedFiles.any { it.startsWith(service) }
+                    def changedFiles = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim().split("\n")
+                    env.CHANGED_SERVICES = []
+                    
+                    def services = ["spring-petclinic-customers-service", "spring-petclinic-vets-service", "spring-petclinic-visits-service", "spring-petclinic-genai-service"]
+                    
+                    for (service in services) {
+                        if (changedFiles.any { it.startsWith(service) }) {
+                            env.CHANGED_SERVICES += service
+                        }
                     }
-
-                    if (detectedServices) {
-                        env.CHANGED_SERVICES = detectedServices.join(',')
-                        echo "Detected changes in: ${env.CHANGED_SERVICES}"
-                    } else {
-                        echo "No relevant changes detected. Skipping pipeline."
-                        currentBuild.result = 'ABORTED'
-                        error("No service changed. Exiting pipeline.")
+                    
+                    if (env.CHANGED_SERVICES.isEmpty()) {
+                        echo "No microservice has changed, skipping test and build."
+                        currentBuild.result = 'SUCCESS'
+                        return
                     }
                 }
             }
         }
 
-        stage('Test & Coverage') {
+        stage('Test Services') {
             when {
-                expression { return env.CHANGED_SERVICES != null && env.CHANGED_SERVICES != '' }
+                expression { return env.CHANGED_SERVICES?.size() > 0 }
             }
-            steps {
-                script {
-                    def servicesToTest = env.CHANGED_SERVICES.split(',')
-                    servicesToTest.each { service ->
-                        dir(service) {
-                            sh 'chmod +x ./gradlew'  // Ensure Gradle wrapper is executable
-                            sh './gradlew test jacocoTestReport'
-
-                            // Upload test results
-                            junit 'build/test-results/test/*.xml'
-
-                            // Upload test coverage report
-                            publishCoverage adapters: [
-                                jacocoAdapter('build/reports/jacoco/test/jacocoTestReport.xml')
-                            ]
+            parallel {
+                stage('Customers Service') {
+                    when {
+                        expression { return env.CHANGED_SERVICES.contains("spring-petclinic-customers-service") }
+                    }
+                    steps {
+                        dir('spring-petclinic-customers-service') {
+                            sh 'mvn clean test'
+                            junit 'target/surefire-reports/*.xml'
+                        }
+                    }
+                }
+                stage('Vets Service') {
+                    when {
+                        expression { return env.CHANGED_SERVICES.contains("spring-petclinic-vets-service") }
+                    }
+                    steps {
+                        dir('spring-petclinic-vets-service') {
+                            sh 'mvn clean test'
+                            junit 'target/surefire-reports/*.xml'
+                        }
+                    }
+                }
+                stage('Visits Service') {
+                    when {
+                        expression { return env.CHANGED_SERVICES.contains("spring-petclinic-visits-service") }
+                    }
+                    steps {
+                        dir('spring-petclinic-visits-service') {
+                            sh 'mvn clean test'
+                            junit 'target/surefire-reports/*.xml'
+                        }
+                    }
+                }
+                stage('GenAI Service') {
+                    when {
+                        expression { return env.CHANGED_SERVICES.contains("spring-petclinic-genai-service") }
+                    }
+                    steps {
+                        dir('spring-petclinic-genai-service') {
+                            sh 'mvn clean test'
+                            junit 'target/surefire-reports/*.xml'
                         }
                     }
                 }
             }
         }
 
-        stage('Build') {
+        stage('Build Services') {
             when {
-                expression { return env.CHANGED_SERVICES != null && env.CHANGED_SERVICES != '' }
+                expression { return env.CHANGED_SERVICES?.size() > 0 }
             }
-            steps {
-                script {
-                    def servicesToBuild = env.CHANGED_SERVICES.split(',')
-                    servicesToBuild.each { service ->
-                        dir(service) {
-                            sh 'chmod +x ./gradlew'  // Ensure Gradle wrapper is executable
-                            sh './gradlew build'
+            parallel {
+                stage('Customers Service') {
+                    when {
+                        expression { return env.CHANGED_SERVICES.contains("spring-petclinic-customers-service") }
+                    }
+                    steps {
+                        dir('spring-petclinic-customers-service') {
+                            sh 'mvn clean package -DskipTests'
+                            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                        }
+                    }
+                }
+                stage('Vets Service') {
+                    when {
+                        expression { return env.CHANGED_SERVICES.contains("spring-petclinic-vets-service") }
+                    }
+                    steps {
+                        dir('spring-petclinic-vets-service') {
+                            sh 'mvn clean package -DskipTests'
+                            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                        }
+                    }
+                }
+                stage('Visits Service') {
+                    when {
+                        expression { return env.CHANGED_SERVICES.contains("spring-petclinic-visits-service") }
+                    }
+                    steps {
+                        dir('spring-petclinic-visits-service') {
+                            sh 'mvn clean package -DskipTests'
+                            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                        }
+                    }
+                }
+                stage('GenAI Service') {
+                    when {
+                        expression { return env.CHANGED_SERVICES.contains("spring-petclinic-genai-service") }
+                    }
+                    steps {
+                        dir('spring-petclinic-genai-service') {
+                            sh 'mvn clean package -DskipTests'
+                            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                         }
                     }
                 }
             }
+        }
+    }
+    post {
+        always {
+            echo "Pipeline execution completed!"
         }
     }
 }
