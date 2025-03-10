@@ -42,3 +42,7 @@ record PetDetails(
         this(pet.getId(), pet.getName(), pet.getOwner().getFirstName() + " " + pet.getOwner().getLastName(), pet.getBirthDate(), pet.getType());
     }
 }
+
+/**
+ * Hello world
+ */
