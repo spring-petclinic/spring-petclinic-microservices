@@ -4,15 +4,15 @@ pipeline {
         stage('Detect Changes') {
             steps {
                 script {
-                    def changedFiles = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim().split("\n")
-                    def services = ['spring-petclinic-customers-service', 'spring-petclinic-genain-service', 'spring-petclinic-vets-service', 'spring-petclinic-visits-service']
-                    def changedService = services.find { service -> 
+                    def changedFiles = sh(script: 'git diff --name-only origin/main', returnStdout: true).trim().split("\n")
+                    def services = ['customers-service', 'vets-service', 'visits-service']
+                    def detectedServices = services.findAll { service -> 
                         changedFiles.any { it.startsWith(service) }
                     }
-                    
-                    if (changedService) {
-                        echo "Detected changes in ${changedService}"
-                        env.CHANGED_SERVICE = changedService
+
+                    if (detectedServices.size() > 0) {
+                        env.CHANGED_SERVICES = detectedServices.join(',')
+                        echo "Detected changes in: ${env.CHANGED_SERVICES}"
                     } else {
                         echo "No relevant changes detected. Skipping pipeline."
                         currentBuild.result = 'ABORTED'
@@ -22,22 +22,26 @@ pipeline {
             }
         }
 
-        stage('Test') {
+        stage('Test & Coverage') {
             when {
-                expression { return env.CHANGED_SERVICE != null && env.CHANGED_SERVICE != '' }
+                expression { return env.CHANGED_SERVICES != null && env.CHANGED_SERVICES != '' }
             }
             steps {
-                dir("${env.CHANGED_SERVICE}") {
-                    sh './gradlew test jacocoTestReport' // Run tests and generate coverage report
+                script {
+                    def servicesToTest = env.CHANGED_SERVICES.split(',')
+                    servicesToTest.each { service ->
+                        dir(service) {
+                            sh 'chmod +x ./gradlew'  // Ensure Gradle wrapper is executable
+                            sh './gradlew test jacocoTestReport'
 
-                    // Upload test case results
-                    junit 'build/test-results/test/*.xml'
+                            // Upload test results
+                            junit 'build/test-results/test/*.xml'
 
-                    // Upload test coverage report using Coverage plugin
-                    script {
-                        publishCoverage adapters: [
-                            jacocoAdapter('build/reports/jacoco/test/jacocoTestReport.xml')
-                        ]
+                            // Upload test coverage report
+                            publishCoverage adapters: [
+                                jacocoAdapter('build/reports/jacoco/test/jacocoTestReport.xml')
+                            ]
+                        }
                     }
                 }
             }
@@ -45,11 +49,17 @@ pipeline {
 
         stage('Build') {
             when {
-                expression { return env.CHANGED_SERVICE != null && env.CHANGED_SERVICE != '' }
+                expression { return env.CHANGED_SERVICES != null && env.CHANGED_SERVICES != '' }
             }
             steps {
-                dir("${env.CHANGED_SERVICE}") {
-                    sh './gradlew build'
+                script {
+                    def servicesToBuild = env.CHANGED_SERVICES.split(',')
+                    servicesToBuild.each { service ->
+                        dir(service) {
+                            sh 'chmod +x ./gradlew'  // Ensure Gradle wrapper is executable
+                            sh './gradlew build'
+                        }
+                    }
                 }
             }
         }
