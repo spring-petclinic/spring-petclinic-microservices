@@ -17,32 +17,40 @@ pipeline {
         stage('Detect Changes') {
             steps {
                 script {
-                    def changedFiles = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim().split("\n")
-                    env.CHANGED_SERVICES = []
-
-                    def services = [
-                        "spring-petclinic-customers-service",
-                        "spring-petclinic-vets-service",
-                        "spring-petclinic-visits-service",
-                        "spring-petclinic-genai-service"
-                    ]
-
-                    for (service in services) {
-                        if (changedFiles.any { it.startsWith(service) }) {
-                            env.CHANGED_SERVICES += service
-                        }
-                    }
-
-                    if (env.CHANGED_SERVICES.isEmpty()) {
-                        echo "No relevant changes detected. Skipping tests and build."
-                        currentBuild.result = 'SUCCESS'
-                        return
+                    def lastCommit = sh(script: 'git rev-parse HEAD~1 || echo "none"', returnStdout: true).trim()
+        
+                    if (lastCommit == "none") {
+                        echo "No previous commit found. Running full build."
+                        env.CHANGED_SERVICES = ["spring-petclinic-customers-service", "spring-petclinic-vets-service", "spring-petclinic-visits-service", "spring-petclinic-genai-service"]
                     } else {
-                        echo "Detected changes in: ${env.CHANGED_SERVICES.join(', ')}"
+                        def changedFiles = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim().split("\n")
+                        env.CHANGED_SERVICES = []
+        
+                        def services = [
+                            "spring-petclinic-customers-service",
+                            "spring-petclinic-vets-service",
+                            "spring-petclinic-visits-service",
+                            "spring-petclinic-genai-service"
+                        ]
+        
+                        for (service in services) {
+                            if (changedFiles.any { it.startsWith(service) }) {
+                                env.CHANGED_SERVICES += service
+                            }
+                        }
+        
+                        if (env.CHANGED_SERVICES.isEmpty()) {
+                            echo "No relevant changes detected. Skipping tests and build."
+                            currentBuild.result = 'SUCCESS'
+                            return
+                        } else {
+                            echo "Detected changes in: ${env.CHANGED_SERVICES.join(', ')}"
+                        }
                     }
                 }
             }
         }
+
 
         stage('Test Services') {
             when {
