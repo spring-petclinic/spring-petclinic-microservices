@@ -1,21 +1,18 @@
 pipeline {
     agent any
-    environment {
-        CHANGED_SERVICE = ''
-    }
     stages {
         stage('Detect Changes') {
             steps {
                 script {
                     def changedFiles = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim().split("\n")
                     def services = ['spring-petclinic-customers-service', 'spring-petclinic-genain-service', 'spring-petclinic-vets-service', 'spring-petclinic-visits-service']
-                    echo "File changed: $changedFiles"
-                    def detectedService = services.find { service -> 
+                    def changedService = services.find { service -> 
                         changedFiles.any { it.startsWith(service) }
                     }
-                    if (detectedService) {
-                        CHANGED_SERVICE = detectedService
-                        echo "Detected changes in $CHANGED_SERVICE"
+                    
+                    if (changedService) {
+                        echo "Detected changes in ${changedService}"
+                        env.CHANGED_SERVICE = changedService
                     } else {
                         echo "No relevant changes detected. Skipping pipeline."
                         currentBuild.result = 'ABORTED'
@@ -27,23 +24,31 @@ pipeline {
 
         stage('Test') {
             when {
-                expression { return CHANGED_SERVICE != '' }
+                expression { return env.CHANGED_SERVICE != null && env.CHANGED_SERVICE != '' }
             }
             steps {
-                dir("${CHANGED_SERVICE}") {
-                    sh './gradlew test'
+                dir("${env.CHANGED_SERVICE}") {
+                    sh './gradlew test jacocoTestReport' // Run tests and generate coverage report
+
+                    // Upload test case results
                     junit 'build/test-results/test/*.xml'
-                    sh './gradlew jacocoTestReport'
+
+                    // Upload test coverage report using Coverage plugin
+                    script {
+                        publishCoverage adapters: [
+                            jacocoAdapter('build/reports/jacoco/test/jacocoTestReport.xml')
+                        ]
+                    }
                 }
             }
         }
 
         stage('Build') {
             when {
-                expression { return CHANGED_SERVICE != '' }
+                expression { return env.CHANGED_SERVICE != null && env.CHANGED_SERVICE != '' }
             }
             steps {
-                dir("${CHANGED_SERVICE}") {
+                dir("${env.CHANGED_SERVICE}") {
                     sh './gradlew build'
                 }
             }
