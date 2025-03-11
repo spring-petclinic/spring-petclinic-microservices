@@ -77,7 +77,7 @@ pipeline {
                                     echo "run build for ${service}"
                                     mvn clean package -DskipTests
                                     cd ..
-                                    docker build --build-arg SERVICE=${service} --build-arg STAGE=${STAGE} -f docker/Dockerfile-${service} -t ${DOCKER_REGISTRY}/${service}:${env.GIT_COMMIT_SHA}
+                                    docker build --build-arg SERVICE=${service} --build-arg STAGE=${STAGE} -f docker/Dockerfile-${service} -t ${DOCKER_REGISTRY}/${}-${service}:${env.GIT_COMMIT_SHA} .
                                     docker push ${DOCKER_REGISTRY}/${service}-${STAGE}:${GIT_COMMIT_SHA}
                                 """
                             }
