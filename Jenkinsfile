@@ -11,7 +11,6 @@ pipeline {
             agent { label 'controller-node' }
             steps {
                 script {
-                    env.BRANCH_NAME = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
                     def changedFiles = sh(script: "git fetch origin && git diff --name-only HEAD origin/${env.BRANCH_NAME}", returnStdout: true).trim().split("\n")
                     def changedServices = [] as Set
                     def rootChanged = false
