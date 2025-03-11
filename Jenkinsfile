@@ -1,50 +1,44 @@
 pipeline {
     agent any
-    tools {
-        maven 'Maven 3'
+    environment {
+        MAVEN_OPTS = "-Xmx1024m" // Prevents Jenkins from running out of memory
     }
-
+    tools {
+        maven 'Maven 3' // Use Jenkins' built-in Maven
+    }
+    
     stages {
-        stage('Checkout Code') {
+        stage('Clean Workspace') {
             steps {
-                script {
-                    checkout scm // Fetches the latest Git changes
-                }
+                cleanWs() // Remove old builds to prevent conflicts
             }
         }
 
         stage('Detect Changes') {
             steps {
                 script {
-                    def lastCommit = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim()
+                    def changedFiles = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim().split("\n")
+                    env.CHANGED_SERVICES = []
 
-                    if (lastCommit == "none") {
-                        echo "No previous commit found. Running full build."
-                        env.CHANGED_SERVICES = ["spring-petclinic-customers-service", "spring-petclinic-vets-service", "spring-petclinic-visits-service", "spring-petclinic-genai-service"]
+                    def services = [
+                        "spring-petclinic-customers-service",
+                        "spring-petclinic-vets-service",
+                        "spring-petclinic-visits-service",
+                        "spring-petclinic-genai-service"
+                    ]
+
+                    for (service in services) {
+                        if (changedFiles.any { it.startsWith(service) }) {
+                            env.CHANGED_SERVICES += service
+                        }
+                    }
+
+                    if (env.CHANGED_SERVICES.isEmpty()) {
+                        echo "No relevant changes detected. Skipping tests and build."
+                        currentBuild.result = 'SUCCESS'
+                        return
                     } else {
-                        def changedFiles = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim().split("\n")
-                        env.CHANGED_SERVICES = []
-
-                        def services = [
-                            "spring-petclinic-customers-service",
-                            "spring-petclinic-vets-service",
-                            "spring-petclinic-visits-service",
-                            "spring-petclinic-genai-service"
-                        ]
-
-                        for (service in services) {
-                            if (changedFiles.any { it.startsWith(service) }) {
-                                env.CHANGED_SERVICES += service
-                            }
-                        }
-
-                        if (env.CHANGED_SERVICES.isEmpty()) {
-                            echo "No relevant changes detected. Skipping tests and build."
-                            currentBuild.result = 'SUCCESS'
-                            return
-                        } else {
-                            echo "Detected changes in: ${env.CHANGED_SERVICES.join(', ')}"
-                        }
+                        echo "Detected changes in: ${env.CHANGED_SERVICES.join(', ')}"
                     }
                 }
             }
@@ -59,8 +53,8 @@ pipeline {
                     when { expression { return env.CHANGED_SERVICES.contains("spring-petclinic-customers-service") } }
                     steps {
                         dir('spring-petclinic-customers-service') {
-                            timeout(time: 10, unit: 'MINUTES') {
-                                sh './mvnw test'
+                            timeout(time: 10, unit: 'MINUTES') { // Avoid test hangups
+                                sh 'mvn clean test'
                             }
                             junit 'target/surefire-reports/*.xml'
                         }
@@ -71,7 +65,7 @@ pipeline {
                     steps {
                         dir('spring-petclinic-vets-service') {
                             timeout(time: 10, unit: 'MINUTES') {
-                                sh './mvnw test'
+                                sh 'mvn clean test'
                             }
                             junit 'target/surefire-reports/*.xml'
                         }
@@ -82,7 +76,7 @@ pipeline {
                     steps {
                         dir('spring-petclinic-visits-service') {
                             timeout(time: 10, unit: 'MINUTES') {
-                                sh './mvnw test'
+                                sh 'mvn clean test'
                             }
                             junit 'target/surefire-reports/*.xml'
                         }
@@ -93,7 +87,7 @@ pipeline {
                     steps {
                         dir('spring-petclinic-genai-service') {
                             timeout(time: 10, unit: 'MINUTES') {
-                                sh './mvnw test'
+                                sh 'mvn clean test'
                             }
                             junit 'target/surefire-reports/*.xml'
                         }
