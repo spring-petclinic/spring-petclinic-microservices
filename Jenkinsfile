@@ -63,20 +63,19 @@ pipeline {
                 stage("Build") {
                     agent { label 'maven-node' }
                     steps {
+                        sh "cat ~/docker-registry-passwd.txt | docker login --username ${DOCKER_REGISTRY} --password-stdin"
                         script {
                             if (env.CHANGED_SERVICES?.trim()) {
-                                // Build only changed services
                                 def changedServices = env.CHANGED_SERVICES.split(',')
                                 for (service in changedServices) {
-                                    sh """
-                                cd ${service}
-                                echo "run build for ${service}"
-                                mvn clean package -DskipTests
-                                cd ..
-                                docker build --build-arg SERVICE=${service} --build-arg STAGE=${env.STAGE} -f docker/Dockerfile.${service} -t ${DOCKER_REGISTRY}/${service}:${env.GIT_COMMIT_SHA} .
-                                cat ~/docker-registry-passwd.txt | docker login --username ${DOCKER_REGISTRY} --password-stdin
-                                docker push ${DOCKER_REGISTRY}/${service}:${env.GIT_COMMIT_SHA}
-                            """
+                                sh """
+                                    cd ${service}
+                                    echo "run build for ${service}"
+                                    mvn clean package -DskipTests
+                                    cd ..
+                                    docker build --build-arg SERVICE=${service} --build-arg STAGE=${env.STAGE} -f docker/Dockerfile.${service} -t ${DOCKER_REGISTRY}/${service}:${env.GIT_COMMIT_SHA} .
+                                    docker push ${DOCKER_REGISTRY}/${service}:${env.GIT_COMMIT_SHA}
+                                 """
                                 }
                             } else if (env.IS_CHANGED_ROOT == "true") {
                                 // Build all services
@@ -86,7 +85,6 @@ pipeline {
                                 for (service in services) {
                                     sh """
                                     docker build --build-arg SERVICE=${service} --build-arg STAGE=${env.STAGE} -f docker/Dockerfile.${service} -t ${DOCKER_REGISTRY}/${service}:${env.GIT_COMMIT_SHA} .
-                                    cat ~/docker-registry-passwd.txt | docker login --username ${DOCKER_REGISTRY} --password-stdin
                                     docker push ${DOCKER_REGISTRY}/${service}:${env.GIT_COMMIT_SHA}
                                 """
                                 }
