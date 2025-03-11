@@ -118,6 +118,7 @@ pipeline {
                             for (service in services) {
                                 sh """
                                     docker build --build-arg SERVICE=${service} --build-arg STAGE=${env.STAGE} -f docker/Dockerfile.${service} -t ${DOCKER_REGISTRY}/${service}:${env.GIT_COMMIT_SHA} .
+                                    cat ~/docker-registry-passwd.txt | docker login --username ${DOCKER_REGISTRY} --password-stdin
                                     docker push ${DOCKER_REGISTRY}/${service}:${env.GIT_COMMIT_SHA}
                                 `"""
                             }
