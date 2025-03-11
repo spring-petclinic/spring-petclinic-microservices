@@ -8,7 +8,6 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 script {
-                    deleteDir() // Clean workspace before cloning
                     checkout scm
                 }
             }
