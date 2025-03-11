@@ -144,18 +144,18 @@ pipeline {
         //        }
         //    }
         //}
-
-    }
-    post {
-        agent { label 'maven-node'}
-        success {
-            sh "echo Pipeline executed successfully"
-        }
-        failure {
-            sh "echo Pipeline execution failed "
-        }
-        always {
-            cleanWs()
+        stage('Post') {
+            agent { label 'maven-node' }
+            steps {
+                script {
+                    if (currentBuild.result == 'SUCCESS') {
+                        sh "echo Pipeline executed successfully"
+                    } else {
+                        sh "echo Pipeline execution failed"
+                    }
+                    cleanWs()
+                }
+            }
         }
     }
 }
