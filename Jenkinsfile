@@ -5,7 +5,6 @@ pipeline {
         REPO_URL = "https://github.com/devops22clc/spring-petclinic-microservices.git"
         REPO_NAME = "spring-petclinic-microservices"
         SERVICE_AS = "spring-petclinic"
-        BRANCH_NAME = "main" //@fixme
     }
     stages {
         stage('Initialize Variables') {
@@ -20,12 +19,12 @@ pipeline {
                             "spring-petclinic-vets-service",
                             "spring-petclinic-visits-service",
                             "spring-petclinic-admin-server",
-                            "spring-petclinic-tracing-server"
+                            "spring-petclinic-genai-service"
                     ]
                     env.SERVICES = SERVICES.join(",")
 
                     env.GIT_COMMIT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                    env.STAGE = env.BRANCH_NAME == "main" ? "prod" : "dev"
+                    env.STAGE = env.BRANCH_NAME == "main" ? "prod" : "dev" //@fixme
                 }
             }
         }
@@ -55,7 +54,6 @@ pipeline {
 
                     env.CHANGED_SERVICES = changedServices.join(',')
                     env.IS_CHANGED_ROOT = rootChanged.toString()
-                    env.IS_CHANGED_ROOT = "true" //@fixme
                     echo "Changed Services: ${env.CHANGED_SERVICES}"
                 }
             }
@@ -93,6 +91,7 @@ pipeline {
                                 """
                                 }
                             }
+                            sh "docker rmi | docker images"
                         }
                     }
                 }
