@@ -44,32 +44,20 @@ pipeline {
                         echo "Testing service: ${service}"
                         dir("${service}") {
                             // Run tests and generate JaCoCo report dynamically
-                            sh '''
-                                mvn clean test \
-                                org.jacoco:jacoco-maven-plugin:0.8.10:prepare-agent \
-                                org.jacoco:jacoco-maven-plugin:0.8.10:report
-                            '''
-        
-                            // Publish JUnit test results
-                            junit '**/target/surefire-reports/*.xml'
-        
-                            // Archive JaCoCo coverage report for later use
-                            archiveArtifacts artifacts: '**/target/site/jacoco/*', fingerprint: true
-        
-                            // Manually register the coverage report
-                            script {
-                                def coverageReport = "**/target/site/jacoco/jacoco.xml"
-                                if (fileExists(coverageReport)) {
-                                    recordCoverage(
-                                        tools: [[$class: 'JacocoReportAdapter', path: coverageReport]],
-                                        sourceFileResolver: sourceFiles('NEVER_STORE')
-                                    )
-                                } else {
-                                    echo "Coverage report not found, skipping upload."
-                                }
-                            }
+                            sh 'mvn clean test jacoco:report'
                         }
                     }
+                }
+            }
+            post {
+                always {
+                    // Publish test results
+                    junit '**/${service}/target/surefire-reports/*.xml'
+
+                    // Publish coverage (adjust if jacoco.xml is in a different path)
+                    recordCoverage(
+                        tools: [[parser: 'JACOCO', pattern: '**/${service}/target/site/jacoco/jacoco.xml']],
+                    )
                 }
             }
         }
