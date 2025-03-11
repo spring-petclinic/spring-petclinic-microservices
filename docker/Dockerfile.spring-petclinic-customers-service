@@ -1,4 +1,4 @@
-FROM maven:3.9.6-amazoncorretto-17
+FROM amazoncorretto-17
 
 ARG STAGE
 ARG SERVICE
