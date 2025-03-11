@@ -2,9 +2,9 @@ def SERVICES_CHANGED = ""
 
 
 pipeline {
-    agent { 
-        docker {
-            image 'hzeroxium/petclinic-jenkins-agent'
+    agent {
+        node {
+            label 'docker-agent-petclinic'
         }
     }
 
