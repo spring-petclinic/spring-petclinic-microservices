@@ -7,7 +7,7 @@ WORKDIR /opt/app
 
 COPY ${SERVICE_AS}/target/*.jar /opt/app/app.jar
 
-EXPOSE 8081
+EXPOSE 8888
 
 ENV SPRING_PROFILES_ACTIVE=${STAGE}
 

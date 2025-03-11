@@ -5,14 +5,39 @@ pipeline {
         REPO_URL = "https://github.com/devops22clc/spring-petclinic-microservices.git"
         REPO_NAME = "spring-petclinic-microservices"
         SERVICE_AS = "spring-petclinic"
-        WORK_DIR = "${WORKSPACE}/${env.BRANCH_NAME}"
-        STAGE = "${env.BRANCH_NAME == 'main' ? 'prod' : 'dev'}"
-        GIT_COMMIT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-        //M2_REPO = "/var/lib/jenkins/.m2/repository"
+        BRANCH_NAME = "main"
     }
     stages {
-        stage("Detect changes") {
+        stage('Initialize Variables') {
             agent { label 'controller-node' }
+            steps {
+                script {
+                    def SERVICES = [
+                        "spring-petclinic-config-server",
+                        "spring-petclinic-discovery-server",
+                        "spring-petclinic-api-gateway",
+                        "spring-petclinic-customers-service",
+                        "spring-petclinic-vets-service",
+                        "spring-petclinic-visits-service",
+                        "spring-petclinic-admin-server",
+                        "spring-petclinic-tracing-server"
+                    ]
+                    env.SERVICES = SERVICES.join(",")
+
+                    env.GIT_COMMIT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    env.STAGE = env.BRANCH_NAME == "main" ? "prod" : "dev"
+                }
+            }
+        }
+
+        stage("Pull code") {
+            agent { label 'maven-node' }
+            steps {
+                git branch: env.BRANCH_NAME, url: env.REPO_URL
+            }
+        }
+        stage("Detect changes") {
+            agent { label 'maven-node' }
             steps {
                 script {
                     def changedFiles = sh(script: "git fetch origin && git diff --name-only HEAD origin/${env.BRANCH_NAME}", returnStdout: true).trim().split("\n")
@@ -29,52 +54,32 @@ pipeline {
                     }
 
                     env.CHANGED_SERVICES = changedServices.join(',')
-                    env.IS_CHANGED_ROOT = rootChanged
+                    env.IS_CHANGED_ROOT = rootChanged.toString()
+                    env.IS_CHANGED_ROOT = "true"
                     echo "Changed Services: ${env.CHANGED_SERVICES}"
-                }
-            }
-        }
-        stage('Setup Workspace') {
-            agent { label 'maven-node' }
-            steps {
-                sh "mkdir -p ${WORK_DIR}"
-            }
-        }
-        stage("Pull code") {
-            agent { label 'maven-node' }
-            steps {
-                dir("${WORK_DIR}") {
-                    sh """
-                    if [ ! -d "${REPO_NAME}" ]; then
-                        git clone -b ${env.BRANCH_NAME} ${REPO_URL}
-                    else
-                        cd ${REPO_NAME} && git fetch origin ${env.BRANCH_NAME} && git reset --hard origin/${env.BRANCH_NAME}
-                    fi
-                    """
                 }
             }
         }
         stage("Build & TEST") {
             when {
-                expression { return env.CHANGED_SERVICES?.trim() }
+                expression { return env.CHANGED_SERVICES?.trim()}
             }
             parallel {
                 stage("Build") {
                     agent { label 'maven-node' }
                     steps {
-                        dir("${WORK_DIR}/${REPO_NAME}") {
-                            script {
-                                def services = env.CHANGED_SERVICES.split(',')
-                                for (service in services) {
-                                    echo "🚀 Building service: ${service}"
-                                    sh """
-                                        cd ${service}
-                                        mvn clean package
-                                        cd ..
-                                        docker build --build-arg SERVICE=${service} --build-arg STAGE=${STAGE} -f docker/Dockerfile-${service} -t ${DOCKER_REGISTRY}/${service}:${GIT_COMMIT_SHA}
-                                        docker push ${DOCKER_REGISTRY}/${service}:${GIT_COMMIT_SHA}
-                                    """
-                                }
+                        script {
+                            def changedServices = env.CHANGED_SERVICES.split(',')
+                            for (service in changedServices) {
+                                echo "Building service: ${service}"
+                                sh """
+                                    cd ${service}
+                                    echo "run build for ${service}"
+                                    mvn clean package -DskipTests
+                                    cd ..
+                                    docker build --build-arg SERVICE=${service} --build-arg STAGE=${STAGE} -f docker/Dockerfile-${service} -t ${DOCKER_REGISTRY}/${service}:${env.GIT_COMMIT_SHA}
+                                    docker push ${DOCKER_REGISTRY}/${service}-${STAGE}:${GIT_COMMIT_SHA}
+                                """
                             }
                         }
                     }
@@ -82,17 +87,51 @@ pipeline {
                 stage("TEST") {
                     agent { label 'maven-node' }
                     steps {
-                        dir("${WORK_DIR}/${REPO_NAME}") {
-                            script {
-                                def services = env.CHANGED_SERVICES.split(',')
-                                for (service in services) {
-                                    echo "Running tests for service: ${service}"
-                                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                                        sh """
-                                            cd ${service}
-                                            mvn test
-                                        """
-                                    }
+                        script {
+                            def changedServices = env.CHANGED_SERVICES.split(',')
+                            for (service in changedServices) {
+                                echo "Running tests for service: ${service}"
+                                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                                    sh """
+                                        cd ${service}
+                                        mvn test
+                                    """
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        stage("Build & TEST ALL SERVICES") {
+            when {
+                expression { return env.IS_CHANGED_ROOT == "true"}
+            }
+            parallel {
+                stage("Build") {
+                    agent { label 'maven-node' }
+                    steps {
+                        sh "echo run build for all services"
+                        script {
+                            sh "mvn clean package -DskipTests"
+                            def services = env.SERVICES.split(',')
+                            for (service in services) {
+                                sh """
+                                    docker build --build-arg SERVICE=${service} --build-arg STAGE=${env.STAGE} -f docker/Dockerfile.${service} -t ${DOCKER_REGISTRY}/${service}:${env.GIT_COMMIT_SHA}
+                                    docker push ${DOCKER_REGISTRY}/${service}:${env.GIT_COMMIT_SHA}
+                                `"""
+                            }
+                        }
+                    }
+                }
+                stage("TEST") {
+                    agent { label 'maven-node' }
+                    steps {
+                        sh "echo run test for all services"
+                        script {
+                            if (env.IS_CHANGE_ROOT) {
+                                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                                    sh "mvn test"
                                 }
                             }
                         }
