@@ -11,7 +11,7 @@ pipeline {
             steps {
                 script {
                     // print branch name
-                    echo "running pipeline for Branch    : ${env.BRANCH_NAME}"
+                    echo "hihi running pipeline for Branch    : ${env.BRANCH_NAME}"
 
                     // Get changed files between current and previous commit
                     def changedFiles = sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim()
