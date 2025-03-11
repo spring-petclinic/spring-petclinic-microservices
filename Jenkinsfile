@@ -13,11 +13,11 @@ pipeline {
                 cleanWs() // Remove old builds to prevent conflicts
             }
         }
-        
+
         stage('Detect Changes') {
             steps {
                 script {
-                    def changedFiles = sh(script: 'git diff --name-only origin/main~1...origin/main', returnStdout: true).trim().split("\n")
+                    def changedFiles = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim().split("\n")
                     env.CHANGED_SERVICES = []
 
                     def services = [
