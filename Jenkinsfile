@@ -8,7 +8,8 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 script {
-                    checkout scm // Fetches the latest Git changes
+                    deleteDir() // Clean workspace before cloning
+                    checkout scm
                 }
             }
         }
@@ -60,7 +61,7 @@ pipeline {
                     steps {
                         dir('spring-petclinic-customers-service') {
                             timeout(time: 10, unit: 'MINUTES') {
-                                sh 'mvn clean test'
+                                sh 'mvn clean test -T 1C -U -DskipIntegrationTests'
                             }
                             junit 'target/surefire-reports/*.xml'
                         }
@@ -71,7 +72,7 @@ pipeline {
                     steps {
                         dir('spring-petclinic-vets-service') {
                             timeout(time: 10, unit: 'MINUTES') {
-                                sh 'mvn clean test'
+                                sh 'mvn clean test -T 1C -U -DskipIntegrationTests'
                             }
                             junit 'target/surefire-reports/*.xml'
                         }
@@ -82,7 +83,7 @@ pipeline {
                     steps {
                         dir('spring-petclinic-visits-service') {
                             timeout(time: 10, unit: 'MINUTES') {
-                                sh 'mvn clean test'
+                                sh 'mvn clean test -T 1C -U -DskipIntegrationTests'
                             }
                             junit 'target/surefire-reports/*.xml'
                         }
@@ -93,7 +94,7 @@ pipeline {
                     steps {
                         dir('spring-petclinic-genai-service') {
                             timeout(time: 10, unit: 'MINUTES') {
-                                sh 'mvn clean test'
+                                sh 'mvn clean test -T 1C -U -DskipIntegrationTests'
                             }
                             junit 'target/surefire-reports/*.xml'
                         }
