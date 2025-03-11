@@ -8,13 +8,8 @@ pipeline {
     }
     
     stages {
-        stage('Clean Workspace') {
-            steps {
-                cleanWs() // Remove old builds to prevent conflicts
-            }
-        }
-
         stage('Detect Changes') {
+            checkout scm
             steps {
                 script {
                     def changedFiles = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim().split("\n")
