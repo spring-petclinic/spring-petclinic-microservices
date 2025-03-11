@@ -120,7 +120,7 @@ pipeline {
                     servicesList.each { service ->
                         parallelStages["Test & Coverage: ${service}"] = {
                             dir(service) {
-                                sh 'rm -rf ~/.m2/wrapper/dists/apache-maven* || true'
+//                                 sh 'rm -rf ~/.m2/wrapper/dists/apache-maven* || true'
 
 //                                 sh '../mvnw dependency:purge-local-repository -DskipTests'
 
