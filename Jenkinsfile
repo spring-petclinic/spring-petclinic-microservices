@@ -147,6 +147,7 @@ pipeline {
 
     }
     post {
+        agent { label 'maven-node'}
         success {
             sh "echo Pipeline executed successfully"
         }
