@@ -3,10 +3,10 @@ def SERVICES_CHANGED = ""
 
 pipeline {
     agent { 
-        node {
-            label 'docker-agent-petclinic'
-            }
-      }
+        docker {
+            image 'hzeroxium/petclinic-jenkins-agent'
+        }
+    }
 
     environment {
             GITHUB_TOKEN = credentials('github-token')
