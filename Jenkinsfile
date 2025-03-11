@@ -23,11 +23,12 @@ pipeline {
                     def changedFiles = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim().split("\n")
                     def changedServices = []
                     for (service in services) {
+                        echo "Services: ${service}"
                         if (changedFiles.any { it.startsWith(service) }) {
                             changedServices.add(service)
                         }
                     }
-                    echo 'Code changes in services: ${changedServices.join(', ')}'
+                    echo "Code changes in services: ${changedServices.join(', ')}"
                     env.CHANGED_SERVICES = changedServices.join(', ')                             
                 }
             }
