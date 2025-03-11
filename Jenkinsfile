@@ -5,16 +5,13 @@ pipeline {
         REPO_URL = "https://github.com/devops22clc/spring-petclinic-microservices.git"
         REPO_NAME = "spring-petclinic-microservices"
         SERVICE_AS = "spring-petclinic"
-        WORK_DIR = "${WORKSPACE}/${env.BRANCH_NAME}"
-        STAGE = "${env.BRANCH_NAME == 'main' ? 'prod' : 'dev'}"
-        GIT_COMMIT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-        //M2_REPO = "/var/lib/jenkins/.m2/repository"
     }
     stages {
         stage("Detect changes") {
             agent { label 'controller-node' }
             steps {
                 script {
+                    env.BRANCH_NAME = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
                     def changedFiles = sh(script: "git fetch origin && git diff --name-only HEAD origin/${env.BRANCH_NAME}", returnStdout: true).trim().split("\n")
                     def changedServices = [] as Set
                     def rootChanged = false
@@ -29,21 +26,24 @@ pipeline {
                     }
 
                     env.CHANGED_SERVICES = changedServices.join(',')
-                    env.IS_CHANGED_ROOT = rootChanged
+                    env.IS_CHANGED_ROOT = rootChanged.toString()
                     echo "Changed Services: ${env.CHANGED_SERVICES}"
                 }
             }
         }
-        stage('Setup Workspace') {
+        stage("Setup Workspace") {
             agent { label 'maven-node' }
             steps {
-                sh "mkdir -p ${WORK_DIR}"
+                script {
+                    env.WORK_DIR = "${WORKSPACE}/${env.BRANCH_NAME}"
+                    sh "mkdir -p ${env.WORK_DIR}"
+                }
             }
         }
         stage("Pull code") {
             agent { label 'maven-node' }
             steps {
-                dir("${WORK_DIR}") {
+                dir("${env.WORK_DIR}") {
                     sh """
                     if [ ! -d "${REPO_NAME}" ]; then
                         git clone -b ${env.BRANCH_NAME} ${REPO_URL}
@@ -62,8 +62,10 @@ pipeline {
                 stage("Build") {
                     agent { label 'maven-node' }
                     steps {
-                        dir("${WORK_DIR}/${REPO_NAME}") {
+                        dir("${env.WORK_DIR}/${REPO_NAME}") {
                             script {
+                                env.GIT_COMMIT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                                env.STAGE = env.BRANCH_NAME == 'main' ? 'prod' : 'dev'
                                 def services = env.CHANGED_SERVICES.split(',')
                                 for (service in services) {
                                     echo "🚀 Building service: ${service}"
@@ -71,8 +73,8 @@ pipeline {
                                         cd ${service}
                                         mvn clean package
                                         cd ..
-                                        docker build --build-arg SERVICE=${service} --build-arg STAGE=${STAGE} -f docker/Dockerfile-${service} -t ${DOCKER_REGISTRY}/${service}:${GIT_COMMIT_SHA}
-                                        docker push ${DOCKER_REGISTRY}/${service}:${GIT_COMMIT_SHA}
+                                        docker build --build-arg SERVICE=${service} --build-arg STAGE=${env.STAGE} -f docker/Dockerfile-${service} -t ${DOCKER_REGISTRY}/${service}:${env.GIT_COMMIT_SHA}
+                                        docker push ${DOCKER_REGISTRY}/${service}:${env.GIT_COMMIT_SHA}
                                     """
                                 }
                             }
@@ -82,7 +84,7 @@ pipeline {
                 stage("TEST") {
                     agent { label 'maven-node' }
                     steps {
-                        dir("${WORK_DIR}/${REPO_NAME}") {
+                        dir("${env.WORK_DIR}/${REPO_NAME}") {
                             script {
                                 def services = env.CHANGED_SERVICES.split(',')
                                 for (service in services) {
