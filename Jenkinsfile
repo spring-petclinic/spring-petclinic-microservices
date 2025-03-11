@@ -43,17 +43,19 @@ pipeline {
                     changedServices.each{ service -> 
                         echo "Testing service: ${service}"
                         dir("${service}") {
+                            // Run tests and generate JaCoCo report dynamically
                             sh '''
                                 mvn clean test \
+                                org.jacoco:jacoco-maven-plugin:0.8.10:prepare-agent \
                                 org.jacoco:jacoco-maven-plugin:0.8.10:report
                             '''
         
                             // Publish JUnit test results
                             junit '**/target/surefire-reports/*.xml'
         
-                            // Record coverage using the Jenkins Coverage Plugin
+                            // Use Coverage Plugin to upload JaCoCo reports
                             recordCoverage(
-                                tools: [jacoco(pattern: '**/target/site/jacoco/jacoco.xml')],
+                                tools: [cobertura(pattern: '**/target/site/jacoco/jacoco.xml')],
                                 sourceFileResolver: sourceFiles('NEVER_STORE')
                             )
                         }
