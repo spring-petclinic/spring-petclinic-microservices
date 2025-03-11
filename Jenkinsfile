@@ -16,7 +16,7 @@ pipeline {
         stage('Detect Changes') {
             steps {
                 script {
-                    githubNotify context: 'Detect Changes', status: 'PENDING'
+                    githubNotify context: 'Detect Changes', status: 'PENDINGG'
 
                     echo "🔍 Checking if the repository is shallow..."
                     def isShallow = sh(script: "git rev-parse --is-shallow-repository", returnStdout: true).trim()
