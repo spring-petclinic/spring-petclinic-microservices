@@ -23,7 +23,6 @@ pipeline {
                     def changedFiles = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim().split("\n")
                     def changedServices = []
                     for (service in services) {
-                        echo "Services: ${service}"
                         if (changedFiles.any { it.startsWith(service) }) {
                             changedServices.add(service)
                         }
@@ -43,6 +42,9 @@ pipeline {
                     def changedServices = env.CHANGED_SERVICES.split(',')
                     changedServices.each{ service -> 
                         echo "Testing service: ${service}"
+                        dir("${service}") {
+                            sh "mvn clean test"
+                        }
                     }
                 }
             }
