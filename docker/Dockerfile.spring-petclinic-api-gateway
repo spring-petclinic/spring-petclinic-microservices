@@ -5,7 +5,7 @@ ARG SERVICE
 
 WORKDIR /opt/app
 
-COPY ${SERVICE_AS}/target/*.jar /opt/app/app.jar
+COPY ${SERVICE}/target/*.jar /opt/app/app.jar
 
 EXPOSE 8080
 
