@@ -37,7 +37,7 @@ pipeline {
             when {
                 expression { env.CHANGED_SERVICES != '' }
             }
-            step {
+            steps {
                 script {
                     def changedServices = env.CHANGED_SERVICES.split(',')
                     changedServices.each{ service -> 
@@ -51,7 +51,7 @@ pipeline {
             when {
                 expression { env.CHANGED_SERVICES != '' }
             }
-            step {
+            steps {
                 script {
                     def changedServices = env.CHANGED_SERVICES.split(',')
                     changedServices.each{ service -> 
