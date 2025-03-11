@@ -1,17 +1,28 @@
 pipeline {
-  agent any
-  stages {
-    stage('Test') {
-      steps {
-        echo 'Test'
-      }
+    agent any
+    environment {
+        MAVEN_HOME = tool 'Maven'
     }
-
-    stage('Build') {
-      steps {
-        echo 'Build'
-      }
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Test') {
+            steps {
+                sh './mvnw test'
+            }
+            post {
+                always {
+                    junit '**/target/surefire-reports/*.xml'
+                }
+            }
+        }
+        stage('Build') {
+            steps {
+                sh './mvnw package'
+            }
+        }
     }
-
-  }
 }
