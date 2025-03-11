@@ -40,9 +40,8 @@ pipeline {
             step {
                 script {
                     def changedServices = env.CHANGED_SERVICES.split(',')
-                    changedServices.each{service -> {
-                            echo 'Testing service: ${service}'
-                        }
+                    changedServices.each{ service -> 
+                        echo 'Testing service: ${service}'
                     }
                 }
             }
@@ -55,9 +54,8 @@ pipeline {
             step {
                 script {
                     def changedServices = env.CHANGED_SERVICES.split(',')
-                    changedServices.each{service -> {
-                            echo 'Testing service: ${service}'
-                        }
+                    changedServices.each{ service -> 
+                        echo 'Building service: ${service}'
                     }
                 }
             }
