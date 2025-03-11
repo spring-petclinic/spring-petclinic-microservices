@@ -91,7 +91,7 @@ pipeline {
                                 """
                                 }
                             }
-                            sh "docker image prune -a"
+                            sh "echo y | docker image prune -a"
                         }
                     }
                 }
