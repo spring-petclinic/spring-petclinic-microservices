@@ -15,7 +15,6 @@ pipeline {
         }
         
         stage('Detect Changes') {
-            checkout scm
             steps {
                 script {
                     def changedFiles = sh(script: 'git diff --name-only origin/main~1...origin/main', returnStdout: true).trim().split("\n")
