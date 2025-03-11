@@ -128,12 +128,8 @@ pipeline {
                     agent { label 'maven-node' }
                     steps {
                         sh "echo run test for all services"
-                        script {
-                            if (env.IS_CHANGE_ROOT) {
-                                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                                    sh "mvn test"
-                                }
-                            }
+                        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                            sh "mvn test"
                         }
                     }
                 }
