@@ -119,46 +119,48 @@ pipeline {
 
                     servicesList.each { service ->
                         parallelStages["Test & Coverage: ${service}"] = {
-                            dir(service) {
-//                                 sh 'rm -rf ~/.m2/wrapper/dists/apache-maven* || true'
+                            withEnv(["MAVEN_USER_HOME=${env.WORKSPACE}/m2-wrapper-${service}"]) {
+                                dir(service) {
+    //                                 sh 'rm -rf ~/.m2/wrapper/dists/apache-maven* || true'
 
-//                                 sh '../mvnw dependency:purge-local-repository -DskipTests'
+    //                                 sh '../mvnw dependency:purge-local-repository -DskipTests'
 
-                                sh '../mvnw clean verify -PbuildDocker'
+                                    sh '../mvnw clean verify -PbuildDocker'
 
-                                sh 'pwd && ls -lah target/site/jacoco'
+                                    sh 'pwd && ls -lah target/site/jacoco'
 
-                                // Find JaCoCo file
-                                def jacocoFile = sh(script: "find target -name jacoco.xml", returnStdout: true).trim()
+                                    // Find JaCoCo file
+                                    def jacocoFile = sh(script: "find target -name jacoco.xml", returnStdout: true).trim()
 
-                                if (!jacocoFile) {
-                                    echo "⚠️ JaCoCo report not found. Skipping coverage validation."
-                                } else {
-                                    echo "✅ Found JaCoCo report: ${jacocoFile}"
+                                    if (!jacocoFile) {
+                                        echo "⚠️ JaCoCo report not found. Skipping coverage validation."
+                                    } else {
+                                        echo "✅ Found JaCoCo report: ${jacocoFile}"
 
-                                    def missed = sh(script: """
-                                        awk -F 'missed="' '/<counter type="LINE"/ {gsub(/".*/, "", \$2); sum += \$2} END {print sum}' ${jacocoFile}
-                                    """, returnStdout: true).trim()
+                                        def missed = sh(script: """
+                                            awk -F 'missed="' '/<counter type="LINE"/ {gsub(/".*/, "", \$2); sum += \$2} END {print sum}' ${jacocoFile}
+                                        """, returnStdout: true).trim()
 
-                                    def covered = sh(script: """
-                                        awk -F 'covered="' '/<counter type="LINE"/ {gsub(/".*/, "", \$2); sum += \$2} END {print sum}' ${jacocoFile}
-                                    """, returnStdout: true).trim()
+                                        def covered = sh(script: """
+                                            awk -F 'covered="' '/<counter type="LINE"/ {gsub(/".*/, "", \$2); sum += \$2} END {print sum}' ${jacocoFile}
+                                        """, returnStdout: true).trim()
 
-                                    if (!missed.isNumber() || !covered.isNumber()) {
-                                        error("❌ Could not extract JaCoCo coverage data from ${jacocoFile}")
-                                    }
+                                        if (!missed.isNumber() || !covered.isNumber()) {
+                                            error("❌ Could not extract JaCoCo coverage data from ${jacocoFile}")
+                                        }
 
-                                    def total = missed.toInteger() + covered.toInteger()
-                                    def coveragePercent = (total > 0) ? (covered.toInteger() * 100 / total) : 0
+                                        def total = missed.toInteger() + covered.toInteger()
+                                        def coveragePercent = (total > 0) ? (covered.toInteger() * 100 / total) : 0
 
-                                    echo "🚀 Test coverage for ${service} is ${coveragePercent}%"
+                                        echo "🚀 Test coverage for ${service} is ${coveragePercent}%"
 
-                                    if (coveragePercent < 70) {
-//                                         githubNotify context: "Test & Coverage: ${service}", status: 'FAILURE'
-                                        error("❌ Test coverage for ${service} is below 70% threshold.")
-                                    }
-                                    else {
-//                                         githubNotify context: "Test & Coverage: ${service}", status: 'SUCCESS'
+                                        if (coveragePercent < 70) {
+    //                                         githubNotify context: "Test & Coverage: ${service}", status: 'FAILURE'
+                                            error("❌ Test coverage for ${service} is below 70% threshold.")
+                                        }
+                                        else {
+    //                                         githubNotify context: "Test & Coverage: ${service}", status: 'SUCCESS'
+                                        }
                                     }
                                 }
                             }
