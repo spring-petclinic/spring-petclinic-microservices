@@ -91,7 +91,7 @@ pipeline {
                                 """
                                 }
                             }
-                            sh "docker rmi | docker images"
+                            sh "docker image prune -a"
                         }
                     }
                 }
