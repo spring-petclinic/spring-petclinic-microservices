@@ -29,6 +29,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author Sam Brannen
  * @author Michael Isvy
  * @author Maciej Szarlinski
+ * Hello
  */
 public interface VisitRepository extends JpaRepository<Visit, Integer> {
 
