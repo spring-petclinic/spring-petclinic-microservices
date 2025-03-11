@@ -53,11 +53,21 @@ pipeline {
                             // Publish JUnit test results
                             junit '**/target/surefire-reports/*.xml'
         
-                            // Use Coverage Plugin to upload JaCoCo reports
-                            recordCoverage(
-                                tools: [cobertura(pattern: '**/target/site/jacoco/jacoco.xml')],
-                                sourceFileResolver: sourceFiles('NEVER_STORE')
-                            )
+                            // Archive JaCoCo coverage report for later use
+                            archiveArtifacts artifacts: '**/target/site/jacoco/*', fingerprint: true
+        
+                            // Manually register the coverage report
+                            script {
+                                def coverageReport = "**/target/site/jacoco/jacoco.xml"
+                                if (fileExists(coverageReport)) {
+                                    recordCoverage(
+                                        tools: [[$class: 'JacocoReportAdapter', path: coverageReport]],
+                                        sourceFileResolver: sourceFiles('NEVER_STORE')
+                                    )
+                                } else {
+                                    echo "Coverage report not found, skipping upload."
+                                }
+                            }
                         }
                     }
                 }
