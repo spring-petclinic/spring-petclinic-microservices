@@ -33,6 +33,7 @@ import java.util.*;
  * @author Michael Isvy
  * @author Maciej Szarlinski
  * @author Ramazan Sakin
+ * Hello
  */
 @Entity
 @Table(name = "owners")
