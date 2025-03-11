@@ -1,44 +1,43 @@
 pipeline {
     agent any
-    environment {
-        MAVEN_OPTS = "-Xmx1024m" // Prevents Jenkins from running out of memory
-    }
     tools {
-        maven 'Maven 3' // Use Jenkins' built-in Maven
+        maven 'Maven 3'
     }
-    
+
     stages {
-        stage('Clean Workspace') {
+        stage('Checkout Code') {
             steps {
-                cleanWs() // Remove old builds to prevent conflicts
+                script {
+                    checkout scm // Fetches the latest Git changes
+                }
             }
         }
 
         stage('Detect Changes') {
             steps {
                 script {
-                    def lastCommit = sh(script: 'git rev-parse HEAD~1 || echo "none"', returnStdout: true).trim()
-        
+                    def lastCommit = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim()
+
                     if (lastCommit == "none") {
                         echo "No previous commit found. Running full build."
                         env.CHANGED_SERVICES = ["spring-petclinic-customers-service", "spring-petclinic-vets-service", "spring-petclinic-visits-service", "spring-petclinic-genai-service"]
                     } else {
                         def changedFiles = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim().split("\n")
                         env.CHANGED_SERVICES = []
-        
+
                         def services = [
                             "spring-petclinic-customers-service",
                             "spring-petclinic-vets-service",
                             "spring-petclinic-visits-service",
                             "spring-petclinic-genai-service"
                         ]
-        
+
                         for (service in services) {
                             if (changedFiles.any { it.startsWith(service) }) {
                                 env.CHANGED_SERVICES += service
                             }
                         }
-        
+
                         if (env.CHANGED_SERVICES.isEmpty()) {
                             echo "No relevant changes detected. Skipping tests and build."
                             currentBuild.result = 'SUCCESS'
@@ -51,7 +50,6 @@ pipeline {
             }
         }
 
-
         stage('Test Services') {
             when {
                 expression { return env.CHANGED_SERVICES?.size() > 0 }
@@ -61,7 +59,7 @@ pipeline {
                     when { expression { return env.CHANGED_SERVICES.contains("spring-petclinic-customers-service") } }
                     steps {
                         dir('spring-petclinic-customers-service') {
-                            timeout(time: 10, unit: 'MINUTES') { // Avoid test hangups
+                            timeout(time: 10, unit: 'MINUTES') {
                                 sh 'mvn clean test'
                             }
                             junit 'target/surefire-reports/*.xml'
