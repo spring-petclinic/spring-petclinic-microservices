@@ -43,7 +43,18 @@ pipeline {
                     changedServices.each{ service -> 
                         echo "Testing service: ${service}"
                         dir("${service}") {
-                            sh "mvn clean test"
+                            // Run tests and generate coverage reports
+                            sh "mvn test surefire-report:report jacoco:report"
+        
+                            // Publish JUnit test results
+                            junit '**/target/surefire-reports/*.xml'
+        
+                            // Record test coverage using the Coverage plugin
+                            recordCoverage(
+                                tools: [jacoco(pattern: '**/target/site/jacoco/jacoco.xml')],
+                                adapters: [],
+                                sourceFileResolver: sourceFiles('NEVER_STORE')
+                            )
                         }
                     }
                 }
