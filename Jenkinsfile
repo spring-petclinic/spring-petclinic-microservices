@@ -16,7 +16,7 @@ pipeline {
         stage('Detect Changes') {
             steps {
                 script {
-                    githubNotify context: 'Detect Changes', status: 'PENDINGG'
+//                     githubNotify context: 'Detect Changes', status: 'PENDINGG'
 
                     echo "🔍 Checking if the repository is shallow..."
                     def isShallow = sh(script: "git rev-parse --is-shallow-repository", returnStdout: true).trim()
@@ -81,11 +81,11 @@ pipeline {
 
                     // Ensure we have at least one changed service
                     if (changedServices.isEmpty()) {
-                        githubNotify context: 'Detect Changes', status: 'FAILURE'
+//                         githubNotify context: 'Detect Changes', status: 'FAILURE'
                         error("❌ No relevant services detected. Verify file path matching logic.")
                     }
                     else {
-                        githubNotify context: 'Detect Changes', status: 'SUCCESS'
+//                         githubNotify context: 'Detect Changes', status: 'SUCCESS'
                     }
 
                     // Use properties() to persist the value
@@ -108,7 +108,7 @@ pipeline {
             }
             steps {
                 script {
-                    githubNotify context: 'Test & Coverage', status: 'PENDING'
+//                     githubNotify context: 'Test & Coverage', status: 'PENDING'
 
                     def parallelStages = [:]
                     def servicesList = SERVICES_CHANGED.tokenize(',')
@@ -154,18 +154,18 @@ pipeline {
                                     echo "🚀 Test coverage for ${service} is ${coveragePercent}%"
 
                                     if (coveragePercent < 70) {
-                                        githubNotify context: "Test & Coverage: ${service}", status: 'FAILURE'
+//                                         githubNotify context: "Test & Coverage: ${service}", status: 'FAILURE'
                                         error("❌ Test coverage for ${service} is below 70% threshold.")
                                     }
                                     else {
-                                        githubNotify context: "Test & Coverage: ${service}", status: 'SUCCESS'
+//                                         githubNotify context: "Test & Coverage: ${service}", status: 'SUCCESS'
                                     }
                                 }
                             }
                         }
                     }
                     parallel parallelStages
-                    githubNotify context: 'Test & Coverage', status: 'SUCCESS'
+//                     githubNotify context: 'Test & Coverage', status: 'SUCCESS'
                 }
             }
         }
@@ -176,7 +176,7 @@ pipeline {
             }
             steps {
                 script {
-                    githubNotify context: 'Build', status: 'PENDING'
+//                     githubNotify context: 'Build', status: 'PENDING'
 
                     def parallelBuilds = [:]
                     def servicesList = SERVICES_CHANGED.tokenize(',')
@@ -193,7 +193,7 @@ pipeline {
                         }
                     }
                     parallel parallelBuilds
-                    githubNotify context: 'Build', status: 'SUCCESS'
+//                     githubNotify context: 'Build', status: 'SUCCESS'
                 }
             }
         }
@@ -228,12 +228,12 @@ pipeline {
     post {
         failure {
             script {
-                githubNotify context: 'CI/CD Pipeline', status: 'FAILURE'
+//                 githubNotify context: 'CI/CD Pipeline', status: 'FAILURE'
             }
         }
         success {
             script {
-                githubNotify context: 'CI/CD Pipeline', status: 'SUCCESS'
+//                 githubNotify context: 'CI/CD Pipeline', status: 'SUCCESS'
             }
         }
         always {
