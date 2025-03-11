@@ -4,11 +4,19 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building...'
+                sh 'mvn clean package' // Build project
             }
         }
         stage('Test') {
             steps {
-                echo 'Testing...'
+                echo 'Running tests...'
+                sh 'mvn test' // Chạy test
+            }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml' // Upload test results
+                    cobertura coberturaReportFile: 'target/site/jacoco/jacoco.xml' // Upload code coverage
+                }
             }
         }
         stage('Deploy') {
