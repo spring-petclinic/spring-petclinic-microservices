@@ -1,0 +1,14 @@
+FROM maven:3.9.6-amazoncorretto-21
+
+ARG STAGE
+ARG SERVICE
+
+WORKDIR /opt/app
+
+COPY ${SERVICE_AS}/target/*.jar /opt/app/app.jar
+
+EXPOSE 8081
+
+ENV SPRING_PROFILES_ACTIVE=${STAGE}
+
+ENTRYPOINT ["java", "-Dspring.profiles.active=${SPRING_PROFILES_ACTIVE}", "-jar", "/opt/app/app.jar"]
