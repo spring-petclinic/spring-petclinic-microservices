@@ -17,7 +17,7 @@ package org.springframework.samples.petclinic.genai.dto;
 
 /**
  * Simple Data Transfer Object representing a Pet type.
- *
+ * Hello
  * @author Oded Shopen
  */
 public record PetType(String name) {
