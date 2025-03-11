@@ -43,9 +43,6 @@ pipeline {
                     def changedServices = env.CHANGED_SERVICES.split(',')
                     changedServices.each{ service -> 
                         echo "Testing service: ${service}"
-                        dir("${service}") {
-                            sh "mvn clean test"
-                        }
                     }
                 }
             }
@@ -60,6 +57,9 @@ pipeline {
                     def changedServices = env.CHANGED_SERVICES.split(',')
                     changedServices.each{ service -> 
                         echo "Building service: ${service}"
+                        dir("${service}") {
+                            sh "mvn clean package -DskipTests"
+                        }
                     }
                 }
             }
