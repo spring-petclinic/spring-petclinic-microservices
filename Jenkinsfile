@@ -228,11 +228,13 @@ pipeline {
     post {
         failure {
             script {
+                   echo "❌ CI/CD Pipeline failed!"
 //                 githubNotify context: 'CI/CD Pipeline', status: 'FAILURE'
             }
         }
         success {
             script {
+                   echo "✅ CI/CD Pipeline succeeded!"
 //                 githubNotify context: 'CI/CD Pipeline', status: 'SUCCESS'
             }
         }
