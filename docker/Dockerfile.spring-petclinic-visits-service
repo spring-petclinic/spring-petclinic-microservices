@@ -1,4 +1,4 @@
-FROM maven:3.9.6-amazoncorretto-17
+FROM openjdk:17-alpine
 ARG STAGE
 ARG SERVICE
 
