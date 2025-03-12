@@ -14,7 +14,7 @@ import org.springframework.web.reactive.function.client.WebClient;
  * A Configuration class for beans used by the Chat Client.
  *
  * @author Oded Shopen
- * Hello
+ * Hello 2
  */
 @Configuration
 public class AIBeanConfiguration {
