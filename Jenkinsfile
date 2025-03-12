@@ -1,5 +1,6 @@
 pipeline {
     agent none
+    options { skipDefaultCheckout() }
     environment {
         DOCKER_REGISTRY = "devops22clc"
         REPO_URL = "https://github.com/devops22clc/spring-petclinic-microservices.git"
@@ -32,7 +33,6 @@ pipeline {
             agent { label 'controller-node' }
             steps {
                 script {
-                    sh "pwd"
                     def changedFiles = sh(script: "git fetch origin && git diff --name-only HEAD origin/${env.BRANCH_NAME}", returnStdout: true).trim().split("\n")
                     def changedServices = [] as Set
                     def rootChanged = false
@@ -40,6 +40,7 @@ pipeline {
                     for (file in changedFiles) {
                         if (!file.startsWith("${SERVICE_AS}/")) {
                             rootChanged = true
+                            break
                         } else {
                             def service = file.split("/")[0]
                             changedServices.add(service)
@@ -50,12 +51,6 @@ pipeline {
                     env.IS_CHANGED_ROOT = rootChanged.toString()
                     echo "Changed Services: ${env.CHANGED_SERVICES}"
                 }
-            }
-        }
-        stage("Pull code") {
-            agent { label 'maven-node' }
-            steps {
-                git branch: env.BRANCH_NAME, url: env.REPO_URL
             }
         }
         stage("Build & TEST") {
