@@ -2,6 +2,9 @@ pipeline {
     agent any
     environment {
         MAVEN_HOME = tool 'Maven'
+        CHANGED_FILES = ''
+        RUN_VETS_SERVICE = 'false'
+        RUN_CUSTOMERS_SERVICE = 'false'
     }
     stages {
         stage('Checkout') {
@@ -9,19 +12,53 @@ pipeline {
                 checkout scm
             }
         }
-        stage('Test') {
+
+        stage('Detect Changes') {
             steps {
-                sh './mvnw test'
-            }
-            post {
-                always {
-                    junit '**/target/surefire-reports/*.xml'
+                script {
+                    CHANGED_FILES = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim()
+                    
+                    if (CHANGED_FILES.contains("vets-service/")) {
+                        env.RUN_VETS_SERVICE = "true"
+                    }
+                    if (CHANGED_FILES.contains("customers-service/")) {
+                        env.RUN_CUSTOMERS_SERVICE = "true"
+                    }
                 }
             }
         }
-        stage('Build') {
+
+        stage('Test & Build Vets Service') {
+            when {
+                expression { env.RUN_VETS_SERVICE == 'true' }
+            }
             steps {
-                sh './mvnw package'
+                dir('vets-service') {
+                    sh './mvnw test'
+                    sh './mvnw package'
+                }
+            }
+            post {
+                always {
+                    junit 'vets-service/target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Test & Build Customers Service') {
+            when {
+                expression { env.RUN_CUSTOMERS_SERVICE == 'true' }
+            }
+            steps {
+                dir('customers-service') {
+                    sh './mvnw test'
+                    sh './mvnw package'
+                }
+            }
+            post {
+                always {
+                    junit 'customers-service/target/surefire-reports/*.xml'
+                }
             }
         }
     }
