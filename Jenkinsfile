@@ -58,9 +58,9 @@ pipeline {
                     steps {
                         checkout scm
                         sh "cat ~/docker-registry-passwd.txt | docker login --username ${DOCKER_REGISTRY} --password-stdin"
-                        env.GIT_COMMIT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                        env.STAGE = env.BRANCH_NAME == "main" ? "prod" : "dev" //@fixme
                         script {
+                            env.GIT_COMMIT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                            env.STAGE = env.BRANCH_NAME == "main" ? "prod" : "dev" //@fixme
                             if (env.CHANGED_SERVICES?.trim()) {
                                 def changedServices = env.CHANGED_SERVICES.split(',')
                                 for (service in changedServices) {
