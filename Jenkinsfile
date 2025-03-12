@@ -12,17 +12,13 @@ pipeline {
         stage('Detect Changes') {
             steps {
                 script {
-                    // Get all changed files
                     def changes = []
                     if (env.CHANGE_TARGET) {
-                        // If this is a PR build
                         changes = sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...", returnStdout: true).trim().split('\n')
                     } else {
-                        // If this is a branch build
                         changes = sh(script: "git diff --name-only HEAD^", returnStdout: true).trim().split('\n')
                     }
 
-                    // Map to store which services need to be built
                     def servicesToBuild = [:]
                     def services = [
                         'admin-server': 'spring-petclinic-admin-server',
@@ -35,10 +31,7 @@ pipeline {
                         'genai-service': 'spring-petclinic-genai-service'
                     ]
 
-                    // Check root pom.xml changes
                     boolean rootPomChanged = changes.any { it == 'pom.xml' }
-                    
-                    // Check shared resources changes (like docker configs, scripts, etc.)
                     boolean sharedResourcesChanged = changes.any { change ->
                         change.startsWith('docker/') || 
                         change.startsWith('scripts/') || 
@@ -46,32 +39,23 @@ pipeline {
                         change == 'docker-compose.yml'
                     }
 
-                    // If shared resources changed, build all services
                     if (rootPomChanged || sharedResourcesChanged) {
                         echo "Shared resources changed. Building all services."
-                        services.each { serviceKey, servicePath ->
-                            servicesToBuild[serviceKey] = true
-                        }
+                        services.each { serviceKey, servicePath -> servicesToBuild[serviceKey] = true }
                     } else {
-                        // Determine which services have changes
                         services.each { serviceKey, servicePath ->
-                            if (changes.any { change ->
-                                change.startsWith("${servicePath}/")
-                            }) {
+                            if (changes.any { it.startsWith("${servicePath}/") }) {
                                 servicesToBuild[serviceKey] = true
                                 echo "Will build ${serviceKey} due to changes in ${servicePath}"
                             }
                         }
                     }
 
-                    // If no services need building, set a flag
                     env.NO_SERVICES_TO_BUILD = servicesToBuild.isEmpty() ? 'true' : 'false'
-                    // Store the services to build in environment variable
                     env.SERVICES_TO_BUILD = servicesToBuild.keySet().join(',')
-                    
-                    // Print summary
+
                     if (env.NO_SERVICES_TO_BUILD == 'true') {
-                        echo "No service changes detected. Pipeline will skip build and test stages."
+                        echo "No service changes detected. Skipping build and test."
                     } else {
                         echo "Services to build: ${env.SERVICES_TO_BUILD}"
                     }
@@ -88,11 +72,7 @@ pipeline {
                         dir("spring-petclinic-${service}") {
                             echo "Testing ${service}..."
                             try {
-                                // Run tests with JaCoCo coverage for specific service
-                                sh """
-                                    echo "Running tests for ${service}"
-                                    ../mvnw clean test verify -Pcoverage
-                                """
+                                sh "../mvnw clean test verify -Pcoverage"
                             } catch (Exception e) {
                                 echo "Tests failed for ${service}"
                                 throw e
@@ -104,7 +84,6 @@ pipeline {
             post {
                 always {
                     script {
-                        // Publish test results and coverage for changed services
                         env.SERVICES_TO_BUILD.split(',').each { service ->
                             dir("spring-petclinic-${service}") {
                                 junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
@@ -130,10 +109,7 @@ pipeline {
                         dir("spring-petclinic-${service}") {
                             echo "Building ${service}..."
                             try {
-                                sh """
-                                    echo "Building ${service}"
-                                    ../mvnw clean package -DskipTests
-                                """
+                                sh "../mvnw clean package -DskipTests"
                             } catch (Exception e) {
                                 echo "Build failed for ${service}"
                                 throw e
@@ -145,7 +121,6 @@ pipeline {
             post {
                 success {
                     script {
-                        // Archive artifacts for changed services
                         env.SERVICES_TO_BUILD.split(',').each { service ->
                             dir("spring-petclinic-${service}") {
                                 archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
