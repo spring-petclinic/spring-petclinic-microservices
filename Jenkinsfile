@@ -8,7 +8,7 @@ pipeline {
 
     stages {
         stage('Detect Changes') {
-            agent { label 'jenkins-agent' }
+            // agent { label 'jenkins-agent' }
             steps {
                 script {
                     def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim().split("\n")
@@ -27,7 +27,7 @@ pipeline {
         }
 
         stage('Run Tests') {
-            agent { label 'jenkins-agent' }
+            // agent { label 'jenkins-agent' }
             steps {
                 script {
                     def services = env.AFFECTED_SERVICES.split(",")
@@ -48,7 +48,7 @@ pipeline {
         }
 
         stage('Validate Coverage') {
-            agent { label 'jenkins-agent' }
+            // agent { label 'jenkins-agent' }
             steps {
                 script {
                     def coverage = sh(script: "grep -oP 'TOTAL.*\\K\\d+%' target/site/jacoco/index.html | tr -d '%'", returnStdout: true).trim().toInteger()
@@ -60,7 +60,7 @@ pipeline {
         }
 
         stage('Merge to Main') {
-            agent { label 'jenkins-agent' }
+            // agent { label 'jenkins-agent' }
             steps {
                 script {
                     withCredentials([string(credentialsId: env.GITHUB_CREDENTIALS_ID, variable: 'GITHUB_TOKEN')]) {
@@ -77,7 +77,7 @@ pipeline {
         }
 
         stage('Build & Deploy') {
-            agent { label 'jenkins-agent' }
+            // agent { label 'jenkins-agent' }
             steps {
                 script {
                     def services = env.AFFECTED_SERVICES.split(",")
