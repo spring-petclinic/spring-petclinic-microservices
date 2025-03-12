@@ -29,9 +29,9 @@ pipeline {
         stage("Detect changes") {
             agent { label 'controller-node' }
             steps {
-                dir("${WORKSPACE}_${BRANCH_NAME}"){
+                dir("${WORKSPACE}"){
                     script {
-                        def changedFiles = sh(script: "git fetch origin && git diff --name-only HEAD origin/${env.BRANCH_NAME}", returnStdout: true).trim().split("\n")
+                    def changedFiles = sh(script: "git fetch origin && git diff --name-only HEAD origin/${env.BRANCH_NAME}", returnStdout: true).trim().split("\n")
                     def changedServices = [] as Set
                     def rootChanged = false
 
