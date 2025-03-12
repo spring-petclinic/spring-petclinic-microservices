@@ -29,18 +29,18 @@ pipeline {
         stage("Detect changes") {
             agent { label 'controller-node' }
             steps {
-                dir("${WORKSPACE}_${BRANCH_NAME}")
-                script {
-                    def changedFiles = sh(script: "git fetch origin && git diff --name-only HEAD origin/${env.BRANCH_NAME}", returnStdout: true).trim().split("\n")
+                dir("${WORKSPACE}_${BRANCH_NAME}"){
+                    script {
+                        def changedFiles = sh(script: "git fetch origin && git diff --name-only HEAD origin/${env.BRANCH_NAME}", returnStdout: true).trim().split("\n")
                     def changedServices = [] as Set
                     def rootChanged = false
 
                     for (file in changedFiles) {
-                        if (!file.startsWith("${SERVICE_AS}/")) {
-                            rootChanged = true
+                            if (!file.startsWith("${SERVICE_AS}/")) {
+                                rootChanged = true
                             break
                         } else {
-                            def service = file.split("/")[0]
+                                def service = file.split("/")[0]
                             changedServices.add(service)
                         }
                     }
@@ -48,6 +48,7 @@ pipeline {
                     env.CHANGED_SERVICES = changedServices.join(',')
                     env.IS_CHANGED_ROOT = rootChanged.toString()
                     echo "Changed Services: ${env.CHANGED_SERVICES}"
+                }
                 }
             }
         }
