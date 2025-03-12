@@ -20,6 +20,9 @@ pipeline {
                             "spring-petclinic-vets-service",
                             "spring-petclinic-visits-service",
                             "spring-petclinic-genai-service"]
+
+                    sh 'git fetch origin main'
+                    
                     def changedFiles = sh(script: 'git diff --name-only origin/main...HEAD', returnStdout: true).trim().split("\n")
                     def changedServices = []
                     for (service in services) {
