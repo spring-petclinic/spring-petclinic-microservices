@@ -52,10 +52,25 @@ pipeline {
                             // Record test coverage using the Coverage plugin
                             recordCoverage(
                                 tools: [[parser: 'JACOCO', pattern: '**/target/site/jacoco/jacoco.xml']],
-                                globalThresholds: [
-                                    [metric: 'LINE', threshold: 90]  // Line coverage must be at least 70%
-                                ]
                             )
+                            // Extract coverage percentage
+                            def coverageXml = readFile('target/site/jacoco/jacoco.xml')
+                            def matcher = coverageXml =~ /<counter type="LINE" missed="(\d+)" covered="(\d+)"/
+                            
+                            if (matcher.find()) {
+                                def missed = matcher[0][1].toInteger()
+                                def covered = matcher[0][2].toInteger()
+                                def coverage = (covered * 100) / (missed + covered)
+                                
+                                echo "Line Coverage: ${coverage}%"
+                                
+                                // Fail build if coverage is below threshold
+                                if (coverage < 90) {
+                                    error "Test coverage is below 90% (${coverage}%), failing the build!"
+                                }
+                            } else {
+                                error "Could not parse coverage report!"
+                            }
                         }
                     }
                 }
