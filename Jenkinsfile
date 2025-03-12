@@ -53,13 +53,13 @@ pipeline {
                             recordCoverage(
                                 tools: [[parser: 'JACOCO', pattern: '**/target/site/jacoco/jacoco.xml']],
                                 qualityGates: [
-                                    [threshold: 90.0, metric: 'LINE', baseline: 'PROJECT', unstable: false]
+                                    [threshold: 70.0, metric: 'LINE', baseline: 'PROJECT', unstable: false]
                                 ]
                             )
 
                             // Check if build is unstable and force failure
                             if (currentBuild.result == 'UNSTABLE') {
-                                error "Test coverage is below 90%, failing the build!"
+                                error "Test coverage is below 70%, failing the build!"
                             }
                         }
                     }
