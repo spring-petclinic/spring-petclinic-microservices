@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Functions that are invoked by the LLM will use this bean to query the system of record
  * for information such as listing owners and vets, or adding pets to an owner.
- * Hello world
+ * Hello world 2
  * @author Oded Shopen
  */
 @Service
