@@ -52,20 +52,10 @@ pipeline {
                             // Record test coverage using the Coverage plugin
                             recordCoverage(
                                 tools: [[parser: 'JACOCO', pattern: '**/target/site/jacoco/jacoco.xml']],
+                                qualityGates: [
+                                    [threshold: 90.0, metric: 'LINE', baseline: 'PROJECT', unstable: false]
+                                ]
                             )
-                            
-                            // Get coverage from Jenkins Coverage API
-                            def coverageResult = readCoverage tools: [[parser: 'JACOCO', pattern: '**/target/site/jacoco/jacoco.xml']]
-        
-                            // Extract line coverage
-                            def lineCoverage = coverageResult?.results?.LINE?.percentage ?: 0
-        
-                            echo "Actual Line Coverage: ${lineCoverage}%"
-        
-                            // Fail build if line coverage < 70%
-                            if (lineCoverage < 90) {
-                                error "Test coverage is below 90% (${lineCoverage}%), failing the build!"
-                            }
                         }
                     }
                 }
