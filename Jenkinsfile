@@ -8,15 +8,10 @@ pipeline {
         }
     }
 
-    environment {
-            GITHUB_TOKEN = credentials('github-token')
-        }
-
     stages {
         stage('Detect Changes') {
             steps {
                 script {
-//                     githubNotify context: 'Detect Changes', status: 'PENDINGG'
 
                     echo "🔍 Checking if the repository is shallow..."
                     def isShallow = sh(script: "git rev-parse --is-shallow-repository", returnStdout: true).trim()
@@ -81,11 +76,7 @@ pipeline {
 
                     // Ensure we have at least one changed service
                     if (changedServices.isEmpty()) {
-//                         githubNotify context: 'Detect Changes', status: 'FAILURE'
-                        error("❌ No relevant services detected. Verify file path matching logic.")
-                    }
-                    else {
-//                         githubNotify context: 'Detect Changes', status: 'SUCCESS'
+                        echo "❌ No relevant services detected. Verify file path matching logic."
                     }
 
                     // Use properties() to persist the value
@@ -301,13 +292,11 @@ pipeline {
         failure {
             script {
                    echo "❌ CI/CD Pipeline failed!"
-//                 githubNotify context: 'CI/CD Pipeline', status: 'FAILURE'
             }
         }
         success {
             script {
                    echo "✅ CI/CD Pipeline succeeded!"
-//                 githubNotify context: 'CI/CD Pipeline', status: 'SUCCESS'
             }
         }
         always {
