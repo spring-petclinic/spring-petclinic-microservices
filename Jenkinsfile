@@ -26,6 +26,9 @@ pipeline {
                         sh 'git fetch origin main --prune'
                     }
 
+                    echo "📂 Fetching all branches..."
+                    sh 'git fetch --all --prune'
+
                     // Determine the base commit to compare against
                     def baseCommit = sh(script: "git merge-base origin/main HEAD", returnStdout: true).trim()
                     echo "🔍 Base commit: ${baseCommit}"
@@ -168,7 +171,6 @@ pipeline {
 //             }
 //             steps {
 //                 script {
-// //                     githubNotify context: 'Test & Coverage', status: 'PENDING'
 //
 //                     def parallelStages = [:]
 //                     def servicesList = SERVICES_CHANGED.tokenize(',')
@@ -181,9 +183,6 @@ pipeline {
 //                         parallelStages["Test & Coverage: ${service}"] = {
 //                             withEnv(["MAVEN_USER_HOME=${env.WORKSPACE}/m2-wrapper-${service}"]) {
 //                                 dir(service) {
-//     //                                 sh 'rm -rf ~/.m2/wrapper/dists/apache-maven* || true'
-//
-//     //                                 sh '../mvnw dependency:purge-local-repository -DskipTests'
 //
 //                                     sh '../mvnw clean verify -PbuildDocker'
 //
@@ -215,11 +214,7 @@ pipeline {
 //                                         echo "🚀 Test coverage for ${service} is ${coveragePercent}%"
 //
 //                                         if (coveragePercent < 70) {
-//     //                                         githubNotify context: "Test & Coverage: ${service}", status: 'FAILURE'
 //                                             error("❌ Test coverage for ${service} is below 70% threshold.")
-//                                         }
-//                                         else {
-//     //                                         githubNotify context: "Test & Coverage: ${service}", status: 'SUCCESS'
 //                                         }
 //                                     }
 //                                 }
@@ -227,7 +222,6 @@ pipeline {
 //                         }
 //                     }
 //                     parallel parallelStages
-// //                     githubNotify context: 'Test & Coverage', status: 'SUCCESS'
 //                 }
 //             }
 //         }
@@ -239,7 +233,6 @@ pipeline {
 //             }
 //             steps {
 //                 script {
-// //                     githubNotify context: 'Build', status: 'PENDING'
 //
 //                     def parallelBuilds = [:]
 //                     def servicesList = SERVICES_CHANGED.tokenize(',')
@@ -256,7 +249,6 @@ pipeline {
 //                         }
 //                     }
 //                     parallel parallelBuilds
-// //                     githubNotify context: 'Build', status: 'SUCCESS'
 //                 }
 //             }
 //         }
