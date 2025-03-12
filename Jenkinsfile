@@ -51,7 +51,7 @@ pipeline {
         
                             // Record test coverage using the Coverage plugin
                             recordCoverage(
-                                tools: [jacoco(pattern: '**/target/site/jacoco/jacoco.xml')]
+                                tools: [[parser: 'JACOCO', pattern: '**/target/site/jacoco/jacoco.xml']
                             )
                         }
                     }
