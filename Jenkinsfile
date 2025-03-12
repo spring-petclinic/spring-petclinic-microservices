@@ -53,23 +53,18 @@ pipeline {
                             recordCoverage(
                                 tools: [[parser: 'JACOCO', pattern: '**/target/site/jacoco/jacoco.xml']],
                             )
-                            // Extract coverage percentage
-                            def coverageXml = readFile('target/site/jacoco/jacoco.xml')
-                            def matcher = coverageXml =~ /<counter type="LINE" missed="(\d+)" covered="(\d+)"/
                             
-                            if (matcher.find()) {
-                                def missed = matcher[0][1].toInteger()
-                                def covered = matcher[0][2].toInteger()
-                                def coverage = (covered * 100) / (missed + covered)
-                                
-                                echo "Line Coverage: ${coverage}%"
-                                
-                                // Fail build if coverage is below threshold
-                                if (coverage < 90) {
-                                    error "Test coverage is below 90% (${coverage}%), failing the build!"
-                                }
-                            } else {
-                                error "Could not parse coverage report!"
+                            // Get coverage from Jenkins Coverage API
+                            def coverageResult = readCoverage tools: [[parser: 'JACOCO', pattern: '**/target/site/jacoco/jacoco.xml']]
+        
+                            // Extract line coverage
+                            def lineCoverage = coverageResult?.results?.LINE?.percentage ?: 0
+        
+                            echo "Actual Line Coverage: ${lineCoverage}%"
+        
+                            // Fail build if line coverage < 70%
+                            if (lineCoverage < 90) {
+                                error "Test coverage is below 90% (${lineCoverage}%), failing the build!"
                             }
                         }
                     }
