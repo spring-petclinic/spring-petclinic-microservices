@@ -7,10 +7,10 @@ pipeline {
 
     stages {
         stage('Checkout Code') {
-                steps {
-                    withCredentials([string(credentialsId: 'GITHUB_CREDENTIALS', variable: 'GIT_TOKEN')]) {
-                        git branch: 'main', url: "https://${GIT_TOKEN}@github.com/nghiaz160904/spring-petclinic-microservices.git"
-                    }
+            steps {
+                cleanWs() // Xóa workspace cũ tránh lỗi
+                withCredentials([string(credentialsId: 'GITHUB_CREDENTIALS', variable: 'GIT_TOKEN')]) {
+                    git branch: 'main', url: "https://${GIT_TOKEN}@github.com/nghiaz160904/spring-petclinic-microservices.git", credentialsId: 'GITHUB_CREDENTIALS', changelog: true, poll: true
                 }
             }
         }
@@ -19,15 +19,18 @@ pipeline {
             steps {
                 script {
                     def changedFiles = []
-                    try {
+                    def hasPreviousCommit = sh(script: "git rev-parse --verify HEAD~1", returnStatus: true) == 0
+
+                    if (hasPreviousCommit) {
                         changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim().split("\n")
-                    } catch (Exception e) {
+                    } else {
                         echo "No previous commit found, running full build."
+                        changedFiles = ["FULL_BUILD"]
                     }
 
-                    env.SHOULD_BUILD_CUSTOMERS = changedFiles.any { it.startsWith("customers-service/") } ? "true" : "false"
-                    env.SHOULD_BUILD_VETS = changedFiles.any { it.startsWith("vets-service/") } ? "true" : "false"
-                    env.SHOULD_BUILD_VISIT = changedFiles.any { it.startsWith("visit-service/") } ? "true" : "false"
+                    env.SHOULD_BUILD_CUSTOMERS = changedFiles.any { it.startsWith("customers-service/") || it == "FULL_BUILD" } ? "true" : "false"
+                    env.SHOULD_BUILD_VETS = changedFiles.any { it.startsWith("vets-service/") || it == "FULL_BUILD" } ? "true" : "false"
+                    env.SHOULD_BUILD_VISIT = changedFiles.any { it.startsWith("visit-service/") || it == "FULL_BUILD" } ? "true" : "false"
 
                     echo "Changes detected:"
                     echo "SHOULD_BUILD_CUSTOMERS = ${env.SHOULD_BUILD_CUSTOMERS}"
@@ -42,27 +45,21 @@ pipeline {
                 stage('Test Customers Service') {
                     when { expression { env.SHOULD_BUILD_CUSTOMERS == "true" } }
                     steps {
-                        dir('customers-service') {
-                            sh '../mvnw test'
-                        }
+                        sh './mvnw test -pl customers-service'
                     }
                 }
 
                 stage('Test Vets Service') {
                     when { expression { env.SHOULD_BUILD_VETS == "true" } }
                     steps {
-                        dir('vets-service') {
-                            sh '../mvnw test'
-                        }
+                        sh './mvnw test -pl vets-service'
                     }
                 }
 
                 stage('Test Visit Service') {
                     when { expression { env.SHOULD_BUILD_VISIT == "true" } }
                     steps {
-                        dir('visit-service') {
-                            sh '../mvnw test'
-                        }
+                        sh './mvnw test -pl visit-service'
                     }
                 }
             }
@@ -73,27 +70,21 @@ pipeline {
                 stage('Build Customers Service') {
                     when { expression { env.SHOULD_BUILD_CUSTOMERS == "true" } }
                     steps {
-                        dir('customers-service') {
-                            sh '../mvnw clean package -DskipTests'
-                        }
+                        sh './mvnw clean package -pl customers-service -DskipTests'
                     }
                 }
 
                 stage('Build Vets Service') {
                     when { expression { env.SHOULD_BUILD_VETS == "true" } }
                     steps {
-                        dir('vets-service') {
-                            sh '../mvnw clean package -DskipTests'
-                        }
+                        sh './mvnw clean package -pl vets-service -DskipTests'
                     }
                 }
 
                 stage('Build Visit Service') {
                     when { expression { env.SHOULD_BUILD_VISIT == "true" } }
                     steps {
-                        dir('visit-service') {
-                            sh '../mvnw clean package -DskipTests'
-                        }
+                        sh './mvnw clean package -pl visit-service -DskipTests'
                     }
                 }
             }
