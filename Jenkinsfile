@@ -8,10 +8,11 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                cleanWs() // Xóa workspace cũ tránh lỗi
-                withCredentials([string(credentialsId: 'GITHUB_CREDENTIALS', variable: 'GIT_TOKEN')]) {
-                    git branch: 'main', url: "https://${GIT_TOKEN}@github.com/nghiaz160904/spring-petclinic-microservices.git", credentialsId: 'GITHUB_CREDENTIALS', changelog: true, poll: true
-                }
+                echo 'Starting Checkout stage'
+                git branch: 'main',
+                    url: 'https://github.com/nghiaz160904/DevOps_Project1.git',
+                    credentialsId: 'github-pat-global'
+                echo 'Checkout completed'
             }
         }
 
