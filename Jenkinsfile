@@ -23,15 +23,13 @@ pipeline {
                             "spring-petclinic-genai-service"
                     ]
                     env.SERVICES = SERVICES.join(",")
-
-                    env.GIT_COMMIT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                    env.STAGE = env.BRANCH_NAME == "main" ? "prod" : "dev" //@fixme
                 }
             }
         }
         stage("Detect changes") {
             agent { label 'controller-node' }
             steps {
+                dir("${WORKSPACE}_${BRANCH_NAME}")
                 script {
                     def changedFiles = sh(script: "git fetch origin && git diff --name-only HEAD origin/${env.BRANCH_NAME}", returnStdout: true).trim().split("\n")
                     def changedServices = [] as Set
@@ -58,7 +56,10 @@ pipeline {
                 stage("Build") {
                     agent { label 'maven-node' }
                     steps {
+                        checkout scm
                         sh "cat ~/docker-registry-passwd.txt | docker login --username ${DOCKER_REGISTRY} --password-stdin"
+                        env.GIT_COMMIT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                        env.STAGE = env.BRANCH_NAME == "main" ? "prod" : "dev" //@fixme
                         script {
                             if (env.CHANGED_SERVICES?.trim()) {
                                 def changedServices = env.CHANGED_SERVICES.split(',')
@@ -91,6 +92,7 @@ pipeline {
                 stage("TEST") {
                     agent { label 'maven-node' }
                     steps {
+                        checkout scm
                         script {
                             if (env.CHANGED_SERVICES?.trim()) {
                                 // Test only changed services
