@@ -101,73 +101,49 @@ pipeline {
             }
         }
 
-
         stage('Test & Coverage Check') {
             when {
                 expression { SERVICES_CHANGED?.trim() != "" }
             }
             steps {
                 script {
-//                     githubNotify context: 'Test & Coverage', status: 'PENDING'
-
-                    def parallelStages = [:]
                     def servicesList = SERVICES_CHANGED.tokenize(',')
 
                     if (servicesList.isEmpty()) {
-                        error("❌ No changed services found. Verify 'Detect Changes' stage.")
+                        error("❌ No changed services found.")
                     }
 
-                    servicesList.each { service ->
-                        parallelStages["Test & Coverage: ${service}"] = {
-                            withEnv(["MAVEN_USER_HOME=${env.WORKSPACE}/m2-wrapper-${service}"]) {
-                                dir(service) {
-    //                                 sh 'rm -rf ~/.m2/wrapper/dists/apache-maven* || true'
+                    // Run tests sequentially instead of in parallel
+                    for (service in servicesList) {
+                        echo "🔬 Running tests for ${service}..."
+                        withEnv(["MAVEN_USER_HOME=${env.WORKSPACE}/m2-wrapper-${service}"]) {
+                            dir(service) {
+                                sh '../mvnw clean verify -PbuildDocker'
 
-    //                                 sh '../mvnw dependency:purge-local-repository -DskipTests'
+                                def jacocoFile = sh(script: "find target -name jacoco.xml", returnStdout: true).trim()
+                                if (!jacocoFile) {
+                                    echo "⚠️ No JaCoCo report found for ${service}."
+                                } else {
+                                    def missed = sh(script: """
+                                        awk -F 'missed="' '/<counter type="LINE"/ {gsub(/".*/, "", \$2); sum += \$2} END {print sum}' ${jacocoFile}
+                                    """, returnStdout: true).trim()
 
-                                    sh '../mvnw clean verify -PbuildDocker'
+                                    def covered = sh(script: """
+                                        awk -F 'covered="' '/<counter type="LINE"/ {gsub(/".*/, "", \$2); sum += \$2} END {print sum}' ${jacocoFile}
+                                    """, returnStdout: true).trim()
 
-                                    sh 'pwd && ls -lah target/site/jacoco'
+                                    def total = missed.toInteger() + covered.toInteger()
+                                    def coveragePercent = (total > 0) ? (covered.toInteger() * 100 / total) : 0
 
-                                    // Find JaCoCo file
-                                    def jacocoFile = sh(script: "find target -name jacoco.xml", returnStdout: true).trim()
+                                    echo "🚀 Test coverage for ${service}: ${coveragePercent}%"
 
-                                    if (!jacocoFile) {
-                                        echo "⚠️ JaCoCo report not found. Skipping coverage validation."
-                                    } else {
-                                        echo "✅ Found JaCoCo report: ${jacocoFile}"
-
-                                        def missed = sh(script: """
-                                            awk -F 'missed="' '/<counter type="LINE"/ {gsub(/".*/, "", \$2); sum += \$2} END {print sum}' ${jacocoFile}
-                                        """, returnStdout: true).trim()
-
-                                        def covered = sh(script: """
-                                            awk -F 'covered="' '/<counter type="LINE"/ {gsub(/".*/, "", \$2); sum += \$2} END {print sum}' ${jacocoFile}
-                                        """, returnStdout: true).trim()
-
-                                        if (!missed.isNumber() || !covered.isNumber()) {
-                                            error("❌ Could not extract JaCoCo coverage data from ${jacocoFile}")
-                                        }
-
-                                        def total = missed.toInteger() + covered.toInteger()
-                                        def coveragePercent = (total > 0) ? (covered.toInteger() * 100 / total) : 0
-
-                                        echo "🚀 Test coverage for ${service} is ${coveragePercent}%"
-
-                                        if (coveragePercent < 70) {
-    //                                         githubNotify context: "Test & Coverage: ${service}", status: 'FAILURE'
-                                            error("❌ Test coverage for ${service} is below 70% threshold.")
-                                        }
-                                        else {
-    //                                         githubNotify context: "Test & Coverage: ${service}", status: 'SUCCESS'
-                                        }
+                                    if (coveragePercent < 70) {
+                                        error("❌ Test coverage below 70% for ${service}.")
                                     }
                                 }
                             }
                         }
                     }
-                    parallel parallelStages
-//                     githubNotify context: 'Test & Coverage', status: 'SUCCESS'
                 }
             }
         }
@@ -178,27 +154,121 @@ pipeline {
             }
             steps {
                 script {
-//                     githubNotify context: 'Build', status: 'PENDING'
-
-                    def parallelBuilds = [:]
                     def servicesList = SERVICES_CHANGED.tokenize(',')
 
                     if (servicesList.isEmpty()) {
-                        error("❌ No changed services found. Verify 'Detect Changes' stage.")
+                        error("❌ No changed services found.")
                     }
 
-                    servicesList.each { service ->
-                        parallelBuilds["Build: ${service}"] = {
-                            dir(service) {
-                                sh '../mvnw package -DskipTests -T 1C'
-                            }
+                    for (service in servicesList) {
+                        echo "🏗️ Building ${service}..."
+                        dir(service) {
+                            sh '../mvnw package -DskipTests -T 1C'
                         }
                     }
-                    parallel parallelBuilds
-//                     githubNotify context: 'Build', status: 'SUCCESS'
                 }
             }
         }
+
+
+//         stage('Test & Coverage Check') {
+//             when {
+//                 expression { SERVICES_CHANGED?.trim() != "" }
+//             }
+//             steps {
+//                 script {
+// //                     githubNotify context: 'Test & Coverage', status: 'PENDING'
+//
+//                     def parallelStages = [:]
+//                     def servicesList = SERVICES_CHANGED.tokenize(',')
+//
+//                     if (servicesList.isEmpty()) {
+//                         error("❌ No changed services found. Verify 'Detect Changes' stage.")
+//                     }
+//
+//                     servicesList.each { service ->
+//                         parallelStages["Test & Coverage: ${service}"] = {
+//                             withEnv(["MAVEN_USER_HOME=${env.WORKSPACE}/m2-wrapper-${service}"]) {
+//                                 dir(service) {
+//     //                                 sh 'rm -rf ~/.m2/wrapper/dists/apache-maven* || true'
+//
+//     //                                 sh '../mvnw dependency:purge-local-repository -DskipTests'
+//
+//                                     sh '../mvnw clean verify -PbuildDocker'
+//
+//                                     sh 'pwd && ls -lah target/site/jacoco'
+//
+//                                     // Find JaCoCo file
+//                                     def jacocoFile = sh(script: "find target -name jacoco.xml", returnStdout: true).trim()
+//
+//                                     if (!jacocoFile) {
+//                                         echo "⚠️ JaCoCo report not found. Skipping coverage validation."
+//                                     } else {
+//                                         echo "✅ Found JaCoCo report: ${jacocoFile}"
+//
+//                                         def missed = sh(script: """
+//                                             awk -F 'missed="' '/<counter type="LINE"/ {gsub(/".*/, "", \$2); sum += \$2} END {print sum}' ${jacocoFile}
+//                                         """, returnStdout: true).trim()
+//
+//                                         def covered = sh(script: """
+//                                             awk -F 'covered="' '/<counter type="LINE"/ {gsub(/".*/, "", \$2); sum += \$2} END {print sum}' ${jacocoFile}
+//                                         """, returnStdout: true).trim()
+//
+//                                         if (!missed.isNumber() || !covered.isNumber()) {
+//                                             error("❌ Could not extract JaCoCo coverage data from ${jacocoFile}")
+//                                         }
+//
+//                                         def total = missed.toInteger() + covered.toInteger()
+//                                         def coveragePercent = (total > 0) ? (covered.toInteger() * 100 / total) : 0
+//
+//                                         echo "🚀 Test coverage for ${service} is ${coveragePercent}%"
+//
+//                                         if (coveragePercent < 70) {
+//     //                                         githubNotify context: "Test & Coverage: ${service}", status: 'FAILURE'
+//                                             error("❌ Test coverage for ${service} is below 70% threshold.")
+//                                         }
+//                                         else {
+//     //                                         githubNotify context: "Test & Coverage: ${service}", status: 'SUCCESS'
+//                                         }
+//                                     }
+//                                 }
+//                             }
+//                         }
+//                     }
+//                     parallel parallelStages
+// //                     githubNotify context: 'Test & Coverage', status: 'SUCCESS'
+//                 }
+//             }
+//         }
+
+
+//         stage('Build') {
+//             when {
+//                 expression { SERVICES_CHANGED?.trim() != "" }
+//             }
+//             steps {
+//                 script {
+// //                     githubNotify context: 'Build', status: 'PENDING'
+//
+//                     def parallelBuilds = [:]
+//                     def servicesList = SERVICES_CHANGED.tokenize(',')
+//
+//                     if (servicesList.isEmpty()) {
+//                         error("❌ No changed services found. Verify 'Detect Changes' stage.")
+//                     }
+//
+//                     servicesList.each { service ->
+//                         parallelBuilds["Build: ${service}"] = {
+//                             dir(service) {
+//                                 sh '../mvnw package -DskipTests -T 1C'
+//                             }
+//                         }
+//                     }
+//                     parallel parallelBuilds
+// //                     githubNotify context: 'Build', status: 'SUCCESS'
+//                 }
+//             }
+//         }
 
         //
         // stage('Docker Build') {
