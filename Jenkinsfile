@@ -51,7 +51,10 @@ pipeline {
         
                             // Record test coverage using the Coverage plugin
                             recordCoverage(
-                                tools: [[parser: 'JACOCO', pattern: '**/target/site/jacoco/jacoco.xml']]
+                                tools: [[parser: 'JACOCO', pattern: '**/target/site/jacoco/jacoco.xml']],
+                                globalThresholds: [
+                                    [metric: 'LINE', threshold: 90]  // Line coverage must be at least 70%
+                                ]
                             )
                         }
                     }
