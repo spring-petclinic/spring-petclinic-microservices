@@ -28,17 +28,11 @@ pipeline {
                 }
             }
         }
-
-        stage("Pull code") {
-            agent { label 'maven-node' }
-            steps {
-                git branch: env.BRANCH_NAME, url: env.REPO_URL
-            }
-        }
         stage("Detect changes") {
-            agent { label 'maven-node' }
+            agent { label 'controller-node' }
             steps {
                 script {
+                    sh "pwd"
                     def changedFiles = sh(script: "git fetch origin && git diff --name-only HEAD origin/${env.BRANCH_NAME}", returnStdout: true).trim().split("\n")
                     def changedServices = [] as Set
                     def rootChanged = false
@@ -56,6 +50,12 @@ pipeline {
                     env.IS_CHANGED_ROOT = rootChanged.toString()
                     echo "Changed Services: ${env.CHANGED_SERVICES}"
                 }
+            }
+        }
+        stage("Pull code") {
+            agent { label 'maven-node' }
+            steps {
+                git branch: env.BRANCH_NAME, url: env.REPO_URL
             }
         }
         stage("Build & TEST") {
