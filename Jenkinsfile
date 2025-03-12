@@ -26,8 +26,17 @@ pipeline {
                         sh 'git fetch origin main --prune'
                     }
 
+                    // Fetch all branches to ensure we have the latest
                     echo "📂 Fetching all branches..."
                     sh 'git fetch --all --prune'
+
+                    echo "🔍 Checking if origin/main exists..."
+                    def mainExists = sh(script: "git branch -r | grep 'origin/main' || echo ''", returnStdout: true).trim()
+
+                    if (!mainExists) {
+                        error("❌ origin/main does not exist! Ensure the branch is available in remote.")
+                    }
+
 
                     // Determine the base commit to compare against
                     def baseCommit = sh(script: "git merge-base origin/main HEAD", returnStdout: true).trim()
