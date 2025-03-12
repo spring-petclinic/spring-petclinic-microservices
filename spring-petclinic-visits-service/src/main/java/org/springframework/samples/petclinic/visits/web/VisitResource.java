@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Michael Isvy
  * @author Maciej Szarlinski
  * @author Ramazan Sakin
+ * Hello
  */
 @RestController
 @Timed("petclinic.visit")
