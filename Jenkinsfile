@@ -1,6 +1,8 @@
 pipeline {
 
-    agent any
+    agent {
+        'minh-agent'
+    }
     options {
         buildDiscarder logRotator( 
             daysToKeepStr: '16', 
