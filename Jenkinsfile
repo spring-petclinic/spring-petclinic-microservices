@@ -43,21 +43,20 @@ pipeline {
                     changedServices.each{ service -> 
                         echo "Testing service: ${service}"
                         dir("${service}") {
-                            // Run tests and generate JaCoCo report dynamically
-                            sh 'mvn clean test jacoco:report'
+                            // Run tests and generate coverage reports
+                            sh "mvn test surefire-report:report jacoco:report"
+        
+                            // Publish JUnit test results
+                            junit '**/target/surefire-reports/*.xml'
+        
+                            // Record test coverage using the Coverage plugin
+                            recordCoverage(
+                                tools: [jacoco(pattern: '**/target/site/jacoco/jacoco.xml')],
+                                adapters: [],
+                                sourceFileResolver: sourceFiles('NEVER_STORE')
+                            )
                         }
                     }
-                }
-            }
-            post {
-                always {
-                    // Publish test results
-                    junit '**/${service}/target/surefire-reports/*.xml'
-
-                    // Publish coverage (adjust if jacoco.xml is in a different path)
-                    recordCoverage(
-                        tools: [[parser: 'JACOCO', pattern: '**/${service}/target/site/jacoco/jacoco.xml']],
-                    )
                 }
             }
         }
