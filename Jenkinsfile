@@ -1,27 +1,27 @@
 pipeline {
     agent any
+    environment {
+        MAVEN_HOME = tool 'Maven'
+    }
     stages {
-        stage('Build') {
+        stage('Checkout') {
             steps {
-                echo 'Building...'
-                sh 'mvn clean package' // Build project
+                checkout scm
             }
         }
         stage('Test') {
             steps {
-                echo 'Running tests...'
-                sh 'mvn test' // Chạy test
+                sh './mvnw test'
             }
             post {
                 always {
-                    junit 'target/surefire-reports/*.xml' // Upload test results
-                    cobertura coberturaReportFile: 'target/site/jacoco/jacoco.xml' // Upload code coverage
+                    junit '**/target/surefire-reports/*.xml'
                 }
             }
         }
-        stage('Deploy') {
+        stage('Build') {
             steps {
-                echo 'Deploying...'
+                sh './mvnw package'
             }
         }
     }
