@@ -13,7 +13,7 @@ pipeline {
 
         stage('Unit Testing') {
             steps {
-                sh """
+                bat """
                 echo "Running Unit Tests"
                 """
             }
@@ -21,7 +21,7 @@ pipeline {
 
         stage('Code Analysis') {
             steps {
-                sh """
+                bat """
                 echo "Running Code Analysis"
                 """
             }
