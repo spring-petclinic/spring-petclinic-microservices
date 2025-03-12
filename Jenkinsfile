@@ -30,11 +30,20 @@ pipeline {
                     echo "📂 Fetching all branches..."
                     sh 'git fetch --all --prune'
 
+                    // Ensure main branch exists
                     echo "🔍 Checking if origin/main exists..."
                     def mainExists = sh(script: "git branch -r | grep 'origin/main' || echo ''", returnStdout: true).trim()
 
                     if (!mainExists) {
-                        error("❌ origin/main does not exist! Ensure the branch is available in remote.")
+                        echo "❌ origin/main does not exist in remote. Fetching all branches..."
+                        sh 'git remote set-branches --add origin main'
+                        sh 'git fetch --all'
+
+                        mainExists = sh(script: "git branch -r | grep 'origin/main' || echo ''", returnStdout: true).trim()
+
+                        if (!mainExists) {
+                            error("❌ origin/main still does not exist! Ensure the branch is available in remote.")
+                        }
                     }
 
 
