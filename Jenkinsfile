@@ -51,9 +51,7 @@ pipeline {
         
                             // Record test coverage using the Coverage plugin
                             recordCoverage(
-                                tools: [jacoco(pattern: '**/target/site/jacoco/jacoco.xml')],
-                                adapters: [],
-                                sourceFileResolver: sourceFiles('NEVER_STORE')
+                                tools: [jacoco(pattern: '**/target/site/jacoco/jacoco.xml')]
                             )
                         }
                     }
