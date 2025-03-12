@@ -7,15 +7,11 @@ pipeline {
 
     stages {
         stage('Checkout Code') {
-            steps {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: '*/main']],
-                    userRemoteConfigs: [[
-                        credentialsId: 'GITHUB_CREDENTIALS',
-                        url: GIT_REPO
-                    ]]
-                ])
+                steps {
+                    withCredentials([string(credentialsId: 'GITHUB_CREDENTIALS', variable: 'GIT_TOKEN')]) {
+                        git branch: 'main', url: "https://${GIT_TOKEN}@github.com/nghiaz160904/spring-petclinic-microservices.git"
+                    }
+                }
             }
         }
 
