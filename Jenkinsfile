@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: git branch: 'main', url: 'https://nghiaz160904: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@github.com/nghiaz160904/spring-petclinic-microservices.git'
+                git branch: 'main', url: 'https://nghiaz160904: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@github.com/nghiaz160904/spring-petclinic-microservices.git'
 
             }
         }
