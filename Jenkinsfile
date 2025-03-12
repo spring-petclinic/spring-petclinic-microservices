@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        GIT_REPO = 'https://github.com/<USERNAME>/spring-petclinic-microservices.git'
+        GIT_REPO = 'https://github.com/nghiaz160904/spring-petclinic-microservices.git'
     }
 
     stages {
