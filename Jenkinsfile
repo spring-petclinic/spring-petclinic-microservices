@@ -8,8 +8,9 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://nghiaz160904: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@github.com/nghiaz160904/spring-petclinic-microservices.git'
-
+                withCredentials([usernamePassword(credentialsId: 'GITHUB_CREDENTIALS', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
+                    git branch: 'main', credentialsId: 'GITHUB_CREDENTIALS', url: "https://${GIT_USER}:${GIT_PASS}@github.com/nghiaz160904/spring-petclinic-microservices.git"
+                }
             }
         }
 
