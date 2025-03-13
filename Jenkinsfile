@@ -74,7 +74,6 @@ pipeline {
                             for (service in changedServices) {
                                 sh """
                                 cd ${service}
-                                pwd
                                 echo "run build for ${service}"
                                 mvn clean package -DskipTests
                                 cd ..
