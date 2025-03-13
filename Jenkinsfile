@@ -9,7 +9,7 @@ pipeline {
         stage('Check Changes') {
             steps {
                 script {
-                    def changedFiles = sh(script: "git diff --name-only main", returnStdout: true).trim().split("\n")
+                    def changedFiles = sh(script: "git diff --name-only */main", returnStdout: true).trim().split("\n")
                     def services = ['customers-service', 'vets-service', 'visits-service', 'api-gateway']
                     
                     echo "Changed files: ${changedFiles}"
