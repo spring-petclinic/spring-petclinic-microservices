@@ -63,12 +63,12 @@ pipeline {
             }
             steps {
                 script {
-                    def coverageLine = sh(
-                        script: "grep -m 1 'TOTAL' ${env.SERVICE_CHANGED}/target/site/jacoco/jacoco.csv",
+                    def coverageHtml = sh(
+                        script: "grep -oP '(?<=Total</td><td class=\"ctr2\">)[0-9]+(?=%</td>)' ${env.SERVICE_CHANGED}/target/site/jacoco/index.html",
                         returnStdout: true
                     ).trim()
         
-                    def coverage = coverageLine.tokenize(',')[3].toFloat()
+                    def coverage = coverageHtml.toFloat() / 100
                     echo "Test Coverage: ${coverage * 100}%"
         
                     if (coverage < 0.70) {
@@ -77,7 +77,6 @@ pipeline {
                 }
             }
         }
-
         
         stage('Build') {
             when {
