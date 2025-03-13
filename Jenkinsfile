@@ -36,8 +36,11 @@ pipeline {
                         def rootChanged = false
 
                         for (file in changedFiles) {
-                                if (!file.startsWith("${SERVICE_AS}")) {
-                                    rootChanged = true
+                            echo "file: ${file} || service_as: ${SERVICE_AS}"
+
+                            if (!file.startsWith("${SERVICE_AS}")) {
+                                rootChanged = true
+                                echo "Changed Root"
                                 break
                             } else {
                                     def service = file.split("/")[0]
@@ -48,7 +51,6 @@ pipeline {
                         env.CHANGED_SERVICES = changedServices.join(',')
                         env.IS_CHANGED_ROOT = rootChanged.toString()
                         echo "Changed Services: ${env.CHANGED_SERVICES}"
-                        echo "Changed Root: ${env.IS_CHANGED_ROOT}"
 
                         sh "git merge origin/${BRANCH_NAME}"
                     }
