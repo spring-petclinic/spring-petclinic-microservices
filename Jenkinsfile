@@ -10,8 +10,9 @@ pipeline {
             steps {
                 script {
                     def changedFiles = sh(script: "git diff --name-only origin/main", returnStdout: true).trim().split("\n")
-                    echo "Changed files: ${changedFiles}"
                     def services = ['customers-service', 'vets-service', 'visits-service', 'api-gateway']
+                    
+                    echo "Changed files: ${changedFiles}"
                     
                     if (changedFiles.size() == 0 || changedFiles[0] == '') {
                         echo "No changes detected. Skipping pipeline."
@@ -42,6 +43,7 @@ pipeline {
                 expression { return env.SERVICE_CHANGED != '' }
             }
             steps {
+                echo "Testing service: ${env.SERVICE_CHANGED}"
                 sh "./mvnw test -pl ${env.SERVICE_CHANGED} -am"
             }
             post {
@@ -56,6 +58,7 @@ pipeline {
                 expression { return env.SERVICE_CHANGED != '' }
             }
             steps {
+                echo "Building service: ${env.SERVICE_CHANGED}"
                 sh "./mvnw package -pl ${env.SERVICE_CHANGED} -am -DskipTests"
             }
         }
