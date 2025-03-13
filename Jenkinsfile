@@ -31,7 +31,7 @@ pipeline {
             steps {
                 dir("${WORKSPACE}"){
                     script {
-                    def changedFiles = sh(script: "git fetch origin && git diff --name-only HEAD origin/${env.BRANCH_NAME}", returnStdout: true).trim().split("\n")
+                    def changedFiles = sh(script: " git init && git fetch --no-tags --force --progress -- ${REPO_URL} refs/heads/${BRANCH_NAME}:refs/remotes/origin/${BRANCH_NAME}", returnStdout: true).trim().split("\n")
                     def changedServices = [] as Set
                     def rootChanged = false
 
@@ -143,14 +143,7 @@ pipeline {
         stage('Post') {
             agent { label 'maven-node' }
             steps {
-                script {
-                    if (currentBuild.result == 'SUCCESS') {
-                        sh "echo Pipeline executed successfully"
-                    } else {
-                        sh "echo Pipeline execution failed"
-                    }
-                    cleanWs()
-                }
+                cleanWS()
             }
         }
     }
