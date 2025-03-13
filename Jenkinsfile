@@ -125,14 +125,14 @@ pipeline {
                 }
             }
         }
-        stage("Push artifact") {
-            when {
-                expression { return env.STAGE == "prod" || env.STAGE == "dev" || env.STAGE == "uat" }
-            }
-        }
-        stage("Trigger Github Actions") {
-
-        }
+        //stage("Push artifact") {
+        //    when {
+        //        expression { return env.STAGE == "prod" || env.STAGE == "dev" || env.STAGE == "uat" }
+        //    }
+        //}
+        //stage("Trigger Github Actions") {
+        //
+        //}
         //stage('Deploy') {
         //    when {
         //        expression { return env.STAGE == "prod" || env.STAGE == "dev" || env.STAGE == "uat" }
