@@ -68,19 +68,7 @@ pipeline {
                         script {
                             env.GIT_COMMIT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
                             env.STAGE = env.BRANCH_NAME == "main" ? "prod" : "dev" //@fixme
-                            if (env.CHANGED_SERVICES?.trim()) {
-                                def changedServices = env.CHANGED_SERVICES.split(',')
-                                for (service in changedServices) {
-                                sh """
-                                    cd ${service}
-                                    echo "run build for ${service}"
-                                    mvn clean package -DskipTests
-                                    cd ..
-                                    docker build --build-arg SERVICE=${service} --build-arg STAGE=${env.STAGE} -f docker/Dockerfile.${service} -t ${DOCKER_REGISTRY}/${service}:${env.GIT_COMMIT_SHA} .
-                                    docker push ${DOCKER_REGISTRY}/${service}:${env.GIT_COMMIT_SHA}
-                                 """
-                                }
-                            } else if (env.IS_CHANGED_ROOT == "true") {
+                            if (env.IS_CHANGED_ROOT == "true") {
                                 // Build all services
                                 sh "echo run build for all services"
                                 sh "mvn clean package -DskipTests"
@@ -90,6 +78,18 @@ pipeline {
                                     docker build --build-arg SERVICE=${service} --build-arg STAGE=${env.STAGE} -f docker/Dockerfile.${service} -t ${DOCKER_REGISTRY}/${service}:${env.GIT_COMMIT_SHA} .
                                     docker push ${DOCKER_REGISTRY}/${service}:${env.GIT_COMMIT_SHA}
                                 """
+                                }
+                            } else if (env.CHANGED_SERVICES?.trim()) {
+                                def changedServices = env.CHANGED_SERVICES.split(',')
+                                for (service in changedServices) {
+                                    sh """
+                                    cd ${service}
+                                    echo "run build for ${service}"
+                                    mvn clean package -DskipTests
+                                    cd ..
+                                    docker build --build-arg SERVICE=${service} --build-arg STAGE=${env.STAGE} -f docker/Dockerfile.${service} -t ${DOCKER_REGISTRY}/${service}:${env.GIT_COMMIT_SHA} .
+                                    docker push ${DOCKER_REGISTRY}/${service}:${env.GIT_COMMIT_SHA}
+                                 """
                                 }
                             }
                             sh "echo y | docker image prune -a"
@@ -101,7 +101,13 @@ pipeline {
                     steps {
                         checkout scm
                         script {
-                            if (env.CHANGED_SERVICES?.trim()) {
+                            if (env.IS_CHANGED_ROOT == "true") {
+                                // Test all services
+                                sh "echo run test for all services"
+                                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                                    sh "mvn test"
+                                }
+                            } else if (env.CHANGED_SERVICES?.trim()) {
                                 // Test only changed services
                                 def changedServices = env.CHANGED_SERVICES.split(',')
                                 for (service in changedServices) {
@@ -112,12 +118,6 @@ pipeline {
                                         mvn test
                                     """
                                     }
-                                }
-                            } else if (env.IS_CHANGED_ROOT == "true") {
-                                // Test all services
-                                sh "echo run test for all services"
-                                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                                    sh "mvn test"
                                 }
                             }
                         }
