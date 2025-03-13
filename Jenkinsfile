@@ -93,7 +93,10 @@ pipeline {
                                 docker build --build-arg SERVICE=${service} --build-arg STAGE=${env.STAGE} -f docker/Dockerfile.${service} -t ${DOCKER_REGISTRY}/${env.STAGE}-${service}:${env.GIT_COMMIT_SHA} .
                                 """
                             }
-                            sh "echo y | docker image prune -a"
+                            sh """
+                                echo y | docker image prune -a
+                                echo y | docker system prune -a
+                            """
                         }
                     }
                 }
