@@ -10,7 +10,7 @@ pipeline {
             steps {
                 script {
                     def changedFiles = sh(script: "git diff --name-only origin/main", returnStdout: true).trim().split("\n")
-                    def services = ['customers-service', 'vets-service', 'visits-service', 'api-gateway']
+                    def services = ['spring-petclinic-customers-service', 'spring-petclinic-vets-service', 'spring-petclinic-visits-service', 'spring-petclinic-genai-service']
                     
                     echo "Changed files: ${changedFiles}"
                     
@@ -21,7 +21,7 @@ pipeline {
                     }
                     
                     for (service in services) {
-                        if (changedFiles.any { it.contains(service + '/') }) {
+                        if (changedFiles.any { it.startsWith(service + '/') }) {
                             env.SERVICE_CHANGED = service
                             break
                         }
