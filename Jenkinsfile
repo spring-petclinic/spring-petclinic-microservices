@@ -1,101 +1,76 @@
 pipeline {
     agent any
-
+    
     environment {
-        GIT_REPO = 'https://github.com/pTn-3001/DevOps_Project1.git'
+        OTHER_VARIABLE = ''
     }
-
+    
     stages {
-        stage('Checkout Code') {
-            steps {
-                echo 'Starting Checkout stage'
-                git branch: 'main',
-                    url: "${GIT_REPO}",
-                    credentialsId: 'github-pat-global'
-                echo 'Checkout completed'
-            }
-        }
-
-        stage('Detect Changes') {
+        stage('Check Changes') {
             steps {
                 script {
-                    def changedFiles = []
-                    def hasPreviousCommit = sh(script: "git rev-parse --verify HEAD~1 > /dev/null 2>&1 || echo 'no'", returnStdout: true).trim() != 'no'
-
-                    if (hasPreviousCommit) {
-                        changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim().split("\n")
-                    } else {
-                        echo "No previous commit found, running full build."
-                        changedFiles = ["FULL_BUILD"]
+                    def changedFiles = sh(script: "git diff --name-only origin/main", returnStdout: true).trim().split("\n")
+                    def services = ['spring-petclinic-customers-service', 'spring-petclinic-vets-service', 'spring-petclinic-visits-service', 'spring-petclinic-genai-service']
+                
+                    echo "Changed files: ${changedFiles}"
+                
+                    if (changedFiles.size() == 0 || changedFiles[0] == '') {
+                        echo "No changes detected. Skipping pipeline."
+                        currentBuild.result = 'ABORTED'
+                        return
                     }
-
-                    echo "Changed files: ${changedFiles.join(', ')}"
-
-                    env.SHOULD_BUILD_CUSTOMERS = changedFiles.any { it.startsWith("customers-service/") || it == "FULL_BUILD" } ? "true" : "false"
-                    env.SHOULD_BUILD_VETS = changedFiles.any { it.startsWith("vets-service/") || it == "FULL_BUILD" } ? "true" : "false"
-                    env.SHOULD_BUILD_VISIT = changedFiles.any { it.startsWith("visit-service/") || it == "FULL_BUILD" } ? "true" : "false"
-
-                    echo "SHOULD_BUILD_CUSTOMERS = ${env.SHOULD_BUILD_CUSTOMERS}"
-                    echo "SHOULD_BUILD_VETS = ${env.SHOULD_BUILD_VETS}"
-                    echo "SHOULD_BUILD_VISIT = ${env.SHOULD_BUILD_VISIT}"
+                
+                    def detectedServices = []
+                    for (service in services) {
+                        if (changedFiles.any { it.startsWith(service + '/') }) {
+                            detectedServices << service
+                        }
+                    }
+                
+                    if (detectedServices.isEmpty()) {
+                        echo "No relevant service changes detected. Skipping pipeline."
+                        currentBuild.result = 'ABORTED'
+                        return
+                    }
+                    echo "detected Services: ${detectedServices}"
+                    env.SERVICE_CHANGED = detectedServices.join(",").toString() 
+                    echo "Changes detected in services: ${env.SERVICE_CHANGED}"
                 }
             }
         }
-
-        stage('Test Services') {
-            parallel {
-                stage('Test Customers Service') {
-                    when { expression { env.get('SHOULD_BUILD_CUSTOMERS') == "true" } }
-                    steps {
-                        echo "Testing customers-service..."
-                        sh './mvnw test -pl customers-service'
-                    }
-                }
-
-                stage('Test Vets Service') {
-                    when { expression { env.get('SHOULD_BUILD_VETS') == "true" } }
-                    steps {
-                        echo "Testing vets-service..."
-                        sh './mvnw test -pl vets-service'
-                    }
-                }
-
-                stage('Test Visit Service') {
-                    when { expression { env.get('SHOULD_BUILD_VISIT') == "true" } }
-                    steps {
-                        echo "Testing visit-service..."
-                        sh './mvnw test -pl visit-service'
-                    }
+        
+        stage('Test') {
+            when {
+                expression { return env.SERVICE_CHANGED != '' }
+            }
+            steps {
+                echo "Testing service: ${env.SERVICE_CHANGED}"
+                sh "./mvnw test -pl ${env.SERVICE_CHANGED} -am"
+            }
+            post {
+                always {
+                    junit "${env.SERVICE_CHANGED}/target/surefire-reports/*.xml"
                 }
             }
         }
-
-        stage('Build Services') {
-            parallel {
-                stage('Build Customers Service') {
-                    when { expression { env.get('SHOULD_BUILD_CUSTOMERS') == "true" } }
-                    steps {
-                        echo "Building customers-service..."
-                        sh './mvnw clean package -pl customers-service -DskipTests'
-                    }
-                }
-
-                stage('Build Vets Service') {
-                    when { expression { env.get('SHOULD_BUILD_VETS') == "true" } }
-                    steps {
-                        echo "Building vets-service..."
-                        sh './mvnw clean package -pl vets-service -DskipTests'
-                    }
-                }
-
-                stage('Build Visit Service') {
-                    when { expression { env.get('SHOULD_BUILD_VISIT') == "true" } }
-                    steps {
-                        echo "Building visit-service..."
-                        sh './mvnw clean package -pl visit-service -DskipTests'
-                    }
-                }
+        
+        stage('Build') {
+            when {
+                expression { return env.SERVICE_CHANGED != '' }
             }
+            steps {
+                echo "Building service: ${env.SERVICE_CHANGED}"
+                sh "./mvnw package -pl ${env.SERVICE_CHANGED} -am -DskipTests"
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo "Pipeline completed successfully for service: ${env.SERVICE_CHANGED}"
+        }
+        failure {
+            echo "Pipeline failed for service: ${env.SERVICE_CHANGED}"
         }
     }
 }
