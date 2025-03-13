@@ -23,7 +23,7 @@ pipeline {
                     for (service in services) {
                         echo "Checking service: ${service}"
                         if (changedFiles.find { it.indexOf(service) >= 0 }) {
-                            withEnv(["SERVICE_CHANGED=${detectedService}"])
+                            withEnv(["SERVICE_CHANGED=${service}"])
                             echo "Matched service: ${env.SERVICE_CHANGED}"
                             break
                         }
