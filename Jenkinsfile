@@ -78,9 +78,6 @@ pipeline {
                     agent { label 'maven-node' }
                     steps {
                         checkout scm
-                        withCredentials([usernamePassword(credentialsId: 'docker-registry-token', usernameVariable: 'USERNAME', passwordVariable: 'PASSWD')]) {
-                            sh 'echo "$PASSWD" | docker login  --username "$USERNAME" --password-stdin'
-                        }
                         script {
                             env.GIT_COMMIT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
                             if (env.IS_CHANGED_ROOT == "true")  env.CHANGED_SERVICES = env.SERVICES
@@ -95,10 +92,6 @@ pipeline {
                                 docker build --build-arg SERVICE=${service} --build-arg STAGE=${env.STAGE} -f docker/Dockerfile.${service} -t ${DOCKER_REGISTRY}/${env.STAGE}-${service}:${env.GIT_COMMIT_SHA} .
                                 """
                             }
-                            sh """
-                                echo y | docker image prune -a
-                                echo y | docker system prune -a
-                            """
                         }
                     }
                 }
@@ -121,20 +114,26 @@ pipeline {
                             }
                         }
                     }
-                    post {
-                        always {
-                            echo "Cleaning up workspace on maven-node..."
-                            cleanWs()
-                        }
-                    }
                 }
             }
         }
-        //stage("Push artifact") {
-        //    when {
-        //        expression { return env.STAGE == "prod" || env.STAGE == "dev" || env.STAGE == "uat" }
-        //    }
-        //}
+        stage("Push artifact") {
+            when {
+                expression { return env.STAGE == "prod" || env.STAGE == "dev" || env.STAGE == "uat" }
+            }
+            agent {label maven-node}
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker-registry-token', usernameVariable: 'USERNAME', passwordVariable: 'PASSWD')]) {
+                    sh 'echo "$PASSWD" | docker login  --username "$USERNAME" --password-stdin'
+                }
+                sh """
+                        docker push ${DOCKER_REGISTRY}/${env.STAGE}-${service}:${env.GIT_COMMIT_SHA}
+                        echo y | docker image prune -a
+                        echo y | docker system prune -a
+                   """
+            }
+
+        }
         //stage("Trigger Github Actions") {
         //
         //}
