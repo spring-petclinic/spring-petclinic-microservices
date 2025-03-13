@@ -52,7 +52,6 @@ pipeline {
                 }
             }
         }
-        
         stage('Test Services') {
             when {
                 expression { return env.CHANGED_SERVICES != "" }
@@ -60,36 +59,58 @@ pipeline {
             steps {
                 script {
                     def serviceList = env.CHANGED_SERVICES.trim().split(" ")
-                    for (service in serviceList) {
-                        echo "Testing service: ${service}"
-                        dir(service) {
-                            // Check if the service has tests
-                            if (!env.SERVICES_WITHOUT_TESTS.contains(service)) {
-                                try {
-                                    sh 'mvn clean test'
-                                    
-                                    // Publish test results
-                                    junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
-                                    
-                                    // Publish coverage reports
-                                    jacoco(
-                                        execPattern: '**/target/jacoco.exec',
-                                        classPattern: '**/target/classes',
-                                        sourcePattern: '**/src/main/java',
-                                        exclusionPattern: '**/src/test*'
-                                    )
-                                } catch (Exception e) {
-                                    echo "Warning: Tests failed for ${service}, but continuing pipeline"
-                                    currentBuild.result = 'UNSTABLE'
+                    
+                    // Create a GitHub check for the test stage
+                    checkout([$class: 'GitSCM', branches: [[name: env.GIT_COMMIT]]])
+                    def checkRunName = "Test Services"
+                    def checkRun = githubChecks name: checkRunName,
+                                              status: 'in_progress',
+                                              summary: "Running tests for services: ${env.CHANGED_SERVICES}"
+                    
+                    try {
+                        for (service in serviceList) {
+                            echo "Testing service: ${service}"
+                            dir(service) {
+                                // Check if the service has tests
+                                if (!env.SERVICES_WITHOUT_TESTS.contains(service)) {
+                                    try {
+                                        sh 'mvn clean test'
+                                        
+                                        // Publish test results
+                                        junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+                                        
+                                        // Publish coverage reports
+                                        jacoco(
+                                            execPattern: '**/target/jacoco.exec',
+                                            classPattern: '**/target/classes',
+                                            sourcePattern: '**/src/main/java',
+                                            exclusionPattern: '**/src/test*'
+                                        )
+                                    } catch (Exception e) {
+                                        echo "Warning: Tests failed for ${service}, but continuing pipeline"
+                                        currentBuild.result = 'UNSTABLE'
+                                    }
+                                } else {
+                                    echo "Skipping tests for ${service} as it does not have test folders"
                                 }
-                            } else {
-                                echo "Skipping tests for ${service} as it does not have test folders"
                             }
                         }
+                        
+                        checkRun.conclusion = 'success'
+                        checkRun.summaryText = "All tests completed successfully"
+                    } catch (Exception e) {
+                        checkRun.conclusion = 'failure'
+                        checkRun.summaryText = "Tests failed: ${e.message}"
+                        throw e
+                    } finally {
+                        checkRun.status = 'completed'
+                        checkRun.text = "Detailed test results for the following services: ${env.CHANGED_SERVICES}"
+                        checkRun.publish()
                     }
                 }
             }
         }
+        
         stage('Build Services') {
             when {
                 expression { return env.CHANGED_SERVICES != "" }
@@ -97,12 +118,32 @@ pipeline {
             steps {
                 script {
                     def serviceList = env.CHANGED_SERVICES.trim().split(" ")
-                    for (service in serviceList) {
-                        echo "Building service: ${service}"
-                        dir(service) {
-                            sh 'mvn package -DskipTests'
-                            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                    
+                    // Create a GitHub check for the build stage
+                    def checkRunName = "Build Services"
+                    def checkRun = githubChecks name: checkRunName,
+                                              status: 'in_progress',
+                                              summary: "Building services: ${env.CHANGED_SERVICES}"
+                    
+                    try {
+                        for (service in serviceList) {
+                            echo "Building service: ${service}"
+                            dir(service) {
+                                sh 'mvn package -DskipTests'
+                                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                            }
                         }
+                        
+                        checkRun.conclusion = 'success'
+                        checkRun.summaryText = "All services built successfully"
+                    } catch (Exception e) {
+                        checkRun.conclusion = 'failure'
+                        checkRun.summaryText = "Build failed: ${e.message}"
+                        throw e
+                    } finally {
+                        checkRun.status = 'completed'
+                        checkRun.text = "Build results for services: ${env.CHANGED_SERVICES}"
+                        checkRun.publish()
                     }
                 }
             }
