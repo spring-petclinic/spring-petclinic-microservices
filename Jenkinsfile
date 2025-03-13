@@ -23,6 +23,20 @@ pipeline {
                             "spring-petclinic-genai-service"
                     ]
                     env.SERVICES = SERVICES.join(",")
+
+                    switch (env.BRANCH_NAME) {
+                        case "main":
+                            env.STAGE = "prod"
+                            break
+                        case "dev":
+                            env.STAGE = "dev"
+                            break
+                        case "uat":
+                            env.STAGE = "uat"
+                            break
+                        default:
+                            env.STAGE = env.BRANCH_NAME
+                    }
                 }
             }
         }
@@ -67,7 +81,6 @@ pipeline {
                         sh "cat ~/docker-registry-passwd.txt | docker login --username ${DOCKER_REGISTRY} --password-stdin" //@fixme:withCredential()
                         script {
                             env.GIT_COMMIT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                            env.STAGE = env.BRANCH_NAME == "main" ? "prod" : "dev" //@fixme
                             if (env.IS_CHANGED_ROOT == "true")  env.CHANGED_SERVICES = env.SERVICES
 
                             def changedServices = env.CHANGED_SERVICES.split(',')
@@ -78,8 +91,7 @@ pipeline {
                                 mvn clean package -DskipTests
                                 cd ..
                                 docker build --build-arg SERVICE=${service} --build-arg STAGE=${env.STAGE} -f docker/Dockerfile.${service} -t ${DOCKER_REGISTRY}/${env.STAGE}-${service}:${env.GIT_COMMIT_SHA} .
-                                docker push ${DOCKER_REGISTRY}/${env.STAGE}-${service}:${env.GIT_COMMIT_SHA}
-                             """
+                                """
                             }
                             sh "echo y | docker image prune -a"
                         }
@@ -113,9 +125,17 @@ pipeline {
                 }
             }
         }
+        stage(Push artifact) {
+            when {
+                expression { return env.STAGE == "prod" || env.STAGE == "dev" || env.STAGE == "uat" }
+            }
+        }
+        stage("Trigger Github Actions") {
+
+        }
         //stage('Deploy') {
         //    when {
-        //        expression { return env.STAGE == "prod" || env.STAGE = "dev" || env.STAGE = "uat" }
+        //        expression { return env.STAGE == "prod" || env.STAGE == "dev" || env.STAGE == "uat" }
         //    }
         //    agent { label 'kubernetes-node' }
         //    steps {
