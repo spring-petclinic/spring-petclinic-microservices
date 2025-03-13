@@ -32,7 +32,7 @@ pipeline {
                         currentBuild.result = 'ABORTED'
                         return
                     }
-                
+                    echo "detected Services: ${detectedServices}"
                     env.SERVICE_CHANGED = detectedServices.join(",").toString() 
                     echo "Changes detected in services: ${env.SERVICE_CHANGED}"
                 }
