@@ -9,8 +9,14 @@ pipeline {
         stage('Check Changes') {
             steps {
                 script {
-                    def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim().split("\n")
-                    def services = ['customers-service', 'vets-service', 'visits-service', 'genai-service']
+                    def changedFiles = sh(script: "git diff --name-only origin/main", returnStdout: true).trim().split("\n")
+                    def services = ['customers-service', 'vets-service', 'visits-service', 'genai-serivice']
+                    
+                    if (changedFiles.size() == 0 || changedFiles[0] == '') {
+                        echo "No changes detected. Skipping pipeline."
+                        currentBuild.result = 'ABORTED'
+                        return
+                    }
                     
                     for (service in services) {
                         if (changedFiles.any { it.startsWith(service + '/') }) {
@@ -18,11 +24,13 @@ pipeline {
                             break
                         }
                     }
+                    
                     if (env.SERVICE_CHANGED == '') {
-                        echo "No relevant changes detected. Skipping pipeline."
+                        echo "No relevant service changes detected. Skipping pipeline."
                         currentBuild.result = 'ABORTED'
                         return
                     }
+                    
                     echo "Changes detected in service: ${env.SERVICE_CHANGED}"
                 }
             }
