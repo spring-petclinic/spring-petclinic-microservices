@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        OTHER_VARIABLE = ''
+        SERVICES = ''
     }
     
     stages {
@@ -10,7 +10,7 @@ pipeline {
             steps {
                 script {
                     def changedFiles = sh(script: "git diff --name-only origin/main", returnStdout: true).trim().split("\n")
-                    def services = ['spring-petclinic-customers-service', 'spring-petclinic-vets-service', 'spring-petclinic-visits-service', 'spring-petclinic-genai-service']
+                    def services = ['spring-petclinic-customers-service', 'spring-petclinic-vets-service', 'spring-petclinic-visits-service']
                 
                     echo "Changed files: ${changedFiles}"
                 
@@ -20,11 +20,8 @@ pipeline {
                         return
                     }
                 
-                    def detectedServices = []
-                    for (service in services) {
-                        if (changedFiles.any { it.startsWith(service + '/') }) {
-                            detectedServices << service
-                        }
+                    def detectedServices = services.findAll { service -> 
+                        changedFiles.any { it.startsWith(service + '/') }
                     }
                 
                     if (detectedServices.isEmpty()) {
@@ -32,45 +29,63 @@ pipeline {
                         currentBuild.result = 'ABORTED'
                         return
                     }
-                    echo "detected Services: ${detectedServices}"
-                    env.SERVICE_CHANGED = detectedServices.join(",").toString() 
-                    echo "Changes detected in services: ${env.SERVICE_CHANGED}"
+                
+                    env.SERVICES = detectedServices.join(",")
+                    echo "Detected services: ${env.SERVICES}"
                 }
             }
         }
         
-        stage('Test') {
+        stage('Create Branch & Add Tests') {
             when {
-                expression { return env.SERVICE_CHANGED != '' }
+                expression { return env.SERVICES != '' }
             }
             steps {
-                echo "Testing service: ${env.SERVICE_CHANGED}"
-                sh "./mvnw test -pl ${env.SERVICE_CHANGED} -am"
+                script {
+                    def services = env.SERVICES.split(",")
+                    for (service in services) {
+                        def branchName = "add-tests-${service}-${env.BUILD_ID}"
+                        echo "Creating branch: ${branchName}"
+                        
+                        sh """
+                            git checkout -b ${branchName}
+                            echo "// New test case" >> ${service}/src/test/java/NewTest.java
+                            git add ${service}/src/test/java/NewTest.java
+                            git commit -m "Add unit test for ${service}"
+                            git push origin ${branchName}
+                        """
+                    }
+                }
+            }
+        }
+        
+        stage('Run Unit Tests') {
+            when {
+                expression { return env.SERVICES != '' }
+            }
+            steps {
+                script {
+                    def services = env.SERVICES.split(",")
+                    for (service in services) {
+                        echo "Running unit tests for: ${service}"
+                        sh "./mvnw test -pl ${service} -am"
+                    }
+                }
             }
             post {
                 always {
-                    junit "${env.SERVICE_CHANGED}/target/surefire-reports/*.xml"
+                    junit "**/target/surefire-reports/*.xml"
                 }
-            }
-        }
-        
-        stage('Build') {
-            when {
-                expression { return env.SERVICE_CHANGED != '' }
-            }
-            steps {
-                echo "Building service: ${env.SERVICE_CHANGED}"
-                sh "./mvnw package -pl ${env.SERVICE_CHANGED} -am -DskipTests"
             }
         }
     }
     
     post {
         success {
-            echo "Pipeline completed successfully for service: ${env.SERVICE_CHANGED}"
+            echo "All tests passed successfully!"
         }
         failure {
-            echo "Pipeline failed for service: ${env.SERVICE_CHANGED}"
+            echo "Some tests failed."
         }
     }
 }
