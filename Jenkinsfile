@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        SERVICES = ''
+        OTHER_SERVICES = ''
     }
     
     stages {
