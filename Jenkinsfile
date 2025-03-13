@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        OTHER_SERVICES = ''
+        LSERVICE_CHANGED = '' // Đã được set từ stage Check Changes
     }
     
     stages {
@@ -11,81 +11,79 @@ pipeline {
                 script {
                     def changedFiles = sh(script: "git diff --name-only origin/main", returnStdout: true).trim().split("\n")
                     def services = ['spring-petclinic-customers-service', 'spring-petclinic-vets-service', 'spring-petclinic-visits-service']
-                
+                    
                     echo "Changed files: ${changedFiles}"
-                
+                    
                     if (changedFiles.size() == 0 || changedFiles[0] == '') {
                         echo "No changes detected. Skipping pipeline."
                         currentBuild.result = 'ABORTED'
                         return
                     }
-                
-                    def detectedServices = services.findAll { service -> 
-                        changedFiles.any { it.startsWith(service + '/') }
+                    
+                    def detectedServices = []
+                    for (service in services) {
+                        if (changedFiles.any { it.startsWith(service + '/') }) {
+                            detectedServices << service
+                        }
                     }
-                
+                    
                     if (detectedServices.isEmpty()) {
                         echo "No relevant service changes detected. Skipping pipeline."
                         currentBuild.result = 'ABORTED'
                         return
                     }
+                    echo "Detected Services: ${detectedServices}"
+                    env.SERVICE_CHANGED = detectedServices.join(",")
+                    echo "Changes detected in services: ${env.SERVICE_CHANGED}"
+                }
+            }
+        }
+        
+        stage('Test & Coverage') {
+            when {
+                expression { return env.SERVICE_CHANGED != '' }
+            }
+            steps {
+                echo "Running unit tests for service: ${env.SERVICE_CHANGED}"
+                sh "./mvnw clean test -pl ${env.SERVICE_CHANGED} -am"
                 
-                    env.SERVICES = detectedServices.join(",")
-                    echo "Detected services: ${env.SERVICES}"
-                }
-            }
-        }
-        
-        stage('Create Branch & Add Tests') {
-            when {
-                expression { return env.SERVICES != '' }
-            }
-            steps {
+                echo "Generating Jacoco coverage report..."
+                sh "./mvnw jacoco:report -pl ${env.SERVICE_CHANGED} -am"
+                
+                echo "Extracting test coverage..."
                 script {
-                    def services = env.SERVICES.split(",")
-                    for (service in services) {
-                        def branchName = "add-tests-${service}-${env.BUILD_ID}"
-                        echo "Creating branch: ${branchName}"
-                        
-                        sh """
-                            git checkout -b ${branchName}
-                            echo "// New test case" >> ${service}/src/test/java/NewTest.java
-                            git add ${service}/src/test/java/NewTest.java
-                            git commit -m "Add unit test for ${service}"
-                            git push origin ${branchName}
-                        """
-                    }
-                }
-            }
-        }
-        
-        stage('Run Unit Tests') {
-            when {
-                expression { return env.SERVICES != '' }
-            }
-            steps {
-                script {
-                    def services = env.SERVICES.split(",")
-                    for (service in services) {
-                        echo "Running unit tests for: ${service}"
-                        sh "./mvnw test -pl ${service} -am"
-                    }
+                    def coverageReport = sh(
+                        script: "grep -A 1 '<td>Total</td>' ${env.SERVICE_CHANGED}/target/site/jacoco/index.html | tail -1",
+                        returnStdout: true
+                    ).trim()
+                    echo "Test Coverage Report: ${coverageReport}"
                 }
             }
             post {
                 always {
-                    junit "**/target/surefire-reports/*.xml"
+                    junit "${env.SERVICE_CHANGED}/target/surefire-reports/*.xml"
+                    archiveArtifacts artifacts: "${env.SERVICE_CHANGED}/target/site/jacoco/*", fingerprint: true
                 }
+            }
+        }
+        
+        stage('Build') {
+            when {
+                expression { return env.SERVICE_CHANGED != '' }
+            }
+            steps {
+                echo "Building service: ${env.SERVICE_CHANGED}"
+                sh "./mvnw package -pl ${env.SERVICE_CHANGED} -am -DskipTests"
             }
         }
     }
     
     post {
         success {
-            echo "All tests passed successfully!"
+            echo "Pipeline completed successfully for service: ${env.SERVICE_CHANGED}"
         }
         failure {
-            echo "Some tests failed."
+            echo "Pipeline failed for service: ${env.SERVICE_CHANGED}"
         }
     }
 }
