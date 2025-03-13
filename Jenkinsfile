@@ -11,32 +11,30 @@ pipeline {
                 script {
                     def changedFiles = sh(script: "git diff --name-only origin/main", returnStdout: true).trim().split("\n")
                     def services = ['spring-petclinic-customers-service', 'spring-petclinic-vets-service', 'spring-petclinic-visits-service', 'spring-petclinic-genai-service']
-                    
+                
                     echo "Changed files: ${changedFiles}"
-                    
+                
                     if (changedFiles.size() == 0 || changedFiles[0] == '') {
                         echo "No changes detected. Skipping pipeline."
                         currentBuild.result = 'ABORTED'
                         return
                     }
-                    
+                
+                    def detectedServices = []
                     for (service in services) {
-                        echo "Checking service: ${service}"
-                        if (changedFiles.find { it.indexOf(service) >= 0 }) {
-                            withEnv(["SERVICE_CHANGED=${service}"])
-                            echo "Matched service: ${env.SERVICE_CHANGED}"
-                            break
+                        if (changedFiles.any { it.startsWith(service + '/') }) {
+                            detectedServices << service
                         }
                     }
-
-                    
-                    if (env.SERVICE_CHANGED == '') {
+                
+                    if (detectedServices.isEmpty()) {
                         echo "No relevant service changes detected. Skipping pipeline."
                         currentBuild.result = 'ABORTED'
                         return
                     }
-                    
-                    echo "Changes detected in service: ${env.SERVICE_CHANGED}"
+                
+                    env.SERVICE_CHANGED = detectedServices.join(",").toString() 
+                    echo "Changes detected in services: ${env.SERVICE_CHANGED}"
                 }
             }
         }
