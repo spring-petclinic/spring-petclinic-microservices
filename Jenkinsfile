@@ -23,14 +23,20 @@ pipeline {
                 script {
                     def changedFiles = sh(script: "git diff --name-only origin/${env.MAIN_BRANCH} HEAD", returnStdout: true).trim().split("\n")
                     echo "Changed files: ${changedFiles.join(', ')}"
-
-                    env.SHOULD_BUILD_CUSTOMERS = changedFiles.any { it.startsWith("customers-service/") } ? "true" : "false"
-                    env.SHOULD_BUILD_VETS = changedFiles.any { it.startsWith("vets-service/") } ? "true" : "false"
-                    env.SHOULD_BUILD_VISIT = changedFiles.any { it.startsWith("visit-service/") } ? "true" : "false"
-
-                    echo "SHOULD_BUILD_CUSTOMERS = ${env.SHOULD_BUILD_CUSTOMERS}"
-                    echo "SHOULD_BUILD_VETS = ${env.SHOULD_BUILD_VETS}"
-                    echo "SHOULD_BUILD_VISIT = ${env.SHOULD_BUILD_VISIT}"
+        
+                    def shouldBuildCustomers = changedFiles.any { it.startsWith("customers-service/") } ? "true" : "false"
+                    def shouldBuildVets = changedFiles.any { it.startsWith("vets-service/") } ? "true" : "false"
+                    def shouldBuildVisit = changedFiles.any { it.startsWith("visit-service/") } ? "true" : "false"
+        
+                    withEnv([
+                        "SHOULD_BUILD_CUSTOMERS=${shouldBuildCustomers}",
+                        "SHOULD_BUILD_VETS=${shouldBuildVets}",
+                        "SHOULD_BUILD_VISIT=${shouldBuildVisit}"
+                    ]) {
+                        echo "SHOULD_BUILD_CUSTOMERS = ${env.SHOULD_BUILD_CUSTOMERS}"
+                        echo "SHOULD_BUILD_VETS = ${env.SHOULD_BUILD_VETS}"
+                        echo "SHOULD_BUILD_VISIT = ${env.SHOULD_BUILD_VISIT}"
+                    }
                 }
             }
         }
