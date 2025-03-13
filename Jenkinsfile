@@ -11,18 +11,19 @@ pipeline {
                 script {
                     def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim().split("\n")
                     def services = ['customers-service', 'vets-service', 'visits-service', 'api-gateway']
+                    
                     for (service in services) {
                         if (changedFiles.any { it.startsWith(service + '/') }) {
-                            SERVICE_CHANGED = service
+                            env.SERVICE_CHANGED = service
                             break
                         }
                     }
-                    if (SERVICE_CHANGED == '') {
+                    if (env.SERVICE_CHANGED == '') {
                         echo "No relevant changes detected. Skipping pipeline."
                         currentBuild.result = 'ABORTED'
                         return
                     }
-                    echo "Changes detected in service: ${SERVICE_CHANGED}"
+                    echo "Changes detected in service: ${env.SERVICE_CHANGED}"
                 }
             }
         }
@@ -32,13 +33,13 @@ pipeline {
                 expression { return env.SERVICE_CHANGED != '' }
             }
             steps {
-                dir("${SERVICE_CHANGED}") {
+                dir("${env.SERVICE_CHANGED}") {
                     sh './mvnw test'
                 }
             }
             post {
                 always {
-                    junit "${SERVICE_CHANGED}/target/surefire-reports/*.xml"
+                    junit "${env.SERVICE_CHANGED}/target/surefire-reports/*.xml"
                 }
             }
         }
@@ -48,7 +49,7 @@ pipeline {
                 expression { return env.SERVICE_CHANGED != '' }
             }
             steps {
-                dir("${SERVICE_CHANGED}") {
+                dir("${env.SERVICE_CHANGED}") {
                     sh './mvnw package -DskipTests'
                 }
             }
@@ -57,10 +58,10 @@ pipeline {
     
     post {
         success {
-            echo "Pipeline completed successfully for service: ${SERVICE_CHANGED}"
+            echo "Pipeline completed successfully for service: ${env.SERVICE_CHANGED}"
         }
         failure {
-            echo "Pipeline failed for service: ${SERVICE_CHANGED}"
+            echo "Pipeline failed for service: ${env.SERVICE_CHANGED}"
         }
     }
 }
