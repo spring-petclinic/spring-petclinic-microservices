@@ -36,7 +36,7 @@ pipeline {
                         def rootChanged = false
 
                         for (file in changedFiles) {
-                                if (!file.startsWith("${SERVICE_AS}/")) {
+                                if (!file.startsWith("${SERVICE_AS}")) {
                                     rootChanged = true
                                 break
                             } else {
