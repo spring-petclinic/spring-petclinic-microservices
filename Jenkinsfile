@@ -31,24 +31,27 @@ pipeline {
             steps {
                 dir("${WORKSPACE}"){
                     script {
-                    def changedFiles = sh(script: "git init && git branch -m ${BRANCH_NAME} && git fetch --no-tags --force --progress -- ${REPO_URL} refs/heads/${BRANCH_NAME}:refs/remotes/origin/${BRANCH_NAME} && git diff --name-only origin/${BRANCH_NAME}", returnStdout: true).trim().split("\n")
-                    def changedServices = [] as Set
-                    def rootChanged = false
+                        def changedFiles = sh(script: "git init && git branch -m ${BRANCH_NAME} && git fetch --no-tags --force --progress -- ${REPO_URL} refs/heads/${BRANCH_NAME}:refs/remotes/origin/${BRANCH_NAME} && git diff --name-only origin/${BRANCH_NAME}", returnStdout: true).trim().split("\n")
+                        def changedServices = [] as Set
+                        def rootChanged = false
 
-                    for (file in changedFiles) {
-                            if (!file.startsWith("${SERVICE_AS}/")) {
-                                rootChanged = true
-                            break
-                        } else {
-                                def service = file.split("/")[0]
-                            changedServices.add(service)
+                        for (file in changedFiles) {
+                                if (!file.startsWith("${SERVICE_AS}/")) {
+                                    rootChanged = true
+                                break
+                            } else {
+                                    def service = file.split("/")[0]
+                                changedServices.add(service)
+                            }
                         }
-                    }
 
-                    env.CHANGED_SERVICES = changedServices.join(',')
-                    env.IS_CHANGED_ROOT = rootChanged.toString()
-                    echo "Changed Services: ${env.CHANGED_SERVICES}"
-                }
+                        env.CHANGED_SERVICES = changedServices.join(',')
+                        env.IS_CHANGED_ROOT = rootChanged.toString()
+                        echo "Changed Services: ${env.CHANGED_SERVICES}"
+                        echo "Changed Root: ${env.IS_CHANGED_ROOT}"
+
+                        sh "git merge origin/${BRANCH_NAME}"
+                    }
                 }
             }
         }
