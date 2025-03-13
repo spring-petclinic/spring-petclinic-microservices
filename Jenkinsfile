@@ -146,11 +146,5 @@ pipeline {
         //        }
         //    }
         //}
-        stage('Post') {
-            agent { label 'maven-node' }
-            steps {
-                cleanWS()
-            }
-        }
     }
 }
