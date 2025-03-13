@@ -30,5 +30,4 @@ public class DiscoveryServerApplication {
 		SpringApplication.run(DiscoveryServerApplication.class, args);
 	}
 
-
 }
