@@ -23,3 +23,4 @@ generated/
 **/.DS_Store
 
 myStuff/
+.env
