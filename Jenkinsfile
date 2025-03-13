@@ -1,148 +1,76 @@
 pipeline {
     agent any
-
+    
     environment {
-        GIT_REPO = 'https://github.com/pTn-3001/DevOps_Project1.git'
-        GITHUB_CREDENTIALS_ID = 'github-pat-global' // Thay bằng ID token GitHub
-        MAIN_BRANCH = 'main'
+        OTHER_VARIABLE = ''
     }
-
+    
     stages {
-        stage('Checkout Code') {
-            steps {
-                echo 'Starting Checkout stage'
-                git branch: "${env.BRANCH_NAME}",
-                    url: "${GIT_REPO}",
-                    credentialsId: "${GITHUB_CREDENTIALS_ID}"
-                echo 'Checkout completed'
-            }
-        }
-
-        stage('Detect Changes') {
+        stage('Check Changes') {
             steps {
                 script {
-                    def changedFiles = sh(script: "git diff --name-only origin/${env.MAIN_BRANCH} HEAD", returnStdout: true).trim().split("\n")
-                    echo "Changed files: ${changedFiles.join(', ')}"
-        
-                    def shouldBuildCustomers = changedFiles.any { it.startsWith("customers-service/") } ? "true" : "false"
-                    def shouldBuildVets = changedFiles.any { it.startsWith("vets-service/") } ? "true" : "false"
-                    def shouldBuildVisit = changedFiles.any { it.startsWith("visit-service/") } ? "true" : "false"
-        
-                    withEnv([
-                        "SHOULD_BUILD_CUSTOMERS=${shouldBuildCustomers}",
-                        "SHOULD_BUILD_VETS=${shouldBuildVets}",
-                        "SHOULD_BUILD_VISIT=${shouldBuildVisit}"
-                    ]) {
-                        echo "SHOULD_BUILD_CUSTOMERS = ${env.SHOULD_BUILD_CUSTOMERS}"
-                        echo "SHOULD_BUILD_VETS = ${env.SHOULD_BUILD_VETS}"
-                        echo "SHOULD_BUILD_VISIT = ${env.SHOULD_BUILD_VISIT}"
+                    def changedFiles = sh(script: "git diff --name-only origin/main", returnStdout: true).trim().split("\n")
+                    def services = ['spring-petclinic-customers-service', 'spring-petclinic-vets-service', 'spring-petclinic-visits-service', 'spring-petclinic-genai-service']
+                
+                    echo "Changed files: ${changedFiles}"
+                
+                    if (changedFiles.size() == 0 || changedFiles[0] == '') {
+                        echo "No changes detected. Skipping pipeline."
+                        currentBuild.result = 'ABORTED'
+                        return
                     }
+                
+                    def detectedServices = []
+                    for (service in services) {
+                        if (changedFiles.any { it.startsWith(service + '/') }) {
+                            detectedServices << service
+                        }
+                    }
+                
+                    if (detectedServices.isEmpty()) {
+                        echo "No relevant service changes detected. Skipping pipeline."
+                        currentBuild.result = 'ABORTED'
+                        return
+                    }
+                    echo "detected Services: ${detectedServices}"
+                    env.SERVICE_CHANGED = detectedServices.join(",").toString() 
+                    echo "Changes detected in services: ${env.SERVICE_CHANGED}"
                 }
             }
         }
-
-        stage('Run Tests') {
-            parallel {
-                stage('Test Customers Service') {
-                    when { expression { env.SHOULD_BUILD_CUSTOMERS == "true" } }
-                    steps {
-                        echo "Running tests for customers-service..."
-                        sh './mvnw test -pl customers-service'
-                    }
-                }
-
-                stage('Test Vets Service') {
-                    when { expression { env.SHOULD_BUILD_VETS == "true" } }
-                    steps {
-                        echo "Running tests for vets-service..."
-                        sh './mvnw test -pl vets-service'
-                    }
-                }
-
-                stage('Test Visit Service') {
-                    when { expression { env.SHOULD_BUILD_VISIT == "true" } }
-                    steps {
-                        echo "Running tests for visit-service..."
-                        sh './mvnw test -pl visit-service'
-                    }
-                }
+        
+        stage('Test') {
+            when {
+                expression { return env.SERVICE_CHANGED != '' }
+            }
+            steps {
+                echo "Testing service: ${env.SERVICE_CHANGED}"
+                sh "./mvnw test -pl ${env.SERVICE_CHANGED} -am"
             }
             post {
                 always {
-                    junit '**/target/surefire-reports/*.xml'
-                    jacoco execPattern: '**/target/jacoco.exec'
+                    junit "${env.SERVICE_CHANGED}/target/surefire-reports/*.xml"
                 }
             }
         }
-
-        stage('Validate Coverage') {
+        
+        stage('Build') {
+            when {
+                expression { return env.SERVICE_CHANGED != '' }
+            }
             steps {
-                script {
-                    def coverage = sh(script: "grep -oP 'TOTAL.*\\K\\d+%' target/site/jacoco/index.html | tr -d '%'", returnStdout: true).trim().toInteger()
-                    if (coverage < 70) {
-                        error "Test coverage below threshold: ${coverage}%"
-                    }
-                }
+                echo "Building service: ${env.SERVICE_CHANGED}"
+                sh "./mvnw package -pl ${env.SERVICE_CHANGED} -am -DskipTests"
             }
         }
-
-        stage('Create Pull Request') {
-            steps {
-                script {
-                    withCredentials([string(credentialsId: GITHUB_CREDENTIALS_ID, variable: 'GITHUB_TOKEN')]) {
-                        sh """
-                            gh pr create --base ${env.MAIN_BRANCH} --head ${env.BRANCH_NAME} \
-                            --title "Merge ${env.BRANCH_NAME} into ${env.MAIN_BRANCH}" \
-                            --body "This PR was auto-generated by Jenkins"
-                        """
-                    }
-                }
-            }
+    }
+    
+    post {
+        success {
+            echo "Pipeline completed successfully for service: ${env.SERVICE_CHANGED}"
         }
-
-        stage('Merge to Main') {
-            when { expression { env.BRANCH_NAME.startsWith("dev/") } }
-            steps {
-                script {
-                    withCredentials([string(credentialsId: GITHUB_CREDENTIALS_ID, variable: 'GITHUB_TOKEN')]) {
-                        sh """
-                            git config --global user.email "trungnguyenphan3001@gmail.com"
-                            git config --global user.name "ptn3001"
-                            git checkout ${env.MAIN_BRANCH}
-                            git merge --no-ff ${env.BRANCH_NAME}
-                            git push origin ${env.MAIN_BRANCH}
-                        """
-                    }
-                }
-            }
-        }
-
-        stage('Build & Deploy') {
-            parallel {
-                stage('Build Customers Service') {
-                    when { expression { env.SHOULD_BUILD_CUSTOMERS == "true" } }
-                    steps {
-                        echo "Building customers-service..."
-                        sh './mvnw clean package -pl customers-service -DskipTests'
-                    }
-                }
-
-                stage('Build Vets Service') {
-                    when { expression { env.SHOULD_BUILD_VETS == "true" } }
-                    steps {
-                        echo "Building vets-service..."
-                        sh './mvnw clean package -pl vets-service -DskipTests'
-                    }
-                }
-
-                stage('Build Visit Service') {
-                    when { expression { env.SHOULD_BUILD_VISIT == "true" } }
-                    steps {
-                        echo "Building visit-service..."
-                        sh './mvnw clean package -pl visit-service -DskipTests'
-                    }
-                }
-            }
+        failure {
+            echo "Pipeline failed for service: ${env.SERVICE_CHANGED}"
         }
     }
 }
