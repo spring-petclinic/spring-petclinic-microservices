@@ -20,7 +20,7 @@ pipeline {
             steps {
                 script {
                     def changedFiles = []
-                    def hasPreviousCommit = sh(script: "git rev-parse --verify HEAD~1 > /dev/null 2>&1 || echo 'no'", returnStdout: true).trim() != 'no'
+                    def hasPreviousCommit = sh(script: "[[ \$(git rev-list --count HEAD) -gt 1 ]] && echo 'yes' || echo 'no'", returnStdout: true).trim() == 'yes'
 
                     if (hasPreviousCommit) {
                         changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim().split("\n")
@@ -31,9 +31,10 @@ pipeline {
 
                     echo "Changed files: ${changedFiles.join(', ')}"
 
-                    env.SHOULD_BUILD_CUSTOMERS = changedFiles.any { it.startsWith("customers-service/") || it == "FULL_BUILD" } ? "true" : "false"
-                    env.SHOULD_BUILD_VETS = changedFiles.any { it.startsWith("vets-service/") || it == "FULL_BUILD" } ? "true" : "false"
-                    env.SHOULD_BUILD_VISIT = changedFiles.any { it.startsWith("visit-service/") || it == "FULL_BUILD" } ? "true" : "false"
+                    env.SHOULD_BUILD_CUSTOMERS = changedFiles.collect { it.trim() }.any { it.startsWith("customers-service/") || it == "FULL_BUILD" } ? "true" : "false"
+                    env.SHOULD_BUILD_VETS = changedFiles.collect { it.trim() }.any { it.startsWith("vets-service/") || it == "FULL_BUILD" } ? "true" : "false"
+
+                    env.SHOULD_BUILD_VISIT = changedFiles.collect { it.trim() }.any { it.startsWith("visits-service/") || it == "FULL_BUILD" } ? "true" : "false"
 
                     echo "SHOULD_BUILD_CUSTOMERS = ${env.SHOULD_BUILD_CUSTOMERS}"
                     echo "SHOULD_BUILD_VETS = ${env.SHOULD_BUILD_VETS}"
