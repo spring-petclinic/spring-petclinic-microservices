@@ -11,8 +11,7 @@ pipeline {
                 echo 'Starting Checkout stage'
                 git branch: 'main',
                     url: "${GIT_REPO}",
-                    credentialsId: 'github-pat-global',
-                    depth: 2  // Lấy 2 commit gần nhất để git diff hoạt động
+                    credentialsId: 'github-pat-global'
                 echo 'Checkout completed'
             }
         }
