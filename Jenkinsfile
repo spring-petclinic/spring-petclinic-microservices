@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        LSERVICE_CHANGED = '' // Đã được set từ stage Check Changes
+        SlERVICE_CHANGED = '' // Đã được set từ stage Check Changes
     }
     
     stages {
@@ -45,19 +45,10 @@ pipeline {
             }
             steps {
                 echo "Running unit tests for service: ${env.SERVICE_CHANGED}"
-                sh "./mvnw clean test -pl ${env.SERVICE_CHANGED} -am"
+                sh "./mvnw clean verify -pl ${env.SERVICE_CHANGED} -am"
                 
-                echo "Generating Jacoco coverage report..."
-                sh "./mvnw jacoco:report -pl ${env.SERVICE_CHANGED} -am"
-                
-                echo "Extracting test coverage..."
-                script {
-                    def coverageReport = sh(
-                        script: "grep -A 1 '<td>Total</td>' ${env.SERVICE_CHANGED}/target/site/jacoco/index.html | tail -1",
-                        returnStdout: true
-                    ).trim()
-                    echo "Test Coverage Report: ${coverageReport}"
-                }
+                echo "Checking if Jacoco coverage report was generated..."
+                sh "ls -la ${env.SERVICE_CHANGED}/target/site/"
             }
             post {
                 always {
