@@ -3,15 +3,17 @@ pipeline {
 
     environment {
         GIT_REPO = 'https://github.com/pTn-3001/DevOps_Project1.git'
+        GITHUB_CREDENTIALS_ID = 'github-pat-global' // Thay bằng ID token GitHub
+        MAIN_BRANCH = 'main'
     }
 
     stages {
         stage('Checkout Code') {
             steps {
                 echo 'Starting Checkout stage'
-                git branch: 'main',
+                git branch: "${env.BRANCH_NAME}",
                     url: "${GIT_REPO}",
-                    credentialsId: 'github-pat-global'
+                    credentialsId: "${GITHUB_CREDENTIALS_ID}"
                 echo 'Checkout completed'
             }
         }
@@ -19,41 +21,26 @@ pipeline {
         stage('Detect Changes') {
             steps {
                 script {
-                    def changedFiles = []
-                    def hasPreviousCommit = sh(script: "git rev-parse --verify HEAD~1 > /dev/null 2>&1 || echo 'no'", returnStdout: true).trim() != 'no'
-        
-                    if (hasPreviousCommit) {
-                        changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim().split("\n")
-                    } else {
-                        echo "No previous commit found, running full build."
-                        changedFiles = ["FULL_BUILD"]
-                    }
-        
+                    def changedFiles = sh(script: "git diff --name-only origin/${env.MAIN_BRANCH} HEAD", returnStdout: true).trim().split("\n")
                     echo "Changed files: ${changedFiles.join(', ')}"
-        
-                    def shouldBuildCustomers = changedFiles.any { it.startsWith("customers-service/") || it == "FULL_BUILD" } ? "true" : "false"
-                    def shouldBuildVets = changedFiles.any { it.startsWith("vets-service/") || it == "FULL_BUILD" } ? "true" : "false"
-                    def shouldBuildVisit = changedFiles.any { it.startsWith("visit-service/") || it == "FULL_BUILD" } ? "true" : "false"
-        
-                    withEnv([
-                        "SHOULD_BUILD_CUSTOMERS=${shouldBuildCustomers}",
-                        "SHOULD_BUILD_VETS=${shouldBuildVets}",
-                        "SHOULD_BUILD_VISIT=${shouldBuildVisit}"
-                    ]) {
-                        echo "SHOULD_BUILD_CUSTOMERS = ${env.SHOULD_BUILD_CUSTOMERS}"
-                        echo "SHOULD_BUILD_VETS = ${env.SHOULD_BUILD_VETS}"
-                        echo "SHOULD_BUILD_VISIT = ${env.SHOULD_BUILD_VISIT}"
-                    }
+
+                    env.SHOULD_BUILD_CUSTOMERS = changedFiles.any { it.startsWith("customers-service/") } ? "true" : "false"
+                    env.SHOULD_BUILD_VETS = changedFiles.any { it.startsWith("vets-service/") } ? "true" : "false"
+                    env.SHOULD_BUILD_VISIT = changedFiles.any { it.startsWith("visit-service/") } ? "true" : "false"
+
+                    echo "SHOULD_BUILD_CUSTOMERS = ${env.SHOULD_BUILD_CUSTOMERS}"
+                    echo "SHOULD_BUILD_VETS = ${env.SHOULD_BUILD_VETS}"
+                    echo "SHOULD_BUILD_VISIT = ${env.SHOULD_BUILD_VISIT}"
                 }
             }
         }
 
-        stage('Test Services') {
+        stage('Run Tests') {
             parallel {
                 stage('Test Customers Service') {
                     when { expression { env.SHOULD_BUILD_CUSTOMERS == "true" } }
                     steps {
-                        echo "Testing customers-service..."
+                        echo "Running tests for customers-service..."
                         sh './mvnw test -pl customers-service'
                     }
                 }
@@ -61,7 +48,7 @@ pipeline {
                 stage('Test Vets Service') {
                     when { expression { env.SHOULD_BUILD_VETS == "true" } }
                     steps {
-                        echo "Testing vets-service..."
+                        echo "Running tests for vets-service..."
                         sh './mvnw test -pl vets-service'
                     }
                 }
@@ -69,14 +56,62 @@ pipeline {
                 stage('Test Visit Service') {
                     when { expression { env.SHOULD_BUILD_VISIT == "true" } }
                     steps {
-                        echo "Testing visit-service..."
+                        echo "Running tests for visit-service..."
                         sh './mvnw test -pl visit-service'
+                    }
+                }
+            }
+            post {
+                always {
+                    junit '**/target/surefire-reports/*.xml'
+                    jacoco execPattern: '**/target/jacoco.exec'
+                }
+            }
+        }
+
+        stage('Validate Coverage') {
+            steps {
+                script {
+                    def coverage = sh(script: "grep -oP 'TOTAL.*\\K\\d+%' target/site/jacoco/index.html | tr -d '%'", returnStdout: true).trim().toInteger()
+                    if (coverage < 70) {
+                        error "Test coverage below threshold: ${coverage}%"
                     }
                 }
             }
         }
 
-        stage('Build Services') {
+        stage('Create Pull Request') {
+            steps {
+                script {
+                    withCredentials([string(credentialsId: GITHUB_CREDENTIALS_ID, variable: 'GITHUB_TOKEN')]) {
+                        sh """
+                            gh pr create --base ${env.MAIN_BRANCH} --head ${env.BRANCH_NAME} \
+                            --title "Merge ${env.BRANCH_NAME} into ${env.MAIN_BRANCH}" \
+                            --body "This PR was auto-generated by Jenkins"
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Merge to Main') {
+            when { expression { env.BRANCH_NAME.startsWith("dev/") } }
+            steps {
+                script {
+                    withCredentials([string(credentialsId: GITHUB_CREDENTIALS_ID, variable: 'GITHUB_TOKEN')]) {
+                        sh """
+                            git config --global user.email "trungnguyenphan3001@gmail.com"
+                            git config --global user.name "ptn3001"
+                            git checkout ${env.MAIN_BRANCH}
+                            git merge --no-ff ${env.BRANCH_NAME}
+                            git push origin ${env.MAIN_BRANCH}
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Build & Deploy') {
             parallel {
                 stage('Build Customers Service') {
                     when { expression { env.SHOULD_BUILD_CUSTOMERS == "true" } }
