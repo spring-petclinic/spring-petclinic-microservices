@@ -78,7 +78,7 @@ pipeline {
                                 mvn clean package -DskipTests
                                 cd ..
                                 docker build --build-arg SERVICE=${service} --build-arg STAGE=${env.STAGE} -f docker/Dockerfile.${service} -t ${DOCKER_REGISTRY}/${env.STAGE}-${service}:${env.GIT_COMMIT_SHA} .
-                                docker push ${DOCKER_REGISTRY}/${service}:${env.GIT_COMMIT_SHA}
+                                docker push ${DOCKER_REGISTRY}/${env.STAGE}-${service}:${env.GIT_COMMIT_SHA}
                              """
                             }
                             sh "echo y | docker image prune -a"
