@@ -10,7 +10,7 @@ pipeline {
             steps {
                 script {
                     def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim().split("\n")
-                    def services = ['customers-service', 'vets-service', 'visits-service', 'api-gateway']
+                    def services = ['customers-service', 'vets-service', 'visits-service', 'genai-service']
                     
                     for (service in services) {
                         if (changedFiles.any { it.startsWith(service + '/') }) {
