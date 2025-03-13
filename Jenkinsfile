@@ -64,7 +64,7 @@ pipeline {
             steps {
                 script {
                     def coverageHtml = sh(
-                        script: "xmllint --html --xpath 'string(//table[@id=\"coveragetable\"]/tfoot/tr/td[2])' ${env.SERVICE_CHANGED}/target/site/jacoco/index.html 2>/dev/null",
+                        script: "xmllint --html --xpath 'string(//table[@id=\"coveragetable\"]/tfoot/tr/td[3])' ${env.SERVICE_CHANGED}/target/site/jacoco/index.html 2>/dev/null",
                         returnStdout: true
                     ).trim()
         
