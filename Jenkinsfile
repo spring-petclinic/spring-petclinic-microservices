@@ -125,7 +125,7 @@ pipeline {
                 }
             }
         }
-        stage(Push artifact) {
+        stage("Push artifact") {
             when {
                 expression { return env.STAGE == "prod" || env.STAGE == "dev" || env.STAGE == "uat" }
             }
