@@ -10,7 +10,7 @@ pipeline {
             steps {
                 echo 'Starting Checkout stage'
                 git branch: 'main',
-                    url: 'https://github.com/nghiaz160904/DevOps_Project1.git',
+                    url: "${GIT_REPO}",
                     credentialsId: 'github-pat-global'
                 echo 'Checkout completed'
             }
