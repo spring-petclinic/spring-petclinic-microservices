@@ -64,7 +64,7 @@ pipeline {
                     agent { label 'maven-node' }
                     steps {
                         checkout scm
-                        sh "cat ~/docker-registry-passwd.txt | docker login --username ${DOCKER_REGISTRY} --password-stdin"
+                        sh "cat ~/docker-registry-passwd.txt | docker login --username ${DOCKER_REGISTRY} --password-stdin" //@fixme:withCredential()
                         script {
                             env.GIT_COMMIT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
                             env.STAGE = env.BRANCH_NAME == "main" ? "prod" : "dev" //@fixme
