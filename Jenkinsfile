@@ -64,11 +64,11 @@ pipeline {
             steps {
                 script {
                     def coverageHtml = sh(
-                        script: "grep -oP '(?<=Total</td><td class=\"ctr2\">)[0-9]+(?=%</td>)' ${env.SERVICE_CHANGED}/target/site/jacoco/index.html",
+                        script: "xmllint --html --xpath 'string(//table[@id=\"coveragetable\"]/tfoot/tr/td[2])' ${env.SERVICE_CHANGED}/target/site/jacoco/index.html 2>/dev/null",
                         returnStdout: true
                     ).trim()
         
-                    def coverage = coverageHtml.toFloat() / 100
+                    def coverage = coverageHtml.replace('%', '').toFloat() / 100
                     echo "Test Coverage: ${coverage * 100}%"
         
                     if (coverage < 0.70) {
@@ -77,7 +77,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Build') {
             when {
                 expression { return env.SERVICE_CHANGED != '' }
