@@ -1,12 +1,7 @@
 def SERVICES_CHANGED = ""
 
-
 pipeline {
-    agent {
-        node {
-            label 'docker-agent-petclinic'
-        }
-    }
+    agent any
 
     stages {
         stage('Detect Changes') {
