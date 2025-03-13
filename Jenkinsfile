@@ -10,6 +10,8 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
+                    checkout scm
+
                     def previousCommit = sh(script: "git rev-parse HEAD~1", returnStdout: true).trim()
                     def changedFiles = sh(script: "git diff --name-only ${previousCommit}", returnStdout: true).trim().split('\n')
 
