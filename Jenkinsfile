@@ -45,7 +45,7 @@ pipeline {
         stage('Test Services') {
             parallel {
                 stage('Test Customers Service') {
-                    when { expression { env.get('SHOULD_BUILD_CUSTOMERS') == "true" } }
+                    when { expression { env.SHOULD_BUILD_CUSTOMERS == "true" } }
                     steps {
                         echo "Testing customers-service..."
                         sh './mvnw test -pl customers-service'
@@ -53,7 +53,7 @@ pipeline {
                 }
 
                 stage('Test Vets Service') {
-                    when { expression { env.get('SHOULD_BUILD_VETS') == "true" } }
+                    when { expression { env.SHOULD_BUILD_VETS == "true" } }
                     steps {
                         echo "Testing vets-service..."
                         sh './mvnw test -pl vets-service'
@@ -61,7 +61,7 @@ pipeline {
                 }
 
                 stage('Test Visit Service') {
-                    when { expression { env.get('SHOULD_BUILD_VISIT') == "true" } }
+                    when { expression { env.SHOULD_BUILD_VISIT == "true" } }
                     steps {
                         echo "Testing visit-service..."
                         sh './mvnw test -pl visit-service'
@@ -73,7 +73,7 @@ pipeline {
         stage('Build Services') {
             parallel {
                 stage('Build Customers Service') {
-                    when { expression { env.get('SHOULD_BUILD_CUSTOMERS') == "true" } }
+                    when { expression { env.SHOULD_BUILD_CUSTOMERS == "true" } }
                     steps {
                         echo "Building customers-service..."
                         sh './mvnw clean package -pl customers-service -DskipTests'
@@ -81,7 +81,7 @@ pipeline {
                 }
 
                 stage('Build Vets Service') {
-                    when { expression { env.get('SHOULD_BUILD_VETS') == "true" } }
+                    when { expression { env.SHOULD_BUILD_VETS == "true" } }
                     steps {
                         echo "Building vets-service..."
                         sh './mvnw clean package -pl vets-service -DskipTests'
@@ -89,7 +89,7 @@ pipeline {
                 }
 
                 stage('Build Visit Service') {
-                    when { expression { env.get('SHOULD_BUILD_VISIT') == "true" } }
+                    when { expression { env.SHOULD_BUILD_VISIT == "true" } }
                     steps {
                         echo "Building visit-service..."
                         sh './mvnw clean package -pl visit-service -DskipTests'
