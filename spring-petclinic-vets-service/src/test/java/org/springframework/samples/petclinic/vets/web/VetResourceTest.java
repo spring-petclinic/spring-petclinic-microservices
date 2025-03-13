@@ -27,8 +27,13 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Arrays;
+import java.util.List;
+
 import static java.util.Arrays.asList;
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -58,5 +63,28 @@ class VetResourceTest {
         mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(1));
+    }
+
+    @Test
+    void testShowResourcesVetList() throws Exception {
+        Vet vet1 = new Vet();
+        vet1.setId(1);
+        vet1.setFirstName("John");
+        vet1.setLastName("Doe");
+
+        Vet vet2 = new Vet();
+        vet2.setId(2);
+        vet2.setFirstName("Jane");
+        vet2.setLastName("Smith");
+
+        List<Vet> vets = Arrays.asList(vet1, vet2);
+
+        when(vetRepository.findAll()).thenReturn(vets);
+
+        mvc.perform(get("/vets").contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(2)))
+            .andExpect(jsonPath("$[0].firstName").value("John"))
+            .andExpect(jsonPath("$[1].lastName").value("Smith"));
     }
 }
