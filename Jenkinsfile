@@ -21,7 +21,7 @@ pipeline {
                     }
                     
                     for (service in services) {
-                        if (changedFiles.any { it.startsWith(service + '/') }) {
+                        if (changedFiles.any { it.contains(service) }) {
                             env.SERVICE_CHANGED = service
                             break
                         }
