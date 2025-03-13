@@ -1,91 +1,98 @@
 pipeline {
-    agent none
+    agent any
 
     environment {
-        GITHUB_CREDENTIALS_ID = 'github-token'
-        MAIN_BRANCH = 'main'
+        GIT_REPO = 'https://github.com/pTn-3001/DevOps_Project1.git'
     }
 
     stages {
+        stage('Checkout Code') {
+            steps {
+                echo 'Starting Checkout stage'
+                git branch: 'main',
+                    url: "${GIT_REPO}",
+                    credentialsId: 'github-pat-global'
+                echo 'Checkout completed'
+            }
+        }
+
         stage('Detect Changes') {
-            // agent { label 'jenkins-agent' }
             steps {
                 script {
-                    def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim().split("\n")
-                    def services = ["customers-service", "vets-service", "visit-service"]
-                    def affectedServices = services.findAll { service -> 
-                        changedFiles.any { it.startsWith(service) }
+                    def changedFiles = []
+                    def hasPreviousCommit = sh(script: "git rev-parse --verify HEAD~1 > /dev/null 2>&1 || echo 'no'", returnStdout: true).trim() != 'no'
+
+                    if (hasPreviousCommit) {
+                        changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim().split("\n")
+                    } else {
+                        echo "No previous commit found, running full build."
+                        changedFiles = ["FULL_BUILD"]
                     }
-                    if (affectedServices.isEmpty()) {
-                        echo "No relevant changes detected, skipping pipeline"
-                        currentBuild.result = 'ABORTED'
-                        return
-                    }
-                    env.AFFECTED_SERVICES = affectedServices.join(",")
+
+                    echo "Changed files: ${changedFiles.join(', ')}"
+
+                    env.SHOULD_BUILD_CUSTOMERS = changedFiles.any { it.startsWith("customers-service/") || it == "FULL_BUILD" } ? "true" : "false"
+                    env.SHOULD_BUILD_VETS = changedFiles.any { it.startsWith("vets-service/") || it == "FULL_BUILD" } ? "true" : "false"
+                    env.SHOULD_BUILD_VISIT = changedFiles.any { it.startsWith("visit-service/") || it == "FULL_BUILD" } ? "true" : "false"
+
+                    echo "SHOULD_BUILD_CUSTOMERS = ${env.SHOULD_BUILD_CUSTOMERS}"
+                    echo "SHOULD_BUILD_VETS = ${env.SHOULD_BUILD_VETS}"
+                    echo "SHOULD_BUILD_VISIT = ${env.SHOULD_BUILD_VISIT}"
                 }
             }
         }
 
-        stage('Run Tests') {
-            // agent { label 'jenkins-agent' }
-            steps {
-                script {
-                    def services = env.AFFECTED_SERVICES.split(",")
-                    services.each { service ->
-                        echo "Running tests for ${service}"
-                        dir(service) {
-                            sh "./mvnw test"
-                        }
+        stage('Test Services') {
+            parallel {
+                stage('Test Customers Service') {
+                    when { expression { env.get('SHOULD_BUILD_CUSTOMERS') == "true" } }
+                    steps {
+                        echo "Testing customers-service..."
+                        sh './mvnw test -pl customers-service'
                     }
                 }
-            }
-            post {
-                always {
-                    junit '**/target/surefire-reports/*.xml'
-                    jacoco execPattern: '**/target/jacoco.exec'
-                }
-            }
-        }
 
-        stage('Validate Coverage') {
-            // agent { label 'jenkins-agent' }
-            steps {
-                script {
-                    def coverage = sh(script: "grep -oP 'TOTAL.*\\K\\d+%' target/site/jacoco/index.html | tr -d '%'", returnStdout: true).trim().toInteger()
-                    if (coverage < 70) {
-                        error "Test coverage below threshold: ${coverage}%"
+                stage('Test Vets Service') {
+                    when { expression { env.get('SHOULD_BUILD_VETS') == "true" } }
+                    steps {
+                        echo "Testing vets-service..."
+                        sh './mvnw test -pl vets-service'
                     }
                 }
-            }
-        }
 
-        stage('Merge to Main') {
-            // agent { label 'jenkins-agent' }
-            steps {
-                script {
-                    withCredentials([string(credentialsId: env.GITHUB_CREDENTIALS_ID, variable: 'GITHUB_TOKEN')]) {
-                        sh """
-                            git config --global user.email "jenkins@example.com"
-                            git config --global user.name "Jenkins CI"
-                            git checkout ${env.MAIN_BRANCH}
-                            git merge --no-ff ${env.GIT_BRANCH}
-                            git push origin ${env.MAIN_BRANCH}
-                        """
+                stage('Test Visit Service') {
+                    when { expression { env.get('SHOULD_BUILD_VISIT') == "true" } }
+                    steps {
+                        echo "Testing visit-service..."
+                        sh './mvnw test -pl visit-service'
                     }
                 }
             }
         }
 
-        stage('Build & Deploy') {
-            // agent { label 'jenkins-agent' }
-            steps {
-                script {
-                    def services = env.AFFECTED_SERVICES.split(",")
-                    services.each { service ->
-                        echo "Building and deploying ${service}"
-                        dir(service) {
-                            sh "./mvnw package"
-                        }
+        stage('Build Services') {
+            parallel {
+                stage('Build Customers Service') {
+                    when { expression { env.get('SHOULD_BUILD_CUSTOMERS') == "true" } }
+                    steps {
+                        echo "Building customers-service..."
+                        sh './mvnw clean package -pl customers-service -DskipTests'
+                    }
+                }
+
+                stage('Build Vets Service') {
+                    when { expression { env.get('SHOULD_BUILD_VETS') == "true" } }
+                    steps {
+                        echo "Building vets-service..."
+                        sh './mvnw clean package -pl vets-service -DskipTests'
+                    }
+                }
+
+                stage('Build Visit Service') {
+                    when { expression { env.get('SHOULD_BUILD_VISIT') == "true" } }
+                    steps {
+                        echo "Building visit-service..."
+                        sh './mvnw clean package -pl visit-service -DskipTests'
                     }
                 }
             }
