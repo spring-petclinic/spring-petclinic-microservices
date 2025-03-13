@@ -10,6 +10,7 @@ pipeline {
             steps {
                 script {
                     def changedFiles = sh(script: "git diff --name-only origin/main", returnStdout: true).trim().split("\n")
+                    echo "Changed files: ${changedFiles}"
                     def services = ['customers-service', 'vets-service', 'visits-service', 'api-gateway']
                     
                     if (changedFiles.size() == 0 || changedFiles[0] == '') {
