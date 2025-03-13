@@ -57,6 +57,27 @@ pipeline {
                 }
             }
         }
+        stage('Check Coverage') {
+            when {
+                expression { return env.SERVICE_CHANGED != '' }
+            }
+            steps {
+                script {
+                    def coverageLine = sh(
+                        script: "grep -m 1 'TOTAL' ${env.SERVICE_CHANGED}/target/site/jacoco/jacoco.csv",
+                        returnStdout: true
+                    ).trim()
+        
+                    def coverage = coverageLine.tokenize(',')[3].toFloat()
+                    echo "Test Coverage: ${coverage * 100}%"
+        
+                    if (coverage < 0.70) {
+                        error "Coverage below 70%! Pipeline failed."
+                    }
+                }
+            }
+        }
+
         
         stage('Build') {
             when {
