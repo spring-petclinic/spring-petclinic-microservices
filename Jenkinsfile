@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-    
+        OTHER_VARIABLE = ''
     }
     
     stages {
