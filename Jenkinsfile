@@ -42,7 +42,15 @@ pipeline {
                 }
             }
         }
-
+        stage('Debug Env Variables') {
+            steps {
+                script {
+                    echo "SHOULD_BUILD_CUSTOMERS = ${env.SHOULD_BUILD_CUSTOMERS}"
+                    echo "SHOULD_BUILD_VETS = ${env.SHOULD_BUILD_VETS}"
+                    echo "SHOULD_BUILD_VISIT = ${env.SHOULD_BUILD_VISIT}"
+                }
+            }
+        }
         stage('Test Services') {
             parallel {
                 stage('Test Customers Service') {
