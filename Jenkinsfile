@@ -21,11 +21,14 @@ pipeline {
                     }
                     
                     for (service in services) {
-                        if (changedFiles.any { it.contains(service) }) {
+                        echo "Checking service: ${service}"
+                        if (changedFiles.find { it.indexOf(service) >= 0 }) {
                             env.SERVICE_CHANGED = service
+                            echo "Matched service: ${env.SERVICE_CHANGED}"
                             break
                         }
                     }
+
                     
                     if (env.SERVICE_CHANGED == '') {
                         echo "No relevant service changes detected. Skipping pipeline."
