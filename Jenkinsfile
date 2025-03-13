@@ -104,6 +104,12 @@ pipeline {
                             }
                         }
                     }
+                    post {
+                        always {
+                            echo "Cleaning up workspace on maven-node..."
+                            cleanWs()
+                        }
+                    }
                 }
             }
         }
@@ -128,23 +134,5 @@ pipeline {
         //        }
         //    }
         //}
-        stage("Cleanup Workspaces") {
-            parallel {
-                stage("Cleanup on Maven Node") {
-                    agent { label 'maven-node' }
-                    steps {
-                        echo "Cleaning up workspace on maven-node..."
-                        cleanWs()
-                    }
-                }
-                //stage("Cleanup on Deploy Node") {
-                //    agent { label 'kubernetes-node' }
-                //    steps {
-                //        echo "Cleaning up workspace on kubernetes-node..."
-                //        cleanWs()
-                //    }
-                //}
-            }
-        }
     }
 }
