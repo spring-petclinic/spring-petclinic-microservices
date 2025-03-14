@@ -42,7 +42,7 @@ pipeline {
         
         stage('Test & Coverage') {
             when {
-                expression { env.NO_SERVICES_TO_BUILD == false }
+                expression { env.NO_SERVICES_TO_BUILD == 'false' }
             }
             steps {
                 echo "Running unit tests for service: ${env.SERVICE_CHANGED}"
@@ -60,7 +60,7 @@ pipeline {
         }
         stage('Check Coverage') {
             when {
-                expression { env.NO_SERVICES_TO_BUILD == false }
+                expression { env.NO_SERVICES_TO_BUILD == 'false' }
             }
             steps {
                 script {
@@ -81,7 +81,7 @@ pipeline {
 
         stage('Build') {
             when {
-                expression { env.NO_SERVICES_TO_BUILD == false }
+                expression { env.NO_SERVICES_TO_BUILD == 'false' }
             }
             steps {
                 echo "Building service: ${env.SERVICE_CHANGED}"
