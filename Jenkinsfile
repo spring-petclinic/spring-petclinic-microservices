@@ -63,7 +63,8 @@ pipeline {
                                 sourcePattern: "${service}/src/main/java",
                                 exclusionPattern: "${service}/src/test/**",
                                 minimumLineCoverage: '70',
-                                changeBuildStatus: true
+                                changeBuildStatus: true,
+                                failBuild: true
                             )
                         }
                     }
