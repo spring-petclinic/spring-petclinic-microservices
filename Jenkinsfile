@@ -148,7 +148,7 @@ pipeline {
                         // Archive artifacts for changed services
                         env.SERVICES_TO_BUILD.split(',').each { service ->
                             dir("spring-petclinic-${service}") {
-                                archiveArtifacts artifacts: '*/target/.jar', fingerprint: true
+                                archiveArtifacts artifacts: '**/target/.jar', fingerprint: true
                             }
                         }
                     }
