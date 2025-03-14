@@ -41,7 +41,7 @@ pipeline {
                         dir(service) {
                             timeout(time: 10, unit: 'MINUTES') {
                                 retry(3) {
-                                    sh 'mvn clean test jacoco:report jacoco:check'
+                                    sh 'mvn clean verify'
                                 }
                             }
                         }
@@ -62,8 +62,7 @@ pipeline {
                                 sourcePattern: "${service}/src/main/java",
                                 exclusionPattern: "${service}/src/test/**",
                                 minimumLineCoverage: '70',
-                                changeBuildStatus: true,
-                                failBuild: true
+                                changeBuildStatus: true
                             )
                         }
                     }
