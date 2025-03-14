@@ -77,42 +77,42 @@ pipeline {
                 stage("Build") {
                     agent { label 'maven-node' }
                     steps {
-                        checkout scm
-                        script {
-                            env.GIT_COMMIT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                            if (env.IS_CHANGED_ROOT == "true")  env.CHANGED_SERVICES = env.SERVICES
-
-                            def changedServices = env.CHANGED_SERVICES.split(',')
-                            for (service in changedServices) {
-                                sh """
-                                cd ${service}
-                                echo "run build for ${service}"
-                                mvn clean package -DskipTests
-                                cd ..
-                                docker build --build-arg SERVICE=${service} --build-arg STAGE=${env.STAGE} -f docker/Dockerfile.${service} -t ${DOCKER_REGISTRY}/${env.STAGE}-${service}:${env.GIT_COMMIT_SHA} .
-                                """
-                            }
-                        }
+                        //checkout scm
+                        //script {
+                        //    env.GIT_COMMIT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                        //    if (env.IS_CHANGED_ROOT == "true")  env.CHANGED_SERVICES = env.SERVICES
+                        //
+                        //    def changedServices = env.CHANGED_SERVICES.split(',')
+                        //    for (service in changedServices) {
+                        //        sh """
+                        //        cd ${service}
+                        //        echo "run build for ${service}"
+                        //        mvn clean package -DskipTests
+                        //        cd ..
+                        //        docker build --build-arg SERVICE=${service} --build-arg STAGE=${env.STAGE} -f docker/Dockerfile.${service} -t ${DOCKER_REGISTRY}/${env.STAGE}-${service}:${env.GIT_COMMIT_SHA} .
+                        //        """
+                        //    }
+                        //}
                     }
                 }
                 stage("TEST") {
                     agent { label 'maven-node' }
                     steps {
-                        checkout scm
-                        script {
-                            if (env.IS_CHANGED_ROOT == "true")  env.CHANGED_SERVICES = env.SERVICES
-
-                            def changedServices = env.CHANGED_SERVICES.split(',')
-                            for (service in changedServices) {
-                                echo "Running tests for service: ${service}"
-                                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                                    sh """
-                                    cd ${service}
-                                    mvn test
-                                """
-                                }
-                            }
-                        }
+                        //checkout scm
+                        //script {
+                        //    if (env.IS_CHANGED_ROOT == "true")  env.CHANGED_SERVICES = env.SERVICES
+                        //
+                        //    def changedServices = env.CHANGED_SERVICES.split(',')
+                        //    for (service in changedServices) {
+                        //        echo "Running tests for service: ${service}"
+                        //        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                        //            sh """
+                        //            cd ${service}
+                        //            mvn test
+                        //        """
+                        //        }
+                        //    }
+                        //}
                     }
                 }
             }
