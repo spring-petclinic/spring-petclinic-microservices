@@ -118,10 +118,10 @@ pipeline {
             }
             post {
                 success {
-                    publishChecks(name: 'CI status', status: 'success', summary: 'Builded')
+                    publishChecks(name: 'CI status', conclusion: 'SUCCESS', summary: 'passed CI')
                 }
                 failure {
-                    publishChecks(name: 'CI status', status: 'failed', summary: 'Builded')
+                    publishChecks(name: 'CI status', conclusion: 'FAILURE', summary: 'failed CI')
                 }
             }
         }
