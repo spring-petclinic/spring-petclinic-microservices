@@ -118,33 +118,33 @@ pipeline {
             }
             post {
                 success {
-                    githubNotify context: 'Jenkins CI status check', description: 'CI Passed', status: 'SUCCESS'
+                    publishChecks(name: 'CI status', status: 'success', summary: 'Builded')
                 }
                 failure {
-                    githubNotify context: 'Jenkins CI status check', description: 'CI Failed', status: 'FAILURE'
+                    publishChecks(name: 'CI status', status: 'failed', summary: 'Builded')
                 }
             }
         }
-        stage("Push artifact") {
-            when {
-                expression { return env.STAGE == "prod" || env.STAGE == "dev" || env.STAGE == "uat" }
-            }
-            agent { label 'maven-node' }
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-registry-token', usernameVariable: 'USERNAME', passwordVariable: 'PASSWD')]) {
-                    sh 'echo "$PASSWD" | docker login --username "$USERNAME" --password-stdin'
-                }
-                script {
-                    def changedServices = env.CHANGED_SERVICES.split(',')
-                    for (service in changedServices) {
-                        sh """
-                            docker push ${DOCKER_REGISTRY}/${env.STAGE}-${service}:${env.GIT_COMMIT_SHA}
-                        """
-                    }
-                }
-                sh "echo y | docker image prune -a && echo y | docker system prune -a"
-            }
-        }
+        //stage("Push artifact") {
+        //    when {
+        //        expression { return env.STAGE == "prod" || env.STAGE == "dev" || env.STAGE == "uat" }
+        //    }
+        //    agent { label 'maven-node' }
+        //    steps {
+        //        withCredentials([usernamePassword(credentialsId: 'docker-registry-token', usernameVariable: 'USERNAME', passwordVariable: 'PASSWD')]) {
+        //            sh 'echo "$PASSWD" | docker login --username "$USERNAME" --password-stdin'
+        //        }
+        //        script {
+        //            def changedServices = env.CHANGED_SERVICES.split(',')
+        //            for (service in changedServices) {
+        //                sh """
+        //                    docker push ${DOCKER_REGISTRY}/${env.STAGE}-${service}:${env.GIT_COMMIT_SHA}
+        //                """
+        //            }
+        //        }
+        //        sh "echo y | docker image prune -a && echo y | docker system prune -a"
+        //    }
+        //}
         //stage("Trigger Github Actions") {
         //
         //}
