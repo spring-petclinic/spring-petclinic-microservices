@@ -1,164 +1,101 @@
 pipeline {
     agent any
+    
     environment {
-        MAVEN_OPTS = "-Dmaven.repo.local=.m2/repository"
+        SlERVICE_CHANGED = '' // Đã được set từ stage Check Changes
     }
+    
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-        stage('Detect Changes') {
+        stage('Check Changes') {
             steps {
                 script {
-                    // Get all changed files
-                    def changes = []
-                    if (env.CHANGE_TARGET) {
-                        // If this is a PR build
-                        changes = sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...", returnStdout: true).trim().split('\n')
-                    } else {
-                        // If this is a branch build
-                        changes = sh(script: "git diff --name-only HEAD^", returnStdout: true).trim().split('\n')
-                    }
-
-                    // Map to store which services need to be built
-                    def servicesToBuild = [:]
-                    def services = [
-                        'admin-server': 'spring-petclinic-admin-server',
-                        'api-gateway': 'spring-petclinic-api-gateway',
-                        'config-server': 'spring-petclinic-config-server',
-                        'customers-service': 'spring-petclinic-customers-service',
-                        'discovery-server': 'spring-petclinic-discovery-server',
-                        'vets-service': 'spring-petclinic-vets-service',
-                        'visits-service': 'spring-petclinic-visits-service',
-                        'genai-service': 'spring-petclinic-genai-service'
-                    ]
-
-                    // Check root pom.xml changes
-                    boolean rootPomChanged = changes.any { it == 'pom.xml' }
+                    def changedFiles = sh(script: "git diff --name-only origin/main", returnStdout: true).trim().split("\n")
+                    def services = ['spring-petclinic-customers-service', 'spring-petclinic-vets-service', 'spring-petclinic-visits-service']
                     
-                    // Check shared resources changes (like docker configs, scripts, etc.)
-                    boolean sharedResourcesChanged = changes.any { change ->
-                        change.startsWith('docker/') || 
-                        change.startsWith('scripts/') || 
-                        change.startsWith('.mvn/') ||
-                        change == 'docker-compose.yml'
+                    echo "Changed files: ${changedFiles}"
+                    
+                    if (changedFiles.size() == 0 || changedFiles[0] == '') {
+                        echo "No changes detected. Skipping pipeline."
+                        currentBuild.result = 'ABORTED'
+                        return
                     }
-
-                    // If shared resources changed, build all services
-                    if (rootPomChanged || sharedResourcesChanged) {
-                        echo "Shared resources changed. Building all services."
-                        services.each { serviceKey, servicePath ->
-                            servicesToBuild[serviceKey] = true
-                        }
-                    } else {
-                        // Determine which services have changes
-                        services.each { serviceKey, servicePath ->
-                            if (changes.any { change ->
-                                change.startsWith("${servicePath}/")
-                            }) {
-                                servicesToBuild[serviceKey] = true
-                                echo "Will build ${serviceKey} due to changes in ${servicePath}"
-                            }
+                    
+                    def detectedServices = []
+                    for (service in services) {
+                        if (changedFiles.any { it.startsWith(service + '/') }) {
+                            detectedServices << service
                         }
                     }
-
-                    // If no services need building, set a flag
-                    env.NO_SERVICES_TO_BUILD = servicesToBuild.isEmpty() ? 'true' : 'false'
-                    // Store the services to build in environment variable
-                    env.SERVICES_TO_BUILD = servicesToBuild.keySet().join(',')
                     
-                    // Print summary
-                    if (env.NO_SERVICES_TO_BUILD == 'true') {
-                        echo "No service changes detected. Pipeline will skip build and test stages."
-                    } else {
-                        echo "Services to build: ${env.SERVICES_TO_BUILD}"
+                    if (detectedServices.isEmpty()) {
+                        echo "No relevant service changes detected. Skipping pipeline."
+                        env.NO_SERVICES_TO_BUILD = detectedServices.isEmpty() ? 'true' : 'false'
+                    }
+                    if (env.NO_SERVICES_TO_BUILD == 'false'){
+                        echo "Detected Services: ${detectedServices}"
+                        env.SERVICE_CHANGED = detectedServices.join(",")
+                        echo "Changes detected in services: ${env.SERVICE_CHANGED}"
                     }
                 }
             }
         }
-        stage('Test') {
+        
+        stage('Test & Coverage') {
             when {
-                expression { env.NO_SERVICES_TO_BUILD == 'false' }
+                expression { env.NO_SERVICES_TO_BUILD == false }
             }
             steps {
-                script {
-                    env.SERVICES_TO_BUILD.split(',').each { service ->
-                        dir("spring-petclinic-${service}") {
-                            echo "Testing ${service}..."
-                            try {
-                                // Run tests with JaCoCo coverage for specific service
-                                sh """
-                                    echo "Running tests for ${service}"
-                                    ../mvnw clean test verify -Pcoverage
-                                """
-                            } catch (Exception e) {
-                                echo "Tests failed for ${service}"
-                                throw e
-                            }
-                        }
-                    }
-                }
+                echo "Running unit tests for service: ${env.SERVICE_CHANGED}"
+                sh "./mvnw clean verify -pl ${env.SERVICE_CHANGED} -am"
+                
+                echo "Checking if Jacoco coverage report was generated..."
+                sh "ls -la ${env.SERVICE_CHANGED}/target/site/"
             }
             post {
                 always {
-                    script {
-                        // Publish test results and coverage for changed services
-                        env.SERVICES_TO_BUILD.split(',').each { service ->
-                            dir("spring-petclinic-${service}") {
-                                junit allowEmptyResults: true, testResults: '*/target/surefire-reports/.xml'
-                                jacoco(
-                                    execPattern: '**/target/jacoco.exec',
-                                    classPattern: '**/target/classes',
-                                    sourcePattern: '**/src/main/java',
-                                    exclusionPattern: '/test/'
-                                )
-                            }
-                        }
-                    }
+                    junit "${env.SERVICE_CHANGED}/target/surefire-reports/*.xml"
+                    archiveArtifacts artifacts: "${env.SERVICE_CHANGED}/target/site/jacoco/*", fingerprint: true
                 }
             }
         }
-        stage('Build') {
+        stage('Check Coverage') {
             when {
-                expression { env.NO_SERVICES_TO_BUILD == 'false' }
+                expression { env.NO_SERVICES_TO_BUILD == false }
             }
             steps {
                 script {
-                    env.SERVICES_TO_BUILD.split(',').each { service ->
-                        dir("spring-petclinic-${service}") {
-                            echo "Building ${service}..."
-                            try {
-                                sh """
-                                    echo "Building ${service}"
-                                    ../mvnw clean package -DskipTests
-                                """
-                            } catch (Exception e) {
-                                echo "Build failed for ${service}"
-                                throw e
-                            }
-                        }
-                    }
-                }
-            }
-            post {
-                success {
-                    script {
-                        // Archive artifacts for changed services
-                        env.SERVICES_TO_BUILD.split(',').each { service ->
-                            dir("spring-petclinic-${service}") {
-                                archiveArtifacts artifacts: '**/target/.jar', fingerprint: true
-                            }
-                        }
+                    def coverageHtml = sh(
+                        script: "xmllint --html --xpath 'string(//table[@id=\"coveragetable\"]/tfoot/tr/td[3])' ${env.SERVICE_CHANGED}/target/site/jacoco/index.html 2>/dev/null",
+                        returnStdout: true
+                    ).trim()
+        
+                    def coverage = coverageHtml.replace('%', '').toFloat() / 100
+                    echo "Test Coverage: ${coverage * 100}%"
+        
+                    if (coverage < 0.70) {
+                        error "Coverage below 70%! Pipeline failed."
                     }
                 }
             }
         }
+
+        stage('Build') {
+            when {
+                expression { env.NO_SERVICES_TO_BUILD == false }
+            }
+            steps {
+                echo "Building service: ${env.SERVICE_CHANGED}"
+                sh "./mvnw package -pl ${env.SERVICE_CHANGED} -am -DskipTests"
+            }
+        }
     }
+    
     post {
-        always {
-            cleanWs()
+        success {
+            echo "Pipeline completed successfully for service: ${env.SERVICE_CHANGED}"
+        }
+        failure {
+            echo "Pipeline failed for service: ${env.SERVICE_CHANGED}"
         }
     }
 }
