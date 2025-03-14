@@ -79,6 +79,28 @@
             </activation>
             <build>
                 <plugins>
+                     <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>0.8.10</version>  <!-- Cập nhật theo phiên bản mới nhất -->
+                        <executions>
+                            <!-- Chạy JaCoCo trước khi chạy test -->
+                            <execution>
+                                <id>prepare-agent</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                            <!-- Tạo report coverage sau khi test -->
+                            <execution>
+                                <id>report</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
                     <plugin>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-maven-plugin</artifactId>
