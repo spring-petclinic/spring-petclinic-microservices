@@ -26,10 +26,10 @@ pipeline {
                             detectedServices << service
                         }
                     }
-                    
+                    env.NO_SERVICES_TO_BUILD = false;
                     if (detectedServices.isEmpty()) {
                         echo "No relevant service changes detected. Skipping pipeline."
-                        env.NO_SERVICES_TO_BUILD = detectedServices.isEmpty() ? 'true' : 'false'
+                        env.NO_SERVICES_TO_BUILD = 'true'
                     }
                     if (env.NO_SERVICES_TO_BUILD == 'false'){
                         echo "Detected Services: ${detectedServices}"
