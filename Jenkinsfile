@@ -9,6 +9,7 @@ pipeline {
         stage('Check Changes') {
             steps {
                 script {
+                    sh 'git fetch --all'
                     def changedFiles = sh(script: "git diff --name-only origin/main", returnStdout: true).trim().split("\n")
                     def services = ['spring-petclinic-customers-service', 'spring-petclinic-vets-service', 'spring-petclinic-visits-service']
                     
