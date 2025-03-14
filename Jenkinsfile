@@ -55,10 +55,14 @@ pipeline {
                     script {
                         def affectedServices = env.AFFECTED_SERVICES.split(',')
                         for (service in affectedServices) {
-                            echo "Recording coverage for: ${service}"
-                            recordCoverage(
-                                tools: [jacoco(pattern: "${service}/target/jacoco.exec")],
-                                sourceFileResolver: sourceFiles('STORE_ALL_BUILD')
+                            echo "Generating JaCoCo report for: ${service}"
+                            jacoco(
+                                execPattern: "${service}/target/jacoco.exec",
+                                classPattern: "${service}/target/classes",
+                                sourcePattern: "${service}/src/main/java",
+                                exclusionPattern: "${service}/src/test/**",
+                                minimumLineCoverage: '70',
+                                changeBuildStatus: true
                             )
                         }
                     }
