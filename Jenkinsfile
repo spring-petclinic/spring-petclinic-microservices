@@ -77,6 +77,7 @@ pipeline {
                 stage("Build") {
                     agent { label 'maven-node' }
                     steps {
+                        sh "echo run build"
                         //checkout scm
                         //script {
                         //    env.GIT_COMMIT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
@@ -98,6 +99,7 @@ pipeline {
                 stage("TEST") {
                     agent { label 'maven-node' }
                     steps {
+                        sh "echo run test"
                         //checkout scm
                         //script {
                         //    if (env.IS_CHANGED_ROOT == "true")  env.CHANGED_SERVICES = env.SERVICES
