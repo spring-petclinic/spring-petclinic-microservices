@@ -41,10 +41,9 @@ pipeline {
                         dir(service) {
                             timeout(time: 10, unit: 'MINUTES') {
                                 retry(3) {
-                                    sh 'mvn clean test'
+                                    sh 'mvn clean test jacoco:report jacoco:check'
                                 }
                             }
-                            sh 'mvn jacoco:report'
                         }
                     }
                 }
