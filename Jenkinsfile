@@ -9,8 +9,16 @@ pipeline {
         stage('Check Changes') {
             steps {
                 script {
-                    sh 'git fetch --all'
-                    def changedFiles = sh(script: "git diff --name-only origin/main", returnStdout: true).trim().split("\n")
+                    def changedFiles = []
+                    env.NO_SERVICES_TO_BUILD = 'false';
+                    if (env.CHANGE_TARGET) {
+                        // If this is a PR build
+                        changedFiles = sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...", returnStdout: true).trim().split('\n')
+                    } else {
+                        // If this is a branch build
+                        changedFiles = sh(script: "git diff --name-only HEAD^", returnStdout: true).trim().split('\n')
+                    }
+                    
                     def services = ['spring-petclinic-customers-service', 'spring-petclinic-vets-service', 'spring-petclinic-visits-service']
                     
                     echo "Changed files: ${changedFiles}"
@@ -27,7 +35,6 @@ pipeline {
                             detectedServices << service
                         }
                     }
-                    env.NO_SERVICES_TO_BUILD = false;
                     if (detectedServices.isEmpty()) {
                         echo "No relevant service changes detected. Skipping pipeline."
                         env.NO_SERVICES_TO_BUILD = 'true'
