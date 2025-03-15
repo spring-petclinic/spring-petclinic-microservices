@@ -13,7 +13,8 @@ pipeline {
                     env.NO_SERVICES_TO_BUILD = 'false'
                     if (env.CHANGE_TARGET) {
                         // Nếu đây là PR build
-                        changedFiles = sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...", returnStdout: true).trim().split('\n')
+                        echo "Pull request detected. Skipping CI execution. Only checking status."
+                        return
                     } else {
                         // Nếu đây là branch build
                         changedFiles = sh(script: "git diff --name-only HEAD^", returnStdout: true).trim().split('\n')
@@ -50,7 +51,7 @@ pipeline {
         
         stage('Test & Coverage') {
             when {
-                expression { env.NO_SERVICES_TO_BUILD == 'false' }
+                expression { env.NO_SERVICES_TO_BUILD == 'false' && !env.CHANGE_ID}
             }
             steps {
                 script {
@@ -79,7 +80,7 @@ pipeline {
 
         stage('Check Coverage') {
             when {
-                expression { env.NO_SERVICES_TO_BUILD == 'false' }
+                expression { env.NO_SERVICES_TO_BUILD == 'false' && !env.CHANGE_ID}
             }
             steps {
                 script {
@@ -109,7 +110,7 @@ pipeline {
 
         stage('Build') {
             when {
-                expression { env.NO_SERVICES_TO_BUILD == 'false' }
+                expression { env.NO_SERVICES_TO_BUILD == 'false' && !env.CHANGE_ID}
             }
             steps {
                 script {
