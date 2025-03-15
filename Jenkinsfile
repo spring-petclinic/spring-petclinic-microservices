@@ -21,7 +21,9 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Running tests...'
-                sh 'echo All tests passed!' // Replace with actual test command
+                withChecks(name: 'Tests', includeStage: true) {
+                    sh 'echo All tests passed!' // Replace with actual test command
+                }
             }
         }
 
