@@ -17,7 +17,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
-
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -73,5 +72,21 @@ class PetResourceTest {
 
         owner.addPet(pet);
         return pet;
+    }
+
+    @Test
+    void shouldFindPetById() throws Exception {
+        // Given
+        Pet pet = new Pet();
+        pet.setId(1);
+        pet.setName("Max");
+        given(petRepository.findById(1)).willReturn(Optional.of(pet));
+
+        // When/Then
+        mvc.perform(get("/owners/1/pets/1").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType("application/json"))
+            .andExpect(jsonPath("$.id").value(1))
+            .andExpect(jsonPath("$.name").value("Max"));
     }
 }
