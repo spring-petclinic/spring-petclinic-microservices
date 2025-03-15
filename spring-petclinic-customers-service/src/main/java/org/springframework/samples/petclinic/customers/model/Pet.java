@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package org.springframework.samples.petclinic.customers.model;
-// Hello
+// Hello PTN
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.springframework.core.style.ToStringCreator;
