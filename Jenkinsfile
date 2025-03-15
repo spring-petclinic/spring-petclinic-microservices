@@ -5,7 +5,7 @@ pipeline {
     }
     environment {
         // Uncomment and set these values
-        GITHUB_OWNER = "Akerman0509"
+        GITHUB_OWNER = "@Akerman0509"
         GITHUB_REPO  = "spring-petclinic-microservices"
         BRANCH_NAME  = "${env.GIT_BRANCH.replaceFirst(/^origin\//, '')}"
     }
