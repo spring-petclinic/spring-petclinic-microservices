@@ -1,5 +1,6 @@
 package org.springframework.samples.petclinic.customers.web;
 
+import java.lang.StackWalker.Option;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -56,24 +57,6 @@ class PetResourceTest {
             .andExpect(jsonPath("$.type.id").value(6));
     }
 
-    private Pet setupPet() {
-        Owner owner = new Owner();
-        owner.setFirstName("George");
-        owner.setLastName("Bush");
-
-        Pet pet = new Pet();
-
-        pet.setName("Basil");
-        pet.setId(2);
-
-        PetType petType = new PetType();
-        petType.setId(6);
-        pet.setType(petType);
-
-        owner.addPet(pet);
-        return pet;
-    }
-
     @Test
     void shouldFindPetById() throws Exception {
         // Given
@@ -95,4 +78,62 @@ class PetResourceTest {
             .andExpect(jsonPath("$.id").value(1))
             .andExpect(jsonPath("$.name").value("Max"));
     }
-}
+
+    @Test 
+    void shouldReturnNotFoundForNonExistingPet() throws Exception {
+        given(petRepository.findById(1)).willReturn(Optional.empty());
+
+        mvc.perform(get("/owners/99/pets/99").accept(MediaType.APPLICATION_JSON)) 
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldRetrievePetWithAllAttributes() throws Exception {
+        Pet pet = setupPet();
+        pet.setBirthDate(java.sql.Date.valueOf("2020-05-10"));
+
+        given(petRepository.findById(2)).willReturn(Optional.of(pet));
+
+        mvc.perform(get("/owners/2/pets/2").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType("application/json"))
+            .andExpect(jsonPath("$.id").value(2))
+            .andExpect(jsonPath("$.name").value("Basil"))
+            .andExpect(jsonPath("$.type.id").value(6))
+            .andExpect(jsonPath("$.birthDate").value("2020-05-10"));
+    }
+
+    @Test 
+    void shouldHandleNullPetType() throws Exception {
+        Pet pet = setupPet();
+        pet.setId(3);
+        pet.setName("Shadow");
+
+        given(petRepository.findById(3)).willReturn(Optional.of(pet));
+
+        mvc.perform(get("/owners/2/pets/3").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType("application/json"))
+            .andExpect(jsonPath("$.id").value(3))
+            .andExpect(jsonPath("$.name").value("Shadow"))
+            .andExpect(jsonPath("$.type").doesNotExist());
+    }
+
+    private Pet setupPet() {
+        Owner owner = new Owner();
+        owner.setFirstName("George");
+        owner.setLastName("Bush");
+
+        Pet pet = new Pet();
+
+        pet.setName("Basil");
+        pet.setId(2);
+
+        PetType petType = new PetType();
+        petType.setId(6);
+        pet.setType(petType);
+
+        owner.addPet(pet);
+        return pet;
+    }
+ }
