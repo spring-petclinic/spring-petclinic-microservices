@@ -14,7 +14,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building project...'
-                sh 'echo Build success!' // Replace with actual build command
+                sh 'echo Build success!' // Replace with actual build command 
             }
         }
 
