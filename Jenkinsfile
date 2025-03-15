@@ -6,7 +6,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                githubNotify context: 'continuous-integration/jenkins', 
+                githubNotify context: 'jenkins-ci', 
                            description: 'Jenkins Pipeline Started',
                            status: 'PENDING'
                 checkout scm
@@ -172,19 +172,19 @@ pipeline {
     }
     post {
         success {
-            githubNotify context: 'continuous-integration/jenkins',
+            githubNotify context: 'jenkins-ci',
                         description: 'Pipeline completed successfully',
                         status: 'SUCCESS'
             cleanWs()
         }
         failure {
-            githubNotify context: 'continuous-integration/jenkins',
+            githubNotify context: 'jenkins-ci',
                         description: 'Pipeline failed',
                         status: 'FAILURE'
             cleanWs()
         }
         unstable {
-            githubNotify context: 'continuous-integration/jenkins',
+            githubNotify context: 'jenkins-ci',
                         description: 'Pipeline is unstable',
                         status: 'ERROR'
             cleanWs()
