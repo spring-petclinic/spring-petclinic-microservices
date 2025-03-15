@@ -108,6 +108,7 @@ class PetResourceTest {
         Pet pet = setupPet();
         pet.setId(3);
         pet.setName("Shadow");
+        pet.setType(null);  
 
         given(petRepository.findById(3)).willReturn(Optional.of(pet));
 
