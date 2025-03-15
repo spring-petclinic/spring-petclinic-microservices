@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        SlERVICE_CHANGED = '' // Đã được set từ stage Check Changes
+        OTHER = '' // Danh sách các service thay đổi
     }
     
     stages {
@@ -10,12 +10,12 @@ pipeline {
             steps {
                 script {
                     def changedFiles = []
-                    env.NO_SERVICES_TO_BUILD = 'false';
+                    env.NO_SERVICES_TO_BUILD = 'false'
                     if (env.CHANGE_TARGET) {
-                        // If this is a PR build
+                        // Nếu đây là PR build
                         changedFiles = sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...", returnStdout: true).trim().split('\n')
                     } else {
-                        // If this is a branch build
+                        // Nếu đây là branch build
                         changedFiles = sh(script: "git diff --name-only HEAD^", returnStdout: true).trim().split('\n')
                     }
                     
@@ -35,11 +35,11 @@ pipeline {
                             detectedServices << service
                         }
                     }
+                    
                     if (detectedServices.isEmpty()) {
                         echo "No relevant service changes detected. Skipping pipeline."
                         env.NO_SERVICES_TO_BUILD = 'true'
-                    }
-                    if (env.NO_SERVICES_TO_BUILD == 'false'){
+                    } else {
                         echo "Detected Services: ${detectedServices}"
                         env.SERVICE_CHANGED = detectedServices.join(",")
                         echo "Changes detected in services: ${env.SERVICE_CHANGED}"
@@ -53,35 +53,55 @@ pipeline {
                 expression { env.NO_SERVICES_TO_BUILD == 'false' }
             }
             steps {
-                echo "Running unit tests for service: ${env.SERVICE_CHANGED}"
-                sh "./mvnw clean verify -pl ${env.SERVICE_CHANGED} -am"
-                
-                echo "Checking if Jacoco coverage report was generated..."
-                sh "ls -la ${env.SERVICE_CHANGED}/target/site/"
+                script {
+                    def services = env.SERVICE_CHANGED.split(',')
+                    for (service in services) {
+                        echo "Running unit tests for service: ${service}"
+                        sh "./mvnw clean verify -pl ${service} -am"
+
+                        echo "Checking if Jacoco coverage report was generated for ${service}..."
+                        sh "ls -la ${service}/target/site/"
+                    }
+                }
             }
             post {
                 always {
-                    junit "${env.SERVICE_CHANGED}/target/surefire-reports/*.xml"
-                    archiveArtifacts artifacts: "${env.SERVICE_CHANGED}/target/site/jacoco/*", fingerprint: true
+                    script {
+                        def services = env.SERVICE_CHANGED.split(',')
+                        for (service in services) {
+                            junit "${service}/target/surefire-reports/*.xml"
+                            archiveArtifacts artifacts: "${service}/target/site/jacoco/*", fingerprint: true
+                        }
+                    }
                 }
             }
         }
+
         stage('Check Coverage') {
             when {
                 expression { env.NO_SERVICES_TO_BUILD == 'false' }
             }
             steps {
                 script {
-                    def coverageHtml = sh(
-                        script: "xmllint --html --xpath 'string(//table[@id=\"coveragetable\"]/tfoot/tr/td[3])' ${env.SERVICE_CHANGED}/target/site/jacoco/index.html 2>/dev/null",
-                        returnStdout: true
-                    ).trim()
-        
-                    def coverage = coverageHtml.replace('%', '').toFloat() / 100
-                    echo "Test Coverage: ${coverage * 100}%"
-        
-                    if (coverage < 0.70) {
-                        error "Coverage below 70%! Pipeline failed."
+                    def services = env.SERVICE_CHANGED.split(',')
+                    def failedCoverageServices = []
+
+                    for (service in services) {
+                        def coverageHtml = sh(
+                            script: "xmllint --html --xpath 'string(//table[@id=\"coveragetable\"]/tfoot/tr/td[3])' ${service}/target/site/jacoco/index.html 2>/dev/null",
+                            returnStdout: true
+                        ).trim()
+            
+                        def coverage = coverageHtml.replace('%', '').toFloat() / 100
+                        echo "Test Coverage for ${service}: ${coverage * 100}%"
+            
+                        if (coverage < 0.70) {
+                            failedCoverageServices << service
+                        }
+                    }
+
+                    if (failedCoverageServices.size() > 0) {
+                        error "Coverage below 70% for services: ${failedCoverageServices.join(', ')}! Pipeline failed."
                     }
                 }
             }
@@ -92,18 +112,23 @@ pipeline {
                 expression { env.NO_SERVICES_TO_BUILD == 'false' }
             }
             steps {
-                echo "Building service: ${env.SERVICE_CHANGED}"
-                sh "./mvnw package -pl ${env.SERVICE_CHANGED} -am -DskipTests"
+                script {
+                    def services = env.SERVICE_CHANGED.split(',')
+                    for (service in services) {
+                        echo "Building service: ${service}"
+                        sh "./mvnw package -pl ${service} -am -DskipTests"
+                    }
+                }
             }
         }
     }
     
     post {
         success {
-            echo "Pipeline completed successfully for service: ${env.SERVICE_CHANGED}"
+            echo "Pipeline completed successfully for services: ${env.SERVICE_CHANGED}"
         }
         failure {
-            echo "Pipeline failed for service: ${env.SERVICE_CHANGED}"
+            echo "Pipeline failed for services: ${env.SERVICE_CHANGED}"
         }
     }
 }
