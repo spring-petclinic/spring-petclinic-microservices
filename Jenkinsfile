@@ -3,9 +3,17 @@ pipeline {
     environment {
         MAVEN_HOME = tool 'Maven'
     }
+    options {
+        githubSetConfig('github-config')
+    }
     stages {
         stage('Checkout') {
             steps {
+                githubStatus(
+                    context: 'continuous-integration/jenkins',
+                    description: 'Jenkins Pipeline Started',
+                    status: 'PENDING'
+                )
                 checkout scm
             }
         }
@@ -168,7 +176,28 @@ pipeline {
         }
     }
     post {
-        always {
+        success {
+            githubStatus(
+                context: 'continuous-integration/jenkins',
+                description: 'Pipeline completed successfully',
+                status: 'SUCCESS'
+            )
+            cleanWs()
+        }
+        failure {
+            githubStatus(
+                context: 'continuous-integration/jenkins',
+                description: 'Pipeline failed',
+                status: 'FAILURE'
+            )
+            cleanWs()
+        }
+        unstable {
+            githubStatus(
+                context: 'continuous-integration/jenkins',
+                description: 'Pipeline is unstable',
+                status: 'ERROR'
+            )
             cleanWs()
         }
     }
