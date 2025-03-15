@@ -77,9 +77,15 @@ class PetResourceTest {
     @Test
     void shouldFindPetById() throws Exception {
         // Given
+        Owner owner = new Owner();
+        owner.setFirstName("John");
+        owner.setLastName("Doe");
+
         Pet pet = new Pet();
         pet.setId(1);
         pet.setName("Max");
+        owner.addPet(pet);
+
         given(petRepository.findById(1)).willReturn(Optional.of(pet));
 
         // When/Then
