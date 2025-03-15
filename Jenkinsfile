@@ -80,7 +80,7 @@ pipeline {
         }
         stage('Test') {
             when {
-                expression { env.NO_SERVICES_TO_BUILD == 'false' }
+                expression { env.NO_SERVICES_TO_BUILD == 'false' }`
             }
             steps {
                 script {
