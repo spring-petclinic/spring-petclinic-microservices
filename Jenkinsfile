@@ -2,8 +2,8 @@ pipeline {
     agent any
     options {
         buildDiscarder(logRotator(numToKeepStr: '5'))
-        skipDefaultCheckout(true)
-        skipStagesAfterUnstable()
+        // skipDefaultCheckout(true)
+        // skipStagesAfterUnstable()
     }
     environment {
         WORKSPACE = "${env.WORKSPACE}"
