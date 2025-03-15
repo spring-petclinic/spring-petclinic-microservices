@@ -1,9 +1,6 @@
 pipeline {
     agent any
     options { skipDefaultCheckout() }
-    triggers {
-        githubPush()
-    }
     environment {
         DOCKER_REGISTRY = "devops22clc"
         REPO_URL = "https://github.com/devops22clc/spring-petclinic-microservices.git"
