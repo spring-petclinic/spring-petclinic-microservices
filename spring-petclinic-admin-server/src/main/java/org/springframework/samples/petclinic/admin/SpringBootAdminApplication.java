@@ -28,5 +28,4 @@ public class SpringBootAdminApplication {
         SpringApplication.run(SpringBootAdminApplication.class, args);
         // System.out.println("SpringBootAdminApplication started");
     }
-
 }
