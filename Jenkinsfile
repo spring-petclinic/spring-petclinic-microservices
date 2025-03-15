@@ -1,11 +1,11 @@
 pipeline {
     agent any
 
-    // environment {
-    //     // GITHUB_OWNER = "your-github-username-or-org"
-    //     // GITHUB_REPO  = "your-repo-name"
-    //     // BRANCH_NAME  = "main"
-    // }
+    environment {
+        GITHUB_OWNER = "your-github-username-or-org"
+        GITHUB_REPO  = "your-repo-name"
+        BRANCH_NAME  = "main"
+    }
 
     stages {
         stage('Build') {
@@ -25,9 +25,7 @@ pipeline {
         stage('Publish Check') {
             steps {
                 script {
-                    withChecks('Jenkins Build and Test') {
-                        githubNotify context: 'Jenkins', status: 'SUCCESS', description: 'Build & Tests Passed'
-                    }
+                    publishChecks name: 'Jenkins Build', conclusion: 'SUCCESS', detailsURL: "${env.BUILD_URL}"
                 }
             }
         }
