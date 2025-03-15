@@ -1,5 +1,6 @@
 pipeline {
     agent any
+
     options { skipDefaultCheckout() }
     environment {
         DOCKER_REGISTRY = "devops22clc"
