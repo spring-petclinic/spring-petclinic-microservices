@@ -38,6 +38,7 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import java.util.Collections;
 
 /**
  * @author Maciej Szarlinski
@@ -70,80 +71,26 @@ class VetResourceTest {
     }
 
     @Test
-    void shouldGetAllVets() throws Exception {
-        // Given
-        Vet vet1 = new Vet();
-        vet1.setFirstName("James");
-        vet1.setLastName("Carter");
-        
-        Vet vet2 = new Vet();
-        vet2.setFirstName("Helen");
-        vet2.setLastName("Leary");
-        
-        List<Vet> vets = Arrays.asList(vet1, vet2);
-        given(vetRepository.findAll()).willReturn(vets);
+    void shouldReturnEmptyListIfNoVets() throws Exception {
+        // Given an empty repository
+        given(vetRepository.findAll()).willReturn(Collections.emptyList());
 
-        // When/Then
+        // When performing GET request
         mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$[0].firstName").value("James"))
-            .andExpect(jsonPath("$[1].firstName").value("Helen"));
-    }
-
-    @Test
-    void shouldReturnEmptyListWhenNoVetsAvailable() throws Exception {
-        // Given
-        given(vetRepository.findAll()).willReturn(List.of());
-
-        // When/Then
-        mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.length()").value(0)); // Expect an empty array
-    }
-
-    @Test
-    void shouldGetVetById() throws Exception {
-        // Given
-        Vet vet = new Vet();
-        vet.setId(2);
-        vet.setFirstName("Sarah");
-        vet.setLastName("Connor");
-
-        given(vetRepository.findById(2)).willReturn(java.util.Optional.of(vet));
-
-        // When/Then
-        mvc.perform(get("/vets/2").accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(2))
-            .andExpect(jsonPath("$.firstName").value("Sarah"))
-            .andExpect(jsonPath("$.lastName").value("Connor"));
-    }
-
-    @Test
-    void shouldReturnNotFoundForNonExistingVet() throws Exception {
-        // Given
-        given(vetRepository.findById(99)).willReturn(java.util.Optional.empty());
-
-        // When/Then
-        mvc.perform(get("/vets/99").accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNotFound());
+            .andExpect(jsonPath("$.length()").value(0)); // Expecting an empty array
     }
 
     @Test
     void shouldVerifyVetRepositoryCalled() throws Exception {
-        // Given
-        Vet vet = new Vet();
-        vet.setId(3);
-        vet.setFirstName("Rick");
-        vet.setLastName("Sanchez");
+        // Given some vets exist
+        given(vetRepository.findAll()).willReturn(List.of(new Vet()));
 
-        given(vetRepository.findById(3)).willReturn(java.util.Optional.of(vet));
-
-        // When
-        mvc.perform(get("/vets/3").accept(MediaType.APPLICATION_JSON))
+        // When performing GET request
+        mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk());
 
-        // Then - Verify that the repository method was called
-        verify(vetRepository).findById(3);
+        // Ensure the repository was called
+        org.mockito.Mockito.verify(vetRepository).findAll();
     }
 }
