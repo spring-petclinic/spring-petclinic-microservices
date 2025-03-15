@@ -6,6 +6,9 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
+                githubNotify context: 'continuous-integration/jenkins', 
+                           description: 'Jenkins Pipeline Started',
+                           status: 'PENDING'
                 checkout scm
             }
         }
@@ -19,9 +22,12 @@ pipeline {
                     // Get all changed files
                     def changes = []
                     if (env.CHANGE_TARGET) {
-                        // If this is a PR build
-                        sh "git fetch origin ${env.CHANGE_TARGET}"
-                        changes = sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}", returnStdout: true).trim().split('\n')
+                        // If this is a PR build, fetch the target branch first
+                        sh """
+                            git fetch --no-tags origin ${env.CHANGE_TARGET}:refs/remotes/origin/${env.CHANGE_TARGET}
+                            git fetch --no-tags origin ${env.GIT_COMMIT}:refs/remotes/origin/PR-${env.CHANGE_ID}
+                        """
+                        changes = sh(script: "git diff --name-only origin/${env.CHANGE_TARGET} HEAD", returnStdout: true).trim().split('\n')
                     } else if (env.GIT_PREVIOUS_SUCCESSFUL_COMMIT) {
                         // If this is a branch build with previous successful build
                         changes = sh(script: "git diff --name-only ${env.GIT_PREVIOUS_SUCCESSFUL_COMMIT}", returnStdout: true).trim().split('\n')
@@ -165,7 +171,22 @@ pipeline {
         }
     }
     post {
-        always {
+        success {
+            githubNotify context: 'continuous-integration/jenkins',
+                        description: 'Pipeline completed successfully',
+                        status: 'SUCCESS'
+            cleanWs()
+        }
+        failure {
+            githubNotify context: 'continuous-integration/jenkins',
+                        description: 'Pipeline failed',
+                        status: 'FAILURE'
+            cleanWs()
+        }
+        unstable {
+            githubNotify context: 'continuous-integration/jenkins',
+                        description: 'Pipeline is unstable',
+                        status: 'ERROR'
             cleanWs()
         }
     }
