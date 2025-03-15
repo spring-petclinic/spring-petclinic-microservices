@@ -126,10 +126,26 @@ pipeline {
     
     post {
         success {
-            echo "Pipeline completed successfully for services: ${env.SERVICE_CHANGED}"
+            script {
+                withCredentials([string(credentialsId: 'GITHUB_TOKEN', variable: 'GITHUB_TOKEN')]) {
+                    sh """
+                    curl -X POST -H "Authorization: token ${GITHUB_TOKEN}" \
+                        -d '{"state": "success", "context": "Jenkins CI", "description": "CI passed!"}' \
+                        https://api.github.com/repos/nghiaz1692004/DevOps_Project1.git/statuses/\${GIT_COMMIT}
+                    """
+                }
+            }
         }
         failure {
-            echo "Pipeline failed for services: ${env.SERVICE_CHANGED}"
+            script {
+                withCredentials([string(credentialsId: 'GITHUB_TOKEN', variable: 'GITHUB_TOKEN')]) {
+                    sh """
+                    curl -X POST -H "Authorization: token ${GITHUB_TOKEN}" \
+                        -d '{"state": "failure", "context": "Jenkins CI", "description": "CI failed!"}' \
+                        https://api.github.com/repos/nghiaz1692004/DevOps_Project1.git/statuses/\${GIT_COMMIT}
+                    """
+                }
+            }
         }
     }
 }
