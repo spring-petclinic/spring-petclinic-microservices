@@ -12,18 +12,21 @@ pipeline {
         stage('Detect Changes') {
             steps {
                 script {
-                    // First, fetch the target branch
-                    if (env.CHANGE_TARGET) {
-                        sh "git fetch origin ${env.CHANGE_TARGET}"
-                    }
+                    // Debug: Print all environment variables
+                    echo "Environment variables:"
+                    sh 'env | sort'
                     
                     // Get all changed files
                     def changes = []
                     if (env.CHANGE_TARGET) {
                         // If this is a PR build
+                        sh "git fetch origin ${env.CHANGE_TARGET}"
                         changes = sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}", returnStdout: true).trim().split('\n')
+                    } else if (env.GIT_PREVIOUS_SUCCESSFUL_COMMIT) {
+                        // If this is a branch build with previous successful build
+                        changes = sh(script: "git diff --name-only ${env.GIT_PREVIOUS_SUCCESSFUL_COMMIT}", returnStdout: true).trim().split('\n')
                     } else {
-                        // If this is a branch build
+                        // Fallback to comparing with the previous commit
                         changes = sh(script: "git diff --name-only HEAD^", returnStdout: true).trim().split('\n')
                     }
 
