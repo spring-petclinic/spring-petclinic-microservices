@@ -2,7 +2,7 @@ pipeline {
     agent any
     options {
         buildDiscarder(logRotator(numToKeepStr: '5'))
-        // skipDefaultCheckout(true)
+        skipDefaultCheckout(true)
         // skipStagesAfterUnstable()
     }
     environment {
@@ -11,6 +11,12 @@ pipeline {
         SERVICES_WITHOUT_TESTS = "spring-petclinic-admin-server spring-petclinic-genai-service"
     }
     stages {
+        stage('Checkout') {
+            steps {
+                // Manual checkout to avoid automatic status reporting
+                checkout scm
+            }
+        }
         stage('Detect Changes') {
             steps {
                 publishChecks name: 'Detect Changes', status: 'IN_PROGRESS'
