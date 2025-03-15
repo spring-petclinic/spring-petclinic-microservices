@@ -1,11 +1,13 @@
 pipeline {
     agent any
-
-    environment {
-        GITHUB_OWNER = "your-github-username-or-org"
-        GITHUB_REPO  = "your-repo-name"
-        BRANCH_NAME  = "main"
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '5'))
     }
+    // environment {
+    //     GITHUB_OWNER = "your-github-username-or-org"
+    //     GITHUB_REPO  = "your-repo-name"
+    //     BRANCH_NAME  = "main"
+    // }
 
     stages {
         stage('Build') {
