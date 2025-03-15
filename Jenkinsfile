@@ -3,11 +3,12 @@ pipeline {
     options {
         buildDiscarder(logRotator(numToKeepStr: '5'))
     }
-    // environment {
-    //     GITHUB_OWNER = "your-github-username-or-org"
-    //     GITHUB_REPO  = "your-repo-name"
-    //     BRANCH_NAME  = "main"
-    // }
+    environment {
+        // Uncomment and set these values
+        GITHUB_OWNER = "Akerman0509"
+        GITHUB_REPO  = "spring-petclinic-microservices"
+        BRANCH_NAME  = "${env.GIT_BRANCH.replaceFirst(/^origin\//, '')}"
+    }
 
     stages {
         stage('Build') {
@@ -27,7 +28,11 @@ pipeline {
         stage('Publish Check') {
             steps {
                 script {
-                    publishChecks name: 'Jenkins Build', conclusion: 'SUCCESS', detailsURL: "${env.BUILD_URL}"
+                    publishChecks name: 'Jenkins Build', 
+                                 title: 'Jenkins Build', 
+                                 summary: 'Build and tests completed successfully',
+                                 conclusion: 'SUCCESS', 
+                                 detailsURL: "${env.BUILD_URL}"
                 }
             }
         }
