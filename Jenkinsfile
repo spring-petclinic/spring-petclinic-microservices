@@ -142,7 +142,7 @@ pipeline {
                     sh """
                     curl -X POST -H "Authorization: token ${GITHUB_TOKEN}" \
                         -d '{"state": "failure", "context": "Jenkins CI", "description": "CI failed!"}' \
-                        https://api.github.com/repos/nghiaz1609004/DevOps_Project1.git/statuses/\${GIT_COMMIT}
+                        https://api.github.com/repos/nghiaz160904/DevOps_Project1.git/statuses/\${GIT_COMMIT}
                     """
                 }
             }
