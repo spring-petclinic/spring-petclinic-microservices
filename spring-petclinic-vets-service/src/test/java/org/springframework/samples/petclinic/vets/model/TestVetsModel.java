@@ -60,6 +60,18 @@ class VetRepositoryTest {
         assertThat(vet.getSpecialties().get(0).getName()).isEqualTo("Dentistry");
         assertThat(vet.getSpecialties().get(1).getName()).isEqualTo("Radiology");
     }
+
+    @Test
+    void testVetGettersAndSetters() {
+        vet.setId(1);
+        assertThat(vet.getId()).isEqualTo(1);
+        
+        vet.setFirstName("Alice");
+        assertThat(vet.getFirstName()).isEqualTo("Alice");
+        
+        vet.setLastName("Smith");
+        assertThat(vet.getLastName()).isEqualTo("Smith");
+    }
 }
 
 @SpringBootTest(classes = VetsPropertiesTest.TestConfig.class)
@@ -75,7 +87,16 @@ class VetsPropertiesTest {
             VetsProperties properties = context.getBean(VetsProperties.class);
             assertThat(properties).isNotNull();
             assertThat(properties.cache()).isNotNull();
+            assertThat(properties.cache().ttl()).isGreaterThanOrEqualTo(0);
+            assertThat(properties.cache().heapSize()).isGreaterThanOrEqualTo(0);
         });
+    }
+
+    @Test
+    void testCacheGetters() {
+        VetsProperties.Cache cache = new VetsProperties.Cache(300, 100);
+        assertThat(cache.ttl()).isEqualTo(300);
+        assertThat(cache.heapSize()).isEqualTo(100);
     }
 
     @Configuration
