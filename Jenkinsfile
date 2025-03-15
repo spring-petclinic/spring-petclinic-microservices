@@ -2,75 +2,155 @@ pipeline {
     agent any
     
     environment {
-        OTHER_VARIABLE = ''
+        OTHER = '' // Danh sách các service thay đổi
+        GIT_COMMIT = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
     }
     
     stages {
         stage('Check Changes') {
             steps {
                 script {
-                    def changedFiles = sh(script: "git diff --name-only origin/main", returnStdout: true).trim().split("\n")
-                    def services = ['spring-petclinic-customers-service', 'spring-petclinic-vets-service', 'spring-petclinic-visits-service', 'spring-petclinic-genai-service']
-                
+                    echo "Commit SHA: ${GIT_COMMIT}"
+                    def changedFiles = []
+                    env.NO_SERVICES_TO_BUILD = 'false'
+                    if (env.CHANGE_TARGET) {
+                        // Nếu đây là PR build
+                        changedFiles = sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...", returnStdout: true).trim().split('\n')
+                    } else {
+                        // Nếu đây là branch build
+                        changedFiles = sh(script: "git diff --name-only HEAD^", returnStdout: true).trim().split('\n')
+                    }
+                    
+                    def services = ['spring-petclinic-customers-service', 'spring-petclinic-vets-service', 'spring-petclinic-visits-service']
+                    
                     echo "Changed files: ${changedFiles}"
-                
+                    
                     if (changedFiles.size() == 0 || changedFiles[0] == '') {
                         echo "No changes detected. Skipping pipeline."
                         currentBuild.result = 'ABORTED'
                         return
                     }
-                
+                    
                     def detectedServices = []
                     for (service in services) {
                         if (changedFiles.any { it.startsWith(service + '/') }) {
                             detectedServices << service
                         }
                     }
-                
+                    
                     if (detectedServices.isEmpty()) {
                         echo "No relevant service changes detected. Skipping pipeline."
-                        currentBuild.result = 'ABORTED'
-                        return
+                        env.NO_SERVICES_TO_BUILD = 'true'
+                    } else {
+                        echo "Detected Services: ${detectedServices}"
+                        env.SERVICE_CHANGED = detectedServices.join(",")
+                        echo "Changes detected in services: ${env.SERVICE_CHANGED}"
                     }
-                    echo "detected Services: ${detectedServices}"
-                    env.SERVICE_CHANGED = detectedServices.join(",").toString() 
-                    echo "Changes detected in services: ${env.SERVICE_CHANGED}"
                 }
             }
         }
         
-        stage('Test') {
+        stage('Test & Coverage') {
             when {
-                expression { return env.SERVICE_CHANGED != '' }
+                expression { env.NO_SERVICES_TO_BUILD == 'false'}
             }
             steps {
-                echo "Testing service: ${env.SERVICE_CHANGED}"
-                sh "./mvnw test -pl ${env.SERVICE_CHANGED} -am"
+                script {
+                    def services = env.SERVICE_CHANGED.split(',')
+                    for (service in services) {
+                        echo "Running unit tests for service: ${service}"
+                        sh "./mvnw clean verify -pl ${service} -am"
+
+                        echo "Checking if Jacoco coverage report was generated for ${service}..."
+                        sh "ls -la ${service}/target/site/"
+                    }
+                }
             }
             post {
                 always {
-                    junit "${env.SERVICE_CHANGED}/target/surefire-reports/*.xml"
+                    script {
+                        def services = env.SERVICE_CHANGED.split(',')
+                        for (service in services) {
+                            junit "${service}/target/surefire-reports/*.xml"
+                            archiveArtifacts artifacts: "${service}/target/site/jacoco/*", fingerprint: true
+                        }
+                    }
                 }
             }
         }
-        
-        stage('Build') {
+
+        stage('Check Coverage') {
             when {
-                expression { return env.SERVICE_CHANGED != '' }
+                expression { env.NO_SERVICES_TO_BUILD == 'false'}
             }
             steps {
-                echo "Building service: ${env.SERVICE_CHANGED}"
-                sh "./mvnw package -pl ${env.SERVICE_CHANGED} -am -DskipTests"
+                script {
+                    def services = env.SERVICE_CHANGED.split(',')
+                    def failedCoverageServices = []
+
+                    for (service in services) {
+                        def coverageHtml = sh(
+                            script: "xmllint --html --xpath 'string(//table[@id=\"coveragetable\"]/tfoot/tr/td[3])' ${service}/target/site/jacoco/index.html 2>/dev/null",
+                            returnStdout: true
+                        ).trim()
+            
+                        def coverage = coverageHtml.replace('%', '').toFloat() / 100
+                        echo "Test Coverage for ${service}: ${coverage * 100}%"
+            
+                        if (coverage < 0.70) {
+                            failedCoverageServices << service
+                        }
+                    }
+
+                    if (failedCoverageServices.size() > 0) {
+                        error "Coverage below 70% for services: ${failedCoverageServices.join(', ')}! Pipeline failed."
+                    }
+                }
+            }
+        }
+
+        stage('Build') {
+            when {
+                expression { env.NO_SERVICES_TO_BUILD == 'false'}
+            }
+            steps {
+                script {
+                    def services = env.SERVICE_CHANGED.split(',')
+                    for (service in services) {
+                        echo "Building service: ${service}"
+                        sh "./mvnw package -pl ${service} -am -DskipTests"
+                    }
+                }
             }
         }
     }
     
     post {
         success {
-            echo "Pipeline completed successfully for service: ${env.SERVICE_CHANGED}"
+            script {
+                withCredentials([string(credentialsId: 'GITHUB_TOKEN', variable: 'GITHUB_TOKEN')]) {
+                    sh '''
+                    curl -X POST \
+                      -H "Authorization: token ${GITHUB_TOKEN}" \
+                      -H "Content-Type: application/json" \
+                      -d '{"state": "success", "context": "Jenkins CI", "description": "CI passed!"}' \
+                      "https://api.github.com/repos/nghiaz160904/DevOps_Project1/statuses/${GIT_COMMIT}"
+                    '''
+                }
+            }
         }
         failure {
-            echo "Pipeline failed for service: ${env.SERVICE_CHANGED}"
+            script {
+                withCredentials([string(credentialsId: 'GITHUB_TOKEN', variable: 'GITHUB_TOKEN')]) {
+                    sh '''
+                    curl -X POST \
+                      -H "Authorization: token ${GITHUB_TOKEN}" \
+                      -H "Content-Type: application/json" \
+                      -d '{"state": "failure", "context": "Jenkins CI", "description": "CI failed!"}' \
+                      "https://api.github.com/repos/nghiaz160904/DevOps_Project1/statuses/${GIT_COMMIT}"
+                    '''
+                }
+            }
         }
     }
 }
