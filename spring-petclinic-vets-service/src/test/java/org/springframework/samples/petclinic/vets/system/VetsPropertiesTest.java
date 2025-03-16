@@ -11,7 +11,7 @@ class VetsPropertiesTest {
         VetsProperties.Cache cache = new VetsProperties.Cache(300, 1000);
         VetsProperties props = new VetsProperties(cache);
 
-        assertEquals(300, props.cache().ttl());
+        assertEquals(3000, props.cache().ttl());
         assertEquals(1000, props.cache().heapSize());
     }
 
