@@ -28,7 +28,7 @@ pipeline {
                     //     error("Build failed")
                     // }
 
-                    env.SERVICES_TO_BUILD = servicesToBuild.join(',')
+                    env.SERVICES_TO_BUILD = env.SERVICES
                     echo "Services to build: ${env.SERVICES_TO_BUILD}"
                 }
             }
