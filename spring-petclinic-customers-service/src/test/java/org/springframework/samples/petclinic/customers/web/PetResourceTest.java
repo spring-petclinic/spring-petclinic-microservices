@@ -79,6 +79,48 @@ class PetResourceTest {
             .andExpect(jsonPath("$.type.id").value(6));
     }
 
+    @Test
+    void shouldReturnNotFoundWhenUpdatingNonExistingPet() throws Exception {
+        String updatedPetJson = """
+        {
+            "name": "Updated Max",
+            "type": { "id": 5 }
+        }
+    """;
+
+        given(petRepository.findById(999)).willReturn(Optional.empty());
+
+        mvc.perform(put("/owners/2/pets/999")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updatedPetJson))
+            .andExpect(status().isNotFound()); // ✅ Expect 404 Not Found
+    }
+
+    @Test
+    void shouldCreatePetSuccessfully() throws Exception {
+        Owner owner = new Owner();
+        given(ownerRepository.findById(2)).willReturn(Optional.of(owner)); // ✅ Ensure the owner exists
+
+        String validPetJson = """
+        {
+            "name": "Max",
+            "type": { "id": 4 }
+        }
+    """; // ✅ Valid pet JSON
+
+        mvc.perform(post("/owners/2/pets")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validPetJson))
+            .andExpect(status().isCreated()); // ✅ Expect 201 Created
+    }
+
+    @Test
+    void shouldReturnMethodNotAllowedWhenDeletingPet() throws Exception {
+        mvc.perform(delete("/owners/2/pets/999"))
+            .andExpect(status().isMethodNotAllowed()); // ✅ Expect 405
+    }
+    
+
     private Pet setupPet() {
         Owner owner = new Owner();
         owner.setFirstName("George");
