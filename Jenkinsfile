@@ -44,7 +44,7 @@ pipeline {
         stage("Detect changes") {
             agent { label 'controller-node' }
             steps {
-                dir("${WORKSPACE}"){
+                dir("${WORKSPACE}") {
                     script {
                         sh(script: "git init && git fetch --no-tags --force --progress -- ${REPO_URL} refs/heads/${BRANCH_NAME}:refs/remotes/origin/${BRANCH_NAME}")
                         def changedFiles = sh(script: "git diff --name-only origin/${BRANCH_NAME}", returnStdout: true).trim().split("\n")
@@ -59,7 +59,7 @@ pipeline {
                                 echo "Changed Root"
                                 break
                             } else {
-                                    def service = file.split("/")[0]
+                                def service = file.split("/")[0]
                                 changedServices.add(service)
                             }
                         }
@@ -82,7 +82,7 @@ pipeline {
                         checkout scm
                         script {
                             env.GIT_COMMIT_SHA = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
-                            if (env.IS_CHANGED_ROOT == "true")  env.CHANGED_SERVICES = env.SERVICES
+                            if (env.IS_CHANGED_ROOT == "true") env.CHANGED_SERVICES = env.SERVICES
 
                             def changedServices = env.CHANGED_SERVICES.split(',')
                             for (service in changedServices) {
@@ -103,7 +103,7 @@ pipeline {
                         sh "echo run test"
                         checkout scm
                         script {
-                            if (env.IS_CHANGED_ROOT == "true")  env.CHANGED_SERVICES = env.SERVICES
+                            if (env.IS_CHANGED_ROOT == "true") env.CHANGED_SERVICES = env.SERVICES
 
                             def changedServices = env.CHANGED_SERVICES.split(',')
                             for (service in changedServices) {
@@ -121,9 +121,10 @@ pipeline {
             }
             post {
                 success {
-                    script {
-                        withCredentials([string(credentialsId: 'access-token', variable: 'GITHUB_TOKEN')]) {
-                            sh """
+                    node('controller-node') {
+                        script {
+                            withCredentials([string(credentialsId: 'access-token', variable: 'GITHUB_TOKEN')]) {
+                                sh """
                             curl -L \
                             -X POST \
                             -H "Accept: application/vnd.github+json" \
@@ -132,69 +133,73 @@ pipeline {
                             https://api.github.com/repos/${OWNER}/${REPO_NAME}/statuses/${GIT_COMMIT_SHA} \
                             -d '{"context":"Jenkins-ci", "state":"success","description":"Passed CI"}'
                             """
+                            }
                         }
                     }
                 }
                 failure {
-                    script {
-                        withCredentials([string(credentialsId: 'access-token', variable: 'GITHUB_TOKEN')]) {
-                            sh """
-                            curl -L \
-                            -X POST \
-                            -H "Accept: application/vnd.github+json" \
-                            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-                            -H "X-GitHub-Api-Version: 2022-11-28" \
-                            https://api.github.com/repos/${OWNER}/${REPO_NAME}/statuses/${GIT_COMMIT_SHA} \
-                            -d '{"context":"Jenkins-ci", "state":"failure","description":"Failed CI"}'
-                            """
+                    node('controller-node') {
+                        script {
+                            withCredentials([string(credentialsId: 'access-token', variable: 'GITHUB_TOKEN')]) {
+                                sh """
+                                curl -L \
+                                -X POST \
+                                -H "Accept: application/vnd.github+json" \
+                                -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+                                -H "X-GitHub-Api-Version: 2022-11-28" \
+                                https://api.github.com/repos/${OWNER}/${REPO_NAME}/statuses/${GIT_COMMIT_SHA} \
+                                -d '{"context":"Jenkins-ci", "state":"failure","description":"Failed CI"}'
+                                """
+                            }
                         }
+
                     }
                 }
             }
+            //stage("Push artifact") {
+            //    when {
+            //        expression { return env.STAGE == "prod" || env.STAGE == "dev" || env.STAGE == "uat" }
+            //    }
+            //    agent { label 'maven-node' }
+            //    steps {
+            //        withCredentials([usernamePassword(credentialsId: 'docker-registry-token', usernameVariable: 'USERNAME', passwordVariable: 'PASSWD')]) {
+            //            sh 'echo "$PASSWD" | docker login --username "$USERNAME" --password-stdin'
+            //        }
+            //        script {
+            //            def changedServices = env.CHANGED_SERVICES.split(',')
+            //            for (service in changedServices) {
+            //                sh """
+            //                    docker push ${OWNER}/${env.STAGE}-${service}:${env.GIT_COMMIT_SHA}
+            //                """
+            //            }
+            //        }
+            //        sh "echo y | docker image prune -a && echo y | docker system prune -a"
+            //    }
+            //}
+            //stage("Trigger Github Actions") {
+            //
+            //}
+            //stage('Deploy') {
+            //    when {
+            //        expression { return env.STAGE == "prod" || env.STAGE == "dev" || env.STAGE == "uat" }
+            //    }
+            //    agent { label 'kubernetes-node' }
+            //    steps {
+            //                script {
+            //            if (env.IS_CHANGED_ROOT == 'true') {
+            //                        echo "Deploying all services"
+            //                sh """
+            //
+            //                """
+            //            } else if (env.CHANGED_SERVICES?.trim()) {
+            //                def changedServices = env.CHANGED_SERVICES.split(',')
+            //                for (service in changedServices) {
+            //                    echo "Deploying service: ${service}"
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
         }
-        //stage("Push artifact") {
-        //    when {
-        //        expression { return env.STAGE == "prod" || env.STAGE == "dev" || env.STAGE == "uat" }
-        //    }
-        //    agent { label 'maven-node' }
-        //    steps {
-        //        withCredentials([usernamePassword(credentialsId: 'docker-registry-token', usernameVariable: 'USERNAME', passwordVariable: 'PASSWD')]) {
-        //            sh 'echo "$PASSWD" | docker login --username "$USERNAME" --password-stdin'
-        //        }
-        //        script {
-        //            def changedServices = env.CHANGED_SERVICES.split(',')
-        //            for (service in changedServices) {
-        //                sh """
-        //                    docker push ${OWNER}/${env.STAGE}-${service}:${env.GIT_COMMIT_SHA}
-        //                """
-        //            }
-        //        }
-        //        sh "echo y | docker image prune -a && echo y | docker system prune -a"
-        //    }
-        //}
-        //stage("Trigger Github Actions") {
-        //
-        //}
-        //stage('Deploy') {
-        //    when {
-        //        expression { return env.STAGE == "prod" || env.STAGE == "dev" || env.STAGE == "uat" }
-        //    }
-        //    agent { label 'kubernetes-node' }
-        //    steps {
-        //                script {
-        //            if (env.IS_CHANGED_ROOT == 'true') {
-        //                        echo "Deploying all services"
-        //                sh """
-        //
-        //                """
-        //            } else if (env.CHANGED_SERVICES?.trim()) {
-        //                def changedServices = env.CHANGED_SERVICES.split(',')
-        //                for (service in changedServices) {
-        //                    echo "Deploying service: ${service}"
-        //                }
-        //            }
-        //        }
-        //    }
-        //}
     }
 }
