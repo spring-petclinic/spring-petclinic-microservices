@@ -16,42 +16,23 @@ pipeline {
             steps {
                 script {
                     def services = [
-                        "spring-petclinic-customers-service",
-                        "spring-petclinic-vets-service",
-                        "spring-petclinic-visits-service",
-                        "spring-petclinic-genai-service"
-                    ]
-
-                    // Ensure we fetch all remote branches
-                    sh 'git fetch --all --prune'
-
-                    // Determine the base branch (target branch of the PR)
-                    def baseBranch = env.CHANGE_TARGET ?: 'main'  // Use PR target branch if available, else default to main
-                    echo "Comparing changes against base branch: origin/${baseBranch}"
-
-                    // Ensure the base branch exists locally
-                    sh "git branch --track ${baseBranch} origin/${baseBranch} || true"
-
-                    // Find the base commit
-                    def baseCommit = sh(script: "git merge-base origin/${baseBranch} HEAD", returnStdout: true).trim()
-
-                    // Get changed files between base branch and HEAD
-                    def changedFiles = sh(script: "git diff --name-only ${baseCommit} HEAD", returnStdout: true).trim().split("\n")
-
+                            "spring-petclinic-customers-service",
+                            "spring-petclinic-vets-service",
+                            "spring-petclinic-visits-service",
+                            "spring-petclinic-genai-service"]
+                    
+                    def changedFiles = sh(script: 'git diff --name-only HEAD~1 HEAD', returnStdout: true).trim().split("\n")
                     def changedServices = []
                     for (service in services) {
                         if (changedFiles.any { it.startsWith(service) }) {
                             changedServices.add(service)
                         }
                     }
-
-                    echo "Code changes detected in services: ${changedServices.join(', ')}"
-                    env.CHANGED_SERVICES = changedServices.join(', ')
+                    echo "Code changes in services: ${changedServices.join(', ')}"
+                    env.CHANGED_SERVICES = changedServices.join(', ')                             
                 }
             }
         }
-
-
 
         stage('Test Services') {
             when {
