@@ -21,7 +21,8 @@ pipeline {
                             "spring-petclinic-visits-service",
                             "spring-petclinic-genai-service"]
                     
-                    def changedFiles = sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim().split("\n")
+                    def baseCommit = sh(script: "git rev-parse HEAD^1", returnStdout: true).trim() // First parent of merge commit
+                    def changedFiles = sh(script: "git diff --name-only ${baseCommit} HEAD", returnStdout: true).trim().split("\n")
                     echo "Changed files: ${changedFiles.join(', ')}"
 
                     def changedServices = []
