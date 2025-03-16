@@ -76,45 +76,53 @@ pipeline {
         stage("Build & TEST") {
             parallel {
                 stage("Build") {
-                    agent { label 'maven-node' }
                     steps {
-                        sh "echo run build"
-                        checkout scm
                         script {
-                            env.GIT_COMMIT_SHA = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
                             if (env.IS_CHANGED_ROOT == "true") env.CHANGED_SERVICES = env.SERVICES
-
                             def changedServices = env.CHANGED_SERVICES.split(',')
-                            for (service in changedServices) {
-                                sh """
-                                cd ${service}
-                                echo "run build for ${service}"
-                                mvn clean package -DskipTests
-                                cd ..
+                            def parallelBuilds = [:]
 
-                                """
+                            for (service in changedServices) {
+                                parallelBuilds[service] = {
+                                    def agentNode = selectLeastBusyAgent()
+                                    node(agentNode) {
+                                        stage("Build - ${service}") {
+                                            sh """
+                                            cd ${service}
+                                            mvn clean package -DskipTests
+                                            """
+                                        }
+                                    }
+                                }
                             }
+                            parallel parallelBuilds
                         }
                     }
                 }
-                stage("TEST") {
-                    agent { label 'maven-node' }
+
+                stage("Test") {
                     steps {
-                        sh "echo run test"
-                        checkout scm
                         script {
                             if (env.IS_CHANGED_ROOT == "true") env.CHANGED_SERVICES = env.SERVICES
-
                             def changedServices = env.CHANGED_SERVICES.split(',')
+                            def parallelTests = [:]
+
                             for (service in changedServices) {
-                                echo "Running tests for service: ${service}"
-                                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                                    sh """
-                                    cd ${service}
-                                    mvn clean test jacoco:report && mvn clean verify
-                                """
+                                parallelTests[service] = {
+                                    def agentNode = selectLeastBusyAgent()
+                                    node(agentNode) {
+                                        stage("Test - ${service}") {
+                                            catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                                                sh """
+                                                cd ${service}
+                                                mvn clean test jacoco:report && mvn clean verify
+                                                """
+                                            }
+                                        }
+                                    }
                                 }
                             }
+                            parallel parallelTests
                         }
                     }
                 }
@@ -202,4 +210,19 @@ pipeline {
             //}
         }
     }
+}
+
+def selectLeastBusyAgent() {
+    def nodes = jenkins.model.Jenkins.instance.nodes.findAll { it.labelString.contains('node') }
+    def agentUsage = [:]
+
+    for (node in nodes) {
+        def executors = node.toComputer().getExecutors()
+        def busyExecutors = executors.count { it.isBusy() }
+        agentUsage[node.getNodeName()] = busyExecutors
+    }
+
+    def leastBusyAgent = agentUsage.sort { it.value }.keySet().first()
+    echo "Selected Agent: ${leastBusyAgent}"
+    return leastBusyAgent
 }
