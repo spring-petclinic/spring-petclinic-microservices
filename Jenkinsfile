@@ -22,35 +22,32 @@ pipeline {
                         "spring-petclinic-genai-service"
                     ]
 
-                    // Fetch all branches, ensuring full history
-                    sh 'git fetch --all --prune'
+                    // **Step 1: Make Sure We Have Full Git History**
+                    sh 'git fetch --all --prune'  // Fetch all branches properly
 
-                    // Get the current branch name
+                    // **Step 2: Get the Current Branch**
                     def currentBranch = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
                     echo "Current branch: ${currentBranch}"
 
-                    // Determine the base branch (use PR target or default to main)
-                    def baseBranch = env.CHANGE_TARGET ?: 'main'
+                    // **Step 3: Find the Base Branch (Main or PR Target)**
+                    def baseBranch = env.CHANGE_TARGET ?: 'main'  // If it's a PR, use target branch; else default to main
                     echo "Comparing against base branch: origin/${baseBranch}"
 
-                    // Ensure the base branch exists locally
-                    sh "git checkout ${baseBranch} || git checkout -b ${baseBranch} origin/${baseBranch} || true"
+                    // **Step 4: Ensure Base Branch Exists Locally (Fixes the Fetch Error)**
+                    sh "git checkout ${baseBranch} || git fetch origin ${baseBranch}:${baseBranch} || true"
 
-                    // **Force Fetch to Ensure Base Branch is Up-to-Date**
-                    sh "git fetch origin ${baseBranch}:${baseBranch}"
-
-                    // Get the latest common ancestor commit (fixing the issue)
-                    def baseCommit = sh(script: "git merge-base ${baseBranch} ${currentBranch} || echo \$(git rev-list --max-parents=0 HEAD)", returnStdout: true).trim()
+                    // **Step 5: Find the Common Ancestor Commit (Ensures Correct Comparison)**
+                    def baseCommit = sh(script: "git merge-base origin/${baseBranch} HEAD || git rev-list --max-parents=0 HEAD", returnStdout: true).trim()
                     echo "Base commit: ${baseCommit}"
 
-                    // **Get list of changed files in the branch**
-                    def changedFilesOutput = sh(script: "git diff --name-only ${baseCommit} ${currentBranch} || true", returnStdout: true).trim()
+                    // **Step 6: Detect Changed Files**
+                    def changedFilesOutput = sh(script: "git diff --name-only ${baseCommit} HEAD || true", returnStdout: true).trim()
 
                     if (changedFilesOutput) {
                         def changedFiles = changedFilesOutput.split("\n").collect { it.trim() }
                         echo "Changed files: ${changedFiles.join(', ')}"
 
-                        // **Identify which services were modified**
+                        // **Step 7: Detect Changed Services**
                         def changedServices = []
                         for (service in services) {
                             if (changedFiles.any { it.startsWith(service) }) {
