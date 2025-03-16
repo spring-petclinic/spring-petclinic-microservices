@@ -79,21 +79,21 @@ pipeline {
                     steps {
                         sh "echo run build"
                         //checkout scm
-                        //script {
-                        //    env.GIT_COMMIT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                        //    if (env.IS_CHANGED_ROOT == "true")  env.CHANGED_SERVICES = env.SERVICES
-                        //
-                        //    def changedServices = env.CHANGED_SERVICES.split(',')
-                        //    for (service in changedServices) {
-                        //        sh """
-                        //        cd ${service}
-                        //        echo "run build for ${service}"
-                        //        mvn clean package -DskipTests
-                        //        cd ..
-                        //        docker build --build-arg SERVICE=${service} --build-arg STAGE=${env.STAGE} -f docker/Dockerfile.${service} -t ${DOCKER_REGISTRY}/${env.STAGE}-${service}:${env.GIT_COMMIT_SHA} .
-                        //        """
-                        //    }
-                        //}
+                        script {
+                            env.GIT_COMMIT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                            //if (env.IS_CHANGED_ROOT == "true")  env.CHANGED_SERVICES = env.SERVICES
+                            //
+                            //def changedServices = env.CHANGED_SERVICES.split(',')
+                            //for (service in changedServices) {
+                            //    sh """
+                            //    cd ${service}
+                            //    echo "run build for ${service}"
+                            //    mvn clean package -DskipTests
+                            //    cd ..
+                            //    docker build --build-arg SERVICE=${service} --build-arg STAGE=${env.STAGE} -f docker/Dockerfile.${service} -t ${DOCKER_REGISTRY}/${env.STAGE}-${service}:${env.GIT_COMMIT_SHA} .
+                            //    """
+                            //}
+                        }
                     }
                 }
                 stage("TEST") {
@@ -119,11 +119,33 @@ pipeline {
                 }
             }
             post {
-                success {
-                    publishChecks actions: [[identifier: 'Jenkins-CI-checks', label: 'Jenkins-CI-checks']], name: 'Jenkins CI', summary: 'Jenkins CI status check', title: 'Jenkins CI status check'
-                }
-                failure {
-                    publishChecks actions: [[identifier: 'Jenkins-CI-checks', label: 'Jenkins-CI-checks']], conclusion: 'FAILURE', name: 'Jenkins CI', summary: 'Jenkins CI status check', title: 'Jenkins CI status check'
+                withCredentials([string(credentialsId: 'access-token', variable: 'GITHUB_TOKEN')]) {
+                    success {
+                        //publishChecks actions: [[identifier: 'Jenkins-CI-checks', label: 'Jenkins-CI-checks']], name: 'Jenkins CI', summary: 'Jenkins CI status check', title: 'Jenkins CI status check'
+                        sh
+                        """
+                        curl -L \
+                        -X POST \
+                        -H "Accept: application/vnd.github+json" \
+                        -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+                        -H "X-GitHub-Api-Version: 2022-11-28" \
+                        https://api.github.com/repos/${DOCKER_REGISTRY}/${REPO_NAME}/statuses/${GIT_COMMIT_SHA} \
+                        -d '{"context":"Jenkins-ci", "state":"success","description":"Passed CI"}'
+                        """
+                    }
+                    failure {
+                            //publishChecks actions: [[identifier: 'Jenkins-CI-checks', label: 'Jenkins-CI-checks']], conclusion: 'FAILURE', name: 'Jenkins CI', summary: 'Jenkins CI status check', title: 'Jenkins CI status check'
+                         sh
+                            """
+                            curl -L \
+                            -X POST \
+                            -H "Accept: application/vnd.github+json" \
+                            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+                            -H "X-GitHub-Api-Version: 2022-11-28" \
+                            https://api.github.com/repos/${DOCKER_REGISTRY}/${REPO_NAME}/statuses/${GIT_COMMIT_SHA} \
+                            -d '{"context":"Jenkins-ci", "state":"failure","description":"Failed CI"}'
+                            """
+                    }
                 }
             }
         }
