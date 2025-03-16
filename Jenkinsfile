@@ -119,23 +119,11 @@ pipeline {
                 }
             }
             post {
-                withCredentials([string(credentialsId: 'access-token', variable: 'GITHUB_TOKEN')]) {
-                    success {
-                        //publishChecks actions: [[identifier: 'Jenkins-CI-checks', label: 'Jenkins-CI-checks']], name: 'Jenkins CI', summary: 'Jenkins CI status check', title: 'Jenkins CI status check'
-                        sh
-                        """
-                        curl -L \
-                        -X POST \
-                        -H "Accept: application/vnd.github+json" \
-                        -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-                        -H "X-GitHub-Api-Version: 2022-11-28" \
-                        https://api.github.com/repos/${DOCKER_REGISTRY}/${REPO_NAME}/statuses/${GIT_COMMIT_SHA} \
-                        -d '{"context":"Jenkins-ci", "state":"success","description":"Passed CI"}'
-                        """
-                    }
-                    failure {
-                            //publishChecks actions: [[identifier: 'Jenkins-CI-checks', label: 'Jenkins-CI-checks']], conclusion: 'FAILURE', name: 'Jenkins CI', summary: 'Jenkins CI status check', title: 'Jenkins CI status check'
-                         sh
+                success {
+                    script {
+                        withCredentials([string(credentialsId: 'access-token', variable: 'GITHUB_TOKEN')]) {
+                            //publishChecks actions: [[identifier: 'Jenkins-CI-checks', label: 'Jenkins-CI-checks']], name: 'Jenkins CI', summary: 'Jenkins CI status check', title: 'Jenkins CI status check'
+                            sh
                             """
                             curl -L \
                             -X POST \
@@ -143,8 +131,25 @@ pipeline {
                             -H "Authorization: Bearer ${GITHUB_TOKEN}" \
                             -H "X-GitHub-Api-Version: 2022-11-28" \
                             https://api.github.com/repos/${DOCKER_REGISTRY}/${REPO_NAME}/statuses/${GIT_COMMIT_SHA} \
-                            -d '{"context":"Jenkins-ci", "state":"failure","description":"Failed CI"}'
+                            -d '{"context":"Jenkins-ci", "state":"success","description":"Passed CI"}'
                             """
+                        }
+                    }
+                }
+                failure {
+                    script {
+                        withCredentials([string(credentialsId: 'access-token', variable: 'GITHUB_TOKEN')]) {
+                            //publishChecks actions: [[identifier: 'Jenkins-CI-checks', label: 'Jenkins-CI-checks']], conclusion: 'FAILURE', name: 'Jenkins CI', summary: 'Jenkins CI status check', title: 'Jenkins CI status check'
+                             sh """
+                                curl -L \
+                                -X POST \
+                                -H "Accept: application/vnd.github+json" \
+                                -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+                                -H "X-GitHub-Api-Version: 2022-11-28" \
+                                https://api.github.com/repos/${DOCKER_REGISTRY}/${REPO_NAME}/statuses/${GIT_COMMIT_SHA} \
+                                -d '{"context":"Jenkins-ci", "state":"failure","description":"Failed CI"}'
+                                """
+                        }
                     }
                 }
             }
