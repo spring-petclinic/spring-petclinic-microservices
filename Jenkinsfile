@@ -75,7 +75,7 @@ pipeline {
         stage("Build & TEST") {
             parallel {
                 stage("Build") {
-                    agent { label 'controller-node' }
+                    agent any
                     steps {
                         checkout scm
                         script {
@@ -87,7 +87,6 @@ pipeline {
                             for (service in changedServices) {
                                 parallelBuilds[service] = {
                                         stage("Build - ${service}") {
-                                            agent any
                                             steps {
                                                 sh """
                                                 cd ${service}
@@ -104,7 +103,7 @@ pipeline {
                 }
 
                 stage("Test") {
-                    agent { label 'controller-node' }
+                    agent any
                     steps {
                         checkout scm
                         script {
@@ -116,7 +115,6 @@ pipeline {
                                 parallelTests[service] = {
 
                                         stage("Test - ${service}") {
-                                            agent any
                                             steps {
                                                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                                                     sh """
