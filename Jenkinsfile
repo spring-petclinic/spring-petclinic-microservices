@@ -87,12 +87,10 @@ pipeline {
                             for (service in changedServices) {
                                 parallelBuilds[service] = {
                                         stage("Build - ${service}") {
-                                            steps {
                                                 sh """
                                                 cd ${service}
                                                 mvn clean package -DskipTests
                                                 """
-                                            }
                                         }
 
                                 }
@@ -115,14 +113,13 @@ pipeline {
                                 parallelTests[service] = {
 
                                         stage("Test - ${service}") {
-                                            steps {
+
                                                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                                                     sh """
                                                 cd ${service}
                                                 mvn clean test jacoco:report && mvn clean verify
                                                 """
                                                 }
-                                            }
                                         }
 
                                 }
