@@ -33,4 +33,3 @@ public class VetsServiceApplication {
 		SpringApplication.run(VetsServiceApplication.class, args);
 	}
 }
-// test vets-service
