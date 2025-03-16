@@ -4,6 +4,7 @@ pipeline {
     environment {
         OTHER = ''
     }
+
     stages {
         stage('Check Changes') {
             agent { label 'master' }
@@ -19,7 +20,7 @@ pipeline {
                     }
 
                     def services = ['spring-petclinic-customers-service', 'spring-petclinic-visits-service', 'spring-petclinic-vets-service']
-                    
+
                     echo "Changed files: ${changedFiles}"
 
                     if (changedFiles.isEmpty() || changedFiles[0] == '') {
@@ -92,6 +93,37 @@ pipeline {
             }
         }
 
+        stage('Check Coverage') {
+            agent { label 'master' }
+            when {
+                expression { env.NO_SERVICES_TO_BUILD == 'false' }
+            }
+            steps {
+                script {
+                    def services = env.SERVICE_CHANGED.split(',')
+                    def failedCoverageServices = []
+
+                    for (service in services) {
+                        def coverageHtml = sh(
+                            script: "xmllint --html --xpath 'string(//table[@id=\"coveragetable\"]/tfoot/tr/td[3])' ${service}/target/site/jacoco/index.html 2>/dev/null",
+                            returnStdout: true
+                        ).trim()
+
+                        def coverage = coverageHtml.replace('%', '').toFloat() / 100
+                        echo "Test Coverage for ${service}: ${coverage * 100}%"
+
+                        if (coverage < 0.70) {
+                            failedCoverageServices << service
+                        }
+                    }
+
+                    if (failedCoverageServices.size() > 0) {
+                        error "Coverage below 70% for services: ${failedCoverageServices.join(', ')}! Pipeline failed."
+                    }
+                }
+            }
+        }
+
         stage('Build - Agent 1') {
             agent { label 'agent1' }
             when {
@@ -121,13 +153,13 @@ pipeline {
             }
         }
     }
-    
+
     post {
         success {
-            echo "Success"
+            echo "Pipeline completed successfully!"
         }
         failure {
-            echo "Fail"
+            echo "Pipeline failed!"
         }
     }
 }
