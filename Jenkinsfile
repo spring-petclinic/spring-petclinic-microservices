@@ -18,15 +18,15 @@ pipeline {
                     def servicesList = env.SERVICES.split(',')
                     // def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
 
-                    def servicesToBuild = servicesList.findAll { service ->
-                        changedFiles.split('\n').any { it.startsWith("${service}/") }
-                    }
+                    // def servicesToBuild = servicesList.findAll { service ->
+                    //     changedFiles.split('\n').any { it.startsWith("${service}/") }
+                    // }
 
-                    if (servicesToBuild.isEmpty()) {
-                        echo "No changes in any services. Skipping build."
-                        currentBuild.result = 'SUCCESS'
-                        error("Build failed")
-                    }
+                    // if (servicesToBuild.isEmpty()) {
+                    //     echo "No changes in any services. Skipping build."
+                    //     currentBuild.result = 'SUCCESS'
+                    //     error("Build failed")
+                    // }
 
                     env.SERVICES_TO_BUILD = servicesToBuild.join(',')
                     echo "Services to build: ${env.SERVICES_TO_BUILD}"
