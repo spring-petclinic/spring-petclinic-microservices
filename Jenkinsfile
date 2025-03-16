@@ -194,8 +194,8 @@ pipeline {
         stage('Auto Merge') {
             when {
                 allOf {
-                    expression { env.NO_SERVICES_TO_BUILD == 'false' }
                     expression { env.CHANGE_ID != null }
+                    expression { env.GITHUB_EVENT_NAME == 'pull_request_review' }
                 }
             }
             steps {
@@ -203,36 +203,34 @@ pipeline {
                     def prNumber = env.CHANGE_ID
                     def repo = env.GIT_URL.replaceFirst('^.*github\\.com[:/]', '').replaceFirst('\\.git$', '')
                     
-                    // Get PR details and check approvals
+                    // Get PR reviews - Fixed secure string interpolation
                     def apiUrl = "https://api.github.com/repos/${repo}/pulls/${prNumber}/reviews"
                     def response = sh(
-                        script: """
-                            curl -s -H "Authorization: token ${GITHUB_TOKEN}" ${apiUrl}
-                        """,
+                        script: "curl -s -H \"Authorization: token \$GITHUB_TOKEN\" ${apiUrl}",
                         returnStdout: true
                     )
-                    
+
                     def reviews = readJSON(text: response)
                     def approvalCount = reviews.count { it.state == 'APPROVED' }
-                    
+
                     echo "Number of approvals: ${approvalCount}"
                     
-                    if (approvalCount >= 1) {
+                    if (approvalCount >= 2) {
                         echo "PR has sufficient approvals (${approvalCount}). Proceeding with merge..."
                         
-                        // Merge the PR
+                        // Merge the PR - Fixed secure string interpolation
                         def mergeUrl = "https://api.github.com/repos/${repo}/pulls/${prNumber}/merge"
                         def mergeResponse = sh(
                             script: """
-                                curl -s -X PUT \
-                                -H "Authorization: token ${GITHUB_TOKEN}" \
-                                -H "Accept: application/vnd.github.v3+json" \
-                                -d '{"merge_method":"squash"}' \
+                                curl -s -X PUT \\
+                                -H "Authorization: token \$GITHUB_TOKEN" \\
+                                -H "Accept: application/vnd.github.v3+json" \\
+                                -d '{"merge_method":"squash"}' \\
                                 ${mergeUrl}
-                            """,
+                            """.stripIndent(),
                             returnStdout: true
                         )
-                        
+
                         echo "Merge response: ${mergeResponse}"
                     } else {
                         echo "PR needs at least 2 approvals to auto-merge (current: ${approvalCount})"
