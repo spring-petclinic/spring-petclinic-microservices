@@ -25,5 +25,25 @@ pipeline {
                 '''
             }
         }
+        stage('for the fix branch') {
+          when {
+            branch "fix-*"
+          }
+          steps {
+            echo '''
+              This only runs for the fix-* branches
+            '''
+          }
+        }
+        stage('for the PR') {
+          when {
+            branch "PR-*"
+          }
+          steps {
+            echo '''
+              This only runs for the PRs
+            '''
+          }
+        }
     }
 }
