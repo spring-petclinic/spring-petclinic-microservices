@@ -86,12 +86,14 @@ pipeline {
 
                             for (service in changedServices) {
                                 parallelBuilds[service] = {
-                                    agent any
                                         stage("Build - ${service}") {
-                                            sh """
-                                            cd ${service}
-                                            mvn clean package -DskipTests
-                                            """
+                                            agent any
+                                            steps {
+                                                sh """
+                                                cd ${service}
+                                                mvn clean package -DskipTests
+                                                """
+                                            }
                                         }
 
                                 }
@@ -112,13 +114,16 @@ pipeline {
 
                             for (service in changedServices) {
                                 parallelTests[service] = {
-                                    agent any
+
                                         stage("Test - ${service}") {
-                                            catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                                                sh """
+                                            agent any
+                                            steps {
+                                                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                                                    sh """
                                                 cd ${service}
                                                 mvn clean test jacoco:report && mvn clean verify
                                                 """
+                                                }
                                             }
                                         }
 
