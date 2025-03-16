@@ -22,22 +22,28 @@ pipeline {
                         "spring-petclinic-genai-service"
                     ]
 
-                    // Ensure we fetch all remote branches
+                    // Fetch all branches to ensure we have the latest commits
                     sh 'git fetch --all --prune'
 
-                    // Determine the base branch (target branch of the PR)
-                    def baseBranch = env.CHANGE_TARGET ?: 'main'  // Use PR target branch if available, else default to main
-                    echo "Comparing changes against base branch: origin/${baseBranch}"
+                    // Get the current branch Jenkins is building
+                    def currentBranch = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
+                    echo "Current branch: ${currentBranch}"
+
+                    // Determine the base branch to compare against
+                    def baseBranch = env.CHANGE_TARGET ?: 'main'  // If this is a PR, use the target branch; otherwise, use main
+                    echo "Comparing against base branch: origin/${baseBranch}"
 
                     // Ensure the base branch exists locally
                     sh "git branch --track ${baseBranch} origin/${baseBranch} || true"
 
-                    // Find the base commit
+                    // Get the latest common ancestor commit (ensures correct diff)
                     def baseCommit = sh(script: "git merge-base origin/${baseBranch} HEAD", returnStdout: true).trim()
+                    echo "Base commit: ${baseCommit}"
 
-                    // Get changed files between base branch and HEAD
+                    // Get the list of changed files in this branch compared to base branch
                     def changedFiles = sh(script: "git diff --name-only ${baseCommit} HEAD", returnStdout: true).trim().split("\n")
 
+                    // Identify changed services
                     def changedServices = []
                     for (service in services) {
                         if (changedFiles.any { it.startsWith(service) }) {
@@ -45,11 +51,13 @@ pipeline {
                         }
                     }
 
-                    echo "Code changes detected in services: ${changedServices.join(', ')}"
+                    echo "Code changes detected in branch '${currentBranch}': ${changedServices.join(', ')}"
                     env.CHANGED_SERVICES = changedServices.join(', ')
+                    env.CURRENT_BRANCH = currentBranch
                 }
             }
         }
+
 
 
 
