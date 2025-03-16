@@ -45,7 +45,7 @@ pipeline {
             steps {
                 dir("${WORKSPACE}"){
                     script {
-                        sh(script: "git init && git branch -m ${BRANCH_NAME} && git fetch --no-tags --force --progress -- ${REPO_URL} refs/heads/${BRANCH_NAME}:refs/remotes/origin/${BRANCH_NAME}")
+                        sh(script: "git init && ${BRANCH_NAME} && git fetch --no-tags --force --progress -- ${REPO_URL} refs/heads/${BRANCH_NAME}:refs/remotes/origin/${BRANCH_NAME}")
                         def changedFiles = sh(script: "git diff --name-only origin/${BRANCH_NAME}", returnStdout: true).trim().split("\n")
                         def changedServices = [] as Set
                         def rootChanged = false
