@@ -7,7 +7,7 @@ pipeline {
 
     stages {
         stage('Check Changes') {
-            agent { label 'master' }
+            agent { label 'built-in' }
             steps {
                 script {
                     echo "Commit SHA: ${GIT_COMMIT}"
@@ -94,7 +94,7 @@ pipeline {
         }
 
         stage('Check Coverage') {
-            agent { label 'master' }
+            agent { label 'built-in' }
             when {
                 expression { env.NO_SERVICES_TO_BUILD == 'false' }
             }
