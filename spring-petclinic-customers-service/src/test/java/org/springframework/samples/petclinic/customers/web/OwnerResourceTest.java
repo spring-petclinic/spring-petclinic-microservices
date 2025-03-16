@@ -17,7 +17,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -50,6 +50,55 @@ class OwnerResourceTest {
             .andExpect(jsonPath("$.lastName").value("Doe"))
             .andExpect(jsonPath("$.telephone").value("123456789"));
     }
+
+    @Test
+    void shouldReturnNotFoundWhenOwnerDoesNotExist() throws Exception {
+        given(ownerRepository.findById(999)).willReturn(Optional.empty());
+
+        mvc.perform(get("/owners/999").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldCreateNewOwner() throws Exception {
+        String newOwnerJson = """
+        {
+            "firstName": "Alice",
+            "lastName": "Johnson",
+            "address": "456 Oak Street",
+            "city": "Metropolis",
+            "telephone": "987654321"
+        }
+    """;
+
+        mvc.perform(post("/owners")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(newOwnerJson))
+            .andExpect(status().isCreated());
+    }
+
+    @Test
+    void shouldUpdateOwner() throws Exception {
+        Owner existingOwner = setupOwner(); // ✅ Set up an existing owner
+
+        given(ownerRepository.findById(1)).willReturn(Optional.of(existingOwner));
+
+        String updatedOwnerJson = """
+        {
+            "firstName": "Updated John",
+            "lastName": "Updated Doe",
+            "address": "789 Updated Street",
+            "city": "Updated City",
+            "telephone": "555555555"
+        }
+    """;
+
+        mvc.perform(put("/owners/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updatedOwnerJson))
+            .andExpect(status().isNoContent());
+    }
+
 
     private Owner setupOwner() throws Exception {
         Owner owner = new Owner();
