@@ -1,6 +1,5 @@
 pipeline {
-
-    agent any
+    agent none
     options { skipDefaultCheckout() }
     environment {
         OWNER = "devops22clc"
@@ -10,7 +9,7 @@ pipeline {
     }
     stages {
         stage('Initialize Variables') {
-            //agent { label 'controller-node' }
+            agent { label 'controller-node' }
             steps {
                 script {
                     def SERVICES = [
@@ -42,7 +41,7 @@ pipeline {
             }
         }
         stage("Detect changes") {
-            //agent { label 'controller-node' }
+            agent { label 'controller-node' }
             steps {
                 dir("${WORKSPACE}"){
                     script {
@@ -76,7 +75,7 @@ pipeline {
         stage("Build & TEST") {
             parallel {
                 stage("Build") {
-                    //agent { label 'maven-node' }
+                    agent { label 'maven-node' }
                     steps {
                         sh "echo run build"
                         checkout scm
@@ -98,7 +97,7 @@ pipeline {
                     }
                 }
                 stage("TEST") {
-                    //agent { label 'maven-node' }
+                    agent { label 'maven-node' }
                     steps {
                         sh "echo run test"
                         checkout scm
@@ -120,6 +119,7 @@ pipeline {
                 }
             }
             post {
+                agent { label 'controller-node' }
                 success {
                     script {
                         withCredentials([string(credentialsId: 'access-token', variable: 'GITHUB_TOKEN')]) {
