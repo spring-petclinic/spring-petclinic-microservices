@@ -1,26 +1,21 @@
 pipeline {
-    agent none  // Không chạy trên Master, chỉ điều phối
+    agent none
 
     environment {
-        GIT_COMMIT = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
-        NO_SERVICES_TO_BUILD = 'false'
-        SERVICE_CHANGED = ''
+        OTHER = ''
     }
-
     stages {
         stage('Check Changes') {
-            agent { label 'master' } // Chạy trên Master
+            agent { label 'master' }
             steps {
                 script {
                     echo "Commit SHA: ${GIT_COMMIT}"
                     def changedFiles = []
-                    
+                    env.NO_SERVICES_TO_BUILD = 'false'
                     if (env.CHANGE_TARGET) {
-                        // Nếu đây là Pull Request (PR) build
-                        changedFiles = sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...", returnStdout: true).trim().split('\n')
+                        changedFiles = sh(script: "git diff --name-only HEAD^", returnStdout: true).trim().split('\n').toList()
                     } else {
-                        // Nếu đây là branch build
-                        changedFiles = sh(script: "git diff --name-only HEAD^", returnStdout: true).trim().split('\n')
+                        changedFiles = sh(script: "git diff --name-only HEAD^", returnStdout: true).trim().split('\n').toList()
                     }
 
                     def services = ['spring-petclinic-customers-service', 'spring-petclinic-visits-service', 'spring-petclinic-vets-service']
@@ -129,30 +124,10 @@ pipeline {
     
     post {
         success {
-            script {
-                withCredentials([string(credentialsId: 'GITHUB_TOKEN', variable: 'GITHUB_TOKEN')]) {
-                    sh '''
-                    curl -X POST \
-                      -H "Authorization: token ${GITHUB_TOKEN}" \
-                      -H "Content-Type: application/json" \
-                      -d '{"state": "success", "context": "Jenkins CI", "description": "CI passed!"}' \
-                      "https://api.github.com/repos/pTn-3001/DevOps_Project1/statuses/${GIT_COMMIT}"
-                    '''
-                }
-            }
+            echo "Success"
         }
         failure {
-            script {
-                withCredentials([string(credentialsId: 'GITHUB_TOKEN', variable: 'GITHUB_TOKEN')]) {
-                    sh '''
-                    curl -X POST \
-                      -H "Authorization: token ${GITHUB_TOKEN}" \
-                      -H "Content-Type: application/json" \
-                      -d '{"state": "failure", "context": "Jenkins CI", "description": "CI failed!"}' \
-                      "https://api.github.com/repos/pTn-3001/DevOps_Project1/statuses/${GIT_COMMIT}"
-                    '''
-                }
-            }
+            echo "Fail"
         }
     }
 }
