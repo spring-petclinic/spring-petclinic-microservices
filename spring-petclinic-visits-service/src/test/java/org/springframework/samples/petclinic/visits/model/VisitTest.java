@@ -18,7 +18,7 @@ class VisitTest {
             .build();
 
         assertEquals(1, visit.getId());
-        assertEquals(123, visit.getPetId());
+        assertEquals(1234, visit.getPetId());
         assertEquals("Test visit", visit.getDescription());
         assertNotNull(visit.getDate());
     }
