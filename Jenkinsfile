@@ -120,10 +120,10 @@ pipeline {
             }
             post {
                 success {
-                    publishChecks(name: 'CI status', conclusion: 'SUCCESS', summary: 'passed CI')
+                    publishChecks actions: [[identifier: 'Jenkins-CI-checks', label: 'Jenkins-CI-checks']], name: 'Jenkins CI', summary: 'Jenkins CI status check', title: 'Jenkins CI status check'
                 }
                 failure {
-                    publishChecks(name: 'CI status', conclusion: 'FAILURE', summary: 'failed CI')
+                    publishChecks actions: [[identifier: 'Jenkins-CI-checks', label: 'Jenkins-CI-checks']], conclusion: 'FAILURE', name: 'Jenkins CI', summary: 'Jenkins CI status check', title: 'Jenkins CI status check'
                 }
             }
         }
