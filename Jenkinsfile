@@ -76,6 +76,7 @@ pipeline {
         stage("Build & TEST") {
             parallel {
                 stage("Build") {
+                    agent {label: 'controller-node'}
                     steps {
                         checkout scm
                         script {
@@ -103,6 +104,7 @@ pipeline {
                 }
 
                 stage("Test") {
+                    agent {label: 'controller-node'}
                     steps {
                         checkout scm
                         script {
