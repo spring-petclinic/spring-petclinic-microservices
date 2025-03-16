@@ -31,13 +31,13 @@ pipeline {
 
                     // Determine the base branch (fallback to main)
                     def baseBranch = env.CHANGE_TARGET ?: 'main'
-                    echo "Comparing changes against: ${baseBranch}"
+                    echo "Comparing changes against: origin/${baseBranch}"
 
                     // Ensure the base branch is available locally
                     sh "git checkout ${baseBranch} || git checkout -b ${baseBranch} origin/${baseBranch} || true"
 
                     // Get latest common commit between the current branch and the base branch
-                    def baseCommit = sh(script: "git merge-base origin/${baseBranch} HEAD || echo $(git rev-list --max-parents=0 HEAD)", returnStdout: true).trim()
+                    def baseCommit = sh(script: "git merge-base origin/${baseBranch} HEAD || echo \$(git rev-list --max-parents=0 HEAD)", returnStdout: true).trim()
                     echo "Base commit: ${baseCommit}"
 
                     // Get the list of changed files
@@ -57,6 +57,7 @@ pipeline {
                 }
             }
         }
+
 
 
         stage('Test Services') {
