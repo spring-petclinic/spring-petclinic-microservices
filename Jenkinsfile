@@ -2,7 +2,7 @@ pipeline {
     agent any
     options { skipDefaultCheckout() }
     environment {
-        DOCKER_REGISTRY = "devops22clc"
+        OWNER = "devops22clc"
         REPO_URL = "https://github.com/devops22clc/spring-petclinic-microservices.git"
         REPO_NAME = "spring-petclinic-microservices"
         SERVICE_AS = "spring-petclinic"
@@ -80,7 +80,7 @@ pipeline {
                         sh "echo run build"
                         //checkout scm
                         script {
-                            env.GIT_COMMIT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                            env.GIT_COMMIT_SHA = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
                             //if (env.IS_CHANGED_ROOT == "true")  env.CHANGED_SERVICES = env.SERVICES
                             //
                             //def changedServices = env.CHANGED_SERVICES.split(',')
@@ -90,7 +90,7 @@ pipeline {
                             //    echo "run build for ${service}"
                             //    mvn clean package -DskipTests
                             //    cd ..
-                            //    docker build --build-arg SERVICE=${service} --build-arg STAGE=${env.STAGE} -f docker/Dockerfile.${service} -t ${DOCKER_REGISTRY}/${env.STAGE}-${service}:${env.GIT_COMMIT_SHA} .
+                            //    docker build --build-arg SERVICE=${service} --build-arg STAGE=${env.STAGE} -f docker/Dockerfile.${service} -t ${OWNER}/${env.STAGE}-${service}:${env.GIT_COMMIT_SHA} .
                             //    """
                             //}
                         }
@@ -122,15 +122,13 @@ pipeline {
                 success {
                     script {
                         withCredentials([string(credentialsId: 'access-token', variable: 'GITHUB_TOKEN')]) {
-                            //publishChecks actions: [[identifier: 'Jenkins-CI-checks', label: 'Jenkins-CI-checks']], name: 'Jenkins CI', summary: 'Jenkins CI status check', title: 'Jenkins CI status check'
-                            sh
-                            """
+                            sh """
                             curl -L \
                             -X POST \
                             -H "Accept: application/vnd.github+json" \
                             -H "Authorization: Bearer ${GITHUB_TOKEN}" \
                             -H "X-GitHub-Api-Version: 2022-11-28" \
-                            https://api.github.com/repos/${DOCKER_REGISTRY}/${REPO_NAME}/statuses/${GIT_COMMIT_SHA} \
+                            https://api.github.com/repos/${OWNER}/${REPO_NAME}/statuses/${GIT_COMMIT_SHA} \
                             -d '{"context":"Jenkins-ci", "state":"success","description":"Passed CI"}'
                             """
                         }
@@ -139,16 +137,15 @@ pipeline {
                 failure {
                     script {
                         withCredentials([string(credentialsId: 'access-token', variable: 'GITHUB_TOKEN')]) {
-                            //publishChecks actions: [[identifier: 'Jenkins-CI-checks', label: 'Jenkins-CI-checks']], conclusion: 'FAILURE', name: 'Jenkins CI', summary: 'Jenkins CI status check', title: 'Jenkins CI status check'
-                             sh """
-                                curl -L \
-                                -X POST \
-                                -H "Accept: application/vnd.github+json" \
-                                -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-                                -H "X-GitHub-Api-Version: 2022-11-28" \
-                                https://api.github.com/repos/${DOCKER_REGISTRY}/${REPO_NAME}/statuses/${GIT_COMMIT_SHA} \
-                                -d '{"context":"Jenkins-ci", "state":"failure","description":"Failed CI"}'
-                                """
+                            sh """
+                            curl -L \
+                            -X POST \
+                            -H "Accept: application/vnd.github+json" \
+                            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+                            -H "X-GitHub-Api-Version: 2022-11-28" \
+                            https://api.github.com/repos/${OWNER}/${REPO_NAME}/statuses/${GIT_COMMIT_SHA} \
+                            -d '{"context":"Jenkins-ci", "state":"failure","description":"Failed CI"}'
+                            """
                         }
                     }
                 }
@@ -167,7 +164,7 @@ pipeline {
         //            def changedServices = env.CHANGED_SERVICES.split(',')
         //            for (service in changedServices) {
         //                sh """
-        //                    docker push ${DOCKER_REGISTRY}/${env.STAGE}-${service}:${env.GIT_COMMIT_SHA}
+        //                    docker push ${OWNER}/${env.STAGE}-${service}:${env.GIT_COMMIT_SHA}
         //                """
         //            }
         //        }
