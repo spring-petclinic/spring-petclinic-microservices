@@ -31,17 +31,3 @@ public class CustomersServiceApplication {
 	}
 }
 // adding change in customer service 1
-// adding change in customer service 2
-// adding change in customer service 3
-// adding change in customer service 4
-// adding change in customer service 5
-// adding change in customer service 6
-// adding change in customer service 7
-// adding change in customer service 8
-// adding change in customer service 9
-// adding change in customer service 10
-// adding change in customer service 11
-// adding change in customer service 12
-// adding change in customer service 13
-// adding change in customer service 14
-// adding change in customer service 15
