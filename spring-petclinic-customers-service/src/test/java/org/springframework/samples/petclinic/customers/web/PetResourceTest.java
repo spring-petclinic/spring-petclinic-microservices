@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * @author Maciej Szarlinski add comment
+ * @author Maciej Szarlinski
  */
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(PetResource.class)
