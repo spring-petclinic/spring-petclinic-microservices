@@ -194,24 +194,20 @@ pipeline {
         stage('Auto Merge') {
             when {
                 allOf {
-                    expression { env.CHANGE_ID != null }  // Ensure it's a PR build
-                    // Remove the specific event check as it might be too restrictive
-                    // expression { env.GITHUB_EVENT_NAME == 'pull_request_review' }
+                    expression { env.CHANGE_ID != null }
                 }
             }
             steps {
                 script {
-                    // Add debug logging
                     echo "Starting Auto Merge stage"
                     echo "CHANGE_ID: ${env.CHANGE_ID}"
-                    echo "GITHUB_EVENT_NAME: ${env.GITHUB_EVENT_NAME}"
                     
                     def prNumber = env.CHANGE_ID
                     def repo = env.GIT_URL.replaceFirst('^.*github\\.com[:/]', '').replaceFirst('\\.git$', '')
                     
                     echo "Processing PR #${prNumber} for repo: ${repo}"
                     
-                    // Get PR reviews with improved error handling
+                    // Get PR reviews
                     def apiUrl = "https://api.github.com/repos/${repo}/pulls/${prNumber}/reviews"
                     echo "Fetching reviews from: ${apiUrl}"
                     
@@ -226,7 +222,8 @@ pipeline {
                     )
 
                     if (response?.trim()) {
-                        def reviews = readJSON(text: response)
+                        // Parse JSON using groovy's built-in JSON parser
+                        def reviews = new groovy.json.JsonSlurper().parseText(response)
                         echo "Retrieved ${reviews.size()} reviews"
                         
                         // Count only the most recent review from each user
