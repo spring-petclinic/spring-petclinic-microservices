@@ -119,7 +119,6 @@ pipeline {
                 }
             }
             post {
-                agent { label 'controller-node' }
                 success {
                     script {
                         withCredentials([string(credentialsId: 'access-token', variable: 'GITHUB_TOKEN')]) {
