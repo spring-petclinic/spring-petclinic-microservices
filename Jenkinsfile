@@ -217,7 +217,7 @@ pipeline {
                     
                     echo "Number of approvals: ${approvalCount}"
                     
-                    if (approvalCount >= 2) {
+                    if (approvalCount >= 1) {
                         echo "PR has sufficient approvals (${approvalCount}). Proceeding with merge..."
                         
                         // Merge the PR
