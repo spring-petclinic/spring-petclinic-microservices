@@ -21,14 +21,16 @@ pipeline {
                             "spring-petclinic-visits-service",
                             "spring-petclinic-genai-service"]
                     
-                    // Fetch latest changes from remote
-                    sh "git fetch origin"
+                    // Ensure the latest remote commit is fetched
+                    sh "git fetch origin --prune"
 
-                    // Get the last commit before the push
-                    def lastRemoteCommit = sh(script: "git rev-parse origin/${env.BRANCH_NAME}", returnStdout: true).trim()
-                    def changedFiles = sh(script: "git diff --name-only ${lastRemoteCommit} HEAD", returnStdout: true).trim().split("\n")
+                    // Get the last common ancestor between local HEAD and origin
+                    def lastCommonCommit = sh(script: "git merge-base HEAD origin/${env.BRANCH_NAME}", returnStdout: true).trim()
+
+                    // Get all changed files since the last pushed commit
+                    def changedFiles = sh(script: "git diff --name-only ${lastCommonCommit} HEAD", returnStdout: true).trim().split("\n")
                     echo "Changed files: ${changedFiles.join(', ')}"
-                    
+
                     def changedServices = []
                     for (service in services) {
                         if (changedFiles.any { it.startsWith(service) }) {
