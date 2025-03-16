@@ -216,17 +216,27 @@ pipeline {
     }
 }
 
-def selectLeastBusyAgent() {
-    def nodes = jenkins.model.Jenkins.instance.nodes.findAll { it.labelString.contains('node') }
-    def agentUsage = [:]
+@Field def jenkinsInstance = jenkins.model.Jenkins.getInstanceOrNull()
 
-    for (node in nodes) {
-        def executors = node.toComputer().getExecutors()
-        def busyExecutors = executors.count { it.isBusy() }
-        agentUsage[node.getNodeName()] = busyExecutors
+def selectLeastBusyAgent() {
+    if (!jenkinsInstance) {
+        error "Unable to access Jenkins instance."
     }
 
-    def leastBusyAgent = agentUsage.sort { it.value }.keySet().first()
+    def nodes = jenkinsInstance.nodes.findAll {
+        it.toComputer()?.isOnline() && it.labelString.contains('node')
+    }
+
+    if (nodes.isEmpty()) {
+        error "No available agents found!"
+    }
+
+    def agentUsage = nodes.collectEntries { node ->
+        def busyExecutors = node.toComputer().getExecutors().count { it.isBusy() }
+        [node.displayName, busyExecutors]
+    }
+
+    def leastBusyAgent = agentUsage.min { it.value }?.key
     echo "Selected Agent: ${leastBusyAgent}"
     return leastBusyAgent
 }
