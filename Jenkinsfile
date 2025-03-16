@@ -22,26 +22,26 @@ pipeline {
                         "spring-petclinic-genai-service"
                     ]
 
-                    // Fetch all branches to ensure we have the latest commits
+                    // Fetch everything, ensuring full history is available
                     sh 'git fetch --all --prune'
 
-                    // Get the current branch Jenkins is building
+                    // Get the current branch name
                     def currentBranch = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
                     echo "Current branch: ${currentBranch}"
 
-                    // Determine the base branch to compare against
-                    def baseBranch = env.CHANGE_TARGET ?: 'main'  // If this is a PR, use the target branch; otherwise, use main
-                    echo "Comparing against base branch: origin/${baseBranch}"
+                    // Determine the base branch (fallback to main)
+                    def baseBranch = env.CHANGE_TARGET ?: 'main'
+                    echo "Comparing changes against: ${baseBranch}"
 
-                    // Ensure the base branch exists locally
-                    sh "git branch --track ${baseBranch} origin/${baseBranch} || true"
+                    // Ensure the base branch is available locally
+                    sh "git checkout ${baseBranch} || git checkout -b ${baseBranch} origin/${baseBranch} || true"
 
-                    // Get the latest common ancestor commit (ensures correct diff)
-                    def baseCommit = sh(script: "git merge-base origin/${baseBranch} HEAD", returnStdout: true).trim()
+                    // Get latest common commit between the current branch and the base branch
+                    def baseCommit = sh(script: "git merge-base origin/${baseBranch} HEAD || echo $(git rev-list --max-parents=0 HEAD)", returnStdout: true).trim()
                     echo "Base commit: ${baseCommit}"
 
-                    // Get the list of changed files in this branch compared to base branch
-                    def changedFiles = sh(script: "git diff --name-only ${baseCommit} HEAD", returnStdout: true).trim().split("\n")
+                    // Get the list of changed files
+                    def changedFiles = sh(script: "git diff --name-only ${baseCommit} HEAD || true", returnStdout: true).trim().split("\n")
 
                     // Identify changed services
                     def changedServices = []
@@ -57,8 +57,6 @@ pipeline {
                 }
             }
         }
-
-
 
 
         stage('Test Services') {
