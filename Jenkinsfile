@@ -21,7 +21,14 @@ pipeline {
                             "spring-petclinic-visits-service",
                             "spring-petclinic-genai-service"]
                     
-                    def changedFiles = sh(script: 'git diff --name-only HEAD~1 HEAD', returnStdout: true).trim().split("\n")
+                    // Fetch latest changes from remote
+                    sh "git fetch origin"
+
+                    // Get the last commit before the push
+                    def lastRemoteCommit = sh(script: "git rev-parse origin/${env.BRANCH_NAME}", returnStdout: true).trim()
+                    def changedFiles = sh(script: "git diff --name-only ${lastRemoteCommit} HEAD", returnStdout: true).trim().split("\n")
+                    echo "Changed files: ${changedFiles.join(', ')}"
+                    
                     def changedServices = []
                     for (service in services) {
                         if (changedFiles.any { it.startsWith(service) }) {
