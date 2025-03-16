@@ -16,7 +16,7 @@ pipeline {
             steps {
                 script {
                     def servicesList = env.SERVICES.split(',')
-                    def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
+                    // def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
 
                     def servicesToBuild = servicesList.findAll { service ->
                         changedFiles.split('\n').any { it.startsWith("${service}/") }
