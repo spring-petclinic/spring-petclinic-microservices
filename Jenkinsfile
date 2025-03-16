@@ -25,7 +25,7 @@ pipeline {
                     if (servicesToBuild.isEmpty()) {
                         echo "No changes in any services. Skipping build."
                         currentBuild.result = 'SUCCESS'
-                        exit 0
+                        error("Build failed")
                     }
 
                     env.SERVICES_TO_BUILD = servicesToBuild.join(',')
