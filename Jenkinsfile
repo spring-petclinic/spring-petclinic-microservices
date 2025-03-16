@@ -86,15 +86,14 @@ pipeline {
 
                             for (service in changedServices) {
                                 parallelBuilds[service] = {
-                                    def agentNode = selectLeastBusyAgent()
-                                    node(agentNode) {
+                                    agent any
                                         stage("Build - ${service}") {
                                             sh """
                                             cd ${service}
                                             mvn clean package -DskipTests
                                             """
                                         }
-                                    }
+
                                 }
                             }
                             parallel parallelBuilds
@@ -113,8 +112,7 @@ pipeline {
 
                             for (service in changedServices) {
                                 parallelTests[service] = {
-                                    def agentNode = selectLeastBusyAgent()
-                                    node(agentNode) {
+                                    agent any
                                         stage("Test - ${service}") {
                                             catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                                                 sh """
@@ -123,7 +121,7 @@ pipeline {
                                                 """
                                             }
                                         }
-                                    }
+
                                 }
                             }
                             parallel parallelTests
@@ -214,29 +212,4 @@ pipeline {
             //}
         }
     }
-}
-
-@Field def jenkinsInstance = jenkins.model.Jenkins.getInstanceOrNull()
-
-def selectLeastBusyAgent() {
-    if (!jenkinsInstance) {
-        error "Unable to access Jenkins instance."
-    }
-
-    def nodes = jenkinsInstance.nodes.findAll {
-        it.toComputer()?.isOnline() && it.labelString.contains('node')
-    }
-
-    if (nodes.isEmpty()) {
-        error "No available agents found!"
-    }
-
-    def agentUsage = nodes.collectEntries { node ->
-        def busyExecutors = node.toComputer().getExecutors().count { it.isBusy() }
-        [node.displayName, busyExecutors]
-    }
-
-    def leastBusyAgent = agentUsage.min { it.value }?.key
-    echo "Selected Agent: ${leastBusyAgent}"
-    return leastBusyAgent
 }
