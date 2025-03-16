@@ -119,7 +119,7 @@ class PetResourceTest {
         mvc.perform(delete("/owners/2/pets/999"))
             .andExpect(status().isMethodNotAllowed()); // ✅ Expect 405
     }
-    
+
 
     private Pet setupPet() {
         Owner owner = new Owner();

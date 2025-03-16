@@ -48,7 +48,7 @@ pipeline {
                         echo "Testing service: ${service}"
                         dir("${service}") {
                             // Run tests and generate coverage reports
-                            sh "mvn test surefire-report:report jacoco:report"
+                            sh "mvn clean test surefire-report:report jacoco:report"
         
                             // Publish JUnit test results
                             junit '**/target/surefire-reports/*.xml'
