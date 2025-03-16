@@ -50,7 +50,7 @@ class OwnerResourceTest {
             .andExpect(jsonPath("$.lastName").value("Doe"))
             .andExpect(jsonPath("$.telephone").value("123456789"));
     }
-    
+
     @Test
     void shouldCreateNewOwner() throws Exception {
         String newOwnerJson = """
@@ -91,6 +91,19 @@ class OwnerResourceTest {
             .andExpect(status().isNoContent());
     }
 
+    @Test
+    void shouldFailWhenCreatingOwnerWithMissingFields() throws Exception {
+        String invalidOwnerJson = """
+        {
+            "firstName": "Alice"
+        }
+    """; // ❌ Missing lastName, address, city, and telephone
+
+        mvc.perform(post("/owners")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(invalidOwnerJson))
+            .andExpect(status().isBadRequest()); // ✅ Should return 400 Bad Request
+    }
 
     private Owner setupOwner() throws Exception {
         Owner owner = new Owner();

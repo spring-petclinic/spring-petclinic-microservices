@@ -19,7 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -52,6 +52,28 @@ class PetResourceTest {
         mvc.perform(get("/owners/2/pets/2").accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(content().contentType("application/json"))
+            .andExpect(jsonPath("$.id").value(2))
+            .andExpect(jsonPath("$.name").value("Basil"))
+            .andExpect(jsonPath("$.type.id").value(6));
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenPetDoesNotExist() throws Exception {
+        given(petRepository.findById(999)).willReturn(Optional.empty()); // ✅ Mock empty result
+
+        mvc.perform(get("/owners/2/pets/999").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound()); // ✅ Expect 404 Not Found
+    }
+
+    @Test
+    void shouldReturnPetWithCorrectJsonFormat() throws Exception {
+        Pet pet = setupPet();
+
+        given(petRepository.findById(2)).willReturn(Optional.of(pet));
+
+        mvc.perform(get("/owners/2/pets/2").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.id").value(2))
             .andExpect(jsonPath("$.name").value("Basil"))
             .andExpect(jsonPath("$.type.id").value(6));
