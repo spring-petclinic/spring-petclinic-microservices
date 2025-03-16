@@ -41,18 +41,27 @@ pipeline {
                     echo "Base commit: ${baseCommit}"
 
                     // Get the list of changed files
-                    def changedFiles = sh(script: "git diff --name-only ${baseCommit} HEAD || true", returnStdout: true).trim().split("\n")
+                    def changedFilesOutput = sh(script: "git diff --name-only ${baseCommit} HEAD || true", returnStdout: true).trim()
 
-                    // Identify changed services
-                    def changedServices = []
-                    for (service in services) {
-                        if (changedFiles.any { it.startsWith(service) }) {
-                            changedServices.add(service)
+                    if (changedFilesOutput) {
+                        def changedFiles = changedFilesOutput.split("\n").collect { it.trim() }
+                        echo "Changed files: ${changedFiles.join(', ')}"
+
+                        // Identify changed services
+                        def changedServices = []
+                        for (service in services) {
+                            if (changedFiles.any { it.startsWith(service) }) {
+                                changedServices.add(service)
+                            }
                         }
+
+                        echo "Code changes detected in services: ${changedServices.join(', ')}"
+                        env.CHANGED_SERVICES = changedServices.join(', ')
+                    } else {
+                        echo "No changed files detected."
+                        env.CHANGED_SERVICES = ""
                     }
 
-                    echo "Code changes detected in branch '${currentBranch}': ${changedServices.join(', ')}"
-                    env.CHANGED_SERVICES = changedServices.join(', ')
                     env.CURRENT_BRANCH = currentBranch
                 }
             }
