@@ -194,46 +194,75 @@ pipeline {
         stage('Auto Merge') {
             when {
                 allOf {
-                    expression { env.CHANGE_ID != null }
-                    expression { env.GITHUB_EVENT_NAME == 'pull_request_review' }
+                    expression { env.CHANGE_ID != null }  // Ensure it's a PR build
+                    // Remove the specific event check as it might be too restrictive
+                    // expression { env.GITHUB_EVENT_NAME == 'pull_request_review' }
                 }
             }
             steps {
                 script {
+                    // Add debug logging
+                    echo "Starting Auto Merge stage"
+                    echo "CHANGE_ID: ${env.CHANGE_ID}"
+                    echo "GITHUB_EVENT_NAME: ${env.GITHUB_EVENT_NAME}"
+                    
                     def prNumber = env.CHANGE_ID
                     def repo = env.GIT_URL.replaceFirst('^.*github\\.com[:/]', '').replaceFirst('\\.git$', '')
                     
-                    // Get PR reviews - Fixed secure string interpolation
+                    echo "Processing PR #${prNumber} for repo: ${repo}"
+                    
+                    // Get PR reviews with improved error handling
                     def apiUrl = "https://api.github.com/repos/${repo}/pulls/${prNumber}/reviews"
+                    echo "Fetching reviews from: ${apiUrl}"
+                    
                     def response = sh(
-                        script: "curl -s -H \"Authorization: token \$GITHUB_TOKEN\" ${apiUrl}",
+                        script: """
+                            set +x
+                            curl -s -f -H "Authorization: token \$GITHUB_TOKEN" \
+                                 -H "Accept: application/vnd.github.v3+json" \
+                                 "${apiUrl}"
+                        """,
                         returnStdout: true
                     )
 
-                    def reviews = readJSON(text: response)
-                    def approvalCount = reviews.count { it.state == 'APPROVED' }
-
-                    echo "Number of approvals: ${approvalCount}"
-                    
-                    if (approvalCount >= 2) {
-                        echo "PR has sufficient approvals (${approvalCount}). Proceeding with merge..."
+                    if (response?.trim()) {
+                        def reviews = readJSON(text: response)
+                        echo "Retrieved ${reviews.size()} reviews"
                         
-                        // Merge the PR - Fixed secure string interpolation
-                        def mergeUrl = "https://api.github.com/repos/${repo}/pulls/${prNumber}/merge"
-                        def mergeResponse = sh(
-                            script: """
-                                curl -s -X PUT \\
-                                -H "Authorization: token \$GITHUB_TOKEN" \\
-                                -H "Accept: application/vnd.github.v3+json" \\
-                                -d '{"merge_method":"squash"}' \\
-                                ${mergeUrl}
-                            """.stripIndent(),
-                            returnStdout: true
-                        )
+                        // Count only the most recent review from each user
+                        def latestReviews = [:]
+                        reviews.each { review ->
+                            latestReviews[review.user.login] = review.state
+                        }
+                        
+                        def approvalCount = latestReviews.values().count { it == 'APPROVED' }
+                        echo "Number of unique approvals: ${approvalCount}"
+                        
+                        if (approvalCount >= 2) {
+                            echo "PR has sufficient approvals (${approvalCount}). Proceeding with merge..."
+                            
+                            def mergeUrl = "https://api.github.com/repos/${repo}/pulls/${prNumber}/merge"
+                            echo "Attempting merge using URL: ${mergeUrl}"
+                            
+                            def mergeResponse = sh(
+                                script: """
+                                    set +x
+                                    curl -s -f -X PUT \
+                                    -H "Authorization: token \$GITHUB_TOKEN" \
+                                    -H "Accept: application/vnd.github.v3+json" \
+                                    -d '{"merge_method":"squash"}' \
+                                    "${mergeUrl}"
+                                """,
+                                returnStdout: true
+                            )
 
-                        echo "Merge response: ${mergeResponse}"
+                            echo "Merge response: ${mergeResponse}"
+                        } else {
+                            echo "PR needs at least 2 approvals to auto-merge (current: ${approvalCount})"
+                            echo "Current review states: ${latestReviews}"
+                        }
                     } else {
-                        echo "PR needs at least 2 approvals to auto-merge (current: ${approvalCount})"
+                        error "Failed to fetch PR reviews or received empty response"
                     }
                 }
             }
