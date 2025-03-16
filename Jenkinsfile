@@ -98,6 +98,8 @@ pipeline {
             }
             steps {
                 script {
+                    def failures = []
+                    
                     env.SERVICES_TO_BUILD.split(',').each { service ->
                         dir("spring-petclinic-${service}") {
                             echo "Testing ${service}..."
@@ -114,23 +116,30 @@ pipeline {
                                     def coverage = matcher[0][1] as Double
                                     echo "Code coverage for ${service}: ${coverage}%"
                                     if (coverage < 70) {
-                                        error "Code coverage for ${service} is below minimum required 70%."
+                                        failures.add("${service}: Code coverage ${coverage}% is below minimum required 70%")
                                     }
                                 } else {
-                                    error "Could not determine code coverage for ${service}."
+                                    failures.add("${service}: Could not determine code coverage")
                                 }
                             } catch (Exception e) {
-                                echo "Tests or coverage check failed for ${service}"
-                                throw e
+                                echo "Tests or coverage check failed for ${service}: ${e.message}"
+                                failures.add("${service}: ${e.message}")
+                                // Continue with next service instead of throwing
                             }
                         }
+                    }
+                    
+                    // After all services are tested, fail the build if any service failed
+                    if (failures.size() > 0) {
+                        error """Multiple services failed tests or coverage checks:
+                                ${failures.join('\n')}"""
                     }
                 }
             }
             post {
                 always {
                     script {
-                        // Publish test results and coverage for changed services
+                        // Publish test results and coverage for all changed services
                         env.SERVICES_TO_BUILD.split(',').each { service ->
                             dir("spring-petclinic-${service}") {
                                 junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
