@@ -30,7 +30,7 @@ pipeline {
             branch "fix-*"
           }
           steps {
-            sh '''
+            echo '''
               This only runs for the fix-* branches
             '''
           }
@@ -40,7 +40,7 @@ pipeline {
             branch "PR-*"
           }
           steps {
-            sh '''
+            echo '''
               This only runs for the PRs
             '''
           }
