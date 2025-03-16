@@ -100,6 +100,3 @@ public class Vet {
         this.lastName = lastName;
     }
 }
-/**
- * Hello world 11
- */
