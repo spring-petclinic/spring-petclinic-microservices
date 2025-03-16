@@ -22,10 +22,15 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.samples.petclinic.vets.model.Vet;
+import org.springframework.samples.petclinic.vets.model.Specialty;
 import org.springframework.samples.petclinic.vets.model.VetRepository;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.lang.reflect.Field;
+import java.util.Collections;
+import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.mockito.BDDMockito.given;
@@ -33,9 +38,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * @author Maciej Szarlinski
- */
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(VetResource.class)
 @ActiveProfiles("test")
@@ -49,14 +51,64 @@ class VetResourceTest {
 
     @Test
     void shouldGetAListOfVets() throws Exception {
-
         Vet vet = new Vet();
-        vet.setId(1);
+        setId(vet, 1); // Using reflection
 
         given(vetRepository.findAll()).willReturn(asList(vet));
 
         mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(1));
+    }
+
+    @Test
+    void shouldReturnEmptyListWhenNoVetsPresent() throws Exception {
+        given(vetRepository.findAll()).willReturn(Collections.emptyList());
+
+        mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void shouldGetAListOfMultipleVets() throws Exception {
+        Vet vet1 = new Vet();
+        Vet vet2 = new Vet();
+        setId(vet1, 1);
+        setId(vet2, 2);
+
+        given(vetRepository.findAll()).willReturn(asList(vet1, vet2));
+
+        mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(2))
+            .andExpect(jsonPath("$[0].id").value(1))
+            .andExpect(jsonPath("$[1].id").value(2));
+    }
+
+    @Test
+    void shouldGetVetWithSpecialties() throws Exception {
+        Vet vet = new Vet();
+        setId(vet, 1);
+
+        Specialty specialty = new Specialty();
+        setId(specialty, 1);
+        specialty.setName("surgery");
+        vet.addSpecialty(specialty);
+
+        given(vetRepository.findAll()).willReturn(List.of(vet));
+
+        mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].id").value(1))
+            .andExpect(jsonPath("$[0].specialties[0].id").value(1))
+            .andExpect(jsonPath("$[0].specialties[0].name").value("surgery"));
+    }
+
+    // Utility method to set private field values (Reflection)
+    private void setId(Object object, int id) throws Exception {
+        Field field = object.getClass().getDeclaredField("id");
+        field.setAccessible(true);
+        field.set(object, id);
     }
 }
