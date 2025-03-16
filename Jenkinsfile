@@ -77,6 +77,7 @@ pipeline {
             parallel {
                 stage("Build") {
                     steps {
+                        checkout scm
                         script {
                             env.GIT_COMMIT_SHA = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
                             if (env.IS_CHANGED_ROOT == "true") env.CHANGED_SERVICES = env.SERVICES
@@ -103,6 +104,7 @@ pipeline {
 
                 stage("Test") {
                     steps {
+                        checkout scm
                         script {
                             if (env.IS_CHANGED_ROOT == "true") env.CHANGED_SERVICES = env.SERVICES
                             def changedServices = env.CHANGED_SERVICES.split(',')
