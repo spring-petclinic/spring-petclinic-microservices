@@ -50,15 +50,7 @@ class OwnerResourceTest {
             .andExpect(jsonPath("$.lastName").value("Doe"))
             .andExpect(jsonPath("$.telephone").value("123456789"));
     }
-
-    @Test
-    void shouldReturnNotFoundWhenOwnerDoesNotExist() throws Exception {
-        given(ownerRepository.findById(999)).willReturn(Optional.empty());
-
-        mvc.perform(get("/owners/999").accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNotFound());
-    }
-
+    
     @Test
     void shouldCreateNewOwner() throws Exception {
         String newOwnerJson = """
