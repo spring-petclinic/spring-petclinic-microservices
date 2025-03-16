@@ -201,7 +201,7 @@ pipeline {
             steps {
                 script {
                     def prNumber = env.CHANGE_ID
-                    def repo = env.GIT_URL.replaceFirst(/^.*github\.com[:/]/, '').replaceFirst(/\.git$/, '')
+                    def repo = env.GIT_URL.replaceFirst('^.*github\\.com[:/]', '').replaceFirst('\\.git$', '')
                     
                     // Get PR details and check approvals
                     def apiUrl = "https://api.github.com/repos/${repo}/pulls/${prNumber}/reviews"
