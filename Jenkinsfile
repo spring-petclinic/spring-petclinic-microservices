@@ -107,8 +107,20 @@ pipeline {
                                     echo "Running tests for ${service}"
                                     ../mvnw clean test verify -Pcoverage
                                 """
+
+                                def coverageReport = readFile('target/site/jacoco/index.html')
+                                def matcher = coverageReport =~ /Total.*?([0-9.]+)%/
+                                if (matcher.find()) {
+                                    def coverage = matcher[0][1] as Double
+                                    echo "Code coverage for ${service}: ${coverage}%"
+                                    if (coverage < 70) {
+                                        error "Code coverage for ${service} is below minimum required 70%."
+                                    }
+                                } else {
+                                    error "Could not determine code coverage for ${service}."
+                                }
                             } catch (Exception e) {
-                                echo "Tests failed for ${service}"
+                                echo "Tests or coverage check failed for ${service}"
                                 throw e
                             }
                         }
