@@ -9,7 +9,7 @@ pipeline {
  triggers {
         GenericTrigger(
             genericVariables: [
-                [key: 'GITHUB_EVENT', value: '$.github_event']
+                [key: 'GITHUB_EVENT', value: '$header.X-GitHub-Event']
             ],
             causeString: 'Triggered by GitHub event: $GITHUB_EVENT',
             regexpFilterText: '$GITHUB_EVENT',
@@ -24,10 +24,9 @@ pipeline {
             steps {
                 script {
                     def servicesList = env.SERVICES.split(',')
-                     def targetBranch = env.CHANGE_TARGET ?: "main" // Sử dụng main nếu không phải PR
+                    def targetBranch = env.CHANGE_TARGET ?: "main" // Lấy branch đích của PR, nếu không có thì mặc định là "main"
                     def commonAncestor = sh(returnStdout: true, script: "git merge-base HEAD origin/${targetBranch}").trim()
                     def changedFiles = sh(returnStdout: true, script: "git diff --name-only ${commonAncestor}").trim()
-
                     def servicesToBuild = servicesList.findAll { service ->
                         changedFiles.split('\n').any { it.startsWith("${service}/") }
                     }
