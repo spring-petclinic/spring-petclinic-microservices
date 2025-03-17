@@ -12,7 +12,7 @@ pipeline {
     }
 
     stages {
-       stage('Check Changes') {
+        stage('Check Changes') {
             steps {
                 script {
                     def servicesList = env.SERVICES.split(',')
@@ -43,6 +43,8 @@ pipeline {
         stage('Test') {
             steps {
                 script {
+                    publishChecks name: 'Test', status: 'IN_PROGRESS'
+
                     def servicesToBuild = env.SERVICES_TO_BUILD ? env.SERVICES_TO_BUILD.split(',') : []
                     for (service in servicesToBuild) {
                         dir(service) {
@@ -71,17 +73,41 @@ pipeline {
                         }
                     }
                 }
+                success {
+                    script {
+                        publishChecks name: 'Test', status: 'COMPLETED', conclusion: 'SUCCESS'
+                    }
+                }
+                failure {
+                    script {
+                        publishChecks name: 'Test', status: 'COMPLETED', conclusion: 'FAILURE'
+                    }
+                }
             }
         }
 
         stage('Build') {
             steps {
                 script {
+                    publishChecks name: 'Build', status: 'IN_PROGRESS'
+
                     def servicesToBuild = env.SERVICES_TO_BUILD ? env.SERVICES_TO_BUILD.split(',') : []
                     for (service in servicesToBuild) {
                         dir(service) {
                             sh '../mvnw clean package -DskipTests'
                         }
+                    }
+                }
+            }
+            post {
+                success {
+                    script {
+                        publishChecks name: 'Build', status: 'COMPLETED', conclusion: 'SUCCESS'
+                    }
+                }
+                failure {
+                    script {
+                        publishChecks name: 'Build', status: 'COMPLETED', conclusion: 'FAILURE'
                     }
                 }
             }
@@ -98,10 +124,16 @@ pipeline {
             }
         }
         success {
-            echo 'Build and test completed successfully for changed services!'
+            script {
+                publishChecks name: 'Pipeline', status: 'COMPLETED', conclusion: 'SUCCESS'
+                echo 'Build and test completed successfully for changed services!'
+            }
         }
         failure {
-            echo 'Build or test failed for some services!'
+            script {
+                publishChecks name: 'Pipeline', status: 'COMPLETED', conclusion: 'FAILURE'
+                echo 'Build or test failed for some services!'
+            }
         }
     }
 }
