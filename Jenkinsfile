@@ -4,20 +4,19 @@ pipeline {
     environment {
         SERVICES = "spring-petclinic-customers-service,spring-petclinic-vets-service,spring-petclinic-visits-service,spring-petclinic-genai-service"
         TEST_RESULTS = 'target/surefire-reports'
-        COVERAGE_REPORT = 'target/site/jacoco'
     }
 
-    triggers {
-           GenericTrigger(
-                genericVariables: [
-                    [key: 'GITHUB_EVENT', value: '$.github_event'] // Hoặc '$.event', tùy thuộc vào payload
-                ],
-                causeString: 'Triggered by GitHub event: $GITHUB_EVENT',
-                regexpFilterText: '$GITHUB_EVENT',
-                regexpFilterExpression: 'push|pull_request',
-                printContributedVariables: true, // Thêm dòng này để debug
-                printPostContent: true          // Thêm dòng này để debug
-            )
+ triggers {
+        GenericTrigger(
+            genericVariables: [
+                [key: 'GITHUB_EVENT', value: '$.github_event']
+            ],
+            causeString: 'Triggered by GitHub event: $GITHUB_EVENT',
+            regexpFilterText: '$GITHUB_EVENT',
+            regexpFilterExpression: 'push|pull_request',
+            printContributedVariables: true,
+            printPostContent: true
+        )
     }
 
     stages {
@@ -25,7 +24,9 @@ pipeline {
             steps {
                 script {
                     def servicesList = env.SERVICES.split(',')
-                    def changedFiles = sh(script: "git diff --name-only origin/main", returnStdout: true).trim()
+                     def targetBranch = env.CHANGE_TARGET ?: "main" // Sử dụng main nếu không phải PR
+                    def commonAncestor = sh(returnStdout: true, script: "git merge-base HEAD origin/${targetBranch}").trim()
+                    def changedFiles = sh(returnStdout: true, script: "git diff --name-only ${commonAncestor}").trim()
 
                     def servicesToBuild = servicesList.findAll { service ->
                         changedFiles.split('\n').any { it.startsWith("${service}/") }
@@ -34,7 +35,7 @@ pipeline {
                     if (servicesToBuild.isEmpty()) {
                         echo "No changes in any services. Skipping build."
                         currentBuild.result = 'SUCCESS'
-                        error("No services changed, skipping build.")
+                        return // Thoát, không chạy các stage sau
                     }
 
                     env.SERVICES_TO_BUILD = servicesToBuild.join(',')
@@ -43,42 +44,40 @@ pipeline {
             }
         }
 
-        stage('Checkout Code') {
+       stage('Checkout Code') {
             steps {
                 checkout scm
             }
         }
-
         stage('Test') {
-            steps {
+             steps {
                 script {
                     publishChecks name: 'Test', status: 'IN_PROGRESS'
 
                     def servicesToBuild = env.SERVICES_TO_BUILD ? env.SERVICES_TO_BUILD.split(',') : []
                     for (service in servicesToBuild) {
                         dir(service) {
-                            sh '../mvnw test'
+                           sh '../mvnw clean verify -P coverage' // Đảm bảo profile coverage được kích hoạt khi build
                         }
                     }
                 }
             }
-            post {
+             post {
                 always {
-                    script {
-                        def servicesToBuild = env.SERVICES_TO_BUILD ? env.SERVICES_TO_BUILD.split(',') : []
+                  script{
+                      def servicesToBuild = env.SERVICES_TO_BUILD ? env.SERVICES_TO_BUILD.split(',') : []
                         for (service in servicesToBuild) {
-                            def reportPath = "${service}/target/surefire-reports/*.xml"
-                            def reportExists = sh(script: "ls ${reportPath} 2>/dev/null || echo 'notfound'", returnStdout: true).trim()
-                            if (reportExists == 'notfound') {
+                            def junitReportPath = "${service}/target/surefire-reports/*.xml"
+                            def junitReportExists = sh(script: "ls ${junitReportPath} 2>/dev/null || echo 'notfound'", returnStdout: true).trim()
+                            if (junitReportExists == 'notfound') {
                                 echo "No test report found for ${service}"
                             } else {
-                                junit reportPath
+                                junit junitReportPath
                             }
+                            recordCoverage(
+                                tools: [[parser: 'JACOCO', pattern: "${service}/target/jacoco.exec"]]
+                            )
 
-                            jacoco execPattern: "${service}/target/jacoco.exec", 
-                                   classPattern: "${service}/target/classes", 
-                                   sourcePattern: "${service}/src/main/java", 
-                                   htmlReport: true
                         }
                     }
                 }
@@ -108,7 +107,7 @@ pipeline {
                     }
                 }
             }
-            post {
+             post {
                 success {
                     script {
                         publishChecks name: 'Build', status: 'COMPLETED', conclusion: 'SUCCESS'
@@ -122,10 +121,9 @@ pipeline {
             }
         }
     }
-
     post {
         always {
-            script {
+          script {
                 def servicesToBuild = env.SERVICES_TO_BUILD ? env.SERVICES_TO_BUILD.split(',') : []
                 for (service in servicesToBuild) {
                     archiveArtifacts artifacts: "${service}/target/*.jar", fingerprint: true
@@ -133,16 +131,12 @@ pipeline {
             }
         }
         success {
-            script {
-                publishChecks name: 'Pipeline', status: 'COMPLETED', conclusion: 'SUCCESS'
-                echo 'Build and test completed successfully for changed services!'
-            }
+            publishChecks name: 'Pipeline', status: 'COMPLETED', conclusion: 'SUCCESS'
+            echo 'Build and test completed successfully for changed services!'
         }
         failure {
-            script {
-                publishChecks name: 'Pipeline', status: 'COMPLETED', conclusion: 'FAILURE'
-                echo 'Build or test failed for some services!'
-            }
+            publishChecks name: 'Pipeline', status: 'COMPLETED', conclusion: 'FAILURE'
+            echo 'Build or test failed for some services!'
         }
     }
 }
