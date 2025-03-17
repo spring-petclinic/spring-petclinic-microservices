@@ -12,6 +12,16 @@ pipeline {
             }
         }
 
+        stage('Build') {
+            steps {
+                script {
+                    echo "Performing regular build..."
+                    // Build thông thường bỏ qua tests để tránh chạy lại test
+                    sh './mvnw clean install -DskipTests'
+                }
+            }
+        }
+
         stage('Test') {
             steps {
                 echo "Running tests..."
@@ -23,16 +33,6 @@ pipeline {
                     echo "Publishing test results..."
                     // Định dạng đường dẫn tới file kết quả test, có thể điều chỉnh theo cấu trúc dự án
                     junit '**/target/surefire-reports/*.xml'
-                }
-            }
-        }
-
-        stage('Build') {
-            steps {
-                script {
-                    echo "Performing regular build..."
-                    // Build thông thường bỏ qua tests để tránh chạy lại test
-                    sh './mvnw clean install -DskipTests'
                 }
             }
         }
