@@ -12,23 +12,23 @@ pipeline {
     }
 
     stages {
-        stage('Check Changes') {
+       stage('Check Changes') {
             steps {
                 script {
                     def servicesList = env.SERVICES.split(',')
-                    // def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
+                    def changedFiles = sh(script: "git diff --name-only origin/main", returnStdout: true).trim()
 
-                    // def servicesToBuild = servicesList.findAll { service ->
-                    //     changedFiles.split('\n').any { it.startsWith("${service}/") }
-                    // }
+                    def servicesToBuild = servicesList.findAll { service ->
+                        changedFiles.split('\n').any { it.startsWith("${service}/") }
+                    }
 
-                    // if (servicesToBuild.isEmpty()) {
-                    //     echo "No changes in any services. Skipping build."
-                    //     currentBuild.result = 'SUCCESS'
-                    //     error("Build failed")
-                    // }
+                    if (servicesToBuild.isEmpty()) {
+                        echo "No changes in any services. Skipping build."
+                        currentBuild.result = 'SUCCESS'
+                        error("No services changed, skipping build.")
+                    }
 
-                    env.SERVICES_TO_BUILD = env.SERVICES
+                    env.SERVICES_TO_BUILD = servicesToBuild.join(',')
                     echo "Services to build: ${env.SERVICES_TO_BUILD}"
                 }
             }
@@ -98,7 +98,7 @@ pipeline {
             }
         }
         success {
-            echo 'Build and test completed successfully for all changed services!'
+            echo 'Build and test completed successfully for changed services!'
         }
         failure {
             echo 'Build or test failed for some services!'
