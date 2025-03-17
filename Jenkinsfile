@@ -120,9 +120,10 @@ pipeline {
             }
             post {
                 success {
-                    script {
-                        withCredentials([string(credentialsId: 'access-token', variable: 'GITHUB_TOKEN')]) {
-                            sh """
+                    node('controller-node') {
+                        script {
+                            withCredentials([string(credentialsId: 'access-token', variable: 'GITHUB_TOKEN')]) {
+                                sh """
                             curl -L \
                             -X POST \
                             -H "Accept: application/vnd.github+json" \
@@ -131,21 +132,24 @@ pipeline {
                             https://api.github.com/repos/${OWNER}/${REPO_NAME}/statuses/${GIT_COMMIT_SHA} \
                             -d '{"context":"Jenkins-ci", "state":"success","description":"Passed CI"}'
                             """
+                            }
                         }
                     }
                 }
                 failure {
-                    script {
-                        withCredentials([string(credentialsId: 'access-token', variable: 'GITHUB_TOKEN')]) {
-                            sh """
-                            curl -L \
-                            -X POST \
-                            -H "Accept: application/vnd.github+json" \
-                            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-                            -H "X-GitHub-Api-Version: 2022-11-28" \
-                            https://api.github.com/repos/${OWNER}/${REPO_NAME}/statuses/${GIT_COMMIT_SHA} \
-                            -d '{"context":"Jenkins-ci", "state":"failure","description":"Failed CI"}'
-                            """
+                    node('controller-node') {
+                        script {
+                            withCredentials([string(credentialsId: 'access-token', variable: 'GITHUB_TOKEN')]) {
+                                sh """
+                                curl -L \
+                                -X POST \
+                                -H "Accept: application/vnd.github+json" \
+                                -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+                                -H "X-GitHub-Api-Version: 2022-11-28" \
+                                https://api.github.com/repos/${OWNER}/${REPO_NAME}/statuses/${GIT_COMMIT_SHA} \
+                                -d '{"context":"Jenkins-ci", "state":"failure","description":"Failed CI"}'
+                                """
+                            }
                         }
                     }
                 }
