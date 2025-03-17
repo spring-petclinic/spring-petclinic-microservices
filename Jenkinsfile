@@ -7,64 +7,68 @@ pipeline {
         WORKSPACE = "${env.WORKSPACE}"
         // List of services without test folders       
         SERVICES_WITHOUT_TESTS = "spring-petclinic-admin-server spring-petclinic-genai-service"
+        // Full list of services
+        ALL_SERVICES = "spring-petclinic-admin-server spring-petclinic-api-gateway spring-petclinic-config-server spring-petclinic-customers-service spring-petclinic-discovery-server spring-petclinic-genai-service spring-petclinic-vets-service spring-petclinic-visits-service"
     }
     stages {
-        stage('Detect Changes') {
+        stage('Detect Branch and Changes') {
             steps {
-                publishChecks name: 'Detect Changes', status: 'IN_PROGRESS', summary: 'Scanning repository for changes'
                 script {
-                    // print branch name
-                    echo "Running pipeline for Branch : ${env.BRANCH_NAME}"
-
-                    // Get changed files between current and previous commit
-                    def changedFiles = sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim()
-                    // Define service directories to monitor
-                    def services = [
-                        'spring-petclinic-admin-server',
-                        'spring-petclinic-api-gateway',
-                        'spring-petclinic-config-server',
-                        'spring-petclinic-customers-service',
-                        'spring-petclinic-discovery-server',
-                        'spring-petclinic-genai-service',
-                        'spring-petclinic-vets-service',
-                        'spring-petclinic-visits-service'
-                    ]
-                    // Identify which services have changes
-                    env.CHANGED_SERVICES = ""
-                    for (service in services) {
-                        if (changedFiles.contains(service)) {
-                            env.CHANGED_SERVICES = env.CHANGED_SERVICES + " " + service
+                    echo "Running pipeline for Branch: ${env.BRANCH_NAME}"
+                    
+                    // Check if this is the main branch
+                    if (env.BRANCH_NAME == 'main') {
+                        echo "This is the main branch - will build all services"
+                        env.CHANGED_SERVICES = env.ALL_SERVICES
+                    } else {
+                        // For non-main branches, detect changes
+                        // Get changed files between current and previous commit
+                        def changedFiles = sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim()
+                        
+                        // Define service directories to monitor
+                        def services = env.ALL_SERVICES.split(" ")
+                        
+                        // Identify which services have changes
+                        env.CHANGED_SERVICES = ""
+                        for (service in services) {
+                            if (changedFiles.contains(service)) {
+                                env.CHANGED_SERVICES = env.CHANGED_SERVICES + " " + service
+                            }
                         }
-                    }
-                    // If no specific service changes detected, check for common changes
-                    if (env.CHANGED_SERVICES == "") {
-                        if (changedFiles.contains("pom.xml") || 
-                            changedFiles.contains(".github") || 
-                            changedFiles.contains("docker-compose") ||
-                            changedFiles.contains("Jenkinsfile")) {
-                            echo "Common files changed, will build all services"
-                            env.CHANGED_SERVICES = services.join(" ")
-                        } else {
-                            echo "No relevant changes detected"
+                        // If no specific service changes detected, check for common changes
+                        if (env.CHANGED_SERVICES == "") {
+                            if (changedFiles.contains("pom.xml") || 
+                                changedFiles.contains(".github") || 
+                                changedFiles.contains("docker-compose") ||
+                                changedFiles.contains("Jenkinsfile")) {
+                                echo "Common files changed, will build all services"
+                                env.CHANGED_SERVICES = env.ALL_SERVICES
+                            } else {
+                                echo "No relevant changes detected"
+                            }
                         }
+                        
+                        // Store changed files for detailed reporting
+                        env.CHANGED_FILES = changedFiles
                     }
                     
                     echo "Services to build: ${env.CHANGED_SERVICES}"
-                    
-                    // Store changed files for detailed reporting
-                    env.CHANGED_FILES = changedFiles
                 }
+                
                 publishChecks name: 'Detect Changes', status: 'COMPLETED', conclusion: 'SUCCESS', 
-                    summary: "Changed files detected: ${env.CHANGED_FILES?.split('\n')?.size() ?: 0}",
-                    text: """## Changed Files
-                            ```
-                            ${env.CHANGED_FILES ?: 'No changes detected'}
-                            ```
-                            
-                            ## Services to Build
-                            ```
-                            ${env.CHANGED_SERVICES ?: 'No services to build'}
-                            ```"""
+                    summary: env.BRANCH_NAME == 'main' ? "Building all services on main branch" : "Changed files detected: ${env.CHANGED_FILES?.split('\n')?.size() ?: 0}",
+                    text: env.BRANCH_NAME == 'main' ? 
+                        """## Main Branch Build
+                        Building all services because this is the main branch.""" :
+                        """## Changed Files
+                        ```
+                        ${env.CHANGED_FILES ?: 'No changes detected'}
+                        ```
+                        
+                        ## Services to Build
+                        ```
+                        ${env.CHANGED_SERVICES ?: 'No services to build'}
+                        ```"""
             }
             post {
                 failure {
@@ -209,6 +213,7 @@ pipeline {
                 }
             }
         }
+
     }
     post {
         always {
