@@ -1,10 +1,9 @@
-package org.springframework.samples.petclinic.vets;
+package org.springframework.samples.petclinic.customers;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.boot.SpringApplication;
-import org.springframework.samples.petclinic.customers.CustomersServiceApplication;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
