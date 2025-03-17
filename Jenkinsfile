@@ -8,7 +8,17 @@ pipeline {
     }
 
     triggers {
-        pollSCM('* * * * *') // Kiểm tra thay đổi mỗi phút
+        genericTrigger(
+            genericVariables: [
+                [key: 'ref', value: '$.ref', expressionType: 'JSONPath'],
+                [key: 'action', value: '$.action', expressionType: 'JSONPath']
+            ],
+            causeString: 'Triggered by GitHub event: $ref $action',
+            token: 'your_secret_token', // Để bảo mật webhook
+            printContributedVariables: true,
+            printPostContent: true,
+            silentResponse: false
+        )
     }
 
     stages {
