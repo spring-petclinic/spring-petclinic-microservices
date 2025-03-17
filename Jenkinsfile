@@ -1,5 +1,6 @@
 pipeline {
-    agent any
+
+    agent none
     options { skipDefaultCheckout() }
     environment {
         OWNER = "devops22clc"
@@ -9,7 +10,7 @@ pipeline {
     }
     stages {
         stage('Initialize Variables') {
-            //agent { label 'controller-node' }
+            agent { label 'controller-node' }
             steps {
                 script {
                     def SERVICES = [
@@ -25,7 +26,7 @@ pipeline {
                     env.SERVICES = SERVICES.join(",")
 
                     switch (env.BRANCH_NAME) {
-                        case "main":
+                    case "main":
                             env.STAGE = "prod"
                             break
                         case "dev":
@@ -41,11 +42,11 @@ pipeline {
             }
         }
         stage("Detect changes") {
-            //agent { label 'controller-node' }
+            agent { label 'controller-node' }
             steps {
                 dir("${WORKSPACE}"){
                     script {
-                        sh(script: "git init && git branch -m ${BRANCH_NAME} && git fetch --no-tags --force --progress -- ${REPO_URL} refs/heads/${BRANCH_NAME}:refs/remotes/origin/${BRANCH_NAME}")
+                        sh(script: "git init && git fetch --no-tags --force --progress -- ${REPO_URL} refs/heads/${BRANCH_NAME}:refs/remotes/origin/${BRANCH_NAME}")
                         def changedFiles = sh(script: "git diff --name-only origin/${BRANCH_NAME}", returnStdout: true).trim().split("\n")
                         def changedServices = [] as Set
                         def rootChanged = false
@@ -58,7 +59,7 @@ pipeline {
                                 echo "Changed Root"
                                 break
                             } else {
-                                    def service = file.split("/")[0]
+                                def service = file.split("/")[0]
                                 changedServices.add(service)
                             }
                         }
@@ -75,7 +76,7 @@ pipeline {
         stage("Build & TEST") {
             parallel {
                 stage("Build") {
-                    //agent { label 'maven-node' }
+                    agent { label 'maven-node' }
                     steps {
                         sh "echo run build"
                         checkout scm
@@ -90,14 +91,13 @@ pipeline {
                                 echo "run build for ${service}"
                                 mvn clean package -DskipTests
                                 cd ..
-                                docker build --build-arg SERVICE=${service} --build-arg STAGE=${env.STAGE} -f docker/Dockerfile.${service} -t ${OWNER}/${env.STAGE}-${service}:${env.GIT_COMMIT_SHA} .
                                 """
                             }
                         }
                     }
                 }
                 stage("TEST") {
-                    //agent { label 'maven-node' }
+                    agent { label 'maven-standby-node' }
                     steps {
                         sh "echo run test"
                         checkout scm
@@ -120,9 +120,10 @@ pipeline {
             }
             post {
                 success {
-                    script {
-                        withCredentials([string(credentialsId: 'access-token', variable: 'GITHUB_TOKEN')]) {
-                            sh """
+                    node('controller-node') {
+                        script {
+                            withCredentials([string(credentialsId: 'access-token', variable: 'GITHUB_TOKEN')]) {
+                                sh """
                             curl -L \
                             -X POST \
                             -H "Accept: application/vnd.github+json" \
@@ -131,21 +132,24 @@ pipeline {
                             https://api.github.com/repos/${OWNER}/${REPO_NAME}/statuses/${GIT_COMMIT_SHA} \
                             -d '{"context":"Jenkins-ci", "state":"success","description":"Passed CI"}'
                             """
+                            }
                         }
                     }
                 }
                 failure {
-                    script {
-                        withCredentials([string(credentialsId: 'access-token', variable: 'GITHUB_TOKEN')]) {
-                            sh """
-                            curl -L \
-                            -X POST \
-                            -H "Accept: application/vnd.github+json" \
-                            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-                            -H "X-GitHub-Api-Version: 2022-11-28" \
-                            https://api.github.com/repos/${OWNER}/${REPO_NAME}/statuses/${GIT_COMMIT_SHA} \
-                            -d '{"context":"Jenkins-ci", "state":"failure","description":"Failed CI"}'
-                            """
+                    node('controller-node') {
+                        script {
+                            withCredentials([string(credentialsId: 'access-token', variable: 'GITHUB_TOKEN')]) {
+                                sh """
+                                curl -L \
+                                -X POST \
+                                -H "Accept: application/vnd.github+json" \
+                                -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+                                -H "X-GitHub-Api-Version: 2022-11-28" \
+                                https://api.github.com/repos/${OWNER}/${REPO_NAME}/statuses/${GIT_COMMIT_SHA} \
+                                -d '{"context":"Jenkins-ci", "state":"failure","description":"Failed CI"}'
+                                """
+                            }
                         }
                     }
                 }
