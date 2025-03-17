@@ -16,6 +16,7 @@ pipeline {
                     def changes = []
                     if (env.CHANGE_TARGET) {
                         // If this is a PR build
+                        sh(script: "git fetch --all", returnStatus: true)
                         changes = sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...", returnStdout: true).trim().split('\n')
                     } else {
                         // If this is a branch build
