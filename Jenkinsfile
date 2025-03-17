@@ -8,7 +8,16 @@ pipeline {
     }
 
     triggers {
-        githubPush()
+           GenericTrigger(
+                genericVariables: [
+                    [key: 'GITHUB_EVENT', value: '$.github_event'] // Hoặc '$.event', tùy thuộc vào payload
+                ],
+                causeString: 'Triggered by GitHub event: $GITHUB_EVENT',
+                regexpFilterText: '$GITHUB_EVENT',
+                regexpFilterExpression: 'push|pull_request',
+                printContributedVariables: true, // Thêm dòng này để debug
+                printPostContent: true          // Thêm dòng này để debug
+            )
     }
 
     stages {
