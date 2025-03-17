@@ -31,6 +31,13 @@ pipeline {
             }
         }
 
+        stage('Debug') {
+            steps {
+                echo "Checking test report files..."
+                sh 'find . -name "*.xml"'
+            }
+        }
+
         stage('Build') {
             steps {
                 script {
