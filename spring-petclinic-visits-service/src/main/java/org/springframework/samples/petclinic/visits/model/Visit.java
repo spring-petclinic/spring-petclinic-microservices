@@ -38,7 +38,7 @@ public class Visit {
 
     @Column(name = "visit_date")
     @Temporal(TemporalType.TIMESTAMP)
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "dd-MM-yyyy")
     private Date date = new Date();
 
     @Size(max = 8192)
