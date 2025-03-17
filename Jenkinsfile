@@ -186,11 +186,6 @@
                             dir("spring-petclinic-${service}") {
                                 archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
                             }
-                        }
-                    }
-                }
-            }
-        }
         stage('Auto Merge') {
             when {
                 allOf {
@@ -211,55 +206,76 @@
                     def apiUrl = "https://api.github.com/repos/${repo}/pulls/${prNumber}/reviews"
                     echo "Fetching reviews from: ${apiUrl}"
                     
-                    def response = sh(
-                        script: """
-                            set +x
-                            curl -s -f -H "Authorization: token \$GITHUB_TOKEN" \
-                                 -H "Accept: application/vnd.github.v3+json" \
-                                 "${apiUrl}"
-                        """,
-                        returnStdout: true
-                    )
-
-                    if (response?.trim()) {
-                        // Parse JSON using groovy's built-in JSON parser
-                        def reviews = new groovy.json.JsonSlurper().parseText(response)
-                        echo "Retrieved ${reviews.size()} reviews"
-                        
-                        // Count only the most recent review from each user
-                        def latestReviews = [:]
-                        reviews.each { review ->
-                            latestReviews[review.user.login] = review.state
-                        }
-                        
-                        def approvalCount = latestReviews.values().count { it == 'APPROVED' }
-                        echo "Number of unique approvals: ${approvalCount}"
-                        
-                        if (approvalCount >= 1) {
-                            echo "PR has sufficient approvals (${approvalCount}). Proceeding with merge..."
-                            
-                            def mergeUrl = "https://api.github.com/repos/${repo}/pulls/${prNumber}/merge"
-                            echo "Attempting merge using URL: ${mergeUrl}"
-                            
-                            def mergeResponse = sh(
-                                script: """
-                                    set +x
-                                    curl -s -f -X PUT \
-                                    -H "Authorization: token \$GITHUB_TOKEN" \
+                    try {
+                        def response = sh(
+                            script: """
+                                set +x
+                                curl -s -f -H "Authorization: token \$GITHUB_TOKEN" \
                                     -H "Accept: application/vnd.github.v3+json" \
-                                    -d '{"merge_method":"squash"}' \
-                                    "${mergeUrl}"
-                                """,
-                                returnStdout: true
-                            )
+                                    "${apiUrl}"
+                            """,
+                            returnStdout: true
+                        )
 
-                            echo "Merge response: ${mergeResponse}"
+                        if (response?.trim()) {
+                            // Parse JSON using groovy's built-in JSON parser
+                            def reviews = new groovy.json.JsonSlurper().parseText(response)
+                            echo "Retrieved ${reviews.size()} reviews"
+                            
+                            // Count only the most recent review from each user
+                            def latestReviews = [:]
+                            reviews.each { review ->
+                                latestReviews[review.user.login] = review.state
+                            }
+                            
+                            def approvalCount = latestReviews.values().count { it == 'APPROVED' }
+                            echo "Number of unique approvals: ${approvalCount}"
+                            
+                            if (approvalCount >= 1) {
+                                echo "PR has sufficient approvals (${approvalCount}). Proceeding with merge..."
+                                
+                                def mergeUrl = "https://api.github.com/repos/${repo}/pulls/${prNumber}/merge"
+                                echo "Attempting merge using URL: ${mergeUrl}"
+                                
+                                // Include HTTP status code in response
+                                def mergeResult = sh(
+                                    script: """
+                                        set +x
+                                        curl -s -w "\\n%{http_code}" -X PUT \
+                                        -H "Authorization: token \$GITHUB_TOKEN" \
+                                        -H "Accept: application/vnd.github.v3+json" \
+                                        -d '{"merge_method":"squash"}' \
+                                        "${mergeUrl}"
+                                    """,
+                                    returnStdout: true
+                                ).trim().split("\n")
+                                
+                                def mergeResponseBody = mergeResult[0]
+                                def statusCode = mergeResult.size() > 1 ? mergeResult[1] : "unknown"
+                                
+                                echo "Merge response: ${mergeResponseBody}"
+                                echo "Status code: ${statusCode}"
+                                
+                                // Check if merge was successful (2xx status code)
+                                if (statusCode.startsWith("2")) {
+                                    echo "PR was successfully merged"
+                                    // Add a small delay to ensure GitHub has processed the merge
+                                    sleep 5
+                                } else {
+                                    echo "Failed to merge PR (Status: ${statusCode})"
+                                    echo "Response: ${mergeResponseBody}"
+                                }
+                            } else {
+                                echo "PR needs at least 1 approval to auto-merge (current: ${approvalCount})"
+                                echo "Current review states: ${latestReviews}"
+                            }
                         } else {
-                            echo "PR needs at least 2 approvals to auto-merge (current: ${approvalCount})"
-                            echo "Current review states: ${latestReviews}"
+                            error "Failed to fetch PR reviews or received empty response"
                         }
-                    } else {
-                        error "Failed to fetch PR reviews or received empty response"
+                    } catch (Exception e) {
+                        echo "Error in Auto Merge stage: ${e.message}"
+                        // Prevent the pipeline from failing due to auto-merge issues
+                        // This way, the build itself can still be considered successful
                     }
                 }
             }
