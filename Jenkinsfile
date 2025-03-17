@@ -30,6 +30,11 @@ pipeline {
                 always {
                     echo "Publishing test results..."
                     junit '**/target/surefire-reports/*.xml'
+                    jacoco(
+                        execPattern: '**/target/jacoco.exec',
+                        classPattern: '**/target/classes',
+                        sourcePattern: '**/src/main/java'
+                    )
                 }
             }
         }
