@@ -105,7 +105,6 @@ class VetResourceTest {
             .andExpect(jsonPath("$[0].specialties[0].name").value("surgery"));
     }
 
-    // Utility method to set private field values (Reflection)
     private void setId(Object object, int id) throws Exception {
         Field field = object.getClass().getDeclaredField("id");
         field.setAccessible(true);

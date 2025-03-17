@@ -44,16 +44,19 @@ pipeline {
             steps {
                 script {
                     def changedServices = env.CHANGED_SERVICES.split(',')
-                    changedServices.each{ service -> 
+                    changedServices.each { service -> 
                         echo "Testing service: ${service}"
-                        dir("${service}") {
-                            // Run tests and generate coverage reports
+                        dir("${env.WORKSPACE}/${service}") {  // Use absolute workspace path
+                            sh "ls -l"  // Debugging: Check if pom.xml exists
                             sh "mvn clean test surefire-report:report jacoco:report"
-        
+                            
+                            // Display test results
+                            sh "cat target/surefire-reports/*.txt || true"
+
                             // Publish JUnit test results
                             junit '**/target/surefire-reports/*.xml'
-        
-                            // Record test coverage using the Coverage plugin
+
+                            // Record test coverage
                             recordCoverage(
                                 tools: [[parser: 'JACOCO', pattern: '**/target/site/jacoco/jacoco.xml']],
                                 qualityGates: [
@@ -61,9 +64,11 @@ pipeline {
                                 ]
                             )
 
-                            // Check if build is unstable and force failure
-                            if (currentBuild.result == 'UNSTABLE') {
-                                error "Test coverage is below 70%, failing the build!"
+                            // Ensure tests don't fail due to missing files
+                            echo "Current build result: ${currentBuild.result}"
+
+                            if (currentBuild.result == 'UNSTABLE' || currentBuild.result == 'FAILURE') {
+                                error "Test stage failed due to test failures!"
                             }
                         }
                     }
