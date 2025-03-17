@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.samples.petclinic.visits.model.Visit;
 import org.springframework.samples.petclinic.visits.model.VisitRepository;
 import org.springframework.test.context.ActiveProfiles;
@@ -13,8 +14,10 @@ import org.springframework.test.web.servlet.MockMvc;
 
 
 import static java.util.Arrays.asList;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -57,5 +60,26 @@ class VisitResourceTest {
             .andExpect(jsonPath("$.items[0].petId").value(111))
             .andExpect(jsonPath("$.items[1].petId").value(222))
             .andExpect(jsonPath("$.items[2].petId").value(222));
+    }
+
+    @Test
+    void shouldReturnEmptyListWhenNoVisitsFound() throws Exception {
+        given(visitRepository.findByPetIdIn(asList(333, 444))).willReturn(asList());
+
+        mvc.perform(get("/pets/visits?petId=333,444"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.items").isEmpty());
+    }
+
+    @Test
+    void shouldReturnBadRequestForInvalidParameters() throws Exception {
+        mvc.perform(get("/pets/visits?petId=invalid"))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenNoPetIdsProvided() throws Exception {
+        mvc.perform(get("/pets/visits"))
+            .andExpect(status().isBadRequest());
     }
 }
