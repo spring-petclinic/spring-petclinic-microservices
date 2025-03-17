@@ -91,7 +91,6 @@ pipeline {
                                 echo "run build for ${service}"
                                 mvn clean package -DskipTests
                                 cd ..
-                                docker build --build-arg SERVICE=${service} --build-arg STAGE=${env.STAGE} -f docker/Dockerfile.${service} -t ${OWNER}/${env.STAGE}-${service}:${env.GIT_COMMIT_SHA} .
                                 """
                             }
                         }
