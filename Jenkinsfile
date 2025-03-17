@@ -26,13 +26,7 @@ pipeline {
                         classPattern: '**/target/classes',
                         sourcePattern: '**/src/main/java'
                     )
-                    publishHTML(target: [
-                      reportDir: 'target/site/jacoco',
-                      reportFiles: 'index.html',
-                      keepAll: true,
-                      alwaysLinkToLastBuild: true,
-                      reportName: 'JaCoCo Code Coverage Report'
-                    ])
+                    junit '**/target/surefire-reports/*.xml'
                 }
             }
         }
