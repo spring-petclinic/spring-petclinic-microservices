@@ -26,7 +26,7 @@ pipeline {
                         classPattern: '**/target/classes',
                         sourcePattern: '**/src/main/java'
                     )
-                    archiveArtifacts artifacts: 'target/surefire-reports/*.xml', fingerprint: true
+                    archiveArtifacts artifacts: '**/surefire-reports/*.xml', fingerprint: true
                 }
             }
         }
