@@ -56,7 +56,14 @@ pipeline {
                     script {
                         def servicesToBuild = env.SERVICES_TO_BUILD ? env.SERVICES_TO_BUILD.split(',') : []
                         for (service in servicesToBuild) {
-                            junit "${service}/${TEST_RESULTS}/*.xml"
+                            def reportPath = "${service}/target/surefire-reports/*.xml"
+                            def reportExists = sh(script: "ls ${reportPath} 2>/dev/null || echo 'notfound'", returnStdout: true).trim()
+                            if (reportExists == 'notfound') {
+                                echo "No test report found for ${service}"
+                            } else {
+                                junit reportPath
+                            }
+
                             jacoco execPattern: "${service}/target/jacoco.exec", 
                                    classPattern: "${service}/target/classes", 
                                    sourcePattern: "${service}/src/main/java", 
