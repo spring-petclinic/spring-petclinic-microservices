@@ -1,5 +1,5 @@
 // pipeline {
-//     agent any 
+//     agent { label '!master' } 
 //     stages {
 //         stage('Build') { 
 //             steps {
@@ -20,7 +20,7 @@
 // }
 
 pipeline {
-    agent any
+    agent { label '!master' }
 
     environment {
         CUSTOMERS_GENAI_SERVICES = ''
@@ -29,7 +29,7 @@ pipeline {
 
     stages {
         stage('Check Changes') {
-            agent any
+            agent { label '!master' }
             steps {
                 script {
                     def changes = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim().split("\n")
@@ -52,7 +52,7 @@ pipeline {
             when {
                 expression { return env.CUSTOMERS_VETS_SERVICES != '' }
             }
-            agent any
+            agent { label '!master' }
             steps {
                 script {
                     def services = env.CUSTOMERS_VETS_SERVICES.split(",")
@@ -70,7 +70,7 @@ pipeline {
         //     when {
         //         expression { return env.CUSTOMERS_GENAI_SERVICES != '' }
         //     }
-        //     agent any
+        //     agent { label '!master' }
         //     steps {
         //         script {
         //             def services = env.CUSTOMERS_GENAI_SERVICES.split(",")
@@ -93,7 +93,7 @@ pipeline {
         //     when {
         //         expression { return env.VETS_VISITS_SERVICES != '' }
         //     }
-        //     agent any
+        //     agent { label '!master' }
         //     steps {
         //         script {
         //             def services = env.VETS_VISITS_SERVICES.split(",")
@@ -118,7 +118,7 @@ pipeline {
         //     when {
         //         expression { return env.VETS_VISITS_SERVICES != '' }
         //     }
-        //     agent any
+        //     agent { label '!master' }
         //     steps {
         //         script {
         //             def services = env.VETS_VISITS_SERVICES.split(",")
