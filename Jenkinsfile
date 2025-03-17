@@ -44,7 +44,7 @@ pipeline {
                     for (service in SERVICES_CHANGED) {
                         echo "Testing ${service}........"
                         sh "./mvnw test -f spring-petclinic-${service}"
-                        if (${service} != 'genai-service') {
+                        if (service != 'genai-service') {
                             junit "spring-petclinic-${service}/target/surefire-reports/*.xml"
                         }
                         jacoco execPattern: '**/target/jacoco.exec', classPattern: '**/target/classes', sourcePattern: '**/src/main/java'
