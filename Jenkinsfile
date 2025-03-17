@@ -12,15 +12,6 @@ pipeline {
             }
         }
 
-        stage('Build') {
-            steps {
-                script {
-                    echo "Performing regular build..."
-                    sh './mvnw clean install -DskipTests'
-                }
-            }
-        }
-
         stage('Test') {
             steps {
                 echo "Running tests..."
@@ -35,6 +26,15 @@ pipeline {
                         classPattern: '**/target/classes',
                         sourcePattern: '**/src/main/java'
                     )
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                script {
+                    echo "Performing regular build..."
+                    sh './mvnw clean install -DskipTests'
                 }
             }
         }
