@@ -1,136 +1,91 @@
-// pipeline {
-//     agent { label '!master' } 
-//     stages {
-//         stage('Build') { 
-//             steps {
-//                 // 
-//             }
-//         }
-//         stage('Test') { 
-//             steps {
-//                 // 
-//             }
-//         }
-//         stage('Deploy') { 
-//             steps {
-//                 // 
-//             }
-//         }
-//     }
-// }
+def CUSTOMERS_SERVICES = []
+def GENAI_SERVICES = []
+def VETS_SERVICES = []
+def VISITS_SERVICES = []
 
 pipeline {
-    agent { label '!master' }
-
-    environment {
-        CUSTOMERS_GENAI_SERVICES = ''
-        VETS_VISITS_SERVICES = ''
-    }
-
+    agent none
     stages {
         stage('Check Changes') {
-            agent { label '!master' }
+            agent { label 'ptb-agent || nnh-agent' }
             steps {
                 script {
                     def changes = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim().split("\n")
 
-                    def customers_vets = []
-                    def genai_visits = []
-
-                    if (changes.any { it.startsWith("spring-petclinic-customers-service/") }) { customers_vets.add('customers-service') }
-                    if (changes.any { it.startsWith("spring-petclinic-vets-service/") }) { customers_vets.add('vets-service') }
-                    if (changes.any { it.startsWith("spring-petclinic-genai-service/") }) { genai_visits.add('genai-service') }
-                    if (changes.any { it.startsWith("spring-petclinic-visits-service/") }) { genai_visits.add('visits-service') }
-                    
-                    CUSTOMERS_VETS_SERVICES = customers_vets.join(",")
-                    GENAI_VISITS_SERVICES = genai_visits.join(",")
+                    if (changes.any { it.startsWith("spring-petclinic-customers-service/") }) { CUSTOMERS_SERVICES.add('customers-service') }
+                    if (changes.any { it.startsWith("spring-petclinic-vets-service/") }) { VETS_SERVICES.add('vets-service') }
+                    if (changes.any { it.startsWith("spring-petclinic-genai-service/") }) { GENAI_SERVICES.add('genai-service') }
+                    if (changes.any { it.startsWith("spring-petclinic-visits-service/") }) { VISITS_SERVICES.add('visits-service') }
                 }
             }
         }
 
-        stage('Build if Customers & GenAI are changed') {
+        stage('Build and Test Customers') {
             when {
-                expression { return env.CUSTOMERS_VETS_SERVICES != '' }
+                expression { return CUSTOMERS_SERVICES.size() > 0 }
             }
-            agent { label '!master' }
+            agent { label 'ptb-agent || nnh-agent' }
             steps {
                 script {
-                    def services = env.CUSTOMERS_VETS_SERVICES.split(",")
-
-                    for (service in services) {
-                        echo "Building ${service}........"
-                        sh "./mvnw install -f spring-petclinic-${service}"
-                        junit "spring-petclinic-${service}/target/surefire-reports/*.xml"
-                    }    
+                    echo "Building ${CUSTOMERS_SERVICES[0]}........"
+                    sh "./mvnw clean package -f spring-petclinic-${CUSTOMERS_SERVICES[0]}"
+                    echo "Testing ${CUSTOMERS_SERVICES[0]}........"
+                    sh "./mvnw test -f spring-petclinic-${CUSTOMERS_SERVICES[0]}"
+                    junit "spring-petclinic-${CUSTOMERS_SERVICES[0]}/target/surefire-reports/*.xml"
+                    jacoco execPattern: '**/target/jacoco.exec', classPattern: '**/target/classes', sourcePattern: '**/src/main/java'
                 }
             }
         }
 
-        // stage('Test if Customers & GenAI are changed') {
-        //     when {
-        //         expression { return env.CUSTOMERS_GENAI_SERVICES != '' }
-        //     }
-        //     agent { label '!master' }
-        //     steps {
-        //         script {
-        //             def services = env.CUSTOMERS_GENAI_SERVICES.split(",")
+        stage('Build and Test Vets') {
+            when {
+                expression { return VETS_SERVICES.size() > 0 }
+            }
+            agent { label 'ptb-agent || nnh-agent' }
+            steps {
+                script {
+                    echo "Building ${VETS_SERVICES[0]}........"
+                    sh "./mvnw clean package -f spring-petclinic-${VETS_SERVICES[0]}"
+                    echo "Testing ${VETS_SERVICES[0]}........"
+                    sh "./mvnw test -f spring-petclinic-${VETS_SERVICES[0]}"
+                    junit "spring-petclinic-${VETS_SERVICES[0]}/target/surefire-reports/*.xml"
+                    jacoco execPattern: '**/target/jacoco.exec', classPattern: '**/target/classes', sourcePattern: '**/src/main/java'
+                }
+            }
+        }
 
-        //             for (service in services) {
-        //                 echo "Running tests for ${service}"
-        //                 dir("${service}") {
-        //                     sh "./mvnw test"
-        //                     junit '**/target/surefire-reports/*.xml'
-        //                     jacoco execPattern: '**/target/jacoco.exec',
-        //                            classPattern: '**/target/classes',
-        //                            sourcePattern: '**/src/main/java'
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Build and Test Visits') {
+            when {
+                expression { return VISITS_SERVICES.size() > 0 }
+            }
+            agent { label 'ptb-agent || nnh-agent' }
+            steps {
+                script {
+                    echo "Building ${VISITS_SERVICES[0]}........"
+                    sh "./mvnw clean package -f spring-petclinic-${VISITS_SERVICES[0]}"
+                    echo "Testing ${VISITS_SERVICES[0]}........"
+                    sh "./mvnw test -f spring-petclinic-${VISITS_SERVICES[0]}"
+                    junit "spring-petclinic-${VISITS_SERVICES[0]}/target/surefire-reports/*.xml"
+                    jacoco execPattern: '**/target/jacoco.exec', classPattern: '**/target/classes', sourcePattern: '**/src/main/java'
+                }
+            }
+        }
 
-        // stage('Test if Vets & Visits are changed') {
-        //     when {
-        //         expression { return env.VETS_VISITS_SERVICES != '' }
-        //     }
-        //     agent { label '!master' }
-        //     steps {
-        //         script {
-        //             def services = env.VETS_VISITS_SERVICES.split(",")
-
-        //             for (service in services) {
-        //                 echo "Running tests for ${service}"
-        //                 dir("${service}") {
-        //                     sh "./mvnw test"
-        //                     junit '**/target/surefire-reports/*.xml'
-        //                     jacoco execPattern: '**/target/jacoco.exec',
-        //                            classPattern: '**/target/classes',
-        //                            sourcePattern: '**/src/main/java'
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-
-        
-
-        // stage('Build if Vets & Visits are changed') {
-        //     when {
-        //         expression { return env.VETS_VISITS_SERVICES != '' }
-        //     }
-        //     agent { label '!master' }
-        //     steps {
-        //         script {
-        //             def services = env.VETS_VISITS_SERVICES.split(",")
-
-        //             for (service in services) {
-        //                 echo "Building ${service}"
-        //                 dir("${service}") {
-        //                     sh "./mvnw clean package"
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Build and Test GenAI') {
+            when {
+                expression { return GENAI_SERVICES.size() > 0 }
+            }
+            agent { label 'ptb-agent || nnh-agent' }
+            steps {
+                script {
+                    echo "Building ${GENAI_SERVICES[0]}........"
+                    sh "./mvnw clean package -f spring-petclinic-${GENAI_SERVICES[0]}"
+                    echo "Testing ${GENAI_SERVICES[0]}........"
+                    sh "./mvnw test -f spring-petclinic-${GENAI_SERVICES[0]}"
+                    junit "spring-petclinic-${GENAI_SERVICES[0]}/target/surefire-reports/*.xml"
+                    jacoco execPattern: '**/target/jacoco.exec', classPattern: '**/target/classes', sourcePattern: '**/src/main/java'
+                }
+            }
+        }
     }
 }
