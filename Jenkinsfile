@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    parameters {
-        string(name: 'commit_sha', defaultValue: '', description: 'Commit SHA of the PR')
-    }
-
     stages {
         stage('Checkout Code') {
             steps {
@@ -45,9 +41,10 @@ pipeline {
     post {
         success {
             script {
-                echo "Sending 'success' status to GitHub"
+                def commitId = env.GIT_COMMIT
+                echo "Sending 'success' status to GitHub for commit: ${commitId}"
                 def response = httpRequest(
-                    url: "https://api.github.com/repos/tranductung07012004/devOps_1_spring-petclinic-microservices/statuses/${params.commit_sha}",
+                    url: "https://api.github.com/repos/tranductung07012004/devOps_1_spring-petclinic-microservices/statuses/${commitId}",
                     httpMode: 'POST',
                     contentType: 'APPLICATION_JSON',
                     requestBody: """{
@@ -64,9 +61,10 @@ pipeline {
 
         failure {
             script {
-                echo "Sending 'failure' status to GitHub"
+                def commitId = env.GIT_COMMIT
+                echo "Sending 'failure' status to GitHub for commit: ${commitId}"
                 def response = httpRequest(
-                    url: "https://api.github.com/repos/tranductung07012004/devOps_1_spring-petclinic-microservices/statuses/${params.commit_sha}",
+                    url: "https://api.github.com/repos/tranductung07012004/devOps_1_spring-petclinic-microservices/statuses/${commitId}",
                     httpMode: 'POST',
                     contentType: 'APPLICATION_JSON',
                     requestBody: """{
