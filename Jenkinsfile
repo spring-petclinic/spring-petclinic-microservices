@@ -104,11 +104,11 @@ pipeline {
             }
         }
         success {
-            publishChecks name: 'jenkins', status: 'COMPLETED', conclusion: 'SUCCESS'
+            githubNotify context: 'jenkins', status: 'SUCCESS', description: 'Build & test completed!'
             echo 'Build and test completed successfully for changed services!'
         }
         failure {
-            publishChecks name: 'jenkins', status: 'COMPLETED', conclusion: 'FAILURE'
+            githubNotify context: 'jenkins', status: 'FAILURE', description: 'Build or test failed!'
             echo 'Build or test failed for some services!'
         }
     }
