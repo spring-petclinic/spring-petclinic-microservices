@@ -12,10 +12,7 @@ pipeline {
         stage('Test') {
             steps {
                 echo "Running Test phase..."
-                echo "Listing test files..."
                 
-                sh 'find tests -name "*.java"' 
-
                 echo "Uploading test results..."
                 echo "Test results uploaded successfully!"
                 
