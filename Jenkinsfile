@@ -9,9 +9,8 @@ pipeline {
                 script {
                     def branchToCheckout = env.BRANCH_NAME ?: 'main'
                     echo "Checkout branch: ${branchToCheckout}"
-                    echo "Token: ${env.GITHUB_TOKEN}"
                     git branch: branchToCheckout, 
-                        url: 'https://github.com/ndmanh3003/spring-petclinic-microservices'
+                        url: 'https://github.com/ndmanh3003/spring-petclinic-microservices.git'
                 }
             }
         }
@@ -66,7 +65,7 @@ pipeline {
                 def commitId = env.GIT_COMMIT
                 echo "Sending 'success' status to GitHub for commit: ${commitId}"
                 def response = httpRequest(
-                    url: "https://api.github.com/repos/Alrmendo/spring-petclinic-microservices/statuses/${commitId}",
+                    url: "https://api.github.com/repos/ndmanh3003/spring-petclinic-microservices/statuses/${commitId}",
                     httpMode: 'POST',
                     contentType: 'APPLICATION_JSON',
                     requestBody: """{
@@ -86,7 +85,7 @@ pipeline {
                 def commitId = env.GIT_COMMIT
                 echo "Sending 'failure' status to GitHub for commit: ${commitId}"
                 def response = httpRequest(
-                    url: "https://api.github.com/repos/Alrmendo/spring-petclinic-microservices/statuses/${commitId}",
+                    url: "https://api.github.com/repos/ndmanh3003/spring-petclinic-microservices/statuses/${commitId}",
                     httpMode: 'POST',
                     contentType: 'APPLICATION_JSON',
                     requestBody: """{
