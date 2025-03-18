@@ -34,4 +34,3 @@ public class VetsServiceApplication {
 	}
 }
 // Test comment
-// Test comment 2
