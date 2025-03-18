@@ -1,4 +1,3 @@
-Mỹ Hạnh
 pipeline {
     agent any
     environment {
