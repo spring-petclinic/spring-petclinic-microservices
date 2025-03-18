@@ -1,56 +1,107 @@
 pipeline {
     agent any
-
-    tools {
-        maven '3.8.5'  // Đảm bảo Maven đã được cấu hình trong Jenkins Global Tool Configuration
+    environment {
+        CHANGED_FILES = ''
     }
-
     stages {
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
                 script {
-                    echo "🚀 Running Checkout phase on branch: ${env.BRANCH_NAME}"
-                    git branch: "${env.BRANCH_NAME}", url: 'https://github.com/ndmanh3003/spring-petclinic-microservices'
-                    echo "✅ Checked out branch: ${env.BRANCH_NAME} successfully!"
+                    def branchToCheckout = env.BRANCH_NAME ?: 'main'
+                    echo "Checkout branch: ${branchToCheckout}"
+                    git branch: branchToCheckout, 
+                        url: 'https://github.com/ndmanh3003/spring-petclinic-microservices'
                 }
             }
         }
 
-        stage('Build') {
+        stage('Detect changes') {
             steps {
-                echo "🛠️ Running Build phase..."
                 script {
-                    sh 'mvn clean install'
+                    CHANGED_FILES = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
+                    echo "Changed files:\n${CHANGED_FILES}"
                 }
-                echo "✅ Build completed successfully!"
             }
         }
 
-        stage('Test') {
+        stage('Test & Build Changed Services') {
             steps {
-                echo "🔬 Running Test phase..."
                 script {
-                    sh 'mvn test'
+                    def services = [
+                        'spring-petclinic-customers-service',
+                        'spring-petclinic-genai-service',
+                        'spring-petclinic-vets-service',
+                        'spring-petclinic-visits-service'
+                    ]
 
-                    // Thu thập kết quả kiểm thử và độ phủ testcase (Jacoco)
-                    junit '**/target/test-*.xml'
-                    jacoco execPattern: '**/target/jacoco-*.exec', classPattern: '**/target/classes', sourcePattern: '**/src/main/java', exclusionPattern: ''
+                    for (service in services) {
+                        if (CHANGED_FILES.contains(service)) {
+                            echo "Building and testing ${service}..."
+                            dir(service) {
+                                sh '../mvnw clean test'
+                                sh '../mvnw clean install -DskipTests'
+                            }
+                        } else {
+                            echo "Skipping ${service}, no changes detected."
+                        }
+                    }
                 }
-                echo "✅ Test completed and results uploaded!"
             }
         }
 
-        stage('Deploy') {
+        stage('Check Changed Files') {
             steps {
-                echo "🚀 Running Deploy phase..."
-                echo "✅ Deploy completed successfully!"
+                script {
+                    def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
+                    echo "Files changed in this commit: ${changedFiles}"
+                }
             }
         }
     }
 
     post {
+        success {
+            script {
+                def commitId = env.GIT_COMMIT
+                echo "Sending 'success' status to GitHub for commit: ${commitId}"
+                def response = httpRequest(
+                    url: "https://api.github.com/repos/Alrmendo/spring-petclinic-microservices/statuses/${commitId}",
+                    httpMode: 'POST',
+                    contentType: 'APPLICATION_JSON',
+                    requestBody: """{
+                        \"state\": \"success\",
+                        \"description\": \"Build passed\",
+                        \"context\": \"ci/jenkins-pipeline\",
+                        \"target_url\": \"${env.BUILD_URL}\"
+                    }""",
+                    authentication: 'github-token'
+                )
+                echo "GitHub Response: ${response.status}"
+            }
+        }
+
+        failure {
+            script {
+                def commitId = env.GIT_COMMIT
+                echo "Sending 'failure' status to GitHub for commit: ${commitId}"
+                def response = httpRequest(
+                    url: "https://api.github.com/repos/Alrmendo/spring-petclinic-microservices/statuses/${commitId}",
+                    httpMode: 'POST',
+                    contentType: 'APPLICATION_JSON',
+                    requestBody: """{
+                        \"state\": \"failure\",
+                        \"description\": \"Build failed\",
+                        \"context\": \"ci/jenkins-pipeline\",
+                        \"target_url\": \"${env.BUILD_URL}\"
+                    }""",
+                    authentication: 'github-token'
+                )
+                echo "GitHub Response: ${response.status}"
+            }
+        }
+
         always {
-            echo "✔️ Pipeline finished."
+            echo "Pipeline finished."
         }
     }
 }
