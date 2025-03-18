@@ -1,17 +1,18 @@
 pipeline {
     agent any
 
-    environment {
-        MAVEN_HOME = '/usr/local/maven'  // Đảm bảo Maven đã được cài đặt trên Jenkins
+    tools {
+        maven 'Maven 3.6.3'  // Đảm bảo Maven đã được cấu hình trong Jenkins Global Tool Configuration
     }
 
     stages {
         stage('Checkout') {
             steps {
-                echo "🚀 Running Checkout phase..."
-                // Clone repository từ GitHub
-                git url: 'https://github.com/spring-petclinic/spring-petclinic-microservices.git', branch: 'main'
-                echo "✅ Checkout completed successfully!"
+                script {
+                    echo "🚀 Running Checkout phase on branch: ${env.BRANCH_NAME}"
+                    git branch: "${env.BRANCH_NAME}", url: 'https://github.com/ndmanh3003/spring-petclinic-microservices'
+                    echo "✅ Checked out branch: ${env.BRANCH_NAME} successfully!"
+                }
             }
         }
 
@@ -19,8 +20,7 @@ pipeline {
             steps {
                 echo "🛠️ Running Build phase..."
                 script {
-                    // Thực hiện build dự án bằng Maven (build thực sự)
-                    sh "'${MAVEN_HOME}/bin/mvn' clean install"
+                    sh 'mvn clean install'
                 }
                 echo "✅ Build completed successfully!"
             }
@@ -30,11 +30,10 @@ pipeline {
             steps {
                 echo "🔬 Running Test phase..."
                 script {
-                    // Chạy unit tests và thu thập kết quả kiểm thử
-                    sh "'${MAVEN_HOME}/bin/mvn' test"
+                    sh 'mvn test'
 
-                    // Lấy kết quả kiểm thử và độ phủ testcase (Jacoco)
-                    junit '**/target/test-*.xml'  // Thu thập kết quả kiểm thử từ các tệp XML
+                    // Thu thập kết quả kiểm thử và độ phủ testcase (Jacoco)
+                    junit '**/target/test-*.xml'
                     jacoco execPattern: '**/target/jacoco-*.exec', classPattern: '**/target/classes', sourcePattern: '**/src/main/java', exclusionPattern: ''
                 }
                 echo "✅ Test completed and results uploaded!"
@@ -44,7 +43,6 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo "🚀 Running Deploy phase..."
-                // Mô phỏng bước deploy
                 echo "✅ Deploy completed successfully!"
             }
         }
