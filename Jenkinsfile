@@ -73,7 +73,7 @@ pipeline {
                             } else {
                                 junit junitReportPath
                             }
-                            recordCoverage(tools: [[parser: 'JACOCO', pattern: "${service}/target/jacoco.exec"]])
+                            recordCoverage(tools: [[parser: 'JACOCO', pattern: "${service}/target/site/jacoco/jacoco.xml"]])
                         }
                     }
                 }
