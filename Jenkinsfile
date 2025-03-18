@@ -99,13 +99,24 @@ pipeline {
                         dir("spring-petclinic-${service}") {
                             echo "Testing ${service}..."
                             try {
-                                // Run tests with JaCoCo coverage for specific service
+                                // Run tests with JaCoCo coverage verification
                                 sh """
-                                    echo "Running tests for ${service}"
-                                    ../mvnw clean test verify -Pcoverage
+                                    echo "Running tests and coverage verification for ${service}"
+                                    ../mvnw clean verify
                                 """
+
+                                // Read JaCoCo coverage report
+                                def jacocoReport = readFile "target/site/jacoco/index.html"
+                                
+                                // Check if coverage is below threshold (70%)
+                                if (jacocoReport.contains("Total.*?([0-9.]+)%")) {
+                                    def coverage = (jacocoReport =~ /Total.*?([0-9.]+)%/)[0][1] as Double
+                                    if (coverage < 70) {
+                                        error "Test coverage for ${service} is below 70% (actual: ${coverage}%)"
+                                    }
+                                }
                             } catch (Exception e) {
-                                echo "Tests failed for ${service}"
+                                echo "Tests or coverage verification failed for ${service}"
                                 throw e
                             }
                         }
@@ -115,16 +126,25 @@ pipeline {
             post {
                 always {
                     script {
-                        // Publish test results and coverage for changed services
+                        // Publish test results and coverage reports
                         env.SERVICES_TO_BUILD.split(',').each { service ->
                             dir("spring-petclinic-${service}") {
+                                // Publish test results
                                 junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+                                
+                                // Publish JaCoCo coverage report
                                 jacoco(
                                     execPattern: '**/target/jacoco.exec',
                                     classPattern: '**/target/classes',
                                     sourcePattern: '**/src/main/java',
-                                    exclusionPattern: '**/test/**'
+                                    exclusionPattern: '**/test/**',
+                                    minimumLineCoverage: '70',
+                                    minimumBranchCoverage: '70',
+                                    changeBuildStatus: true
                                 )
+                                
+                                // Archive coverage reports
+                                archiveArtifacts artifacts: '**/target/site/jacoco/**', fingerprint: true
                             }
                         }
                     }
