@@ -74,7 +74,7 @@ pipeline {
                         \"context\": \"ci/jenkins-pipeline\",
                         \"target_url\": \"${env.BUILD_URL}\"
                     }""",
-                    authentication: 'golbal/github-token'
+                    authentication: 'github-token-ndmanh'
                 )
                 echo "GitHub Response: ${response.status}"
             }
