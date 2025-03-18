@@ -106,7 +106,7 @@ pipeline {
         success {
             step([
                 $class: 'GitHubCommitStatusSetter',
-                contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'jenkins/build'],
+                contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'jenkins'],
                 statusResultSource: [$class: 'ConditionalStatusResultSource', results: [
                     [$class: 'AnyBuildResult', state: 'SUCCESS', message: 'Build & test completed!']
                 ]]
@@ -117,7 +117,7 @@ pipeline {
         failure {
             step([
                 $class: 'GitHubCommitStatusSetter',
-                contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'jenkins/build'],
+                contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'jenkins'],
                 statusResultSource: [$class: 'ConditionalStatusResultSource', results: [
                     [$class: 'AnyBuildResult', state: 'FAILURE', message: 'Build or test failed!']
                 ]]
