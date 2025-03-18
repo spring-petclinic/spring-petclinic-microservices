@@ -114,7 +114,9 @@ pipeline {
                                         sourcePattern: "src/main/java", 
                                         exclusionPattern: "src/test*",
                                         outputDirectory: "target/jacoco-reports/${service}",
-                                        reportTitle: "JaCoCo Report - ${service}"
+                                        reportTitle: "JaCoCo Report - ${service}",
+                                        skipCopyOfSrcFiles: true,
+                                        dumpOnExit: true
                                     )
                                 } catch (Exception e) {
                                     echo "Warning: Tests failed for ${service}, but continuing pipeline"
@@ -220,9 +222,9 @@ pipeline {
     post {
         always {
             cleanWs()
-            script{
-                sh 'find . -name jacoco.exec -delete'
-            }
+            // script{
+            //     sh 'find . -name jacoco.exec -delete'
+            // }
         }
     }
 }
