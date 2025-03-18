@@ -9,6 +9,7 @@ pipeline {
                 script {
                     def branchToCheckout = env.BRANCH_NAME ?: 'main'
                     echo "Checkout branch: ${branchToCheckout}"
+                    echo "Token: ${env.GITHUB_TOKEN}"
                     git branch: branchToCheckout, 
                         url: 'https://github.com/ndmanh3003/spring-petclinic-microservices'
                 }
