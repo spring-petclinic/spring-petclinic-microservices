@@ -28,6 +28,15 @@ public class VisitsServiceApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(VisitsServiceApplication.class, args);
+        // System.out.println("Visits Service Application Started");
+        // Some changes in the file
+        // Some more changes in the file
+        // Some more changes in the file
+        // Some more changes in the file
+        // Some more changes in the file
+        // Some more changes in the file
+        // Some more changes in the file
+        // Some more changes in the file
     }
 }
 // test comment
