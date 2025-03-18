@@ -12,3 +12,5 @@ public record OwnerRequest(@NotBlank String firstName,
                            String telephone
 ) {
 }
+
+// I made some changes here
