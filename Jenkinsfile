@@ -90,6 +90,7 @@ pipeline {
                     def testDetails = [:]
                     def testFailures = 0
                     def testPasses = 0
+                    def jacocoReports = []
                     
                     for (service in serviceList) {
                         echo "Testing service: ${service}"
@@ -108,16 +109,7 @@ pipeline {
                                     junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
                                     
                                     // Publish coverage reports
-                                    jacoco(
-                                        execPattern: "target/jacoco.exec",
-                                        classPattern: "target/classes", 
-                                        sourcePattern: "src/main/java", 
-                                        exclusionPattern: "src/test*",
-                                        outputDirectory: "target/jacoco-reports/${service}",
-                                        reportTitle: "JaCoCo Report - ${service}",
-                                        skipCopyOfSrcFiles: true,
-                                        dumpOnExit: true
-                                    )
+                                    jacocoReports.add("target/jacoco.exec")
                                 } catch (Exception e) {
                                     echo "Warning: Tests failed for ${service}, but continuing pipeline"
                                     testDetails[service] = [
@@ -135,6 +127,19 @@ pipeline {
                                 ]
                             }
                         }
+                    }
+                                // Publish JaCoCo report only once
+                    if (jacocoReports) {
+                        jacoco(
+                            execPattern: jacocoReports.join(","),
+                            classPattern: "**/target/classes", 
+                            sourcePattern: "**/src/main/java", 
+                            exclusionPattern: "**/src/test*",
+                            outputDirectory: "target/jacoco-reports",
+                            reportTitle: "JaCoCo myReport",
+                            skipCopyOfSrcFiles: true,
+                            dumpOnExit: true
+                        )
                     }
                     
                     // Store test details for report
