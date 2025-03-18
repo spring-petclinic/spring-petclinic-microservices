@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.samples.petclinic.visits.model.Visit;
 import org.springframework.samples.petclinic.visits.model.VisitRepository;
 import org.springframework.test.context.ActiveProfiles;
@@ -16,6 +17,7 @@ import static org.mockito.Mockito.verify;
 import static java.util.Arrays.asList;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -109,5 +111,16 @@ class VisitResourceTest {
 
         // Then - Verify that the repository method was called
         verify(visitRepository).findByPetIdIn(asList(321));
+    }
+
+    @Test
+    void shouldCreateVisitSuccessfully() throws Exception {
+        Visit visit = Visit.VisitBuilder.aVisit().id(10).petId(123).build();
+        given(visitRepository.save(visit)).willReturn(visit);
+
+        mvc.perform(post("/owners/*/pets/123/visits")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"id\": 10, \"petId\": 123}"))
+            .andExpect(status().isCreated());
     }
 }
