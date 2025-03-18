@@ -108,16 +108,6 @@ pipeline {
                                         output: testOutput
                                     ]
                                     testPasses++
-                                    
-                                    // Publish test results
-                                    junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
-                                    
-                                    // Collect JaCoCo data for aggregation
-                                    if (fileExists('target/jacoco.exec')) {
-                                        jacocoExecFiles.add("${service}/target/jacoco.exec")
-                                        jacocoClassDirs.add("${service}/target/classes")
-                                        jacocoSrcDirs.add("${service}/src/main/java")
-                                    }
                                 } catch (Exception e) {
                                     echo "Warning: Tests failed for ${service}, but continuing pipeline"
                                     testDetails[service] = [
@@ -126,6 +116,16 @@ pipeline {
                                     ]
                                     testFailures++
                                     currentBuild.result = 'UNSTABLE'
+                                } finally {
+                                    // Publish test results regardless of test success/failure
+                                    junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+                                    
+                                    // Collect JaCoCo data for aggregation (if it exists)
+                                    if (fileExists('target/jacoco.exec')) {
+                                        jacocoExecFiles.add("${service}/target/jacoco.exec")
+                                        jacocoClassDirs.add("${service}/target/classes")
+                                        jacocoSrcDirs.add("${service}/src/main/java")
+                                    }
                                 }
                             } else {
                                 echo "Skipping tests for ${service} as it does not have test folders"
