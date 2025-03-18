@@ -2,9 +2,7 @@ pipeline {
     agent any
     environment {
         CHANGED_FILES = ''
-        CHANGED_SERVICES = '' // Lưu danh sách các service bị thay đổi
     }
-
     stages {
         stage('Checkout Code') {
             steps {
@@ -20,13 +18,13 @@ pipeline {
         stage('Detect changes') {
             steps {
                 script {
-                    env.CHANGED_FILES = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
-                    echo "Changed files:\n${env.CHANGED_FILES}"
+                    CHANGED_FILES = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
+                    echo "Changed files:\n${CHANGED_FILES}"
                 }
             }
         }
 
-        stage('Test Changed Services') {
+        stage('Test & Build Changed Services') {
             steps {
                 script {
                     def services = [
@@ -35,57 +33,27 @@ pipeline {
                         'spring-petclinic-vets-service',
                         'spring-petclinic-visits-service'
                     ]
-                    def changedServices = []
 
-                    if (env.CHANGED_FILES && env.CHANGED_FILES.trim()) {
-                        def changedFilesList = env.CHANGED_FILES.split('\n')
-                        for (service in services) {
-                            if (changedFilesList.find { it.startsWith(service) }) {
-                                echo "Running tests for ${service}..."
-                                changedServices.add(service)
-                                dir(service) {
-                                    // Chạy unit test
-                                    sh './mvnw clean test'
-                                }
-                            } else {
-                                echo "Skipping test for ${service}, no changes detected."
+                    for (service in services) {
+                        if (CHANGED_FILES.contains(service)) {
+                            echo "Building and testing ${service}..."
+                            dir(service) {
+                                sh '../mvnw clean test'
+                                sh '../mvnw clean install -DskipTests'
                             }
+                        } else {
+                            echo "Skipping ${service}, no changes detected."
                         }
-                    } else {
-                        echo "No changed files detected. Skipping test phase."
                     }
-                    env.CHANGED_SERVICES = changedServices.join(' ')
-                }
-            }
-            post {
-                always {
-                    echo "Publishing test results and code coverage..."
-                    junit allowEmptyResults: true, testResults: '*/target/surefire-reports/.xml'
-                    jacoco(
-                        execPattern: '**/target/jacoco.exec',
-                        classPattern: '**/target/classes',
-                        sourcePattern: '**/src/main/java',
-                        skipIfNoReports: true
-                    )
-                    archiveArtifacts artifacts: '*/surefire-reports/.xml', fingerprint: true
                 }
             }
         }
 
-        stage('Build Changed Services') {
+        stage('Check Changed Files') {
             steps {
                 script {
-                    if (env.CHANGED_SERVICES && env.CHANGED_SERVICES.trim()) {
-                        def services = env.CHANGED_SERVICES.split(' ')
-                        for (service in services) {
-                            echo "Building ${service}..."
-                            dir(service) {
-                                sh './mvnw clean install -DskipTests'
-                            }
-                        }
-                    } else {
-                        echo "No services to build."
-                    }
+                    def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
+                    echo "Files changed in this commit: ${changedFiles}"
                 }
             }
         }
@@ -106,11 +74,12 @@ pipeline {
                         \"context\": \"ci/jenkins-pipeline\",
                         \"target_url\": \"${env.BUILD_URL}\"
                     }""",
-                    authentication: 'github-token-ndmanh'
+                    authentication: 'github-token'
                 )
                 echo "GitHub Response: ${response.status}"
             }
         }
+
         failure {
             script {
                 def commitId = env.GIT_COMMIT
@@ -125,11 +94,12 @@ pipeline {
                         \"context\": \"ci/jenkins-pipeline\",
                         \"target_url\": \"${env.BUILD_URL}\"
                     }""",
-                    authentication: 'github-token-ndmanh'
+                    authentication: 'github-token'
                 )
                 echo "GitHub Response: ${response.status}"
             }
         }
+
         always {
             echo "Pipeline finished."
         }
