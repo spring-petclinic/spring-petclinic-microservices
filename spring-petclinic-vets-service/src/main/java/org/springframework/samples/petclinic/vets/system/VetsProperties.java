@@ -17,6 +17,8 @@ package org.springframework.samples.petclinic.vets.system;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+// TEst
+
 /**
  * Typesafe custom configuration.
  *
