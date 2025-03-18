@@ -21,17 +21,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.samples.petclinic.vets.model.Specialty;
 import org.springframework.samples.petclinic.vets.model.Vet;
 import org.springframework.samples.petclinic.vets.model.VetRepository;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import static java.util.Arrays.asList;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * @author Maciej Szarlinski
@@ -49,14 +55,110 @@ class VetResourceTest {
 
     @Test
     void shouldGetAListOfVets() throws Exception {
-
         Vet vet = new Vet();
         vet.setId(1);
+        vet.setFirstName("James");
+        vet.setLastName("Carter");
 
         given(vetRepository.findAll()).willReturn(asList(vet));
 
         mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].id").value(1))
+            .andExpect(jsonPath("$[0].firstName").value("James"))
+            .andExpect(jsonPath("$[0].lastName").value("Carter"))
+            .andExpect(jsonPath("$[0].specialties").isEmpty());
+            // test
+
+        verify(vetRepository, times(1)).findAll();
+    }
+
+    @Test
+    void shouldGetAListOfVetsWithSpecialties() throws Exception {
+        Specialty specialty = new Specialty();
+        specialty.setName("radiology");
+
+        Vet vet = new Vet();
+        vet.setId(1);
+        vet.setFirstName("James");
+        vet.setLastName("Carter");
+        vet.addSpecialty(specialty);
+
+        given(vetRepository.findAll()).willReturn(asList(vet));
+
+        mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].id").value(1))
+            .andExpect(jsonPath("$[0].firstName").value("James"))
+            .andExpect(jsonPath("$[0].lastName").value("Carter"))
+            .andExpect(jsonPath("$[0].specialties[0].name").value("radiology"));
+
+        verify(vetRepository, times(1)).findAll();
+    }
+
+    @Test
+    void shouldGetEmptyListOfVets() throws Exception {
+        given(vetRepository.findAll()).willReturn(Collections.emptyList());
+
+        mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isEmpty());
+
+        verify(vetRepository, times(1)).findAll();
+    }
+
+    @Test
+    void shouldReturnJsonWhenNoAcceptHeaderProvided() throws Exception {
+        Vet vet = new Vet();
+        vet.setId(1);
+        vet.setFirstName("James");
+        vet.setLastName("Carter");
+
+        given(vetRepository.findAll()).willReturn(asList(vet));
+
+        mvc.perform(get("/vets"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$[0].id").value(1));
+
+        verify(vetRepository, times(1)).findAll();
+    }
+
+    @Test
+    void shouldReturnNotAcceptableForXmlRequest() throws Exception {
+        mvc.perform(get("/vets").accept(MediaType.APPLICATION_XML))
+            .andExpect(status().isNotAcceptable());
+    }
+
+    @Test
+    void shouldReturnNotAcceptableForInvalidMediaType() throws Exception {
+        mvc.perform(get("/vets").accept("invalid/type"))
+            .andExpect(status().isNotAcceptable());
+    }
+
+    @Test
+    void shouldGetMultipleVets() throws Exception {
+        Vet vet1 = new Vet();
+        vet1.setId(1);
+        vet1.setFirstName("James");
+        vet1.setLastName("Carter");
+
+        Vet vet2 = new Vet();
+        vet2.setId(2);
+        vet2.setFirstName("Helen");
+        vet2.setLastName("Leary");
+
+        given(vetRepository.findAll()).willReturn(Arrays.asList(vet1, vet2));
+
+        mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].id").value(1))
+            .andExpect(jsonPath("$[0].firstName").value("James"))
+            .andExpect(jsonPath("$[0].lastName").value("Carter"))
+            .andExpect(jsonPath("$[1].id").value(2))
+            .andExpect(jsonPath("$[1].firstName").value("Helen"))
+            .andExpect(jsonPath("$[1].lastName").value("Leary"));
+
+        verify(vetRepository, times(1)).findAll();
     }
 }

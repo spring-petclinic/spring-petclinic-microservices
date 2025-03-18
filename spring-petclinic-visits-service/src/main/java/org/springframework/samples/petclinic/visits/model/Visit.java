@@ -73,13 +73,18 @@ public class Visit {
     }
 
     public void setDescription(String description) {
+        if (description != null && description.length() > 8192) {
+            throw new IllegalArgumentException("Description cannot be longer than 8192 characters");
+        }
         this.description = description;
     }
 
     public void setPetId(int petId) {
+        if (petId <= 0) {
+            throw new IllegalArgumentException("Pet ID must be positive");
+        }
         this.petId = petId;
     }
-
 
     public static final class VisitBuilder {
         private Integer id;

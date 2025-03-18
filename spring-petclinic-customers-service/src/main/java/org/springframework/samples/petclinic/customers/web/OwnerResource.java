@@ -65,8 +65,9 @@ class OwnerResource {
      * Read single Owner
      */
     @GetMapping(value = "/{ownerId}")
-    public Optional<Owner> findOwner(@PathVariable("ownerId") @Min(1) int ownerId) {
-        return ownerRepository.findById(ownerId);
+    public Owner findOwner(@PathVariable("ownerId") @Min(1) int ownerId) {
+        return ownerRepository.findById(ownerId)
+            .orElseThrow(() -> new ResourceNotFoundException("Owner " + ownerId + " not found"));
     }
 
     /**
@@ -83,10 +84,20 @@ class OwnerResource {
     @PutMapping(value = "/{ownerId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateOwner(@PathVariable("ownerId") @Min(1) int ownerId, @Valid @RequestBody OwnerRequest ownerRequest) {
-        final Owner ownerModel = ownerRepository.findById(ownerId).orElseThrow(() -> new ResourceNotFoundException("Owner " + ownerId + " not found"));
+        final Owner ownerModel = ownerRepository.findById(ownerId)
+            .orElseThrow(() -> new ResourceNotFoundException("Owner " + ownerId + " not found"));
 
         ownerEntityMapper.map(ownerModel, ownerRequest);
         log.info("Saving owner {}", ownerModel);
         ownerRepository.save(ownerModel);
+    }
+
+    @GetMapping("/search")
+    public List<Owner> findByLastName(@RequestParam("lastName") String lastName) {
+        List<Owner> owners = ownerRepository.findByLastName(lastName);
+        if (owners.isEmpty()) {
+            throw new ResourceNotFoundException("No owners found with lastName: " + lastName);
+        }
+        return owners;
     }
 }

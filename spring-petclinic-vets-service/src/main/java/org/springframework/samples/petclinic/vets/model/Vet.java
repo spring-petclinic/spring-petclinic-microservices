@@ -99,4 +99,14 @@ public class Vet {
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
+
+    @Override
+    public String toString() {
+        return "Vet{" +
+            "id=" + id +
+            ", firstName='" + firstName + '\'' +
+            ", lastName='" + lastName + '\'' +
+            ", specialties=" + specialties +
+            '}';
+    }
 }

@@ -32,6 +32,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Date;
 
 /**
  * @author Juergen Hoeller
@@ -59,24 +62,50 @@ class VisitResource {
         @Valid @RequestBody Visit visit,
         @PathVariable("petId") @Min(1) int petId) {
 
-        visit.setPetId(petId);
-        log.info("Saving visit {}", visit);
-        return visitRepository.save(visit);
+        if (visit.getDescription() != null && visit.getDescription().length() > 8192) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Description cannot be longer than 8192 characters");
+        }
+
+        if (visit.getDate() == null) {
+            visit.setDate(new Date());
+        }
+
+        try {
+            visit.setPetId(petId);
+            log.info("Saving visit {}", visit);
+            return visitRepository.save(visit);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 
     @GetMapping("owners/*/pets/{petId}/visits")
     public List<Visit> read(@PathVariable("petId") @Min(1) int petId) {
-        return visitRepository.findByPetId(petId);
+        if (petId <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Pet ID must be positive");
+        }
+        List<Visit> visits = visitRepository.findByPetId(petId);
+        if (visits.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No visits found for pet ID: " + petId);
+        }
+        return visits;
     }
 
     @GetMapping("pets/visits")
     public Visits read(@RequestParam("petId") List<Integer> petIds) {
+        if (petIds == null || petIds.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least one pet ID must be provided");
+        }
+        
+        for (Integer petId : petIds) {
+            if (petId <= 0) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Pet ID must be positive: " + petId);
+            }
+        }
+
         final List<Visit> byPetIdIn = visitRepository.findByPetIdIn(petIds);
         return new Visits(byPetIdIn);
     }
 
-    record Visits(
-        List<Visit> items
-    ) {
-    }
+    record Visits(List<Visit> items) {}
 }
