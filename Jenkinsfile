@@ -116,7 +116,7 @@
                                 if (matcher.find()) {
                                     def coverage = matcher[0][1] as Double
                                     echo "Code coverage for ${service}: ${coverage}%"
-                                    if (coverage < 30) {
+                                    if (coverage < 70) {
                                         failures.add("${service}: Code coverage ${coverage}% is below minimum required 70%")
                                     }
                                 } else {
