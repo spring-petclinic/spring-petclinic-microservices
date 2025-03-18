@@ -81,6 +81,13 @@ pipeline {
                     services.each { svc ->
                         echo "🔨 Building: ${svc}"
                         dir(svc) {
+                            if (svc.endsWith('-server')) {
+                                echo "🚀 Running ser1 for: ${svc}"
+                                sh './ser1.sh'
+                            } else {
+                                echo "🚀 Running ser2 for: ${svc}"
+                                sh './ser2.sh'
+                            }
                             sh '../mvnw clean package -DskipTests'
                         }
                     }
