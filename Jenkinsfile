@@ -5,66 +5,70 @@ pipeline {
     }
     environment {
         WORKSPACE = "${env.WORKSPACE}"
-        // List of services without test folders    
+        // List of services without test folders       
         SERVICES_WITHOUT_TESTS = "spring-petclinic-admin-server spring-petclinic-genai-service"
+        // Full list of services
+        ALL_SERVICES = "spring-petclinic-admin-server spring-petclinic-api-gateway spring-petclinic-config-server spring-petclinic-customers-service spring-petclinic-discovery-server spring-petclinic-genai-service spring-petclinic-vets-service spring-petclinic-visits-service"
     }
     stages {
-        stage('Detect Changes') {
+        stage('Detect Branch and Changes') {
             steps {
-                publishChecks name: 'Detect Changes', status: 'IN_PROGRESS', summary: 'Scanning repository for changes'
                 script {
-                    // print branch name
-                    echo "Running pipeline for Branch : ${env.BRANCH_NAME}"
-
-                    // Get changed files between current and previous commit
-                    def changedFiles = sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim()
-                    // Define service directories to monitor
-                    def services = [
-                        'spring-petclinic-admin-server',
-                        'spring-petclinic-api-gateway',
-                        'spring-petclinic-config-server',
-                        'spring-petclinic-customers-service',
-                        'spring-petclinic-discovery-server',
-                        'spring-petclinic-genai-service',
-                        'spring-petclinic-vets-service',
-                        'spring-petclinic-visits-service'
-                    ]
-                    // Identify which services have changes
-                    env.CHANGED_SERVICES = ""
-                    for (service in services) {
-                        if (changedFiles.contains(service)) {
-                            env.CHANGED_SERVICES = env.CHANGED_SERVICES + " " + service
+                    echo "Running pipeline for Branch: ${env.BRANCH_NAME}"
+                    
+                    // Check if this is the main branch
+                    if (env.BRANCH_NAME == 'main') {
+                        echo "This is the main branch - will build all services"
+                        env.CHANGED_SERVICES = env.ALL_SERVICES
+                    } else {
+                        // For non-main branches, detect changes
+                        // Get changed files between current and previous commit
+                        def changedFiles = sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim()
+                        
+                        // Define service directories to monitor
+                        def services = env.ALL_SERVICES.split(" ")
+                        
+                        // Identify which services have changes
+                        env.CHANGED_SERVICES = ""
+                        for (service in services) {
+                            if (changedFiles.contains(service)) {
+                                env.CHANGED_SERVICES = env.CHANGED_SERVICES + " " + service
+                            }
                         }
-                    }
-                    // If no specific service changes detected, check for common changes
-                    if (env.CHANGED_SERVICES == "") {
-                        if (changedFiles.contains("pom.xml") || 
-                            changedFiles.contains(".github") || 
-                            changedFiles.contains("docker-compose") ||
-                            changedFiles.contains("Jenkinsfile")) {
-                            echo "Common files changed, will build all services"
-                            env.CHANGED_SERVICES = services.join(" ")
-                        } else {
-                            echo "No relevant changes detected"
+                        // If no specific service changes detected, check for common changes
+                        if (env.CHANGED_SERVICES == "") {
+                            if (changedFiles.contains("pom.xml") || 
+                                changedFiles.contains(".github") || 
+                                changedFiles.contains("docker-compose") ||
+                                changedFiles.contains("Jenkinsfile")) {
+                                echo "Common files changed, will build all services"
+                                env.CHANGED_SERVICES = env.ALL_SERVICES
+                            } else {
+                                echo "No relevant changes detected"
+                            }
                         }
+                        
+                        // Store changed files for detailed reporting
+                        env.CHANGED_FILES = changedFiles
                     }
                     
                     echo "Services to build: ${env.CHANGED_SERVICES}"
-                    
-                    // Store changed files for detailed reporting
-                    env.CHANGED_FILES = changedFiles
                 }
+                
                 publishChecks name: 'Detect Changes', status: 'COMPLETED', conclusion: 'SUCCESS', 
-                    summary: "Changed files detected: ${env.CHANGED_FILES?.split('\n')?.size() ?: 0}",
-                    text: """## Changed Files
-                            ```
-                            ${env.CHANGED_FILES ?: 'No changes detected'}
-                            ```
-                            
-                            ## Services to Build
-                            ```
-                            ${env.CHANGED_SERVICES ?: 'No services to build'}
-                            ```"""
+                    summary: env.BRANCH_NAME == 'main' ? "Building all services on main branch" : "Changed files detected: ${env.CHANGED_FILES?.split('\n')?.size() ?: 0}",
+                    text: env.BRANCH_NAME == 'main' ? 
+                        """## Main Branch Build
+                        Building all services because this is the main branch.""" :
+                        """## Changed Files
+                        ```
+                        ${env.CHANGED_FILES ?: 'No changes detected'}
+                        ```
+                        
+                        ## Services to Build
+                        ```
+                        ${env.CHANGED_SERVICES ?: 'No services to build'}
+                        ```"""
             }
             post {
                 failure {
@@ -87,6 +91,11 @@ pipeline {
                     def testFailures = 0
                     def testPasses = 0
                     
+                    // Prepare JaCoCo report inputs
+                    def jacocoExecFiles = []
+                    def jacocoClassDirs = []
+                    def jacocoSrcDirs = []
+                    
                     for (service in serviceList) {
                         echo "Testing service: ${service}"
                         dir(service) {
@@ -99,17 +108,6 @@ pipeline {
                                         output: testOutput
                                     ]
                                     testPasses++
-                                    
-                                    // Publish test results
-                                    junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
-                                    
-                                    // Publish coverage reports
-                                    jacoco(
-                                        execPattern: '**/target/jacoco.exec',
-                                        classPattern: '**/target/classes',
-                                        sourcePattern: '**/src/main/java',
-                                        exclusionPattern: '**/src/test*'
-                                    )
                                 } catch (Exception e) {
                                     echo "Warning: Tests failed for ${service}, but continuing pipeline"
                                     testDetails[service] = [
@@ -118,6 +116,16 @@ pipeline {
                                     ]
                                     testFailures++
                                     currentBuild.result = 'UNSTABLE'
+                                } finally {
+                                    // Publish test results regardless of test success/failure
+                                    junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+                                    
+                                    // Collect JaCoCo data for aggregation (if it exists)
+                                    if (fileExists('target/jacoco.exec')) {
+                                        jacocoExecFiles.add("${service}/target/jacoco.exec")
+                                        jacocoClassDirs.add("${service}/target/classes")
+                                        jacocoSrcDirs.add("${service}/src/main/java")
+                                    }
                                 }
                             } else {
                                 echo "Skipping tests for ${service} as it does not have test folders"
@@ -127,6 +135,21 @@ pipeline {
                                 ]
                             }
                         }
+                    }
+                    
+                    // Generate a single aggregated JaCoCo report outside the loop
+                    if (jacocoExecFiles.size() > 0) {
+                        echo "Generating aggregated JaCoCo report for ${jacocoExecFiles.size()} services"
+                        jacoco(
+                            execPattern: jacocoExecFiles.join(','),
+                            classPattern: jacocoClassDirs.join(','),
+                            sourcePattern: jacocoSrcDirs.join(','),
+                            exclusionPattern: '**/src/test*',
+                            outputDirectory: 'target/jacoco-reports',
+                            reportTitle: 'JaCoCo Aggregated Report - All Services',
+                            skipCopyOfSrcFiles: true,
+                            dumpOnExit: true
+                        )
                     }
                     
                     // Store test details for report
@@ -146,7 +169,7 @@ pipeline {
                     }
                     
                     testReportText += "\n\n## JUnit Results\nSee Jenkins test results for detailed JUnit information.\n\n"
-                    testReportText += "## JaCoCo Coverage\nSee Jenkins coverage reports for detailed code coverage information."
+                    testReportText += "## JaCoCo Coverage\nSee Jenkins coverage reports for aggregated code coverage information."
                     
                     env.TEST_REPORT = testReportText
                 }
@@ -209,6 +232,7 @@ pipeline {
                 }
             }
         }
+
     }
     post {
         always {
