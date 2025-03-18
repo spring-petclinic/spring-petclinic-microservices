@@ -109,10 +109,11 @@ pipeline {
                                     
                                     // Publish coverage reports
                                     jacoco(
-                                        execPattern: '**/target/jacoco.exec',
-                                        classPattern: '**/target/classes',
-                                        sourcePattern: '**/src/main/java',
-                                        exclusionPattern: '**/src/test*'
+                                        execPattern: '**/target/jacoco.exec', 
+                                        classPattern: '**/target/classes', 
+                                        sourcePattern: '**/src/main/java', 
+                                        exclusionPattern: '**/src/test*',
+                                        outputDirectory: "target/jacoco-reports/${service}"
                                     )
                                 } catch (Exception e) {
                                     echo "Warning: Tests failed for ${service}, but continuing pipeline"
@@ -218,6 +219,9 @@ pipeline {
     post {
         always {
             cleanWs()
+            script{
+                sh 'find . -name jacoco.exec -delete'
+            }
         }
     }
 }
