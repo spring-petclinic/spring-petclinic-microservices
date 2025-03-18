@@ -78,32 +78,12 @@ pipeline {
             steps {
                 script {
                     def services = env.SERVICES.split(',')
-                    def tasks = [:] // List of tasks to run in parallel
-
                     services.each { svc ->
-                        // Create a task for each service
-                        tasks["Build and Run ${svc}"] = {
-                            stage("Build and Run ${svc}") {
-                                node(svc.endsWith('-server') ? 'ser1' : 'ser2') {
-                                    echo "🔨 Building and Running: ${svc}"
-                                    dir(svc) {
-                                        // Run the appropriate script based on the service
-                                        if (svc.endsWith('-server')) {
-                                            echo "🚀 Running ser1 for: ${svc}"
-                                            sh './ser1.sh' // Execute ser1 script
-                                        } else {
-                                            echo "🚀 Running ser2 for: ${svc}"
-                                            sh './ser2.sh' // Execute ser2 script
-                                        }
-                                        sh '../mvnw clean package -DskipTests'
-                                    }
-                                }
-                            }
+                        echo "🔨 Building: ${svc}"
+                        dir(svc) {
+                            sh '../mvnw clean package -DskipTests'
                         }
                     }
-
-                    // Execute the tasks in parallel
-                    parallel tasks
                 }
             }
         }
