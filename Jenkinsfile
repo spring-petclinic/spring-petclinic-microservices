@@ -26,7 +26,7 @@ pipeline {
         stage('Check Changes') {
             steps {
                 script {
-                    sh 'git fetch origin main' // Fetch main trước khi kiểm tra
+                    sh 'git fetch origin main'
                     
                     def servicesList = env.SERVICES.split(',')
                     def targetBranch = env.CHANGE_TARGET ?: "main"
@@ -52,7 +52,7 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    publishChecks name: 'Test', status: 'IN_PROGRESS'
+                    publishChecks name: 'jenkins', status: 'IN_PROGRESS'
                     def servicesToBuild = env.SERVICES_TO_BUILD ? env.SERVICES_TO_BUILD.split(',') : []
                     for (service in servicesToBuild) {
                         dir(service) {
@@ -77,40 +77,17 @@ pipeline {
                         }
                     }
                 }
-                success {
-                    script {
-                        publishChecks name: 'Test', status: 'COMPLETED', conclusion: 'SUCCESS'
-                    }
-                }
-                failure {
-                    script {
-                        publishChecks name: 'Test', status: 'COMPLETED', conclusion: 'FAILURE'
-                    }
-                }
             }
         }
 
         stage('Build') {
             steps {
                 script {
-                    publishChecks name: 'Build', status: 'IN_PROGRESS'
                     def servicesToBuild = env.SERVICES_TO_BUILD ? env.SERVICES_TO_BUILD.split(',') : []
                     for (service in servicesToBuild) {
                         dir(service) {
                             sh '../mvnw clean package -DskipTests'
                         }
-                    }
-                }
-            }
-            post {
-                success {
-                    script {
-                        publishChecks name: 'Build', status: 'COMPLETED', conclusion: 'SUCCESS'
-                    }
-                }
-                failure {
-                    script {
-                        publishChecks name: 'Build', status: 'COMPLETED', conclusion: 'FAILURE'
                     }
                 }
             }
@@ -127,11 +104,11 @@ pipeline {
             }
         }
         success {
-            publishChecks name: 'Pipeline', status: 'COMPLETED', conclusion: 'SUCCESS'
+            publishChecks name: 'jenkins', status: 'COMPLETED', conclusion: 'SUCCESS'
             echo 'Build and test completed successfully for changed services!'
         }
         failure {
-            publishChecks name: 'Pipeline', status: 'COMPLETED', conclusion: 'FAILURE'
+            publishChecks name: 'jenkins', status: 'COMPLETED', conclusion: 'FAILURE'
             echo 'Build or test failed for some services!'
         }
     }
