@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven 3.6.3'  // Đảm bảo Maven đã được cấu hình trong Jenkins Global Tool Configuration
+        maven '3.8.5'  // Đảm bảo Maven đã được cấu hình trong Jenkins Global Tool Configuration
     }
 
     stages {
