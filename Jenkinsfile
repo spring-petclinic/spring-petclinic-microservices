@@ -64,18 +64,18 @@ pipeline {
             script {
                 def commitId = env.GIT_COMMIT
                 echo "Sending 'success' status to GitHub for commit: ${commitId}"
-                def response = httpRequest(
-                    url: "https://api.github.com/repos/ndmanh3003/spring-petclinic-microservices/statuses/${commitId}",
-                    httpMode: 'POST',
-                    contentType: 'APPLICATION_JSON',
-                    requestBody: """{
-                        \"state\": \"success\",
-                        \"description\": \"Build passed\",
-                        \"context\": \"ci/jenkins-pipeline\",
-                        \"target_url\": \"${env.BUILD_URL}\"
-                    }""",
-                    authentication: 'github-token-ndmanh'
-                )
+                def response = httpRequest
+                                url: "https://api.github.com/repos/ndmanh3003/spring-petclinic-microservices/statuses/${commitId}",
+                                httpMode: 'POST',
+                                acceptType: 'APPLICATION_JSON', contentType: 'APPLICATION_JSON',
+                                requestBody: """{
+                                    \"state\": \"success\",
+                                    \"description\": \"Build passed\",
+                                    \"context\": \"ci/jenkins-pipeline\",
+                                    \"target_url\": \"${env.BUILD_URL}\"
+                                }""",
+                                authentication: 'github-token-ndmanh'
+                
                 echo "GitHub Response: ${response.status}"
             }
         }
