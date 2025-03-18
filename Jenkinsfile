@@ -235,7 +235,7 @@
                         def approvalCount = latestReviews.values().count { it == 'APPROVED' }
                         echo "Number of unique approvals: ${approvalCount}"
                         
-                        if (approvalCount >= 1) {
+                        if (approvalCount >= 2) {
                             echo "PR has sufficient approvals (${approvalCount}). Proceeding with merge..."
                             
                             def mergeUrl = "https://api.github.com/repos/${repo}/pulls/${prNumber}/merge"
