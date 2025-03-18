@@ -2,53 +2,49 @@ pipeline {
     agent any
 
     environment {
-        GITHUB_TOKEN = credentials('github-token')
-        CHANGED_FILES = ''
+        MOD_FILES = ''
     }
 
     stages {
         stage('Detect Changes') {
             steps {
                 script {
-                    def affectedServices = [] // Danh sách các service bị thay đổi
-                    CHANGED_FILES = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim()
-                    echo "Changed files: ${CHANGED_FILES}"
+                    def services = [] // Danh sách service thay đổi
+                    MOD_FILES = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim()
+                    echo "🔍 Modified files: ${MOD_FILES}"
 
-                    def changedFiles = CHANGED_FILES.split("\n")
-                    for (file in changedFiles) {
+                    MOD_FILES.split("\n").each { file ->
                         if (file.startsWith("spring-petclinic-") && file.split("/").size() > 1) {
-                            def service = file.split("/")[0]
-                            if (!affectedServices.contains(service)) {
-                                affectedServices << service
+                            def svc = file.split("/")[0]
+                            if (!services.contains(svc)) {
+                                services << svc
                             }
                         }
                     }
 
-                    if (affectedServices.isEmpty()) {
-                        echo "No relevant service changes detected. Skipping pipeline."
+                    if (services.isEmpty()) {
+                        echo "✅ No changes detected, skipping."
                         currentBuild.result = 'SUCCESS'
                         return
                     }
 
-                    echo "Affected services: ${affectedServices}"
-                    env.AFFECTED_SERVICES = affectedServices.join(',') // Lưu danh sách thành chuỗi cho các stage sau
+                    echo "⚙️ Affected services: ${services}"
+                    env.SERVICES = services.join(',') // Lưu danh sách service thay đổi
                 }
             }
         }
 
-        stage('Test and Coverage') {
+        stage('Test & Coverage') {
             when {
-                expression { return env.AFFECTED_SERVICES != null && env.AFFECTED_SERVICES != "" }
+                expression { return env.SERVICES != null && env.SERVICES != "" }
             }
             steps {
                 script {
-                    def affectedServices = env.AFFECTED_SERVICES.split(',')
-                    for (service in affectedServices) {
-                        echo "Testing service: ${service} on ${env.NODE_NAME}"
-                        dir(service) {
-                            // Chạy test với JaCoCo
+                    def services = env.SERVICES.split(',')
+                    services.each { svc ->
+                        echo "🧪 Testing: ${svc}"
+                        dir(svc) {
                             sh '../mvnw clean test'
-                            // Tạo báo cáo JaCoCo
                             sh '../mvnw jacoco:report'
                         }
                     }
@@ -56,20 +52,18 @@ pipeline {
             }
             post {
                 always {
-                    // Báo cáo kết quả test chỉ của các service đã chạy test
                     junit '**/target/surefire-reports/*.xml'
-
                     script {
-                        def affectedServices = env.AFFECTED_SERVICES.split(',')
-                        for (service in affectedServices) {
-                            echo "Generating JaCoCo report for: ${service}"
+                        def services = env.SERVICES.split(',')
+                        services.each { svc ->
+                            echo "📊 Generating JaCoCo for: ${svc}"
                             jacoco(
-                                execPattern: "${service}/target/jacoco.exec", // Chỉ lấy exec của service test
-                                classPattern: "${service}/target/classes",
-                                sourcePattern: "${service}/src/main/java",
-                                exclusionPattern: "${service}/src/test/**",
-                                minimumLineCoverage: '70', // Yêu cầu tối thiểu 70% coverage
-                                changeBuildStatus: true // Thất bại nếu không đạt ngưỡng
+                                execPattern: "${svc}/target/jacoco.exec",
+                                classPattern: "${svc}/target/classes",
+                                sourcePattern: "${svc}/src/main/java",
+                                exclusionPattern: "${svc}/src/test/**",
+                                minimumLineCoverage: '70',
+                                changeBuildStatus: true
                             )
                         }
                     }
@@ -79,14 +73,14 @@ pipeline {
 
         stage('Build') {
             when {
-                expression { return env.AFFECTED_SERVICES != null && env.AFFECTED_SERVICES != "" }
+                expression { return env.SERVICES != null && env.SERVICES != "" }
             }
             steps {
                 script {
-                    def affectedServices = env.AFFECTED_SERVICES.split(',')
-                    for (service in affectedServices) {
-                        echo "Building service: ${service} on ${env.NODE_NAME}"
-                        dir(service) {
+                    def services = env.SERVICES.split(',')
+                    services.each { svc ->
+                        echo "🔨 Building: ${svc}"
+                        dir(svc) {
                             sh '../mvnw clean package -DskipTests'
                         }
                     }
@@ -99,7 +93,7 @@ pipeline {
         success {
             script {
                 def commitId = env.GIT_COMMIT
-                echo "Sending 'success' status to GitHub for commit: ${commitId}"
+                echo "✅ Sending 'success' to GitHub: ${commitId}"
                 def response = httpRequest(
                     url: "https://api.github.com/repos/ndmanh3003/spring-petclinic-microservices/statuses/${commitId}",
                     httpMode: 'POST',
@@ -112,14 +106,14 @@ pipeline {
                     }""",
                     authentication: 'github-token'
                 )
-                echo "GitHub Response: ${response.status}"
+                echo "📡 GitHub Response: ${response.status}"
             }
         }
 
         failure {
             script {
                 def commitId = env.GIT_COMMIT
-                echo "Sending 'failure' status to GitHub for commit: ${commitId}"
+                echo "❌ Sending 'failure' to GitHub: ${commitId}"
                 def response = httpRequest(
                     url: "https://api.github.com/repos/ndmanh3003/spring-petclinic-microservices/statuses/${commitId}",
                     httpMode: 'POST',
@@ -132,12 +126,12 @@ pipeline {
                     }""",
                     authentication: 'github-token'
                 )
-                echo "GitHub Response: ${response.status}"
+                echo "📡 GitHub Response: ${response.status}"
             }
         }
 
         always {
-            echo "Pipeline finished."
+            echo "🔚 Pipeline execution complete."
         }
     }
 }
