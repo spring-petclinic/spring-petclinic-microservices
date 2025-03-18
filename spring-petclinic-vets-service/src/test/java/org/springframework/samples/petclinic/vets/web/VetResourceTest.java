@@ -52,7 +52,7 @@ class VetResourceTest {
     @Test
     void shouldGetAListOfVets() throws Exception {
         Vet vet = new Vet();
-        setId(vet, 1); // Using reflection
+        setId(vet, 1);
 
         given(vetRepository.findAll()).willReturn(asList(vet));
 
