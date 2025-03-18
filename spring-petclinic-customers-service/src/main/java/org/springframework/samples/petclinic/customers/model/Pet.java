@@ -61,8 +61,8 @@ public class Pet {
             .append("name", this.getName())
             .append("birthDate", this.getBirthDate())
             .append("type", this.getType().getName())
-            .append("ownerFirstname", this.getOwner().getFirstName())
-            .append("ownerLastname", this.getOwner().getLastName())
+            .append("ownerFirstname", this.getOwner().getLastName())
+            .append("ownerLastname", this.getOwner().getFirstName())
             .toString();
     }
 
