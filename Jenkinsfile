@@ -91,6 +91,11 @@ pipeline {
                     def testFailures = 0
                     def testPasses = 0
                     
+                    // Prepare JaCoCo report inputs
+                    def jacocoExecFiles = []
+                    def jacocoClassDirs = []
+                    def jacocoSrcDirs = []
+                    
                     for (service in serviceList) {
                         echo "Testing service: ${service}"
                         dir(service) {
@@ -107,17 +112,12 @@ pipeline {
                                     // Publish test results
                                     junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
                                     
-                                    // Publish coverage reports
-                                    jacoco(
-                                        execPattern: "target/jacoco.exec",
-                                        classPattern: "target/classes", 
-                                        sourcePattern: "src/main/java", 
-                                        exclusionPattern: "src/test*",
-                                        outputDirectory: "target/jacoco-reports/${service}",
-                                        reportTitle: "JaCoCo Report - ${service}",
-                                        skipCopyOfSrcFiles: true,
-                                        dumpOnExit: true
-                                    )
+                                    // Collect JaCoCo data for aggregation
+                                    if (fileExists('target/jacoco.exec')) {
+                                        jacocoExecFiles.add("${service}/target/jacoco.exec")
+                                        jacocoClassDirs.add("${service}/target/classes")
+                                        jacocoSrcDirs.add("${service}/src/main/java")
+                                    }
                                 } catch (Exception e) {
                                     echo "Warning: Tests failed for ${service}, but continuing pipeline"
                                     testDetails[service] = [
@@ -137,6 +137,21 @@ pipeline {
                         }
                     }
                     
+                    // Generate a single aggregated JaCoCo report outside the loop
+                    if (jacocoExecFiles.size() > 0) {
+                        echo "Generating aggregated JaCoCo report for ${jacocoExecFiles.size()} services"
+                        jacoco(
+                            execPattern: jacocoExecFiles.join(','),
+                            classPattern: jacocoClassDirs.join(','),
+                            sourcePattern: jacocoSrcDirs.join(','),
+                            exclusionPattern: '**/src/test*',
+                            outputDirectory: 'target/jacoco-reports',
+                            reportTitle: 'JaCoCo Aggregated Report - All Services',
+                            skipCopyOfSrcFiles: true,
+                            dumpOnExit: true
+                        )
+                    }
+                    
                     // Store test details for report
                     env.TEST_SUMMARY = "Tests passed: ${testPasses}, failed: ${testFailures}, skipped: ${serviceList.size() - testPasses - testFailures}"
                     
@@ -154,7 +169,7 @@ pipeline {
                     }
                     
                     testReportText += "\n\n## JUnit Results\nSee Jenkins test results for detailed JUnit information.\n\n"
-                    testReportText += "## JaCoCo Coverage\nSee Jenkins coverage reports for detailed code coverage information."
+                    testReportText += "## JaCoCo Coverage\nSee Jenkins coverage reports for aggregated code coverage information."
                     
                     env.TEST_REPORT = testReportText
                 }
@@ -222,9 +237,6 @@ pipeline {
     post {
         always {
             cleanWs()
-            // script{
-            //     sh 'find . -name jacoco.exec -delete'
-            // }
         }
     }
 }
