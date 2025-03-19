@@ -28,7 +28,7 @@ import static java.util.stream.Collectors.joining;
  * @author Maciej Szarlinski
  */
 @Component
-public class VisitsServiceClient {
+public class VisitsServiceClient { // Test CI
 
     // Could be changed for testing purpose
     private String hostname = "http://visits-service/";
