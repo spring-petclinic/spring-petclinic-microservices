@@ -4,6 +4,8 @@ spring:
       enabled: false
     discovery:
       enabled: false
+    loadbalancer:
+      enabled: false
   sql:
     init:
       schema-locations: classpath*:db/hsqldb/schema.sql
@@ -12,6 +14,8 @@ spring:
     hibernate:
       ddl-auto: none
     show-sql: true
+  zipkin:
+    enabled: false
 
 eureka:
   client:
