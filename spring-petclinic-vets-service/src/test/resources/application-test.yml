@@ -2,6 +2,8 @@ spring:
   cloud:
     config:
       enabled: false
+    discovery:
+      enabled: false
   sql:
     init:
       schema-locations: classpath*:db/hsqldb/schema.sql
@@ -9,10 +11,13 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
+    show-sql: true
 
 eureka:
   client:
     enabled: false
+    register-with-eureka: false
+    fetch-registry: false
 
 vets:
   cache:
