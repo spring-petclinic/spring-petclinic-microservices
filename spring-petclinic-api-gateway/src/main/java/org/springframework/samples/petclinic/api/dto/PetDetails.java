@@ -42,7 +42,7 @@ public record PetDetails(
         private PetType type;
         private List<VisitDetails> visits;
 
-        private PetDetailsBuilder() {
+        public PetDetailsBuilder() {
         }
 
         public static PetDetailsBuilder aPetDetails() {
