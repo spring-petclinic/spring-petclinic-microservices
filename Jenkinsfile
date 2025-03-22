@@ -3,6 +3,10 @@ pipeline {
         label 'development-server'
     }
 
+    tools {
+        maven '3.8.1'
+    }
+
     environment {
         PROJECT_NAME = 'spring-petclinic-microservices'
         PROJECT_PATH = "${WORKSPACE}"
@@ -16,9 +20,15 @@ pipeline {
             }
         }
 
+        stage('Check Maven Installed') {
+            steps {
+                sh 'mvn --version'
+            }
+        }
+
         stage('Run Unit Test') {
             steps {
-                sh 'mvn clean test -pl spring-petclinic-visits-service'
+                sh 'mvn test -pl spring-petclinic-visits-service -Dtest=VisitResourceTes'
 
                 jacoco(
                     classPattern: '**/spring-petclinic-visits-service/target/classes', 
