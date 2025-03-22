@@ -17,7 +17,7 @@ pipeline {
             steps {
                 script {
                     def targetBranch = env.CHANGE_TARGET ?: 'test'
-                    def changedFiles = sh(script: "git diff --name-only origin/${targetBranch}", returnStdout: true).trim()
+                    def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
 
                     sh "echo ${changedFiles}"
                     
