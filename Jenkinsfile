@@ -17,7 +17,7 @@ pipeline {
             steps {
                 script {
                     def GIT_COMMIT_HASH = env.GIT_COMMIT.substring(0,8)
-                    evn.HASH_VERSION = GIT_COMMIT_HASH
+                    env.HASH_VERSION = GIT_COMMIT_HASH
 
                     def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
                     def folderList = ['spring-petclinic-customers-service', 'spring-petclinic-discovery-server', 'spring-petclinic-visits-service']
