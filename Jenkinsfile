@@ -15,7 +15,7 @@ pipeline {
         stage('Check SCM') {
             steps {
                 checkout scm
-                sh "${WORKSPACE}"
+                sh "echo ${WORKSPACE}"
             }
         }
 
