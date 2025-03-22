@@ -20,9 +20,17 @@ pipeline {
             }
         }
 
+        stage('Debug Workspace') {
+            steps {
+                sh 'echo "Current directory: $(pwd)"'
+                sh 'echo "Workspace: $WORKSPACE"'
+                sh 'echo "Directory contents:"'
+                sh 'ls -la'
+         }
+}
+
         stage('Run Unit Test') {
             steps {
-                sh "cd ${PROJECT_PATH}"
                 sh 'pwd'
                 sh 'mvn test -pl spring-petclinic-visits-service -Dtest=VisitResourceTes'
 
