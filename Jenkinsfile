@@ -21,8 +21,9 @@ pipeline {
         stage('Check Changed Files') {
             steps {
                 script {
-                    def GIT_COMMIT_HASH = env.GIT_COMMIT.substring(0,8)
-                    env.HASH_VERSION = GIT_COMMIT_HASH
+                    def gitCommit = sh(script: "git rev-parse --short=8 HEAD", returnStdout: true).trim()
+                    env.HASH_VERSION = "${gitCommit}"
+                    echo "GIT Commit Hash: ${env.HASH_VERSION}"
 
                     def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
                     def folderList = ['spring-petclinic-customers-service', 'spring-petclinic-discovery-server', 'spring-petclinic-visits-service']
@@ -59,6 +60,7 @@ pipeline {
                             sourcePattern: "**/${module}/src/main/java"
 
                         // Pushish HTML Artifact of Code Coverage Report
+                        def reportName = "${module}_code_coverage_report_${env.HASH_VERSION}_${env.BUILD_ID}".replaceAll("_", "␀")
                         publishHTML(
                             target: [
                                 allowMissing: false,
@@ -66,7 +68,7 @@ pipeline {
                                 keepAll: true,
                                 reportDir: "${module}/target/site/jacoco",
                                 reportFiles: 'index.html',
-                                reportName: "${module}_code_coverage_report_${env.HASH_VERSION}"
+                                reportName: reportName.replaceAll("␀", "_")
                             ]
                         )
                     }
