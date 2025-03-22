@@ -8,8 +8,8 @@ pipeline {
     }
 
     environment {
-        PROJECT_NAME = 'spring-petclinic-microservices'
-        PROJECT_PATH = "${WORKSPACE}"
+        PROJECT_NAME = 'ing-petclinic-microservices'
+        PROJECT_PATH = "${WORKSPACE}/${PROJECT_NAME}"
         USERNAME = '22120207'
     }
 
@@ -20,14 +20,10 @@ pipeline {
             }
         }
 
-        stage('Check Maven Installed') {
-            steps {
-                sh 'mvn --version'
-            }
-        }
-
         stage('Run Unit Test') {
             steps {
+                sh "cd ${PROJECT_PATH}"
+                sh 'pwd'
                 sh 'mvn test -pl spring-petclinic-visits-service -Dtest=VisitResourceTes'
 
                 jacoco(
