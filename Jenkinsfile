@@ -10,10 +10,9 @@ pipeline {
     }
 
     stages {
-        
+
         stage('Run Unit Test') {
             steps {
-                sh './mvnw test'
                 jacoco classPattern: '**/spring-petclinic-visits-service/target/classes', 
                        execPattern: '**/spring-petclinic-vets-service/target/coverage-reports/jacoco.exec',
                        runAlways: true, 
