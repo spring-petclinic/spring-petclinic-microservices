@@ -8,17 +8,23 @@ pipeline {
     }
 
     environment {
-        PROJECT_NAME = 'ing-petclinic-microservices'
-        PROJECT_PATH = "${WORKSPACE}/${PROJECT_NAME}"
         USERNAME = '22120207'
     }
 
     stages {
         stage('Check SCM') {
-            steps {
-                sh 'echo "Checking SCM..."'
-            }
         }
+
+        stages {
+            stage('Check Changed Files') {
+                steps {
+                    script {
+                        def changedFiles = sh(script: "git diff --name-only origin/${CHANGE_TARGET}", returnStdout: true).trim()
+                        println "Changed Files: \n${changedFiles}"
+                    }
+                }
+            }
+        }    
 
         stage('Run Unit Test') {
             steps {
