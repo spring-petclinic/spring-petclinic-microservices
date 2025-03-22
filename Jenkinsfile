@@ -18,8 +18,6 @@ pipeline {
                 script {
                     def targetBranch = env.CHANGE_TARGET ?: 'test'
                     def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
-
-                    sh "echo ${changedFiles}"
                     
                     def changedFolders = changedFiles.split('\n')
                         .collect { it.split('/')[0] }
