@@ -8,7 +8,7 @@ pipeline {
     }
 
     environment {
-        HASH_VERSION = ""
+        USERNAME = "22120207"
     }
 
     stages {
@@ -21,12 +21,11 @@ pipeline {
         stage('Check Changed Files') {
             steps {
                 script {
-                    def gitCommit = sh(script: "git rev-parse --short=8 HEAD", returnStdout: true).trim()
-                    env.HASH_VERSION = "${gitCommit}"
-                    echo "GIT Commit Hash: ${env.HASH_VERSION}"
-
                     def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
-                    def folderList = ['spring-petclinic-customers-service', 'spring-petclinic-discovery-server', 'spring-petclinic-visits-service']
+
+                    sh "echo ${changedFiles}"
+
+                    def folderList = ['spring-petclinic-customers-service', 'spring-petclinic-discovery-server', 'spring-petclinic-vets-service', 'spring-petclinic-visits-service']
                     
                     def changedFolders = changedFiles.split('\n')
                         .collect { it.split('/')[0] }
@@ -60,7 +59,6 @@ pipeline {
                             sourcePattern: "**/${module}/src/main/java"
 
                         // Pushish HTML Artifact of Code Coverage Report
-                        def reportName = "${module}_code_coverage_report_${env.HASH_VERSION}_${env.BUILD_ID}".replaceAll("_", "␀")
                         publishHTML(
                             target: [
                                 allowMissing: false,
@@ -68,7 +66,7 @@ pipeline {
                                 keepAll: true,
                                 reportDir: "${module}/target/site/jacoco",
                                 reportFiles: 'index.html',
-                                reportName: reportName.replaceAll("␀", "_")
+                                reportName: "${module}_code_coverage_report_${env.BUILD_ID}"
                             ]
                         )
                     }
