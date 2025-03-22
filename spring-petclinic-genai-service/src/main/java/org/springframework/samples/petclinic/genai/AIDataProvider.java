@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 @Service
 public class AIDataProvider {
-	// jhwsdjibjkdsnvgfd
+	// jhwsdjibjkdsnvgfdasdasd
 	public final VectorStore vectorStore;
     private final String ownersHostname = "http://customers-service/";
 
