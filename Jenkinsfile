@@ -13,9 +13,6 @@ pipeline {
 
     stages {
         stage('Check SCM') {
-            steps {
-                checkout scm
-            }
         }
 
         stage('Check Changed Files') {
@@ -23,6 +20,8 @@ pipeline {
                 script {
                     def targetBranch = env.CHANGE_TARGET ?: 'test'
                     def changedFiles = sh(script: "git diff --name-only origin/${targetBranch}", returnStdout: true).trim()
+
+                    sh "echo ${changedFiles}"
                     
                     def changedFolders = changedFiles.split('\n')
                         .collect { it.split('/')[0] }
@@ -48,8 +47,8 @@ pipeline {
                     ]
 
                     def affectedModules = env.CHANGED_MODULES.split(',')
-                        .findAll { folderToModule.containsKey(it) }  // Filter relevant modules
-                        .collect { folderToModule[it] }              // Convert folder names to module names
+                        .findAll { folderToModule.containsKey(it) }
+                        .collect { folderToModule[it] }
 
                     if (affectedModules) {
                         def testCommand = "mvn test -pl " + affectedModules.join(',')
