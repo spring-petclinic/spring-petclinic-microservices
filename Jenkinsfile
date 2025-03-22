@@ -15,6 +15,13 @@ pipeline {
         stage('Check SCM') {
             steps {
                 checkout scm
+
+                script {
+                    // Get the first 7 characters of the SHA Git Commit
+                    def gitCommitHash = sh(script: "git describe --always", returnStdout: true).trim()
+                    env.COMMIT_HASH = gitCommitHash
+                    echo "Commit Identifier: ${env.COMMIT_HASH}"
+                }
             }
         }
 
@@ -23,7 +30,7 @@ pipeline {
                 script {
                     def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
 
-                    sh "echo ${changedFiles}"
+                    echo "${changedFiles}"
 
                     def folderList = ['spring-petclinic-customers-service', 'spring-petclinic-discovery-server', 'spring-petclinic-vets-service', 'spring-petclinic-visits-service']
                     
