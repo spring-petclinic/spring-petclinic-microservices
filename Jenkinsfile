@@ -1,5 +1,7 @@
 pipeline {
-    agent any
+    agent {
+        label 'development-server'
+    }
 
     environment {
         PROJECT_NAME = 'spring-petclinic-microservices'
@@ -11,6 +13,7 @@ pipeline {
     stages {
         stage('Check') {
             sh "pwd"
+            sh "ls spring-petclinic-visits-service/target"
         }
 
         stage('Run Unit Test') {
