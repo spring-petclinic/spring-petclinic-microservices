@@ -10,13 +10,7 @@ pipeline {
     }
 
     stages {
-        stage('Check') {
-            steps {
-                sh "pwd"
-                sh "ls spring-petclinic-visits-service/target"
-            }
-        }
-
+        
         stage('Run Unit Test') {
             steps {
                 sh './mvnw test'
