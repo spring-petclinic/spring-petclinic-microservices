@@ -20,7 +20,6 @@ pipeline {
                     // Get the first 7 characters of the SHA Git Commit
                     def gitCommitHash = sh(script: "git describe --always", returnStdout: true).trim()
                     env.COMMIT_HASH = gitCommitHash
-                    echo "Commit Identifier: ${env.COMMIT_HASH}"
                 }
             }
         }
@@ -29,8 +28,6 @@ pipeline {
             steps {
                 script {
                     def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
-
-                    echo "${changedFiles}"
 
                     def folderList = ['spring-petclinic-customers-service', 'spring-petclinic-discovery-server', 'spring-petclinic-vets-service', 'spring-petclinic-visits-service']
                     
@@ -73,7 +70,7 @@ pipeline {
                                 keepAll: true,
                                 reportDir: "${module}/target/site/jacoco",
                                 reportFiles: 'index.html',
-                                reportName: "${module}_code_coverage_report_${env.BUILD_ID}"
+                                reportName: "${module}_code_coverage_report_${env.COMMIT_HASH}_${env.BUILD_ID}"
                             ]
                         )
                     }
