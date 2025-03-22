@@ -25,7 +25,7 @@ pipeline {
                         .collect { it.split('/')[0] }
                         .unique()
                     
-                    echo "Changed Folders:\n${changedFolders.join('\n')}"
+                    echo "Changed Folders: \n${changedFolders.join('\n')}"
                     
                     env.CHANGED_MODULES = changedFolders.join(',')
                 }
