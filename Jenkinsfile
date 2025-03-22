@@ -15,7 +15,6 @@ pipeline {
         stage('Check SCM') {
             steps {
                 checkout scm
-                sh "echo ${WORKSPACE}"
             }
         }
 
@@ -24,32 +23,41 @@ pipeline {
                 script {
                     def targetBranch = env.CHANGE_TARGET ?: 'test'
                     def changedFiles = sh(script: "git diff --name-only origin/${targetBranch}", returnStdout: true).trim()
-                    echo "Changed Files:\n${changedFiles}"
+                    
+                    // Extract unique folders
+                    def changedFolders = changedFiles.split('\n')
+                        .collect { it.split('/')[0] }  // Extract top-level directory
+                        .unique()                      // Remove duplicates
+                    
+                    echo "Changed Folders:\n${changedFolders.join('\n')}"
+                    
+                    env.CHANGED_MODULES = changedFolders.join(',')  // Store changed modules as a string
                 }
             }
         }  
 
         stage('Run Unit Test') {
+            when {
+                expression { env.CHANGED_MODULES?.trim() }
+            }
             steps {
-                sh 'mvn test -pl spring-petclinic-visits-service -Dtest=VisitResourceTest'
-                sh 'mvn jacoco:report -pl spring-petclinic-visits-service'
-
                 script {
-                    def reportFile = "${WORKSPACE}/spring-petclinic-visits-service/target/site/jacoco/index.html"
-                    if (fileExists(reportFile)) {
-                        def coverageReport = readFile(file: reportFile)
-                        def matcher = coverageReport =~ /<tfoot>(.*?)<\/tfoot>/
-                        if (matcher.find()) {
-                            def coverage = matcher[0]
-                            def instructionMatcher = coverage =~ /<td class="ctr2">(.*?)%<\/td>/
-                            if (instructionMatcher.find()) {
-                                def coveragePercentage = instructionMatcher[0][1]
-                                echo "Overall code coverage: ${coveragePercentage}%"
-                                env.CODE_COVERAGE = coveragePercentage
-                            }
-                        }
+                    def folderToModule = [
+                        "spring-petclinic-visits-service": "spring-petclinic-visits-service",
+                        "spring-petclinic-customers-service": "spring-petclinic-customers-service",
+                        "spring-petclinic-vets-service": "spring-petclinic-vets-service"
+                    ]
+
+                    def affectedModules = env.CHANGED_MODULES.split(',')
+                        .findAll { folderToModule.containsKey(it) }  // Filter relevant modules
+                        .collect { folderToModule[it] }              // Convert folder names to module names
+
+                    if (affectedModules) {
+                        def testCommand = "mvn test -pl " + affectedModules.join(',')
+                        echo "Running tests for affected modules: ${affectedModules.join(', ')}"
+                        sh testCommand
                     } else {
-                        error "JaCoCo report not found at ${reportFile}"
+                        echo "No relevant modules changed, skipping tests."
                     }
                 }
             }
@@ -59,7 +67,6 @@ pipeline {
             steps {
                 script {
                     sh 'echo "Building..."'
-                    echo "Previous stage code coverage: ${env.CODE_COVERAGE}%"
                 }
             }
         }
