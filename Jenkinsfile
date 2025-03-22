@@ -24,14 +24,13 @@ pipeline {
                     def targetBranch = env.CHANGE_TARGET ?: 'test'
                     def changedFiles = sh(script: "git diff --name-only origin/${targetBranch}", returnStdout: true).trim()
                     
-                    // Extract unique folders
                     def changedFolders = changedFiles.split('\n')
-                        .collect { it.split('/')[0] }  // Extract top-level directory
-                        .unique()                      // Remove duplicates
+                        .collect { it.split('/')[0] }
+                        .unique()
                     
                     echo "Changed Folders:\n${changedFolders.join('\n')}"
                     
-                    env.CHANGED_MODULES = changedFolders.join(',')  // Store changed modules as a string
+                    env.CHANGED_MODULES = changedFolders.join(',')
                 }
             }
         }  
