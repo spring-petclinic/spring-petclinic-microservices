@@ -13,7 +13,9 @@ pipeline {
 
     stages {
         stage('Check SCM') {
-            checkout scm
+            steps {
+                checkout scm
+            }
         }
 
         stage('Check Changed Files') {
