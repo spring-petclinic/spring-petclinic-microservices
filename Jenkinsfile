@@ -18,7 +18,11 @@ pipeline {
 
         stage('Run Unit Test') {
             steps {
-                jacoco classPattern: '**/spring-petclinic-visits-service/target/classes', execPattern: '**spring-petclinic-vets-service/target/coverage-reports/jacoco.exec', runAlways: true, sourcePattern: '**/spring-petclinic-visits-service/src/main/java'
+                jacoco classPattern: '**/spring-petclinic-visits-service/target/classes', 
+                        execPattern: '**spring-petclinic-vets-service/target/coverage-reports/jacoco.exec',  // Missing `/`
+                        runAlways: true, 
+                        sourcePattern: '**/spring-petclinic-visits-service/src/main/java'
+
             }
         }
 
