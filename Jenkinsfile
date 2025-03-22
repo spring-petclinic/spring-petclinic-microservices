@@ -15,16 +15,14 @@ pipeline {
         stage('Check SCM') {
         }
 
-        stages {
-            stage('Check Changed Files') {
-                steps {
-                    script {
-                        def changedFiles = sh(script: "git diff --name-only origin/${CHANGE_TARGET}", returnStdout: true).trim()
-                        println "Changed Files: \n${changedFiles}"
-                    }
+        stage('Check Changed Files') {
+            steps {
+                script {
+                    def changedFiles = sh(script: "git diff --name-only origin/${CHANGE_TARGET}", returnStdout: true).trim()
+                    println "Changed Files: \n${changedFiles}"
                 }
             }
-        }    
+        }  
 
         stage('Run Unit Test') {
             steps {
