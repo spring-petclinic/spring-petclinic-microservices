@@ -8,7 +8,7 @@ pipeline {
     }
 
     environment {
-        USERNAME = '22120207'
+        HASH_VERSION = ""
     }
 
     stages {
@@ -16,12 +16,16 @@ pipeline {
         stage('Check Changed Files') {
             steps {
                 script {
-                    def targetBranch = env.CHANGE_TARGET ?: 'test'
+                    def GIT_COMMIT_HASH = env.GIT_COMMIT.substring(0,8)
+                    evn.HASH_VERSION = GIT_COMMIT_HASH
+
                     def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
+                    def folderList = ['spring-petclinic-customers-service', 'spring-petclinic-discovery-server', 'spring-petclinic-visits-service']
                     
                     def changedFolders = changedFiles.split('\n')
                         .collect { it.split('/')[0] }
                         .unique()
+                        .findAll { folderList.contains(it) }
                     
                     echo "Changed Folders: \n${changedFolders.join('\n')}"
                     
@@ -36,22 +40,30 @@ pipeline {
             }
             steps {
                 script {
-                    def folderToModule = [
-                        "spring-petclinic-visits-service": "spring-petclinic-visits-service",
-                        "spring-petclinic-customers-service": "spring-petclinic-customers-service",
-                        "spring-petclinic-vets-service": "spring-petclinic-vets-service"
-                    ]
+                    def modules = env.CHANGED_MODULES.split(',')
 
-                    def affectedModules = env.CHANGED_MODULES.split(',')
-                        .findAll { folderToModule.containsKey(it) }
-                        .collect { folderToModule[it] }
+                    for (module in modules) {
+                        def testCommand = "mvn test -pl ${module}"
+                        echo "Running tests for affected modules: ${module}"
+                        sh "${testCommand}"
 
-                    if (affectedModules) {
-                        def testCommand = "mvn test -pl " + affectedModules.join(',')
-                        echo "Running tests for affected modules: ${affectedModules.join(', ')}"
-                        sh testCommand
-                    } else {
-                        echo "No relevant modules changed, skipping tests."
+                        // Generate JaCoCo HTML Report
+                        jacoco classPattern: "**/${module}/target/classes", 
+                            execPattern: "**/${module}/target/coverage-reports/jacoco.exec",
+                            runAlways: true, 
+                            sourcePattern: "**/${module}/src/main/java"
+
+                        // Pushish HTML Artifact of Code Coverage Report
+                        publishHTML(
+                            target: [
+                                allowMissing: false,
+                                alwaysLinkToLastBuild: true,
+                                keepAll: true,
+                                reportDir: "${module}/target/site/jacoco",
+                                reportFiles: 'index.html',
+                                reportName: "${module}_code_coverage_report_${env.HASH_VERSION}"
+                            ]
+                        )
                     }
                 }
             }
@@ -63,21 +75,6 @@ pipeline {
                     sh 'echo "Building..."'
                 }
             }
-        }
-    }
-    
-    post {
-        always {
-            publishHTML(
-                target: [
-                    allowMissing: false,
-                    alwaysLinkToLastBuild: true,
-                    keepAll: true,
-                    reportDir: 'spring-petclinic-visits-service/target/site/jacoco',
-                    reportFiles: 'index.html',
-                    reportName: 'JaCoCo Code Coverage'
-                ]
-            )
         }
     }
 }
