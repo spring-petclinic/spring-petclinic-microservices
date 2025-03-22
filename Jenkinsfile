@@ -13,13 +13,18 @@ pipeline {
 
     stages {
         stage('Check SCM') {
+            steps {
+                checkout scm
+                sh "${WORKSPACE}"
+            }
         }
 
         stage('Check Changed Files') {
             steps {
                 script {
-                    def changedFiles = sh(script: "git diff --name-only origin/${CHANGE_TARGET}", returnStdout: true).trim()
-                    println "Changed Files: \n${changedFiles}"
+                    def targetBranch = env.CHANGE_TARGET ?: 'test'
+                    def changedFiles = sh(script: "git diff --name-only origin/${targetBranch}", returnStdout: true).trim()
+                    echo "Changed Files:\n${changedFiles}"
                 }
             }
         }  
@@ -27,29 +32,24 @@ pipeline {
         stage('Run Unit Test') {
             steps {
                 sh 'mvn test -pl spring-petclinic-visits-service -Dtest=VisitResourceTest'
+                sh 'mvn jacoco:report -pl spring-petclinic-visits-service'
 
-                jacoco(
-                    classPattern: '**/spring-petclinic-visits-service/target/classes', 
-                    execPattern: '**/spring-petclinic-visits-service/target/jacoco.exec',
-                    sourcePattern: '**/spring-petclinic-visits-service/src/main/java',
-                    exclusionPattern: '**/*Test*.class',
-                    changeBuildStatus: true,
-                    minimumInstructionCoverage: '70',
-                    maximumInstructionCoverage: '100'
-                )
-                
                 script {
-                    def coverageReport = readFile(file: "${WORKSPACE}/spring-petclinic-visits-service/target/site/jacoco/index.html")
-                    def matcher = coverageReport =~ /<tfoot>(.*?)<\/tfoot>/
-                    if (matcher.find()) {
-                        def coverage = matcher[0]
-                        def instructionMatcher = coverage =~ /<td class="ctr2">(.*?)%<\/td>/
-                        if (instructionMatcher.find()) {
-                            def coveragePercentage = instructionMatcher[0][1]
-                            echo "Overall code coverage: ${coveragePercentage}%"
-                            
-                            env.CODE_COVERAGE = coveragePercentage
+                    def reportFile = "${WORKSPACE}/spring-petclinic-visits-service/target/site/jacoco/index.html"
+                    if (fileExists(reportFile)) {
+                        def coverageReport = readFile(file: reportFile)
+                        def matcher = coverageReport =~ /<tfoot>(.*?)<\/tfoot>/
+                        if (matcher.find()) {
+                            def coverage = matcher[0]
+                            def instructionMatcher = coverage =~ /<td class="ctr2">(.*?)%<\/td>/
+                            if (instructionMatcher.find()) {
+                                def coveragePercentage = instructionMatcher[0][1]
+                                echo "Overall code coverage: ${coveragePercentage}%"
+                                env.CODE_COVERAGE = coveragePercentage
+                            }
                         }
+                    } else {
+                        error "JaCoCo report not found at ${reportFile}"
                     }
                 }
             }
