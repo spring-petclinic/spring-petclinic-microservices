@@ -20,19 +20,9 @@ pipeline {
             }
         }
 
-        stage('Debug Workspace') {
-            steps {
-                sh 'echo "Current directory: $(pwd)"'
-                sh 'echo "Workspace: $WORKSPACE"'
-                sh 'echo "Directory contents:"'
-                sh 'ls -la'
-         }
-}
-
         stage('Run Unit Test') {
             steps {
-                sh 'pwd'
-                sh 'mvn test -pl spring-petclinic-visits-service -Dtest=VisitResourceTes'
+                sh 'mvn test -pl spring-petclinic-visits-service -Dtest=VisitResourceTest'
 
                 jacoco(
                     classPattern: '**/spring-petclinic-visits-service/target/classes', 
