@@ -1,54 +1,30 @@
+def changedFiles = sh(script: "git diff --name-only HEAD^ HEAD", returnStdout: true).trim()
+def servicePath = [
+    "customers-service": "customers-service/",
+    "vets-service": "vets-service/",
+    "visit-service": "visit-service/"
+]
+
 pipeline {
     agent any
-    environment {
-        SERVICE_DIR = ''
-    }
-
     stages {
-        stage('Check Changes') {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Test & Build') {
             steps {
                 script {
-                    def changedFiles = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim().split('\n')
-                    def serviceDirs = ['customers-service', 'vets-service', 'visits-service']
-                    
-                    for (dir in serviceDirs) {
-                        if (changedFiles.any { it.startsWith(dir) }) {
-                            SERVICE_DIR = dir
-                            break
+                    servicePath.each { service, path ->
+                        if (changedFiles.contains(path)) {
+                            echo "Changes detected in ${service}, running tests..."
+                            sh "cd ${path} && mvn clean test"
+                            sh "cd ${path} && mvn package"
                         }
                     }
-                    
-                    if (SERVICE_DIR == '') {
-                        echo "No service changes detected. Skipping pipeline."
-                        currentBuild.result = 'ABORTED'
-                        error("No relevant changes")
-                    }
                 }
             }
-        }
-
-        stage('Test') {
-            when { environment name: 'SERVICE_DIR', not: '' }
-            steps {
-                dir("${SERVICE_DIR}") {
-                    sh 'mvn clean test'
-                }
-            }
-        }
-
-        stage('Build') {
-            when { environment name: 'SERVICE_DIR', not: '' }
-            steps {
-                dir("${SERVICE_DIR}") {
-                    sh 'mvn clean package'
-                }
-            }
-        }
-    }
-
-    post {
-        always {
-            archiveArtifacts artifacts: "${SERVICE_DIR}/target/*.jar", fingerprint: true
         }
     }
 }
