@@ -140,6 +140,18 @@ pipeline {
                                 break
                             }
                         }
+
+                        githubChecks(
+                            name: 'Test Code Coverage',
+                            status: 'COMPLETED',
+                            conclusion: 'SUCCESS',
+                            detailsURL: env.BUILD_URL,
+                            output: [
+                                title: 'Code Coverage Check Success',
+                                summary: 'All test code coverage is greater than 70%',
+                                text: 'Check Success!'
+                            ]
+                        )
                     }
                     
                     def modules = env.CHANGED_MODULES ? env.CHANGED_MODULES.split(',') : []
@@ -157,18 +169,6 @@ pipeline {
                         catch (Exception e) {
                             echo "No artifacts found to archive. Skipping artifact archival."
                         }
-
-                        githubChecks(
-                            name: 'Test Code Coverage',
-                            status: 'COMPLETED',
-                            conclusion: 'SUCCESS',
-                            detailsURL: env.BUILD_URL,
-                            output: [
-                                title: 'Code Coverage Check Success',
-                                summary: 'All test code coverage is greater than 70%',
-                                text: 'Check Success!'
-                            ]
-                        )
                     }
                 }
             }
