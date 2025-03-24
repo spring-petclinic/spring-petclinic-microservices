@@ -132,10 +132,10 @@ pipeline {
                             }
                         }
                     }
-
+                    
+                    def modules = env.CHANGED_MODULES ? env.CHANGED_MODULES.split(',') : []
                     if (testSuccess && !modules) {
-                        def modules = env.CHANGED_MODULES ? env.CHANGED_MODULES.split(',') : []
-
+                        
                         for (module in modules) {
                             def buildCommand = "mvn -pl ${module} -am clean install"
                             echo "Build for affected modules: ${module}"
