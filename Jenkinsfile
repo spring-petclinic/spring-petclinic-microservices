@@ -179,16 +179,16 @@ pipeline {
 }
 
 def publishGitHubCheck(String name, String title, String summary, String text, String conclusion) {
-    withCredentials([string(credentialsId: 'GITHUB-JENKINS-TOKEN', variable: 'GITHUB_TOKEN')]) {
+    withCredentials([usernamePassword(credentialsId: 'GITHUB-JENKINS-TOKEN', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
         def commitSHA = env.COMMIT_HASH
-        def repoOwner = env.USERNAME
+        def repoOwner = env.GITHUB_USER   // Extracted GitHub username
         def repoName = env.PROJECT_NAME
 
         def githubApiUrl = "https://api.github.com/repos/${repoOwner}/${repoName}/check-runs"
 
         sh """
-            curl -X POST -H "Authorization: token ${GITHUB_TOKEN}" \\
-                 -H "Accept: application/vnd.github.v3+json" \\
+            curl -X POST -u "${GITHUB_USER}:${GITHUB_TOKEN}" \\ 
+                 -H "Accept: application/vnd.github.v3+json" \\ 
                  -d '{
                       "name": "${name}",
                       "head_sha": "${commitSHA}",
