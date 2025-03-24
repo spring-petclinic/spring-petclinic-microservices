@@ -34,7 +34,9 @@ pipeline {
         stage('Check Changed Files') {
             steps {
                 script {
-                    def changedFiles = sh(script: "git diff --name-only origin/${env.BRANCH_NAME}", returnStdout: true).trim()
+                    def branch_name = env.CHANGE_ID ? env.CHANGE_TARGET : env.CHANGE_BRANCH
+
+                    def changedFiles = sh(script: "git diff --name-only origin/${branch_name}", returnStdout: true).trim()
 
                     echo "${changedFiles}"
 
