@@ -108,7 +108,7 @@ pipeline {
             steps {
                 script {
                     boolean testSuccess = true
-                    def reports = env.CODE_COVERAGES.split(',')
+                    def reports = env.CODE_COVERAGES ? env.CODE_COVERAGES.split(',') : []
 
                     if (env.CHANGE_ID && env.CHANGE_TARGET == 'main') {
                         for (codeCoverage in reports) {
