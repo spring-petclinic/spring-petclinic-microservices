@@ -2,6 +2,10 @@ pipeline {
     agent any
 
     stages {
+        stage('Hello') {
+            pwd
+        }
+        
         stage('Test') {
             steps {
                 echo 'Testing ...'
