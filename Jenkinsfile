@@ -14,6 +14,7 @@ pipeline {
 
     environment {
         USERNAME = "22120207"
+        PROJECT_NAME = "spring-petclinic-microservices"
     }
 
     stages {
@@ -121,21 +122,18 @@ pipeline {
                     def reports = env.CODE_COVERAGES ? env.CODE_COVERAGES.split(',') : []
 
                     if (env.CHANGE_ID && env.CHANGE_TARGET == 'main') {
-                        for (codeCoverage in reports) {
-                            if (codeCoverage.toDouble() < 70) {
-                                testSuccess = false
 
-                                publishChecks(
-                                    name: 'Test Code Coverage',
-                                    title: 'Code Coverage Check Failed',
-                                    summary: "Coverage must be at least 70%. Your coverage for one module is ${codeCoverage}%.",
-                                    text: 'Increase test coverage and retry the build.',
-                                    detailsURL: env.BUILD_URL,
-                                    conclusion: 'FAILURE'
-                                )
+                        def minCoverage = reports.collect { it.toDouble() }.min()
 
-                                break
-                            }
+                        if (minCoverage < 70) {
+                            testSuccess = false
+                            publishGitHubCheck(
+                                'Test Code Coverage',
+                                'Code Coverage Check Failed',
+                                "Coverage must be at least 70%. Your lowest coverage is ${minCoverage}%.",
+                                'Increase test coverage and retry the build.',
+                                'failure'
+                            )
                         }
                     }
                     
@@ -155,19 +153,54 @@ pipeline {
                             echo "No artifacts found to archive. Skipping artifact archival."
                         }
                     }
-                    
-                    if (testSuccess) {
-                        publishChecks(
-                            name: 'Test Code Coverage',
-                            title: 'Code Coverage Check Success!',
-                            summary: 'All test code coverage is greater than 70%',
-                            text: 'Check Success!',
-                            detailsURL: env.BUILD_URL,
-                            conclusion: 'SUCCESS'
+
+                    if (!testSuccess) {
+                        publishGitHubCheck(
+                            'Test Code Coverage',
+                            'Code Coverage Check Failed',
+                            "Coverage must be at least 70%. Your coverage for one module is ${codeCoverage}%.",
+                            'Increase test coverage and retry the build.',
+                            'failure'
+                        )
+                    } 
+                    else {
+                        publishGitHubCheck(
+                            'Test Code Coverage',
+                            'Code Coverage Check Success!',
+                            'All test code coverage is greater than 70%',
+                            'Check Success!',
+                            'success'
                         )
                     }
                 }
             }
         }
+    }
+}
+
+def publishGitHubCheck(String name, String title, String summary, String text, String conclusion) {
+    withCredentials([string(credentialsId: 'GITHUB-JENKINS-TOKEN', variable: 'GITHUB_TOKEN')]) {
+        def commitSHA = env.COMMIT_HASH
+        def repoOwner = env.USERNAME
+        def repoName = env.PROJECT_NAME
+
+        def githubApiUrl = "https://api.github.com/repos/${repoOwner}/${repoName}/check-runs"
+
+        sh """
+            curl -X POST -H "Authorization: token ${GITHUB_TOKEN}" \\
+                 -H "Accept: application/vnd.github.v3+json" \\
+                 -d '{
+                      "name": "${name}",
+                      "head_sha": "${commitSHA}",
+                      "status": "completed",
+                      "conclusion": "${conclusion}",
+                      "details_url": "${env.BUILD_URL}",
+                      "output": {
+                        "title": "${title}",
+                        "summary": "${summary}",
+                        "text": "${text}"
+                      }
+                    }' ${githubApiUrl}
+        """
     }
 }
