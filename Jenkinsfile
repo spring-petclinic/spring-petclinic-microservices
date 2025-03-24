@@ -125,16 +125,13 @@ pipeline {
                             if (codeCoverage.toDouble() < 70) {
                                 testSuccess = false
 
-                                githubChecks(
+                                publishChecks(
                                     name: 'Test Code Coverage',
-                                    status: 'COMPLETED',
-                                    conclusion: 'FAILURE',
+                                    title: 'Code Coverage Check Failed',
+                                    summary: "Coverage must be at least 70%. Your coverage for one module is ${codeCoverage}%.",
+                                    text: 'Increase test coverage and retry the build.',
                                     detailsURL: env.BUILD_URL,
-                                    output: [
-                                        title: 'Code Coverage Check Failed',
-                                        summary: "Coverage must be at least 70%. Your coverage's of one module is ${codeCoverage}%.",
-                                        text: 'Increase test coverage and retry the build.'
-                                    ]
+                                    conclusion: 'FAILURE'
                                 )
 
                                 break
@@ -151,8 +148,6 @@ pipeline {
                             sh "${buildCommand}"
                         }
 
-                        sh 'find . -name "*.jar"'
-
                         try {
                             archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true, allowEmptyArchive: false
                         }
@@ -162,16 +157,13 @@ pipeline {
                     }
                     
                     if (testSuccess) {
-                        githubChecks(
+                        publishChecks(
                             name: 'Test Code Coverage',
-                            status: 'COMPLETED',
-                            conclusion: 'SUCCESS',
+                            title: 'Code Coverage Check Success!',
+                            summary: 'All test code coverage is greater than 70%',
+                            text: 'Check Success!',
                             detailsURL: env.BUILD_URL,
-                            output: [
-                                title: 'Code Coverage Check Success',
-                                summary: 'All test code coverage is greater than 70%',
-                                text: 'Check Success!'
-                            ]
+                            conclusion: 'SUCCESS'
                         )
                     }
                 }
