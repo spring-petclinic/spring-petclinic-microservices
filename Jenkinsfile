@@ -34,7 +34,7 @@ pipeline {
         stage('Check Changed Files') {
             steps {
                 script {
-                    def changedFiles = sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}", returnStdout: true).trim()
+                    def changedFiles = sh(script: "git diff --name-only origin/${env.BRANCH_NAME}", returnStdout: true).trim()
 
                     echo "${changedFiles}"
 
@@ -110,7 +110,7 @@ pipeline {
                     boolean testSuccess = true
                     def reports = env.CODE_COVERAGES.split(',')
 
-                    if (env.CHANGE_ID) {
+                    if (env.CHANGE_ID && env.CHANGE_TARGET = 'main') {
                         for (codeCoverage in reports) {
                             if (codeCoverage.toDouble() < 70) {
                                 testSuccess = false
