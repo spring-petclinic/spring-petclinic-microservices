@@ -3,7 +3,9 @@ pipeline {
 
     stages {
         stage('PWD') {
-            pwd
+            steps {
+                pwd
+            }
         }
 
         stage('Test') {
