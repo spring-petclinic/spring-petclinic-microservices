@@ -3,6 +3,11 @@ pipeline {
         label 'development-server'
     }
 
+    options {
+        // Clean before build
+        skipDefaultCheckout(true)
+    }
+
     tools {
         maven '3.9.9'
     }
@@ -14,6 +19,8 @@ pipeline {
     stages {
         stage('Check SCM') {
             steps {
+                cleanWs()
+
                 checkout scm
 
                 script {
@@ -27,9 +34,11 @@ pipeline {
         stage('Check Changed Files') {
             steps {
                 script {
-                    def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
+                    def changedFiles = sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}", returnStdout: true).trim()
 
-                    def folderList = ['spring-petclinic-customers-service', 'spring-petclinic-discovery-server', 'spring-petclinic-vets-service', 'spring-petclinic-visits-service']
+                    echo "${changedFiles}"
+
+                    def folderList = ['spring-petclinic-customers-service', 'spring-petclinic-vets-service', 'spring-petclinic-visits-service']
                     
                     def changedFolders = changedFiles.split('\n')
                         .collect { it.split('/')[0] }
@@ -49,7 +58,7 @@ pipeline {
             }
             steps {
                 script {
-                    def modules = env.CHANGED_MODULES.split(',')
+                    def modules = env.CHANGED_MODULES ? env.CHANGED_MODULES.split(',') : []
 
                     for (module in modules) {
                         def testCommand = "mvn test -pl ${module}"
@@ -73,6 +82,23 @@ pipeline {
                                 reportName: "${module}_code_coverage_report_${env.COMMIT_HASH}_${env.BUILD_ID}"
                             ]
                         )
+
+                        // Get Code Coverage
+                        def codeCoverages = []
+                        def coverageReport = readFile(file: "${WORKSPACE}/${module}/target/site/jacoco/index.html")
+                        def matcher = coverageReport =~ /<tfoot>(.*?)<\/tfoot>/
+                        if (matcher.find()) {
+                            def coverage = matcher[0]
+                            def instructionMatcher = coverage =~ /<td class="ctr2">(.*?)%<\/td>/
+                            if (instructionMatcher.find()) {
+                                def coveragePercentage = instructionMatcher[0][1]
+                                echo "Overall code coverage of ${module}: ${coveragePercentage}%"
+                                
+                                codeCoverages.add(coveragePercentage)
+                            }
+                        }
+
+                        env.CODE_COVERAGES = codeCoverages.join(',')
                     }
                 }
             }
@@ -81,7 +107,54 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    sh 'echo "Building..."'
+                    boolean testSuccess = true
+                    def reports = env.CODE_COVERAGES.split(',')
+
+                    if (env.CHANGE_ID) {
+                        for (codeCoverage in reports) {
+                            if (codeCoverage.toDouble() < 70) {
+                                testSuccess = false
+
+                                githubChecks(
+                                    name: 'Test Code Coverage',
+                                    status: 'COMPLETED',
+                                    conclusion: 'FAILURE',
+                                    detailsURL: env.BUILD_URL,
+                                    output: [
+                                        title: 'Code Coverage Check Failed',
+                                        summary: "Coverage must be at least 70%. Your coverage's of one module is ${codeCoverage}%.",
+                                        text: 'Increase test coverage and retry the build.'
+                                    ]
+                                )
+
+                                break
+                            }
+                        }
+                    }
+
+                    if (testSuccess) {
+                        def modules = env.CHANGED_MODULES ? env.CHANGED_MODULES.split(',') : []
+
+                        for (module in modules) {
+                            def buildCommand = "mvn -pl ${module} -am clean install"
+                            echo "Build for affected modules: ${module}"
+                            sh "${buildCommand}"
+                        }
+
+                        archiveArtifacts artifacts: '**/target/*.jar', followSymlinks: false
+
+                        githubChecks(
+                            name: 'Test Code Coverage',
+                            status: 'COMPLETED',
+                            conclusion: 'SUCCESS',
+                            detailsURL: env.BUILD_URL,
+                            output: [
+                                title: 'Code Coverage Check Success',
+                                summary: 'All test code coverage is greater than 70%',
+                                text: 'Check Success!'
+                            ]
+                        )
+                    }
                 }
             }
         }
