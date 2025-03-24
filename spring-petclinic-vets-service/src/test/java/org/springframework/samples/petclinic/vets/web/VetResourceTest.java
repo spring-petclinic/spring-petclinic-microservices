@@ -59,4 +59,37 @@ class VetResourceTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(1));
     }
+
+    @Test
+    void shouldReturnEmptyListWhenNoVets() throws Exception {
+        given(vetRepository.findAll()).willReturn(Collections.emptyList());
+
+        mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void shouldGetMultipleVets() throws Exception {
+        Vet vet1 = new Vet();
+        vet1.setId(1);
+        Vet vet2 = new Vet();
+        vet2.setId(2);
+
+        given(vetRepository.findAll()).willReturn(asList(vet1, vet2));
+
+        mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(2))
+            .andExpect(jsonPath("$[0].id").value(1))
+            .andExpect(jsonPath("$[1].id").value(2));
+    }   
+
+    @Test
+    void shouldHandleInternalServerError() throws Exception {
+        given(vetRepository.findAll()).willThrow(new RuntimeException("Database error"));
+
+        mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isInternalServerError());
+    }
 }
