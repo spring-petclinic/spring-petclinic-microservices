@@ -143,7 +143,7 @@ pipeline {
                     }
                     
                     def modules = env.CHANGED_MODULES ? env.CHANGED_MODULES.split(',') : []
-                    if (testSuccess && !modules.isEmpty()) {
+                    if (testSuccess && modules.size() > 0) {
                         
                         for (module in modules) {
                             def buildCommand = "mvn -pl ${module} -am clean install"
