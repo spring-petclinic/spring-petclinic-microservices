@@ -49,14 +49,50 @@ class VetResourceTest {
 
     @Test
     void shouldGetAListOfVets() throws Exception {
-
         Vet vet = new Vet();
         vet.setId(1);
 
         given(vetRepository.findAll()).willReturn(asList(vet));
 
         mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$[0].id").value(1));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1));
     }
+
+    @Test
+    void shouldReturnEmptyListWhenNoVets() throws Exception {
+        given(vetRepository.findAll()).willReturn(asList());
+
+        mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
+    }
+
+    @Test
+    void shouldReturnMultipleVetsWhenAvailable() throws Exception {
+        Vet vet1 = new Vet();
+        vet1.setId(1);
+        vet1.setFirstName("James");
+        vet1.setLastName("Carter");
+
+        Vet vet2 = new Vet();
+        vet2.setId(2);
+        vet2.setFirstName("Helen");
+        vet2.setLastName("Leary");
+
+        given(vetRepository.findAll()).willReturn(asList(vet1, vet2));
+
+        mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].firstName").value("James"))
+                .andExpect(jsonPath("$[0].lastName").value("Carter"))
+                .andExpect(jsonPath("$[1].id").value(2))
+                .andExpect(jsonPath("$[1].firstName").value("Helen"))
+                .andExpect(jsonPath("$[1].lastName").value("Leary"));
+    }
+
 }
