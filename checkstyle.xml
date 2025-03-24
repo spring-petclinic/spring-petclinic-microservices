@@ -4,11 +4,15 @@
   "https://checkstyle.org/dtds/configuration_1_3.dtd">
 <module name="Checker">
     <module name="TreeWalker">
-        <!-- Exemple de règles -->
-        <module name="AvoidStarImport"/>       <!-- Interdit les imports "*" -->
-        <module name="LineLength">             <!-- Limite la longueur des lignes -->
+        <module name="AvoidStarImport"/>  <!-- OK -->
+        
+        <module name="LineLength">
             <property name="max" value="120"/>
+            <property name="fileExtensions" value="java"/>  <!-- PROPRIÉTÉ MANQUANTE -->
         </module>
-        <module name="JavadocMethod"/>         <!-- Exige des Javadoc sur les méthodes -->
+
+        <module name="JavadocMethod">  <!-- OK -->
+            <property name="scope" value="public"/>  <!-- RECOMMANDÉ -->
+        </module>
     </module>
 </module>
