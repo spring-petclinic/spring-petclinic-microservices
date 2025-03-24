@@ -4,7 +4,7 @@
 name: Java CI/CD
 
 on:
-  push:           # Déclenché sur toutes les branches
+  push:           # Declencher sur toutes les branches
     branches: [ '**' ]  # Au lieu de seulement 'main'
   pull_request:
     branches: [ main ]
@@ -21,7 +21,7 @@ jobs:
       uses: actions/setup-java@v3
       with:
         java-version: ${{matrix.java}}
-        distribution: temurin  # Remplacez 'adopt' (obsolète)
+        distribution: temurin  # Remplacez 'adopt' (obsolete)
         cache: maven
     - name: Build and Test with Maven  # Ajoutez les tests
-      run: mvn -B clean package test  # Exécutez les tests
+      run: mvn -B clean package test  # Executez les tests
