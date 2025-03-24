@@ -181,26 +181,28 @@ pipeline {
 def publishGitHubCheck(String name, String title, String summary, String text, String conclusion) {
     withCredentials([usernamePassword(credentialsId: 'GITHUB-JENKINS-TOKEN', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
         def commitSHA = env.COMMIT_HASH
-        def repoOwner = env.GITHUB_USER   // Extracted GitHub username
+        def repoOwner = env.GITHUB_USER
         def repoName = env.PROJECT_NAME
 
         def githubApiUrl = "https://api.github.com/repos/${repoOwner}/${repoName}/check-runs"
 
-        sh """
-            curl -X POST -u "${GITHUB_USER}:${GITHUB_TOKEN}" \\ 
-                 -H "Accept: application/vnd.github.v3+json" \\ 
-                 -d '{
-                      "name": "${name}",
-                      "head_sha": "${commitSHA}",
-                      "status": "completed",
-                      "conclusion": "${conclusion}",
-                      "details_url": "${env.BUILD_URL}",
-                      "output": {
-                        "title": "${title}",
-                        "summary": "${summary}",
-                        "text": "${text}"
-                      }
-                    }' ${githubApiUrl}
-        """
+        sh([
+            'bash', '-c', """
+                curl -X POST -u "\$GITHUB_USER:\$GITHUB_TOKEN" \\
+                     -H "Accept: application/vnd.github.v3+json" \\
+                     -d '{
+                          "name": "${name}",
+                          "head_sha": "${commitSHA}",
+                          "status": "completed",
+                          "conclusion": "${conclusion}",
+                          "details_url": "${env.BUILD_URL}",
+                          "output": {
+                            "title": "${title}",
+                            "summary": "${summary}",
+                            "text": "${text}"
+                          }
+                        }' ${githubApiUrl}
+            """
+        ])
     }
 }
