@@ -79,7 +79,7 @@ pipeline {
                                 keepAll: true,
                                 reportDir: "${module}/target/site/jacoco",
                                 reportFiles: 'index.html',
-                                reportName: "${module}_code_coverage_report_${env.COMMIT_HASH}_${env.BUILD_ID}"
+                                reportName: "${module}_code_coverage_report_${env.COMMIT_HASH}_v${env.BUILD_ID}"
                             ]
                         )
 
@@ -108,6 +108,7 @@ pipeline {
             steps {
                 script {
                     boolean testSuccess = true
+
                     def reports = env.CODE_COVERAGES ? env.CODE_COVERAGES.split(',') : []
 
                     if (env.CHANGE_ID && env.CHANGE_TARGET == 'main') {
@@ -132,7 +133,7 @@ pipeline {
                         }
                     }
 
-                    if (testSuccess) {
+                    if (testSuccess && !reports) {
                         def modules = env.CHANGED_MODULES ? env.CHANGED_MODULES.split(',') : []
 
                         for (module in modules) {
