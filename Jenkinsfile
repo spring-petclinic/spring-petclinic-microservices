@@ -134,7 +134,7 @@ pipeline {
                     }
                     
                     def modules = env.CHANGED_MODULES ? env.CHANGED_MODULES.split(',') : []
-                    if (testSuccess && !modules) {
+                    if (testSuccess && !modules.isEmpty()) {
                         
                         for (module in modules) {
                             def buildCommand = "mvn -pl ${module} -am clean install"
@@ -142,7 +142,12 @@ pipeline {
                             sh "${buildCommand}"
                         }
 
-                        archiveArtifacts artifacts: '**/target/*.jar', followSymlinks: false
+                        try {
+                            archiveArtifacts artifacts: '**/target/*.jar', followSymlinks: false
+                        }
+                        catch (Exception e) {
+                            echo "No artifacts found to archive. Skipping artifact archival."
+                        }
 
                         githubChecks(
                             name: 'Test Code Coverage',
