@@ -133,7 +133,7 @@ pipeline {
                         }
                     }
 
-                    if (testSuccess && !reports) {
+                    if (testSuccess && !modules) {
                         def modules = env.CHANGED_MODULES ? env.CHANGED_MODULES.split(',') : []
 
                         for (module in modules) {
