@@ -140,18 +140,6 @@ pipeline {
                                 break
                             }
                         }
-
-                        githubChecks(
-                            name: 'Test Code Coverage',
-                            status: 'COMPLETED',
-                            conclusion: 'SUCCESS',
-                            detailsURL: env.BUILD_URL,
-                            output: [
-                                title: 'Code Coverage Check Success',
-                                summary: 'All test code coverage is greater than 70%',
-                                text: 'Check Success!'
-                            ]
-                        )
                     }
                     
                     def modules = env.CHANGED_MODULES ? env.CHANGED_MODULES.split(',') : []
@@ -163,12 +151,28 @@ pipeline {
                             sh "${buildCommand}"
                         }
 
+                        sh 'find . -name "*.jar"'
+
                         try {
-                            archiveArtifacts artifacts: '**/target/*.jar', followSymlinks: false
+                            archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true, allowEmptyArchive: false
                         }
                         catch (Exception e) {
                             echo "No artifacts found to archive. Skipping artifact archival."
                         }
+                    }
+                    
+                    if (testSuccess) {
+                        githubChecks(
+                            name: 'Test Code Coverage',
+                            status: 'COMPLETED',
+                            conclusion: 'SUCCESS',
+                            detailsURL: env.BUILD_URL,
+                            output: [
+                                title: 'Code Coverage Check Success',
+                                summary: 'All test code coverage is greater than 70%',
+                                text: 'Check Success!'
+                            ]
+                        )
                     }
                 }
             }
