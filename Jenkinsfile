@@ -2,12 +2,6 @@ pipeline {
     agent any
 
     stages {
-        stage('PWD') {
-            steps {
-                sh 'pwd'
-            }
-        }
-
         stage('Test') {
             steps {
                 echo 'Testing ...'
@@ -17,6 +11,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building ...'
+                sh 'mvn clean install -Dmaven.test.skip=true'
             }
         }
     }
