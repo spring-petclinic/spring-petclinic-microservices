@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+  "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+  "https://checkstyle.org/dtds/configuration_1_3.dtd">
+<module name="Checker">
+    <module name="TreeWalker">
+        <!-- Exemple de règles -->
+        <module name="AvoidStarImport"/>       <!-- Interdit les imports "*" -->
+        <module name="LineLength">             <!-- Limite la longueur des lignes -->
+            <property name="max" value="120"/>
+        </module>
+        <module name="JavadocMethod"/>         <!-- Exige des Javadoc sur les méthodes -->
+    </module>
+</module>
