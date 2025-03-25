@@ -152,21 +152,24 @@ pipeline {
                         }
                     }
 
+                    def minCoverage = reports.collect { it.toDouble() }.min() ?: 0.0
+
                     if (testSuccess && buildSuccess && env.CHANGE_TARGET == 'main') {
                         publishChecks(
                             name: 'Test Code Coverage',
                             title: 'Code Coverage Check Success!',
-                            summary: 'All test code coverage is greater than 70%',
+                            summary: "All test code coverage is greater than ${minCoverage}%",
                             text: 'Check Success!',
                             detailsURL: env.BUILD_URL,
                             conclusion: 'SUCCESS'
                         )
                     }
                     else if (env.CHANGE_TARGET == 'main') {
+
                         publishChecks(
                             name: 'Test Code Coverage',
                             title: 'Code Coverage Check Failed',
-                            summary: "Coverage must be at least 70%. Your coverage for one module is ${codeCoverage}%.",
+                            summary: "Coverage must be at least 70%. Your coverage for one module is ${minCoverage}%.",
                             text: 'Increase test coverage and retry the build.',
                             detailsURL: env.BUILD_URL,
                             conclusion: 'FAILURE'
