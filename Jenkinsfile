@@ -126,7 +126,7 @@ pipeline {
                     if (env.CHANGE_ID && env.CHANGE_TARGET == 'main') {
                         for (codeCoverage in reports) {
                             if (codeCoverage.toDouble() < 70) {
-                                testSuccess = false
+                                testSuccess = false           
 
                                 publishChecks(
                                     name: 'Test Code Coverage',
