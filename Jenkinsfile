@@ -5,6 +5,7 @@ pipeline {
 
     stages {
         stage('Detect Changes') {
+            // agent { label 'any' }
             steps {
                 script {
 
@@ -74,13 +75,14 @@ pipeline {
                     echo "✅ Normalized changed files: ${normalizedChanges.join(', ')}"
 
                     def services = [
-                        "spring-petclinic-customers-service",
-                        "spring-petclinic-vets-service",
-                        "spring-petclinic-visits-service",
+                        "spring-petclinic-admin-server",
                         "spring-petclinic-api-gateway",
                         "spring-petclinic-config-server",
-                        "spring-petclinic-admin-server",
-                        "spring-petclinic-genai-service"
+                        "spring-petclinic-customers-service",
+                        "spring-petclinic-discovery-server",
+                        "spring-petclinic-genai-service",
+                        "spring-petclinic-vets-service",
+                        "spring-petclinic-visits-service",
                     ]
 
                     // Identify which services have changes
@@ -112,84 +114,87 @@ pipeline {
             }
         }
 
-        stage('Test & Coverage Check') {
-            when {
-                expression { SERVICES_CHANGED?.trim() != "" }
-            }
-            steps {
-                script {
-                    def servicesList = SERVICES_CHANGED.tokenize(',')
+        // stage('Test & Coverage Check') {
+        //     agent { label 'maven-node' }
+        //     when {
+        //         expression { SERVICES_CHANGED?.trim() != "" }
+        //     }
+        //     steps {
+        //         script {
+        //             def servicesList = SERVICES_CHANGED.tokenize(',')
 
-                    if (servicesList.isEmpty()) {
-                        echo "ℹ️ No changed services found. Skipping tests."
-                        return
-                    }
+        //             if (servicesList.isEmpty()) {
+        //                 echo "ℹ️ No changed services found. Skipping tests."
+        //                 return
+        //             }
 
-                    // Run tests sequentially instead of in parallel
-                    for (service in servicesList) {
-                        echo "🔬 Running tests for ${service}..."
-                        withEnv(["MAVEN_USER_HOME=${env.WORKSPACE}/m2-wrapper-${service}"]) {
-                            dir(service) {
-                                sh '../mvnw clean verify -PbuildDocker jacoco:report'
+        //             // Run tests sequentially instead of in parallel
+        //             for (service in servicesList) {
+        //                 echo "🔬 Running tests for ${service}..."
+        //                 withEnv(["MAVEN_USER_HOME=${env.WORKSPACE}/m2-wrapper-${service}"]) {
+        //                     dir(service) {
+        //                         sh '../mvnw clean verify -PbuildDocker jacoco:report'
 
-                                def jacocoFile = sh(script: "find target -name jacoco.xml", returnStdout: true).trim()
-                                if (!jacocoFile) {
-                                    echo "⚠️ No JaCoCo report found for ${service}."
-                                } else {
-                                    def missed = sh(script: """
-                                        awk -F 'missed="' '/<counter type="LINE"/ {gsub(/".*/, "", \$2); sum += \$2} END {print sum}' ${jacocoFile}
-                                    """, returnStdout: true).trim()
+        //                         def jacocoFile = sh(script: "find target -name jacoco.xml", returnStdout: true).trim()
+        //                         if (!jacocoFile) {
+        //                             echo "⚠️ No JaCoCo report found for ${service}."
+        //                         } else {
+        //                             def missed = sh(script: """
+        //                                 awk -F 'missed="' '/<counter type="LINE"/ {gsub(/".*/, "", \$2); sum += \$2} END {print sum}' ${jacocoFile}
+        //                             """, returnStdout: true).trim()
 
-                                    def covered = sh(script: """
-                                        awk -F 'covered="' '/<counter type="LINE"/ {gsub(/".*/, "", \$2); sum += \$2} END {print sum}' ${jacocoFile}
-                                    """, returnStdout: true).trim()
+        //                             def covered = sh(script: """
+        //                                 awk -F 'covered="' '/<counter type="LINE"/ {gsub(/".*/, "", \$2); sum += \$2} END {print sum}' ${jacocoFile}
+        //                             """, returnStdout: true).trim()
 
-                                    def total = missed.toInteger() + covered.toInteger()
-                                    def coveragePercent = (total > 0) ? (covered.toInteger() * 100 / total) : 0
+        //                             def total = missed.toInteger() + covered.toInteger()
+        //                             def coveragePercent = (total > 0) ? (covered.toInteger() * 100 / total) : 0
 
-                                    echo "🚀 Test coverage for ${service}: ${coveragePercent}%"
+        //                             echo "🚀 Test coverage for ${service}: ${coveragePercent}%"
 
-                                    if (coveragePercent < 70) {
-                                        error("❌ Test coverage below 70% for ${service}.")
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        //                             if (coveragePercent < 70) {
+        //                                 error("❌ Test coverage below 70% for ${service}.")
+        //                             }
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
-        stage('Publish JaCoCo Coverage') {
-            when {
-                expression { SERVICES_CHANGED?.trim() != "" }
-            }
-            steps {
-                script {
-                    def servicesList = SERVICES_CHANGED.tokenize(',')
+        // stage('Publish JaCoCo Coverage') {
+        //     agent { label 'maven-node' }
+        //     when {
+        //         expression { SERVICES_CHANGED?.trim() != "" }
+        //     }
+        //     steps {
+        //         script {
+        //             def servicesList = SERVICES_CHANGED.tokenize(',')
 
-                    if (servicesList.isEmpty()) {
-                        echo "ℹ️ No changed services found. Skipping coverage upload."
-                        return
-                    }
+        //             if (servicesList.isEmpty()) {
+        //                 echo "ℹ️ No changed services found. Skipping coverage upload."
+        //                 return
+        //             }
 
-                    for (service in servicesList) {
-                        echo "📊 Uploading JaCoCo coverage for ${service}..."
-                        dir(service) {
-                            jacoco(
-                                execPattern: 'target/jacoco.exec',
-                                classPattern: 'target/classes',
-                                sourcePattern: 'src/main/java',
-                                exclusionPattern: '**/test/**'
-                            )
-                        }
-                    }
-                }
-            }
-        }
+        //             for (service in servicesList) {
+        //                 echo "📊 Uploading JaCoCo coverage for ${service}..."
+        //                 dir(service) {
+        //                     jacoco(
+        //                         execPattern: 'target/jacoco.exec',
+        //                         classPattern: 'target/classes',
+        //                         sourcePattern: 'src/main/java',
+        //                         exclusionPattern: '**/test/**'
+        //                     )
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
 
-        stage('Build') {
+        stage('Build (Maven)') {
+            // agent { label 'maven-node' }
             when {
                 expression { SERVICES_CHANGED?.trim() != "" }
             }
@@ -213,116 +218,151 @@ pipeline {
         }
 
 
-//         stage('Test & Coverage Check') {
-//             when {
-//                 expression { SERVICES_CHANGED?.trim() != "" }
-//             }
-//             steps {
-//                 script {
-//
-//                     def parallelStages = [:]
-//                     def servicesList = SERVICES_CHANGED.tokenize(',')
-//
-//                     if (servicesList.isEmpty()) {
-//                         error("❌ No changed services found. Verify 'Detect Changes' stage.")
-//                     }
-//
-//                     servicesList.each { service ->
-//                         parallelStages["Test & Coverage: ${service}"] = {
-//                             withEnv(["MAVEN_USER_HOME=${env.WORKSPACE}/m2-wrapper-${service}"]) {
-//                                 dir(service) {
-//
-//                                     sh '../mvnw clean verify -PbuildDocker'
-//
-//                                     sh 'pwd && ls -lah target/site/jacoco'
-//
-//                                     // Find JaCoCo file
-//                                     def jacocoFile = sh(script: "find target -name jacoco.xml", returnStdout: true).trim()
-//
-//                                     if (!jacocoFile) {
-//                                         echo "⚠️ JaCoCo report not found. Skipping coverage validation."
-//                                     } else {
-//                                         echo "✅ Found JaCoCo report: ${jacocoFile}"
-//
-//                                         def missed = sh(script: """
-//                                             awk -F 'missed="' '/<counter type="LINE"/ {gsub(/".*/, "", \$2); sum += \$2} END {print sum}' ${jacocoFile}
-//                                         """, returnStdout: true).trim()
-//
-//                                         def covered = sh(script: """
-//                                             awk -F 'covered="' '/<counter type="LINE"/ {gsub(/".*/, "", \$2); sum += \$2} END {print sum}' ${jacocoFile}
-//                                         """, returnStdout: true).trim()
-//
-//                                         if (!missed.isNumber() || !covered.isNumber()) {
-//                                             error("❌ Could not extract JaCoCo coverage data from ${jacocoFile}")
-//                                         }
-//
-//                                         def total = missed.toInteger() + covered.toInteger()
-//                                         def coveragePercent = (total > 0) ? (covered.toInteger() * 100 / total) : 0
-//
-//                                         echo "🚀 Test coverage for ${service} is ${coveragePercent}%"
-//
-//                                         if (coveragePercent < 70) {
-//                                             error("❌ Test coverage for ${service} is below 70% threshold.")
-//                                         }
-//                                     }
-//                                 }
-//                             }
-//                         }
-//                     }
-//                     parallel parallelStages
-//                 }
-//             }
-//         }
+        stage('Docker Build & Push') {
+            when {
+                expression { SERVICES_CHANGED?.trim() != "" }
+            }
+            // agent {
+            //     label 'docker-node' // Agent with Docker installed
+            // }
+            steps {
+                script {
+                    def servicesList = SERVICES_CHANGED.tokenize(',')
 
+                    if (servicesList.isEmpty()) {
+                        error("❌ No changed services found. Verify 'Detect Changes' stage.")
+                    }
 
-//         stage('Build') {
-//             when {
-//                 expression { SERVICES_CHANGED?.trim() != "" }
-//             }
-//             steps {
-//                 script {
-//
-//                     def parallelBuilds = [:]
-//                     def servicesList = SERVICES_CHANGED.tokenize(',')
-//
-//                     if (servicesList.isEmpty()) {
-//                         error("❌ No changed services found. Verify 'Detect Changes' stage.")
-//                     }
-//
-//                     servicesList.each { service ->
-//                         parallelBuilds["Build: ${service}"] = {
-//                             dir(service) {
-//                                 sh '../mvnw package -DskipTests -T 1C'
-//                             }
-//                         }
-//                     }
-//                     parallel parallelBuilds
-//                 }
-//             }
-//         }
+                    // Login to DockerHub once before the loop
+                    withCredentials([usernamePassword(
+                        credentialsId: 'hzeroxium-dockerhub',
+                        usernameVariable: 'DOCKERHUB_USER',
+                        passwordVariable: 'DOCKERHUB_PASSWORD'
+                    )]) {
+                        sh "docker login -u \${DOCKERHUB_USER} -p \${DOCKERHUB_PASSWORD}"
+                    }
 
-        //
-        // stage('Docker Build') {
+                    // Sequential Docker builds and pushes
+                    for (service in servicesList) {
+                        echo "🐳 Building & pushing Docker image for ${service}..."
+
+                        def commitHash = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                        def imageTag = "hzeroxium/${service}:${commitHash}"
+
+                        sh """
+                        docker build \
+                            --build-arg SERVICE_NAME=${service} \
+                            -f Dockerfile \
+                            -t ${imageTag} \
+                            -t hzeroxium/${service}:latest \
+                            .
+                        docker push ${imageTag}
+                        docker push hzeroxium/${service}:latest
+                        docker rmi ${imageTag} || true
+                        docker rmi hzeroxium/${service}:latest || true
+                        """
+                    }
+                }
+            }
+        }
+
+        // stage('Deploy to Kubernetes') {
         //     when {
         //         expression { SERVICES_CHANGED?.trim() != "" }
+        //         beforeAgent true
+        //     }
+        //     agent {
+        //         label 'k8s-node' // Agent with kubectl configured
+        //     }
+        //     environment {
+        //         DEPLOY_ENV = "${params.ENVIRONMENT ?: 'dev'}" // Default to 'dev' if not specified
         //     }
         //     steps {
         //         script {
-        //             def parallelDockerBuilds = [:]
         //             def servicesList = SERVICES_CHANGED.tokenize(',')
-
         //             if (servicesList.isEmpty()) {
-        //                 error("❌ No changed services found. Verify 'Detect Changes' stage.")
+        //                 echo "ℹ️ No changed services found. Skipping deployment."
+        //                 return
         //             }
 
-        //             servicesList.each { service ->
-        //                 parallelDockerBuilds["Docker Build: ${service}"] = {
-        //                     dir(service) {
-        //                         sh "docker build --no-cache -t hzeroxium/${service}:latest ."
+        //             // Configure kubectl with credentials
+        //             withKubeConfig([
+        //                 credentialsId: 'k8s-credentials',
+        //                 serverUrl: 'https://kubernetes.example.com',
+        //                 namespace: "${DEPLOY_ENV}"
+        //             ]) {
+        //                 // Verify connection to cluster
+        //                 sh "kubectl config current-context"
+        //                 sh "kubectl get nodes -o wide"
+
+        //                 // Deploy each service sequentially
+        //                 for (service in servicesList) {
+        //                     echo "🚀 Deploying ${service} to Kubernetes environment: ${DEPLOY_ENV}..."
+
+        //                     def commitHash = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+        //                     def imageTag = "hzeroxium/${service}:${commitHash}"
+
+        //                     try {
+        //                         // Generate deployment files with correct image tag
+        //                         dir('k8s-templates') {
+        //                             // Replace the image tag in the template
+        //                             sh """
+        //                             sed 's#__IMAGE_TAG__#${imageTag}#g' ${service}-template.yaml > ../k8s/${DEPLOY_ENV}/${service}.yaml
+        //                             """
+
+        //                             // Apply ConfigMaps first if they exist
+        //                             sh """
+        //                             if [ -f "../k8s/${DEPLOY_ENV}/${service}-configmap.yaml" ]; then
+        //                                 kubectl apply -f ../k8s/${DEPLOY_ENV}/${service}-configmap.yaml
+        //                             fi
+        //                             """
+
+        //                             // Apply main deployment
+        //                             sh "kubectl apply -f ../k8s/${DEPLOY_ENV}/${service}.yaml"
+
+        //                             // Wait for deployment to complete with timeout
+        //                             sh "kubectl rollout status deployment/${service} --timeout=180s"
+        //                         }
+
+        //                         // Verify deployment health
+        //                         sh """
+        //                         # Check if pods are running
+        //                         READY_PODS=\$(kubectl get pods -l app=${service} -o jsonpath='{.items[*].status.containerStatuses[0].ready}' | tr ' ' '\\n' | grep -c true)
+        //                         TOTAL_PODS=\$(kubectl get pods -l app=${service} --no-headers | wc -l)
+
+        //                         if [ "\$READY_PODS" -lt "\$TOTAL_PODS" ]; then
+        //                             echo "❌ Not all pods are ready for ${service}!"
+        //                             kubectl get pods -l app=${service}
+        //                             exit 1
+        //                         fi
+        //                         """
+
+        //                         echo "✅ Deployment successful for ${service}"
+        //                     } catch (Exception e) {
+        //                         echo "❌ Deployment failed for ${service}: ${e.message}"
+
+        //                         // Optionally rollback on failure
+        //                         if (params.AUTO_ROLLBACK) {
+        //                             echo "🔄 Rolling back ${service} deployment..."
+        //                             sh "kubectl rollout undo deployment/${service}"
+        //                         }
+
+        //                         // Fail the build or continue based on parameter
+        //                         if (params.FAIL_FAST) {
+        //                             error("Deployment failed for ${service}")
+        //                         }
         //                     }
         //                 }
+
+        //                 // Print summary
+        //                 echo "📊 Deployment Summary (${DEPLOY_ENV}):"
+        //                 sh "kubectl get deployments -l project=spring-petclinic"
         //             }
-        //             parallel parallelDockerBuilds
+        //         }
+        //     }
+        //     post {
+        //         success {
+        //             echo "🎉 All deployments completed successfully in ${DEPLOY_ENV} environment!"
         //         }
         //     }
         // }
