@@ -141,14 +141,16 @@ pipeline {
                             }
                         }
 
-                        publishChecks(
-                            name: 'Test Code Coverage',
-                            title: 'Code Coverage Check Success!',
-                            summary: 'All test code coverage is greater than 70%',
-                            text: 'Check Success!',
-                            detailsURL: env.BUILD_URL,
-                            conclusion: 'SUCCESS'
-                        )
+                        if (testSuccess) {
+                            publishChecks(
+                                name: 'Test Code Coverage',
+                                title: 'Code Coverage Check Success!',
+                                summary: 'All test code coverage is greater than 70%',
+                                text: 'Check Success!',
+                                detailsURL: env.BUILD_URL,
+                                conclusion: 'SUCCESS'
+                            )
+                        }
                     }
                     
                     def modules = env.CHANGED_MODULES ? env.CHANGED_MODULES.split(',') : []
