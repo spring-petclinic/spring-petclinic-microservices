@@ -38,6 +38,9 @@ pipeline {
 
                     if (env.CHANGE_ID) {
                         branch_name = "${env.CHANGE_TARGET}"
+
+                        // Fetch main branch if it is a Pull Request
+                        sh('git fetch origin main:main --no-tags')
                     }
                     else {
                         branch_name = 'HEAD~1'
