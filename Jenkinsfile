@@ -37,7 +37,7 @@ pipeline {
                     def branch_name = ""
 
                     if (env.CHANGE_ID) {
-                        branch_name = "origin/${env.CHANGE_TARGET}"
+                        branch_name = "${env.CHANGE_TARGET}"
                     }
                     else {
                         branch_name = 'HEAD~1'
