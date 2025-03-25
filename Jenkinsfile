@@ -1,5 +1,5 @@
 def SERVICES_CHANGED = ""
-
+def DEPLOY_ENV = "${params.ENVIRONMENT ?: 'dev'}" // Default dev if not specified
 pipeline {
     agent any
 
@@ -266,106 +266,84 @@ pipeline {
             }
         }
 
-        // stage('Deploy to Kubernetes') {
-        //     when {
-        //         expression { SERVICES_CHANGED?.trim() != "" }
-        //         beforeAgent true
-        //     }
-        //     agent {
-        //         label 'k8s-node' // Agent with kubectl configured
-        //     }
-        //     environment {
-        //         DEPLOY_ENV = "${params.ENVIRONMENT ?: 'dev'}" // Default to 'dev' if not specified
-        //     }
-        //     steps {
-        //         script {
-        //             def servicesList = SERVICES_CHANGED.tokenize(',')
-        //             if (servicesList.isEmpty()) {
-        //                 echo "ℹ️ No changed services found. Skipping deployment."
-        //                 return
-        //             }
+        stage('Deploy to Kubernetes (Helm)') {
+            when {
+                expression { SERVICES_CHANGED?.trim() != "" }
+                beforeAgent true
+            }
+            agent {
+                label 'k8s-node'
+            }
+            steps {
+                script {
+                    def servicesList = SERVICES_CHANGED.tokenize(',')
+                    if (servicesList.isEmpty()) {
+                        echo "ℹ️ No changed services found. Skipping deployment."
+                        return
+                    }
 
-        //             // Configure kubectl with credentials
-        //             withKubeConfig([
-        //                 credentialsId: 'k8s-credentials',
-        //                 serverUrl: 'https://kubernetes.example.com',
-        //                 namespace: "${DEPLOY_ENV}"
-        //             ]) {
-        //                 // Verify connection to cluster
-        //                 sh "kubectl config current-context"
-        //                 sh "kubectl get nodes -o wide"
+                    def servicePorts = [
+                        "spring-petclinic-admin-server": 9090,
+                        "spring-petclinic-api-gateway": 8080,
+                        "spring-petclinic-config-server": 8888,
+                        "spring-petclinic-customers-service": 8081,
+                        "spring-petclinic-discovery-server": 8761,
+                        "spring-petclinic-genai-service": 8084,
+                        "spring-petclinic-vets-service": 8083,
+                        "spring-petclinic-visits-service": 8082
+                    ]
 
-        //                 // Deploy each service sequentially
-        //                 for (service in servicesList) {
-        //                     echo "🚀 Deploying ${service} to Kubernetes environment: ${DEPLOY_ENV}..."
+                    withKubeConfig([
+                        credentialsId: 'k8s-credentials',
+                        serverUrl: 'https://kubernetes.example.com',
+                        namespace: "${DEPLOY_ENV}"
+                    ]) {
+                        sh "kubectl get nodes -o wide"
 
-        //                     def commitHash = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-        //                     def imageTag = "hzeroxium/${service}:${commitHash}"
+                        for (service in servicesList) {
+                            echo "🚀 Deploying ${service}..."
 
-        //                     try {
-        //                         // Generate deployment files with correct image tag
-        //                         dir('k8s-templates') {
-        //                             // Replace the image tag in the template
-        //                             sh """
-        //                             sed 's#__IMAGE_TAG__#${imageTag}#g' ${service}-template.yaml > ../k8s/${DEPLOY_ENV}/${service}.yaml
-        //                             """
+                            def commitHash = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                            def imageTag = "hzeroxium/${service}:${commitHash}"
+                            def releaseName = "${service}-${DEPLOY_ENV}"
+                            def servicePort = servicePorts.get(service, 8080)
 
-        //                             // Apply ConfigMaps first if they exist
-        //                             sh """
-        //                             if [ -f "../k8s/${DEPLOY_ENV}/${service}-configmap.yaml" ]; then
-        //                                 kubectl apply -f ../k8s/${DEPLOY_ENV}/${service}-configmap.yaml
-        //                             fi
-        //                             """
+                            try {
+                                sh """
+                                helm upgrade --install ${releaseName} chart/ \
+                                --namespace "${DEPLOY_ENV}" \
+                                --create-namespace \
+                                --wait --timeout 180s \
+                                --set image.repository="hzeroxium/${service}" \
+                                --set image.tag="${commitHash}" \
+                                --set service.port=${servicePort} \
+                                --set livenessProbe.port=${servicePort} \
+                                --set readinessProbe.port=${servicePort}
+                                """
+                                echo "✅ Helm deployment success for ${service}"
+                            } catch (err) {
+                                echo "❌ Helm deployment failed for ${service}: ${err.message}"
+                                if (params.AUTO_ROLLBACK) {
+                                    echo "🔄 Rolling back ${releaseName}..."
+                                    sh "helm rollback ${releaseName}"
+                                }
+                                if (params.FAIL_FAST) {
+                                    error("Deployment failed for ${service}")
+                                }
+                            }
+                        }
 
-        //                             // Apply main deployment
-        //                             sh "kubectl apply -f ../k8s/${DEPLOY_ENV}/${service}.yaml"
-
-        //                             // Wait for deployment to complete with timeout
-        //                             sh "kubectl rollout status deployment/${service} --timeout=180s"
-        //                         }
-
-        //                         // Verify deployment health
-        //                         sh """
-        //                         # Check if pods are running
-        //                         READY_PODS=\$(kubectl get pods -l app=${service} -o jsonpath='{.items[*].status.containerStatuses[0].ready}' | tr ' ' '\\n' | grep -c true)
-        //                         TOTAL_PODS=\$(kubectl get pods -l app=${service} --no-headers | wc -l)
-
-        //                         if [ "\$READY_PODS" -lt "\$TOTAL_PODS" ]; then
-        //                             echo "❌ Not all pods are ready for ${service}!"
-        //                             kubectl get pods -l app=${service}
-        //                             exit 1
-        //                         fi
-        //                         """
-
-        //                         echo "✅ Deployment successful for ${service}"
-        //                     } catch (Exception e) {
-        //                         echo "❌ Deployment failed for ${service}: ${e.message}"
-
-        //                         // Optionally rollback on failure
-        //                         if (params.AUTO_ROLLBACK) {
-        //                             echo "🔄 Rolling back ${service} deployment..."
-        //                             sh "kubectl rollout undo deployment/${service}"
-        //                         }
-
-        //                         // Fail the build or continue based on parameter
-        //                         if (params.FAIL_FAST) {
-        //                             error("Deployment failed for ${service}")
-        //                         }
-        //                     }
-        //                 }
-
-        //                 // Print summary
-        //                 echo "📊 Deployment Summary (${DEPLOY_ENV}):"
-        //                 sh "kubectl get deployments -l project=spring-petclinic"
-        //             }
-        //         }
-        //     }
-        //     post {
-        //         success {
-        //             echo "🎉 All deployments completed successfully in ${DEPLOY_ENV} environment!"
-        //         }
-        //     }
-        // }
+                        echo "📊 Deployment Summary (${DEPLOY_ENV}):"
+                        sh "helm list --namespace ${DEPLOY_ENV}"
+                    }
+                }
+            }
+            post {
+                success {
+                    echo "🎉 All deployments (Helm) completed successfully in ${DEPLOY_ENV} environment!"
+                }
+            }
+        }
     }
 
     post {
