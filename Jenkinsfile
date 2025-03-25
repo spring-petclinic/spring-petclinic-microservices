@@ -40,7 +40,7 @@ pipeline {
                         branch_name = "${env.CHANGE_TARGET}"
 
                         // Fetch main branch if it is a Pull Request
-                        sh('git fetch origin main:main --no-tags')
+                        sh("git fetch origin ${branch_name}:${branch_name} --no-tags")
                     }
                     else {
                         branch_name = 'HEAD~1'
@@ -120,6 +120,7 @@ pipeline {
             steps {
                 script {
                     boolean testSuccess = true
+                    boolean buildSuccess = true
 
                     def reports = env.CODE_COVERAGES ? env.CODE_COVERAGES.split(',') : []
 
@@ -128,28 +129,8 @@ pipeline {
                             if (codeCoverage.toDouble() < 70) {
                                 testSuccess = false           
 
-                                publishChecks(
-                                    name: 'Test Code Coverage',
-                                    title: 'Code Coverage Check Failed',
-                                    summary: "Coverage must be at least 70%. Your coverage for one module is ${codeCoverage}%.",
-                                    text: 'Increase test coverage and retry the build.',
-                                    detailsURL: env.BUILD_URL,
-                                    conclusion: 'FAILURE'
-                                )
-
                                 break
                             }
-                        }
-
-                        if (testSuccess) {
-                            publishChecks(
-                                name: 'Test Code Coverage',
-                                title: 'Code Coverage Check Success!',
-                                summary: 'All test code coverage is greater than 70%',
-                                text: 'Check Success!',
-                                detailsURL: env.BUILD_URL,
-                                conclusion: 'SUCCESS'
-                            )
                         }
                     }
                     
@@ -167,7 +148,29 @@ pipeline {
                         }
                         catch (Exception e) {
                             echo "No artifacts found to archive. Skipping artifact archival."
+                            buildSuccess = false
                         }
+                    }
+
+                    if (testSuccess && buildSuccess && env.CHANGE_TARGET == 'main') {
+                        publishChecks(
+                            name: 'Test Code Coverage',
+                            title: 'Code Coverage Check Success!',
+                            summary: 'All test code coverage is greater than 70%',
+                            text: 'Check Success!',
+                            detailsURL: env.BUILD_URL,
+                            conclusion: 'SUCCESS'
+                        )
+                    }
+                    else if (env.CHANGE_TARGET == 'main') {
+                        publishChecks(
+                            name: 'Test Code Coverage',
+                            title: 'Code Coverage Check Failed',
+                            summary: "Coverage must be at least 70%. Your coverage for one module is ${codeCoverage}%.",
+                            text: 'Increase test coverage and retry the build.',
+                            detailsURL: env.BUILD_URL,
+                            conclusion: 'FAILURE'
+                        )
                     }
                 }
             }
