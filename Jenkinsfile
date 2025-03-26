@@ -10,13 +10,14 @@ pipeline {
             steps {
                 echo 'Testing ...'
                 sh '''
+                    cd spring-petclinic-vets-service
                     mvn clean test -Djacoco.destFile=target/jacoco.exec
                 '''
                 jacoco(
-                    execPattern: '**/target/jacoco.exec',
-                    classPattern: '**/target/classes',
-                    sourcePattern: '**/src/main/java',
-                    inclusionPattern: '**/*.class',
+                    execPattern: 'spring-petclinic-vets-service/target/jacoco.exec',
+                    classPattern: 'spring-petclinic-vets-service/target/classes',
+                    sourcePattern: 'spring-petclinic-vets-service/src/main/java',
+                    inclusionPattern: 'spring-petclinic-vets-service/*.class',
                     exclusionPattern: ''
                 )
             }
