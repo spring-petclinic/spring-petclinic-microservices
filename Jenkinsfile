@@ -11,8 +11,15 @@ pipeline {
                 echo 'Testing ...'
                 sh '''
                     cd spring-petclinic-vets-service
-                    mvn clean test
+                    mvn clean test -Djacoco.destFile=target/jacoco.exec
                 '''
+                jacoco(
+                    execPattern: '**/target/jacoco.exec',
+                    classPattern: '**/target/classes',
+                    sourcePattern: '**/src/main/java',
+                    inclusionPattern: '**/*.class',
+                    exclusionPattern: ''
+                )
             }
         }
 
@@ -30,6 +37,7 @@ pipeline {
     post {
         always {
            junit 'spring-petclinic-vets-service/target/surefire-reports/*.xml'
+           jacoco()
         }
     }
 }
