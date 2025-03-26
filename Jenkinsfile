@@ -11,7 +11,7 @@ pipeline {
                 echo 'Testing ...'
                 sh '''
                     cd spring-petclinic-vets-service
-                    mvn test
+                    mvn clean test
                 '''
             }
         }
