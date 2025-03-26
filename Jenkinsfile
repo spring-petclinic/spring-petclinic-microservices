@@ -9,7 +9,9 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Testing ...'
-                sh 'mvn test'
+                sh '''
+                    mvn test
+                '''
             }
         }
 
@@ -26,7 +28,7 @@ pipeline {
 
     post {
         always {
-            junit '**/build/test-reports/*.xml'
+           junit '**/target/surefire-reports/*.xml'
         }
     }
 }
