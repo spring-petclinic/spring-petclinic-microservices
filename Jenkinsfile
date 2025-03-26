@@ -10,7 +10,7 @@ pipeline {
             steps {
                 echo 'Testing ...'
                 sh '''
-                    cd spring-petclinic-vets-service
+                    cd spring-petclinic-customers-service
                     mvn clean test -Djacoco.destFile=target/jacoco.exec
                 '''
             }
@@ -29,14 +29,15 @@ pipeline {
 
     post {
         always {
-            junit 'spring-petclinic-vets-service/target/surefire-reports/*.xml'
+            junit 'spring-petclinic-customers-service/target/surefire-reports/*.xml'
             jacoco(
-                execPattern: 'spring-petclinic-vets-service/target/jacoco.exec',
-                classPattern: 'spring-petclinic-vets-service/target/classes',
-                sourcePattern: 'spring-petclinic-vets-service/src/main/java',
-                inclusionPattern: 'spring-petclinic-vets-service/*.class',
+                execPattern: 'spring-petclinic-customers-service/target/jacoco.exec',
+                classPattern: 'spring-petclinic-customers-service/target/classes',
+                sourcePattern: 'spring-petclinic-customers-service/src/main/java',
+                inclusionPattern: 'spring-petclinic-customers-service/*.class',
                 exclusionPattern: ''
             )
+            
         }
     }
 }
