@@ -10,6 +10,7 @@ pipeline {
             steps {
                 echo 'Testing ...'
                 sh '''
+                    cd spring-petclinic-vets-service
                     mvn test
                 '''
             }
