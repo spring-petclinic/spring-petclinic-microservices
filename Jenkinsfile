@@ -29,7 +29,7 @@ pipeline {
 
     post {
         always {
-           junit '**/target/surefire-reports/*.xml'
+           junit 'spring-petclinic-vets-service/target/surefire-reports/*.xml'
         }
     }
 }
