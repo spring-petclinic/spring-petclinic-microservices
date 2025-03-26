@@ -1,17 +1,14 @@
 pipeline {
     agent any
 
+    tools {
+        maven '3.9.9'
+    }
+
     stages {
         stage('Test') {
             steps {
-                echo 'Testing ...'
-            }
-        }
-
-        stage('Build') {
-            steps {
-                echo 'Building ...'
-                sh 'mvn --version'
+                sh 'mvn -version'
             }
         }
     }
