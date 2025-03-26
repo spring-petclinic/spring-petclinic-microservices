@@ -9,18 +9,24 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Testing ...'
-                sh 'mvn -version'
+                sh 'mvn test'
             }
         }
 
-        stage('Building') {
-            steps {
-                echo 'Building ...'
-                sh '''
-                    cd spring-petclinic-visits-service
-                    mvn clean install
-                '''
-            }
+        // stage('Building') {
+        //     steps {
+        //         echo 'Building ...'
+        //         sh '''
+        //             cd spring-petclinic-visits-service
+        //             mvn clean install
+        //         '''
+        //     }
+        // }
+    }
+
+    post {
+        always {
+            junit '**/build/test-reports/*.xml'
         }
     }
 }
