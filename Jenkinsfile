@@ -10,7 +10,6 @@ pipeline {
             steps {
                 echo 'Testing ...'
                 sh '''
-                    cd spring-petclinic-vets-service
                     mvn clean test -Djacoco.destFile=target/jacoco.exec
                 '''
                 jacoco(
