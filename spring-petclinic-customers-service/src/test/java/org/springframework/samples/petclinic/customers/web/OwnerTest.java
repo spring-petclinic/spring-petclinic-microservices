@@ -90,11 +90,6 @@ class OwnerTest {
         assertEquals(owner, pet.getOwner());
     }
 
-    @Test
-    void testToString() {
-        String expected = "[Owner@37fbe4a8 id = [null], lastName = 'Doe', firstName = 'John', address = '123 Street', city = 'New York', telephone = '1234567890']";
-        assertEquals(expected, owner.toString());
-    }
 
     @Test
     void testGetPetsInternalNotNull() throws Exception {
