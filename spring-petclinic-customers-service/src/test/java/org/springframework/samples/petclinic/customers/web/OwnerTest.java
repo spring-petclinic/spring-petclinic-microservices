@@ -7,9 +7,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.samples.petclinic.customers.model.Owner;
 import org.springframework.samples.petclinic.customers.model.Pet;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 class OwnerTest {
@@ -61,5 +62,52 @@ class OwnerTest {
         assertEquals("123 Street", owner.getAddress());
         assertEquals("New York", owner.getCity());
         assertEquals("1234567890", owner.getTelephone());
+    }
+
+    @Test
+    void testPetsAreSortedByName() {
+        Pet petA = new Pet();
+        petA.setName("Zebra");
+
+        Pet petB = new Pet();
+        petB.setName("Alpha");
+
+        owner.addPet(petA);
+        owner.addPet(petB);
+
+        List<Pet> pets = owner.getPets();
+        assertEquals("Alpha", pets.get(0).getName());
+        assertEquals("Zebra", pets.get(1).getName());
+    }
+
+    @Test
+    void testAddPetAssignsOwner() {
+        Pet pet = new Pet();
+        pet.setName("Buddy");
+
+        owner.addPet(pet);
+
+        assertEquals(owner, pet.getOwner());
+    }
+
+    @Test
+    void testToString() {
+        String expected = "[Owner@37fbe4a8 id = [null], lastName = 'Doe', firstName = 'John', address = '123 Street', city = 'New York', telephone = '1234567890']";
+        assertEquals(expected, owner.toString());
+    }
+
+    @Test
+    void testGetPetsInternalNotNull() throws Exception {
+        Field petsField = Owner.class.getDeclaredField("pets");
+        petsField.setAccessible(true);
+        petsField.set(owner, null); // Simulate `null` pets set
+
+        assertNotNull(owner.getPets());
+        assertTrue(owner.getPets().isEmpty());
+    }
+
+    @Test
+    void testOwnerIdInitiallyNull() {
+        assertNull(owner.getId());
     }
 }
