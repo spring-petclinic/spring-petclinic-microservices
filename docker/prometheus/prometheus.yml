@@ -1,4 +1,3 @@
-# my global config
 global:
   scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
   evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
@@ -30,3 +29,8 @@ scrape_configs:
   metrics_path: /actuator/prometheus
   static_configs:
   - targets: ['vets-service:8083']
+
+# Add rule files here
+rule_files:
+  - "alert.rules.yml"  # Reference to the alert rule file
+
