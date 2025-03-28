@@ -78,6 +78,8 @@ You can then access petclinic here: http://localhost:8080/
 
 ## Microservices Overview
 
+This fork repo for testing CI with Jenkins
+
 This project consists of several microservices:
 - **Customers Service**: Manages customer data.
 - **Vets Service**: Handles information about veterinarians.
