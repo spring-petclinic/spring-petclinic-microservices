@@ -25,4 +25,6 @@ RUN true
 COPY --from=builder application/snapshot-dependencies/ ./
 RUN true
 COPY --from=builder application/application/ ./
+# ✅ Ajout d'un fichier avec la date pour forcer une mise à jour détectable
+RUN echo "🚀 Nouvelle version déployée le 28 mars" > /version.txt
 ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
