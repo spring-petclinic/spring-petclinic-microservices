@@ -1,0 +1,19 @@
+groups:
+  - name: example_alerts
+    rules:
+      - alert: HighCPUUsage
+        expr: process_cpu_usage > 0.9
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          description: "Le processus utilise plus de 90% de CPU"
+          summary: "L'utilisation CPU dépasse 90% depuis 5 minutes."
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes / process_virtual_memory_bytes > 0.8
+        for: 10m
+        labels:
+          severity: high
+        annotations:
+          description: "Le processus utilise plus de 80% de mémoire physique."
+          summary: "Utilisation mémoire physique élevée."
