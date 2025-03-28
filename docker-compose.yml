@@ -151,7 +151,7 @@ services:
         limits:
           memory: 256M
     ports:
-    - 3030:3030
+    - 3000:3000
 
   prometheus-server:
     build: ./docker/prometheus
