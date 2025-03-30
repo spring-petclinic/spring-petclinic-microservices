@@ -36,7 +36,7 @@ pipeline {
                 expression { env.BUILD_VETS == "true" }
             }
             steps {
-                dir('vets-service') {
+                dir('spring-petclinic-vets-service') {
                     sh "mvn clean package -DskipTests"
                     sh "mvn test"
                     junit '**/target/surefire-reports/*.xml'
