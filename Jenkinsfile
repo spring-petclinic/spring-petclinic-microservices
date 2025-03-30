@@ -22,9 +22,14 @@ pipeline {
                 script {
                     def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
                     echo "Changed files:\n${changedFiles}"
-                    env.BUILD_VETS = changedFiles.contains("spring-petclinic-vets-service/")
-                    env.BUILD_VISITS = changedFiles.contains("spring-petclinic-visits-service/")
-                    env.BUILD_CUSTOMERS = changedFiles.contains("spring-petclinic-customers-service/")
+                    
+                    def services = ['spring-petclinic-vets-service', 
+                                    'spring-petclinic-visits-service', 
+                                    'spring-petclinic-customers-service']
+                    
+                    services.each { service ->
+                        env["BUILD_${service}"] = changedFiles.contains("${service}/") ? "true" : "false"
+                    }
                 }
             }
         }
@@ -34,11 +39,13 @@ pipeline {
                 axes {
                     axis {
                         name 'SERVICE'
-                        values 'spring-petclinic-vets-service', 'spring-petclinic-visits-service', 'spring-petclinic-customers-service'
+                        values 'spring-petclinic-vets-service', 
+                               'spring-petclinic-visits-service', 
+                               'spring-petclinic-customers-service'
                     }
                 }
                 when {
-                    expression { env["BUILD_${SERVICE.toUpperCase()}"] == "true" }
+                    expression { env["BUILD_${SERVICE}"] == "true" }
                 }
                 stages {
                     stage('Build') {
@@ -48,15 +55,15 @@ pipeline {
                             }
                         }
                     }
-                    // stage('Test & Coverage') {
-                    //     steps {
-                    //         dir("${SERVICE}") {
-                    //             sh "mvn test"
-                    //             junit '**/target/surefire-reports/*.xml'
-                    //             cobertura coberturaReportFile: '**/target/site/cobertura/coverage.xml'
-                    //         }
-                    //     }
-                    // }
+                    stage('Test & Coverage') {
+                        steps {
+                            dir("${SERVICE}") {
+                                sh "mvn test"
+                                junit '**/target/surefire-reports/*.xml'
+                                cobertura coberturaReportFile: '**/target/site/cobertura/coverage.xml'
+                            }
+                        }
+                    }
                 }
             }
         }
