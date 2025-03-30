@@ -1,8 +1,8 @@
 pipeline {
     agent any
 
-    environment {
-        MAVEN_HOME = tool name: 'Maven', type: 'maven'
+    tools {
+        maven 'maven3.9.9' // Tên Maven trong Global Tool Configuration
     }
 
     options {
@@ -37,8 +37,8 @@ pipeline {
             }
             steps {
                 dir('vets-service') {
-                    sh "${MAVEN_HOME}/bin/mvn clean package -DskipTests"
-                    sh "${MAVEN_HOME}/bin/mvn test"
+                    sh "mvn clean package -DskipTests"
+                    sh "mvn test"
                     junit '**/target/surefire-reports/*.xml'
                 }
             }
@@ -50,8 +50,8 @@ pipeline {
             }
             steps {
                 dir('visits-service') {
-                    sh "${MAVEN_HOME}/bin/mvn clean package -DskipTests"
-                    sh "${MAVEN_HOME}/bin/mvn test"
+                    sh "mvn clean package -DskipTests"
+                    sh "mvn test"
                     junit '**/target/surefire-reports/*.xml'
                 }
             }
@@ -63,8 +63,8 @@ pipeline {
             }
             steps {
                 dir('customers-service') {
-                    sh "${MAVEN_HOME}/bin/mvn clean package -DskipTests"
-                    sh "${MAVEN_HOME}/bin/mvn test"
+                    sh "mvn clean package -DskipTests"
+                    sh "mvn test"
                     junit '**/target/surefire-reports/*.xml'
                 }
             }
