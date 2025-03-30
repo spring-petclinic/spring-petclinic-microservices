@@ -28,6 +28,10 @@ pipeline {
                     env.BUILD_VETS = changedFiles.contains("vets-service/")
                     env.BUILD_VISITS = changedFiles.contains("visits-service/")
                     env.BUILD_CUSTOMERS = changedFiles.contains("customers-service/")
+                     // 🔍 Debug: In ra để kiểm tra biến có được set đúng không
+            echo "BUILD_VETS: ${env.BUILD_VETS}"
+            echo "BUILD_VISITS: ${env.BUILD_VISITS}"
+            echo "BUILD_CUSTOMERS: ${env.BUILD_CUSTOMERS}"
                 }
             }
         }
