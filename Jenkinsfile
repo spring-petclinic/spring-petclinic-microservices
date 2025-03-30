@@ -54,9 +54,9 @@ pipeline {
                 }
                 when {
                     expression {
-                        return (SERVICE == 'spring-petclinic-vets-service' && env.BUILD_VETS.toBoolean()) ||
-                               (SERVICE == 'spring-petclinic-visits-service' && env.BUILD_VISITS.toBoolean()) ||
-                               (SERVICE == 'spring-petclinic-customers-service' && env.BUILD_CUSTOMERS.toBoolean())
+                        return (SERVICE == 'spring-petclinic-vets-service' && env.BUILD_VETS == "true") ||
+                               (SERVICE == 'spring-petclinic-visits-service' && env.BUILD_VISITS == "true") ||
+                               (SERVICE == 'spring-petclinic-customers-service' && env.BUILD_CUSTOMERS == "true")
                     }
                 }
 
