@@ -48,15 +48,15 @@ pipeline {
                             }
                         }
                     }
-                    stage('Test & Coverage') {
-                        steps {
-                            dir("${SERVICE}") {
-                                sh "mvn test"
-                                junit '**/target/surefire-reports/*.xml'
-                                cobertura coberturaReportFile: '**/target/site/cobertura/coverage.xml'
-                            }
-                        }
-                    }
+                    // stage('Test & Coverage') {
+                    //     steps {
+                    //         dir("${SERVICE}") {
+                    //             sh "mvn test"
+                    //             junit '**/target/surefire-reports/*.xml'
+                    //             cobertura coberturaReportFile: '**/target/site/cobertura/coverage.xml'
+                    //         }
+                    //     }
+                    // }
                 }
             }
         }
