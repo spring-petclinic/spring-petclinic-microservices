@@ -70,7 +70,8 @@ pipeline {
                     sh "mvn clean package -DskipTests"
                     sh "mvn test"
                     junit '**/target/surefire-reports/*.xml'
-                    jacoco execPattern: '**/target/jacoco.exec'
+                    jacoco path: '**/target/jacoco.exec'
+
                 }
             }
         }
