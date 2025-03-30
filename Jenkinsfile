@@ -11,7 +11,8 @@ pipeline {
             steps {
                 script {
                     echo "Cloning repository ${REPO_URL} - Branch: ${BRANCH}"
-                    git branch: "${BRANCH}", url: "${REPO_URL}"
+                    sh "rm -rf *"
+                    sh "git clone -b ${BRANCH} ${REPO_URL} ."
                 }
             }
         }
@@ -54,6 +55,7 @@ pipeline {
                     env.AFFECTED_SERVICES.split(",").each { service ->
                         echo "Running tests for ${service}..."
                         dir("${service}") {
+                            sh 'chmod +x mvnw'
                             sh './mvnw test'
                         }
                     }
@@ -82,7 +84,17 @@ pipeline {
             }
             post {
                 always {
-                    publishHTML([target: [reportDir: "target/site/jacoco", reportFiles: 'index.html', reportName: "Code Coverage"]])
+                    script {
+                        env.AFFECTED_SERVICES.split(",").each { service ->
+                            publishHTML([
+                                target: [
+                                    reportDir: "${service}/target/site/jacoco",
+                                    reportFiles: 'index.html',
+                                    reportName: "Code Coverage - ${service}"
+                                ]
+                            ])
+                        }
+                    }
                 }
             }
         }
@@ -96,6 +108,7 @@ pipeline {
                     env.AFFECTED_SERVICES.split(",").each { service ->
                         echo "Building ${service}..."
                         dir("${service}") {
+                            sh 'chmod +x mvnw'
                             sh './mvnw clean package'
                         }
                     }
