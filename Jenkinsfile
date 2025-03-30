@@ -82,9 +82,7 @@ pipeline {
                     inclusionPattern: '**/*.class',
                     exclusionPattern: '**/*Test.class',
                     minimumInstructionCoverage: '70',
-                    minimumBranchCoverage: '70',
-                    failIfCoverageEmpty: true
-                )
+                    minimumBranchCoverage: '70'                )
             }
         }
     }

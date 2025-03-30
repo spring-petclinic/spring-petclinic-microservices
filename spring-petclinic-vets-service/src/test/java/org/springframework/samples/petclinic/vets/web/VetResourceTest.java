@@ -58,6 +58,7 @@ class VetResourceTest {
     @Test
     void shouldGetAListOfVets() throws Exception {
 
+        
         Vet vet = new Vet();
         vet.setId(1);
 
