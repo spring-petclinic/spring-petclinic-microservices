@@ -40,17 +40,15 @@ pipeline {
                     sh "${MAVEN_HOME}/bin/mvn test"
                     junit '**/target/surefire-reports/*.xml'
                 }
-
-                // Nếu có thư mục JMeter, chạy performance test
-                // script {
-                //     if (sh(script: "ls jmeter/*.jmx 2>/dev/null || echo ''", returnStdout: true).trim()) {
-                //         echo "Running JMeter tests..."
-                //         sh "jmeter -n -t jmeter/petclinic_test_plan.jmx -l jmeter/results.jtl"
-                //         archiveArtifacts artifacts: 'jmeter/results.jtl', fingerprint: true
-                //     } else {
-                //         echo "No JMeter tests found."
-                //     }
-                // }
+                script {
+                    if (sh(script: "ls jmeter/*.jmx 2>/dev/null || echo ''", returnStdout: true).trim()) {
+                        echo "Running JMeter tests..."
+                        sh "jmeter -n -t jmeter/petclinic_test_plan.jmx -l jmeter/results.jtl"
+                        archiveArtifacts artifacts: 'jmeter/results.jtl', fingerprint: true
+                    } else {
+                        echo "No JMeter tests found."
+                    }
+                }
             }
         }
 
@@ -67,7 +65,7 @@ pipeline {
 
     post {
         always {
-            echo "Pipeline completed!"
+            echo "Pipeline completed!!"
         }
         success {
             echo "Build successful!"
