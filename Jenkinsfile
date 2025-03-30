@@ -74,4 +74,3 @@ environment {
             echo "Pipeline completed!"
         }
     }
-}
