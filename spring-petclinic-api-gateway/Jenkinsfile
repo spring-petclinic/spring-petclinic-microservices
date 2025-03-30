@@ -1,0 +1,79 @@
+pipeline {
+    agent any
+
+    environment {
+        PROJECT_NAME = "spring-petclinic"
+        MAVEN_HOME = tool name: 'Maven', type: 'maven'
+    }
+
+    options {
+        skipDefaultCheckout() // Không clone lại code mặc định
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    checkout scm
+                }
+            }
+        }
+
+        stage('Detect Changes') {
+            steps {
+                script {
+                    def changes = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
+                    echo "Changed files:\n${changes}"
+
+                    env.RUN_TESTS = changes.contains("src/") || changes.contains("jmeter/")
+                    env.RUN_BUILD = changes.contains("src/")
+                }
+            }
+        }
+
+        stage('Test') {
+            when {
+                expression { env.RUN_TESTS == "true" }
+            }
+            steps {
+                script {
+                    sh "${MAVEN_HOME}/bin/mvn test"
+                    junit '**/target/surefire-reports/*.xml'
+                }
+
+                // Nếu có thư mục JMeter, chạy performance test
+                // script {
+                //     if (sh(script: "ls jmeter/*.jmx 2>/dev/null || echo ''", returnStdout: true).trim()) {
+                //         echo "Running JMeter tests..."
+                //         sh "jmeter -n -t jmeter/petclinic_test_plan.jmx -l jmeter/results.jtl"
+                //         archiveArtifacts artifacts: 'jmeter/results.jtl', fingerprint: true
+                //     } else {
+                //         echo "No JMeter tests found."
+                //     }
+                // }
+            }
+        }
+
+        stage('Build') {
+            when {
+                expression { env.RUN_BUILD == "true" }
+            }
+            steps {
+                sh "${MAVEN_HOME}/bin/mvn clean package -DskipTests"
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "Pipeline completed!"
+        }
+        success {
+            echo "Build successful!"
+        }
+        failure {
+            echo "Build failed!"
+        }
+    }
+}
