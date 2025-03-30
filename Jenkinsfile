@@ -68,9 +68,23 @@ pipeline {
             steps {
                 dir('spring-petclinic-customers-service') {
                     sh "mvn clean package -DskipTests"
-                    sh "mvn test"
+                    sh "mvn test verify"
                     junit '**/target/surefire-reports/*.xml'
                 }
+            }
+        }
+        stage('Publish Coverage') {
+            steps {
+                jacoco(
+                    execPattern: '**/target/jacoco.exec',
+                    classPattern: '**/target/classes',
+                    sourcePattern: '**/src/main/java',
+                    inclusionPattern: '**/*.class',
+                    exclusionPattern: '**/*Test.class',
+                    minimumInstructionCoverage: '70',
+                    minimumBranchCoverage: '70',
+                    failIfCoverageEmpty: true
+                )
             }
         }
     }
