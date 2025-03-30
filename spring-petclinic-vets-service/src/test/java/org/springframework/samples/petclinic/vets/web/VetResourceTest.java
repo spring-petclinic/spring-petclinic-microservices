@@ -44,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Maciej Szarlinski
  */
 
- 
+
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(VetResource.class)
 @ActiveProfiles("test")
@@ -68,3 +68,4 @@ class VetResourceTest {
             .andExpect(jsonPath("$[0].id").value(1));
     }
 }
+
