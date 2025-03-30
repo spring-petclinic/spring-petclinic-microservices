@@ -41,7 +41,14 @@ pipeline {
                 }
             }
         }
-
+        stage('Debug Environment Variables') {
+            steps {
+                script {
+                    echo "BUILD_VETS=${env.BUILD_VETS}, BUILD_VISITS=${env.BUILD_VISITS}, BUILD_CUSTOMERS=${env.BUILD_CUSTOMERS}"
+                    echo "SERVICE=${SERVICE}"
+                }
+            }
+        }
         stage('Build & Test Services') {
             matrix {
                 axes {
