@@ -53,7 +53,7 @@ pipeline {
                     }
                 }
                 when {
-                    expression { env.get("BUILD_" + SERVICE.toUpperCase().replace("-", "_")) == "true" }
+                    expression { env["BUILD_" + SERVICE.toUpperCase().replace("-", "_")] == "true" }
                 }
 
                 stages {
