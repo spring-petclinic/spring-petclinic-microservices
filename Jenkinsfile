@@ -4,6 +4,7 @@ pipeline {
     environment {
         REPO_URL = 'https://github.com/htloc0610/spring-petclinic-microservices'
         BRANCH = "main"
+        WORKSPACE_DIR = "repo" 
     }
 
     stages {
@@ -11,8 +12,11 @@ pipeline {
             steps {
                 script {
                     echo "Cloning repository ${REPO_URL} - Branch: ${BRANCH}"
-                    sh "rm -rf *"
-                    sh "git clone -b ${BRANCH} ${REPO_URL} ."
+                    sh "rm -rf ${WORKSPACE_DIR}" 
+                    sh "mkdir -p ${WORKSPACE_DIR}" 
+                    dir(WORKSPACE_DIR) {
+                        sh "git clone -b ${BRANCH} ${REPO_URL} ."
+                    }
                 }
             }
         }
@@ -20,28 +24,30 @@ pipeline {
         stage('Detect Changes') {
             steps {
                 script {
-                    def changes = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim()
-                    echo "Files changed:\n${changes}"
+                    dir(WORKSPACE_DIR) {
+                        def changes = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim()
+                        echo "Files changed:\n${changes}"
 
-                    def services = [
-                        'spring-petclinic-admin-server',
-                        'spring-petclinic-api-gateway',
-                        'spring-petclinic-config-server',
-                        'spring-petclinic-customers-service',
-                        'spring-petclinic-discovery-server',
-                        'spring-petclinic-genai-service'
-                    ]
+                        def services = [
+                            'spring-petclinic-admin-server',
+                            'spring-petclinic-api-gateway',
+                            'spring-petclinic-config-server',
+                            'spring-petclinic-customers-service',
+                            'spring-petclinic-discovery-server',
+                            'spring-petclinic-genai-service'
+                        ]
 
-                    def affectedServices = changes.tokenize("\n").collect { it.split("/")[0] }.unique().findAll { it in services }
+                        def affectedServices = changes.tokenize("\n").collect { it.split("/")[0] }.unique().findAll { it in services }
 
-                    if (affectedServices.isEmpty()) {
-                        echo "No relevant changes, skipping pipeline"
-                        currentBuild.result = 'ABORTED'
-                        return
+                        if (affectedServices.isEmpty()) {
+                            echo "No relevant changes, skipping pipeline"
+                            currentBuild.result = 'ABORTED'
+                            return
+                        }
+
+                        env.AFFECTED_SERVICES = affectedServices.join(",")
+                        echo "Services to build: ${env.AFFECTED_SERVICES}"
                     }
-
-                    env.AFFECTED_SERVICES = affectedServices.join(",")
-                    echo "Services to build: ${env.AFFECTED_SERVICES}"
                 }
             }
         }
@@ -54,7 +60,7 @@ pipeline {
                 script {
                     env.AFFECTED_SERVICES.split(",").each { service ->
                         echo "Running tests for ${service}..."
-                        dir("${service}") {
+                        dir("${WORKSPACE_DIR}/${service}") {
                             sh 'chmod +x mvnw'
                             sh './mvnw test'
                         }
@@ -63,7 +69,7 @@ pipeline {
             }
             post {
                 always {
-                    junit "**/target/surefire-reports/*.xml"
+                    junit "**/${WORKSPACE_DIR}/target/surefire-reports/*.xml"
                 }
             }
         }
@@ -76,7 +82,7 @@ pipeline {
                 script {
                     env.AFFECTED_SERVICES.split(",").each { service ->
                         echo "Checking test coverage for ${service}..."
-                        dir("${service}") {
+                        dir("${WORKSPACE_DIR}/${service}") {
                             sh './mvnw jacoco:report'
                         }
                     }
@@ -88,7 +94,7 @@ pipeline {
                         env.AFFECTED_SERVICES.split(",").each { service ->
                             publishHTML([
                                 target: [
-                                    reportDir: "${service}/target/site/jacoco",
+                                    reportDir: "${WORKSPACE_DIR}/${service}/target/site/jacoco",
                                     reportFiles: 'index.html',
                                     reportName: "Code Coverage - ${service}"
                                 ]
@@ -107,7 +113,7 @@ pipeline {
                 script {
                     env.AFFECTED_SERVICES.split(",").each { service ->
                         echo "Building ${service}..."
-                        dir("${service}") {
+                        dir("${WORKSPACE_DIR}/${service}") {
                             sh 'chmod +x mvnw'
                             sh './mvnw clean package'
                         }
