@@ -29,26 +29,19 @@ pipeline {
                     def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
                     echo "Changed files:\n${changedFiles}"
 
-                    if (changedFiles.contains("spring-petclinic-vets-service/")) {
+                    if (changedFiles.split('\n').find { it.startsWith("spring-petclinic-vets-service/") }) {
                         env.BUILD_VETS = "true"
                     }
-                    if (changedFiles.contains("spring-petclinic-visits-service/")) {
+                    if (changedFiles.split('\n').find { it.startsWith("spring-petclinic-visits-service/") }) {
                         env.BUILD_VISITS = "true"
                     }
-                    if (changedFiles.contains("spring-petclinic-customers-service/")) {
+                    if (changedFiles.split('\n').find { it.startsWith("spring-petclinic-customers-service/") }) {
                         env.BUILD_CUSTOMERS = "true"
                     }
                 }
             }
         }
-        stage('Debug Environment Variables') {
-            steps {
-                script {
-                    echo "BUILD_VETS=${env.BUILD_VETS}, BUILD_VISITS=${env.BUILD_VISITS}, BUILD_CUSTOMERS=${env.BUILD_CUSTOMERS}"
-                    echo "SERVICE=${SERVICE}"
-                }
-            }
-        }
+
         stage('Build & Test Services') {
             matrix {
                 axes {
