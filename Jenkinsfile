@@ -9,6 +9,12 @@ pipeline {
         skipDefaultCheckout()
     }
 
+    environment {
+        BUILD_VETS = "false"
+        BUILD_VISITS = "false"
+        BUILD_CUSTOMERS = "false"
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -22,13 +28,15 @@ pipeline {
                 script {
                     def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
                     echo "Changed files:\n${changedFiles}"
-                    
-                    def services = ['spring-petclinic-vets-service', 
-                                    'spring-petclinic-visits-service', 
-                                    'spring-petclinic-customers-service']
-                    
-                    services.each { service ->
-                        env["BUILD_${service}"] = changedFiles.contains("${service}/") ? "true" : "false"
+
+                    if (changedFiles.contains("spring-petclinic-vets-service/")) {
+                        env.BUILD_VETS = "true"
+                    }
+                    if (changedFiles.contains("spring-petclinic-visits-service/")) {
+                        env.BUILD_VISITS = "true"
+                    }
+                    if (changedFiles.contains("spring-petclinic-customers-service/")) {
+                        env.BUILD_CUSTOMERS = "true"
                     }
                 }
             }
@@ -45,7 +53,11 @@ pipeline {
                     }
                 }
                 when {
-                    expression { env["BUILD_${SERVICE}"] == "true" }
+                    expression {
+                        return (SERVICE == 'spring-petclinic-vets-service' && env.BUILD_VETS == "true") ||
+                               (SERVICE == 'spring-petclinic-visits-service' && env.BUILD_VISITS == "true") ||
+                               (SERVICE == 'spring-petclinic-customers-service' && env.BUILD_CUSTOMERS == "true")
+                    }
                 }
                 stages {
                     stage('Build') {
