@@ -9,12 +9,7 @@ pipeline {
         skipDefaultCheckout()
     }
 
-    environment {
-        BUILD_VETS = "false"
-        BUILD_VISITS = "false"
-        BUILD_CUSTOMERS = "false"
-    }
-
+    
     stages {
         stage('Checkout') {
             steps {
