@@ -29,9 +29,9 @@ pipeline {
                     def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
                     echo "Changed files:\n${changedFiles}"
 
-                    env.BUILD_VETS = changedFiles.split("\n").find { it.startsWith("spring-petclinic-vets-service/") } ? "true" : "false"
-                    env.BUILD_VISITS = changedFiles.split("\n").find { it.startsWith("spring-petclinic-visits-service/") } ? "true" : "false"
-                    env.BUILD_CUSTOMERS = changedFiles.split("\n").find { it.startsWith("spring-petclinic-customers-service/") } ? "true" : "false"
+                    env.BUILD_VETS = changedFiles.contains("vets-service/")
+                    env.BUILD_VISITS = changedFiles.contains("visits-service/")
+                    env.BUILD_CUSTOMERS = changedFiles.contains("customers-service/")
 
 
                     echo "BUILD_VETS: ${env.BUILD_VETS}"
