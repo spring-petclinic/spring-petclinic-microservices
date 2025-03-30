@@ -60,6 +60,7 @@ environment {
                             dir("${SERVICE}") {
                                 sh "mvn test"
                                 junit '**/target/surefire-reports/*.xml'
+                                jacoco execPattern: '**/target/jacoco.exec'
                             }
                         }
                     }
