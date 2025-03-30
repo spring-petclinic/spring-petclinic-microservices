@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'maven3.9.9' // Tên Maven trong Global Tool Configuration
+        maven 'maven3.9.9'
     }
 
     options {
@@ -53,7 +53,11 @@ pipeline {
                     }
                 }
                 when {
-                    expression { env["BUILD_" + SERVICE.toUpperCase().replace("-", "_")] == "true" }
+                    expression {
+                        return (SERVICE == 'spring-petclinic-vets-service' && env.BUILD_VETS.toBoolean()) ||
+                               (SERVICE == 'spring-petclinic-visits-service' && env.BUILD_VISITS.toBoolean()) ||
+                               (SERVICE == 'spring-petclinic-customers-service' && env.BUILD_CUSTOMERS.toBoolean())
+                    }
                 }
 
                 stages {
