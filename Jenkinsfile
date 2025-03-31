@@ -19,6 +19,7 @@ pipeline {
     stage("deploy") {
       steps {
         echo 'deploying the application...'
+        echo 'Deploying automation Deploy-staging'
       }
     }
   
