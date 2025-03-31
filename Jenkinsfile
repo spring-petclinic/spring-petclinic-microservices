@@ -4,7 +4,7 @@ pipeline {
     environment {
         REPO_URL = 'https://github.com/htloc0610/spring-petclinic-microservices'
         BRANCH = "main"
-        WORKSPACE_DIR = "repo" 
+        WORKSPACE_DIR = "repo"
     }
 
     stages {
@@ -12,8 +12,8 @@ pipeline {
             steps {
                 script {
                     echo "Cloning repository ${REPO_URL} - Branch: ${BRANCH}"
-                    sh "rm -rf ${WORKSPACE_DIR}" 
-                    sh "mkdir -p ${WORKSPACE_DIR}" 
+                    sh "rm -rf ${WORKSPACE_DIR}"
+                    sh "mkdir -p ${WORKSPACE_DIR}"
                     dir(WORKSPACE_DIR) {
                         sh "git clone -b ${BRANCH} ${REPO_URL} ."
                     }
@@ -39,9 +39,9 @@ pipeline {
                         ]
 
                         def affectedServices = changes.tokenize("\n")
-                            .collect { it =~ /^([^\/]+)\// ? (it =~ /^([^\/]+)\//)[0][1] : null } // Trích xuất tên thư mục gốc
+                            .collect { it =~ /^([^\/]+)\// ? (it =~ /^([^\/]+)\//)[0][1] : null }
                             .unique()
-                            .findAll { it in services } // Lọc những service hợp lệ
+                            .findAll { it in services }
 
                         if (affectedServices.isEmpty()) {
                             echo "No relevant changes, skipping pipeline"
@@ -58,21 +58,18 @@ pipeline {
 
         stage('Test') {
             when {
-                expression { env.AFFECTED_SERVICES && env.AFFECTED_SERVICES.split(",").any { it in [
-                    'spring-petclinic-admin-server',
-                    'spring-petclinic-api-gateway',
-                    'spring-petclinic-config-server',
-                    'spring-petclinic-customers-service',
-                    'spring-petclinic-discovery-server',
-                    'spring-petclinic-genai-service',
-                    'spring-petclinic-visits-service'] } }
+                expression { env.AFFECTED_SERVICES }
             }
             steps {
                 script {
                     env.AFFECTED_SERVICES.split(",").each { service ->
                         echo "Running tests for ${service}..."
                         dir("${WORKSPACE_DIR}/${service}") {
-                            sh 'mvn test'
+                            try {
+                                sh 'mvn test'
+                            } catch (Exception e) {
+                                error "Tests failed for ${service}"
+                            }
                         }
                     }
                 }
@@ -86,21 +83,18 @@ pipeline {
 
         stage('Code Coverage') {
             when {
-                expression { env.AFFECTED_SERVICES && env.AFFECTED_SERVICES.split(",").any { it in [
-                    'spring-petclinic-admin-server',
-                    'spring-petclinic-api-gateway',
-                    'spring-petclinic-config-server',
-                    'spring-petclinic-customers-service',
-                    'spring-petclinic-discovery-server',
-                    'spring-petclinic-genai-service',
-                    'spring-petclinic-visits-service'] } }
+                expression { env.AFFECTED_SERVICES }
             }
             steps {
                 script {
                     env.AFFECTED_SERVICES.split(",").each { service ->
                         echo "Checking test coverage for ${service}..."
                         dir("${WORKSPACE_DIR}/${service}") {
-                            sh 'mvn jacoco:report'
+                            try {
+                                sh 'mvn jacoco:report'
+                            } catch (Exception e) {
+                                error "Code coverage report generation failed for ${service}"
+                            }
                         }
                     }
                 }
@@ -124,23 +118,28 @@ pipeline {
 
         stage('Build') {
             when {
-                expression { env.AFFECTED_SERVICES && env.AFFECTED_SERVICES.split(",").any { it in [
-                    'spring-petclinic-admin-server',
-                    'spring-petclinic-api-gateway',
-                    'spring-petclinic-config-server',
-                    'spring-petclinic-customers-service',
-                    'spring-petclinic-discovery-server',
-                    'spring-petclinic-genai-service',
-                    'spring-petclinic-visits-service'] } }
+                expression { env.AFFECTED_SERVICES }
             }
             steps {
                 script {
                     env.AFFECTED_SERVICES.split(",").each { service ->
                         echo "Building ${service}..."
                         dir("${WORKSPACE_DIR}/${service}") {
-                            sh 'mvn clean package'
+                            try {
+                                sh 'mvn clean package'
+                            } catch (Exception e) {
+                                error "Build failed for ${service}"
+                            }
                         }
                     }
+                }
+            }
+        }
+
+        stage('End') {
+            steps {
+                script {
+                    echo "Pipeline execution completed."
                 }
             }
         }
@@ -152,6 +151,11 @@ pipeline {
         }
         failure {
             echo "Pipeline failed!"
+        }
+        always {
+            script {
+                echo "Pipeline execution ended with status: ${currentBuild.result}"
+            }
         }
     }
 }
