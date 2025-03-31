@@ -92,6 +92,10 @@ pipeline {
                         dir("${WORKSPACE_DIR}/${service}") {
                             try {
                                 sh 'mvn jacoco:report'
+
+                                def coverageData = sh(script: "tail -n +2 target/site/jacoco/jacoco.csv | awk -F',' '{total+=$4; covered+=$5} END {if (total>0) print (covered/total)*100; else print 0}'", returnStdout: true).trim()
+                                echo "Code Coverage for ${service}: ${coverageData}%"
+
                             } catch (Exception e) {
                                 error "Code coverage report generation failed for ${service}"
                             }
@@ -115,6 +119,7 @@ pipeline {
                 }
             }
         }
+
 
         stage('Build') {
             when {
