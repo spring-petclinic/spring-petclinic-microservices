@@ -14,7 +14,6 @@ public class MetricConfig {
     return registry -> registry.config().commonTags("application", "petclinic");
   }
 
-
   @Bean
   TimedAspect timedAspect(MeterRegistry registry) {
     return new TimedAspect(registry);
