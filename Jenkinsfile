@@ -54,7 +54,13 @@ pipeline {
 
         stage('Test') {
             when {
-                expression { env.AFFECTED_SERVICES != null && env.AFFECTED_SERVICES != "" }
+                expression { env.AFFECTED_SERVICES && env.AFFECTED_SERVICES.split(",").any { it in [
+                    'spring-petclinic-admin-server',
+                    'spring-petclinic-api-gateway',
+                    'spring-petclinic-config-server',
+                    'spring-petclinic-customers-service',
+                    'spring-petclinic-discovery-server',
+                    'spring-petclinic-genai-service'] } }
             }
             steps {
                 script {
@@ -76,7 +82,13 @@ pipeline {
 
         stage('Code Coverage') {
             when {
-                expression { env.AFFECTED_SERVICES != null && env.AFFECTED_SERVICES != "" }
+                expression { env.AFFECTED_SERVICES && env.AFFECTED_SERVICES.split(",").any { it in [
+                    'spring-petclinic-admin-server',
+                    'spring-petclinic-api-gateway',
+                    'spring-petclinic-config-server',
+                    'spring-petclinic-customers-service',
+                    'spring-petclinic-discovery-server',
+                    'spring-petclinic-genai-service'] } }
             }
             steps {
                 script {
@@ -107,7 +119,13 @@ pipeline {
 
         stage('Build') {
             when {
-                expression { env.AFFECTED_SERVICES != null && env.AFFECTED_SERVICES != "" }
+                expression { env.AFFECTED_SERVICES && env.AFFECTED_SERVICES.split(",").any { it in [
+                    'spring-petclinic-admin-server',
+                    'spring-petclinic-api-gateway',
+                    'spring-petclinic-config-server',
+                    'spring-petclinic-customers-service',
+                    'spring-petclinic-discovery-server',
+                    'spring-petclinic-genai-service'] } }
             }
             steps {
                 script {
