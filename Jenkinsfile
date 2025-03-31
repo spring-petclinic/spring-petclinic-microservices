@@ -34,13 +34,14 @@ pipeline {
                             'spring-petclinic-config-server',
                             'spring-petclinic-customers-service',
                             'spring-petclinic-discovery-server',
-                            'spring-petclinic-genai-service'
+                            'spring-petclinic-genai-service',
+                            'spring-petclinic-visits-service'
                         ]
 
                         def affectedServices = changes.tokenize("\n")
-                            .collect { it.tokenize("/")[0] } // Lấy phần thư mục gốc
+                            .collect { it =~ /^([^\/]+)\// ? (it =~ /^([^\/]+)\//)[0][1] : null } // Trích xuất tên thư mục gốc
                             .unique()
-                            .findAll { it in services } // Lọc ra những service hợp lệ
+                            .findAll { it in services } // Lọc những service hợp lệ
 
                         if (affectedServices.isEmpty()) {
                             echo "No relevant changes, skipping pipeline"
