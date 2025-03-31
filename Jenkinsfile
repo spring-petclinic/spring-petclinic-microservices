@@ -72,8 +72,7 @@ pipeline {
                     env.AFFECTED_SERVICES.split(",").each { service ->
                         echo "Running tests for ${service}..."
                         dir("${WORKSPACE_DIR}/${service}") {
-                            sh 'chmod +x mvnw'
-                            sh './mvnw test'
+                            sh 'mvn test'
                         }
                     }
                 }
@@ -100,7 +99,7 @@ pipeline {
                     env.AFFECTED_SERVICES.split(",").each { service ->
                         echo "Checking test coverage for ${service}..."
                         dir("${WORKSPACE_DIR}/${service}") {
-                            sh './mvnw jacoco:report'
+                            sh 'mvn jacoco:report'
                         }
                     }
                 }
@@ -137,8 +136,7 @@ pipeline {
                     env.AFFECTED_SERVICES.split(",").each { service ->
                         echo "Building ${service}..."
                         dir("${WORKSPACE_DIR}/${service}") {
-                            sh 'chmod +x mvnw'
-                            sh './mvnw clean package'
+                            sh 'mvn clean package'
                         }
                     }
                 }
