@@ -37,7 +37,10 @@ pipeline {
                             'spring-petclinic-genai-service'
                         ]
 
-                        def affectedServices = changes.tokenize("\n").collect { it.split("/")[0] }.unique().findAll { it in services }
+                        def affectedServices = changes.tokenize("\n")
+                            .collect { it.tokenize("/")[0] } // Lấy phần thư mục gốc
+                            .unique()
+                            .findAll { it in services } // Lọc ra những service hợp lệ
 
                         if (affectedServices.isEmpty()) {
                             echo "No relevant changes, skipping pipeline"
