@@ -136,13 +136,6 @@ pipeline {
             }
         }
 
-        stage('End') {
-            steps {
-                script {
-                    echo "Pipeline execution completed."
-                }
-            }
-        }
     }
 
     post {
