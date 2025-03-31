@@ -93,10 +93,9 @@ pipeline {
                             try {
                                 sh 'mvn jacoco:report'
 
-                                // Fix lỗi $4, $5 bị hiểu sai bằng cách dùng """ """
-                                def coverageData = sh(script: """
-                                    tail -n +2 target/site/jacoco/jacoco.csv | awk -F',' '{total+=\\$4; covered+=\\$5} END {if (total>0) print (covered/total)*100; else print 0}'
-                                """, returnStdout: true).trim()
+                                def coverageData = sh(script: '''
+                                    tail -n +2 target/site/jacoco/jacoco.csv | awk -F',' '{total+=$4; covered+=$5} END {if (total>0) print (covered/total)*100; else print 0}'
+                                ''', returnStdout: true).trim()
 
                                 echo "Code Coverage for ${service}: ${coverageData}%"
 
@@ -123,6 +122,7 @@ pipeline {
                 }
             }
         }
+
 
         stage('Build') {
             when {
