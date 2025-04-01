@@ -116,13 +116,6 @@ pipeline {
 }
 
 def getChangedServices() {
-    def branch = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
-    
-    if (branch != "main") {
-        echo "Not on main branch. Skipping change detection."
-        return "NONE"
-    }
-
 
     def changedFiles = sh(script: 'git diff --name-only origin/main~1 origin/main', returnStdout: true).trim().split("\n")
     def services = [
