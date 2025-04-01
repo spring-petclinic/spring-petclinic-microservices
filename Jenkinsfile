@@ -45,7 +45,9 @@ pipeline {
                             'spring-petclinic-customers-service',
                             'spring-petclinic-discovery-server',
                             'spring-petclinic-genai-service',
-                            'spring-petclinic-visits-service'
+                            'spring-petclinic-vets-service',
+                            'spring-petclinic-visits-service',
+
                         ]
 
                         def affectedServices = changes.tokenize("\n")
