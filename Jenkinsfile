@@ -71,24 +71,44 @@ pipeline {
             post {
                 always {
                     script {
-                        def testReportPattern = env.CHANGED_SERVICES.split(',').collect { "${it == 'all' ? '' : 'spring-petclinic-' + it + '-service'}/target/surefire-reports/*.xml" }.join(',')
-                        echo "Looking for test reports in: ${testReportPattern}"
+                        def testReportPattern = ''
+                        def jacocoPattern = ''
+
+                        if (CHANGED_SERVICES_LIST.contains('all')) {
+                            testReportPattern = '**/target/surefire-reports/*.xml'
+                            jacocoPattern = '**/target/jacoco.exec'
+                        } else {
+                            def patterns = CHANGED_SERVICES_LIST.collect {
+                                "spring-petclinic-${it}-service/target/surefire-reports/*.xml"
+                            }.join(',')
+                            testReportPattern = patterns
+
+                            def jacocoPatterns = CHANGED_SERVICES_LIST.collect {
+                                "spring-petclinic-${it}-service/target/jacoco.exec"
+                            }.join(',')
+                            jacocoPattern = jacocoPatterns
+                        }
+
+                        echo "Looking for test reports with pattern: ${testReportPattern}"
                         if (fileExists(testReportPattern)) {
                             junit testReportPattern
                         } else {
-                            echo "No test reports found in ${testReportPattern}"
+                            echo 'No test reports found, likely no tests were executed.'
                         }
 
-                        def jacocoPattern = env.CHANGED_SERVICES.split(',').collect { "${it == 'all' ? '' : 'spring-petclinic-' + it + '-service'}/target/jacoco.exec" }.join(',')
-                        echo "Looking for JaCoCo data in: ${jacocoPattern}"
+                        echo "Looking for JaCoCo data with pattern: ${jacocoPattern}"
                         if (fileExists(jacocoPattern)) {
                             jacoco(
                                 execPattern: jacocoPattern,
-                                classPattern: env.CHANGED_SERVICES.split(',').collect { "${it == 'all' ? '' : 'spring-petclinic-' + it + '-service'}/target/classes" }.join(','),
-                                sourcePattern: env.CHANGED_SERVICES.split(',').collect { "${it == 'all' ? '' : 'spring-petclinic-' + it + '-service'}/src/main/java" }.join(',')
+                                classPattern: CHANGED_SERVICES_LIST.contains('all') ?
+                                    '**/target/classes' :
+                                    CHANGED_SERVICES_LIST.collect { "spring-petclinic-${it}-service/target/classes" }.join(','),
+                                sourcePattern: CHANGED_SERVICES_LIST.contains('all') ?
+                                    '**/src/main/java' :
+                                    CHANGED_SERVICES_LIST.collect { "spring-petclinic-${it}-service/src/main/java" }.join(',')
                             )
                         } else {
-                            echo "No JaCoCo execution data found in ${jacocoPattern}"
+                            echo 'No JaCoCo execution data found, skipping coverage report.'
                         }
                     }
                 }
