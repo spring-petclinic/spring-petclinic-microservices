@@ -2,44 +2,46 @@ pipeline {
     agent any
 
     environment {
-        CHANGED_SERVICES = []
+        CHANGED_SERVICES = ""
     }
 
     stages {
         stage('Detect Changes') {
             steps {
                 script {
+                    def changedServices = []
                     def changedFiles = sh(script: 'git diff --name-only HEAD~1 HEAD', returnStdout: true).trim()
 
                     if (changedFiles.contains('spring-petclinic-customers-service')) {
-                        CHANGED_SERVICES.add('customers')
+                        changedServices.add('customers')
                     }
                     if (changedFiles.contains('spring-petclinic-vets-service')) {
-                        CHANGED_SERVICES.add('vets')
+                        changedServices.add('vets')
                     }
                     if (changedFiles.contains('spring-petclinic-visits-service')) {
-                        CHANGED_SERVICES.add('visits')
+                        changedServices.add('visits')
                     }
                     if (changedFiles.contains('spring-petclinic-api-gateway')) {
-                        CHANGED_SERVICES.add('api-gateway')
+                        changedServices.add('api-gateway')
                     }
                     if (changedFiles.contains('spring-petclinic-discovery-server')) {
-                        CHANGED_SERVICES.add('discovery')
+                        changedServices.add('discovery')
                     }
                     if (changedFiles.contains('spring-petclinic-config-server')) {
-                        CHANGED_SERVICES.add('config')
+                        changedServices.add('config')
                     }
                     if (changedFiles.contains('spring-petclinic-admin-server')) {
-                        CHANGED_SERVICES.add('admin')
+                        changedServices.add('admin')
                     }
 
-                    if (
-                        CHANGED_SERVICES.isEmpty()
-                        ) {
-                        CHANGED_SERVICES = ['all']
-                        }
+                    if (changedServices.isEmpty()) {
+                        changedServices = ['all']
+                    }
 
-                    echo "Changed services: ${CHANGED_SERVICES}"
+                    // Convert to string and assign to environment variable
+                    env.CHANGED_SERVICES = changedServices.join(',')
+                    
+                    echo "Changed services: ${env.CHANGED_SERVICES}"
                 }
             }
         }
@@ -47,10 +49,10 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    if (CHANGED_SERVICES.contains('all')) {
+                    if (env.CHANGED_SERVICES == 'all') {
                         sh './mvnw clean test'
                     } else {
-                        def modules = CHANGED_SERVICES.collect { "spring-petclinic-${it}-service" }.join(',')
+                        def modules = env.CHANGED_SERVICES.split(',').collect { "spring-petclinic-${it}-service" }.join(',')
                         sh "./mvnw clean test -pl ${modules}"
                     }
                 }
@@ -70,14 +72,14 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    if (CHANGED_SERVICES.contains('all')) {
+                    if (env.CHANGED_SERVICES == 'all') {
                         sh './mvnw clean package -DskipTests'
                     } else {
-                        def modules = CHANGED_SERVICES.collect { "spring-petclinic-${it}-service" }.join(',')
+                        def modules = env.CHANGED_SERVICES.split(',').collect { "spring-petclinic-${it}-service" }.join(',')
                         sh "./mvnw clean package -DskipTests -pl ${modules}"
                     }
+                    archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
                 }
-                archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
             }
         }
     }
