@@ -71,21 +71,24 @@ pipeline {
             post {
                 always {
                     script {
-                        if (fileExists('**/target/surefire-reports/*.xml')) {
-                            junit '**/target/surefire-reports/*.xml'
+                        def testReportPattern = env.CHANGED_SERVICES.split(',').collect { "${it == 'all' ? '' : 'spring-petclinic-' + it + '-service'}/target/surefire-reports/*.xml" }.join(',')
+                        echo "Looking for test reports in: ${testReportPattern}"
+                        if (fileExists(testReportPattern)) {
+                            junit testReportPattern
                         } else {
-                            echo "No test reports found, likely no tests were executed."
+                            echo "No test reports found in ${testReportPattern}"
                         }
-                    }
-                    script {
-                        if (fileExists('**/target/jacoco.exec')) {
+
+                        def jacocoPattern = env.CHANGED_SERVICES.split(',').collect { "${it == 'all' ? '' : 'spring-petclinic-' + it + '-service'}/target/jacoco.exec" }.join(',')
+                        echo "Looking for JaCoCo data in: ${jacocoPattern}"
+                        if (fileExists(jacocoPattern)) {
                             jacoco(
-                                execPattern: '**/target/jacoco.exec',
-                                classPattern: '**/target/classes',
-                                sourcePattern: '**/src/main/java'
+                                execPattern: jacocoPattern,
+                                classPattern: env.CHANGED_SERVICES.split(',').collect { "${it == 'all' ? '' : 'spring-petclinic-' + it + '-service'}/target/classes" }.join(','),
+                                sourcePattern: env.CHANGED_SERVICES.split(',').collect { "${it == 'all' ? '' : 'spring-petclinic-' + it + '-service'}/src/main/java" }.join(',')
                             )
                         } else {
-                            echo "No JaCoCo execution data found, skipping coverage report."
+                            echo "No JaCoCo execution data found in ${jacocoPattern}"
                         }
                     }
                 }
