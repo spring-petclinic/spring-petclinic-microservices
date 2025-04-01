@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        CHANGED_SERVICES = "" 
+        CHANGED_SERVICES = ''
     }
 
     stages {
@@ -42,8 +42,9 @@ pipeline {
 
                     echo "Detected changes in services: ${changedServices}"
 
-                    env.CHANGED_SERVICES= "test"
-                    echo "Changed services: ${env.CHANGED_SERVICES}"
+                    CHANGED_SERVICES_LIST = changedServices
+                    CHANGED_SERVICES_STRING = changedServices.join(',')
+                    echo "Changed services: ${CHANGED_SERVICES_STRING}"
                 }
             }
         }
@@ -51,10 +52,10 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    if (env.CHANGED_SERVICES == 'all') {
+                    if (CHANGED_SERVICES_LIST.contains('all')) {
                         sh './mvnw clean test'
                     } else {
-                        def modules = env.CHANGED_SERVICES.split(',').collect { "spring-petclinic-${it}-service" }.join(',')
+                        def modules = CHANGED_SERVICES_LIST.collect { "spring-petclinic-${it}-service" }.join(',')
                         echo "Testing modules: ${modules}"
                         sh "./mvnw clean test -pl ${modules}"
                     }
@@ -75,10 +76,10 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    if (env.CHANGED_SERVICES == 'all') {
+                    if (CHANGED_SERVICES_LIST.contains('all')) {
                         sh './mvnw clean package -DskipTests'
                     } else {
-                        def modules = env.CHANGED_SERVICES.split(',').collect { "spring-petclinic-${it}-service" }.join(',')
+                        def modules = CHANGED_SERVICES_LIST.collect { "spring-petclinic-${it}-service" }.join(',')
                         echo "Building modules: ${modules}"
                         sh "./mvnw clean package -DskipTests -pl ${modules}"
                     }
