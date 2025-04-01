@@ -12,6 +12,8 @@ pipeline {
         stage('Detect Changes') {
             steps {
                 script {
+                    sh 'pwd'
+
                     def changedFiles = sh(script: 'git diff --name-only HEAD~1 HEAD', returnStdout: true).trim()
                     echo "Changed files: ${changedFiles}"
 
