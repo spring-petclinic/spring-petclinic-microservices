@@ -83,8 +83,8 @@ pipeline {
                         def jacocoPattern = ''
 
                         if (CHANGED_SERVICES_LIST.contains('all')) {
-                            testReportPattern = '**/target/surefire-reports/TEST-*.xml'
-                            jacocoPattern = '**/target/jacoco.exec'
+                            testReportPattern = '**/surefire-reports/TEST-*.xml'
+                            jacocoPattern = '**/jacoco.exec'
                         } else {
                             def patterns = CHANGED_SERVICES_LIST.collect {
                                 "spring-petclinic-${it}-service/target/surefire-reports/TEST-*.xml"
@@ -100,7 +100,9 @@ pipeline {
                         echo "Looking for test reports with pattern: ${testReportPattern}"
                         sh "find . -name 'TEST-*.xml' -type f"
                         
-                        if (fileExists(testReportPattern)) {
+                        def testFiles = sh(script: "find . -name 'TEST-*.xml' -type f", returnStdout: true).trim()
+                        if (testFiles) {
+                            echo "Found test reports: ${testFiles}"
                             junit testReportPattern
                         } else {
                             echo 'No test reports found, likely no tests were executed.'
@@ -109,7 +111,9 @@ pipeline {
                         echo "Looking for JaCoCo data with pattern: ${jacocoPattern}"
                         sh "find . -name 'jacoco.exec' -type f"
                         
-                        if (fileExists(jacocoPattern)) {
+                        def jacocoFiles = sh(script: "find . -name 'jacoco.exec' -type f", returnStdout: true).trim()
+                        if (jacocoFiles) {
+                            echo "Found JaCoCo files: ${jacocoFiles}"
                             jacoco(
                                 execPattern: jacocoPattern,
                                 classPattern: CHANGED_SERVICES_LIST.contains('all') ?
