@@ -54,13 +54,12 @@ pipeline {
                             .findAll { it in services }
 
                         if (affectedServices.isEmpty()) {
-                            echo "No relevant changes, skipping pipeline"
-                            currentBuild.result = 'ABORTED'
-                            return
+                            echo "No relevant changes, skipping tests and build"
+                            env.SKIP_PIPELINE = "true"
+                        } else {
+                            env.AFFECTED_SERVICES = affectedServices.join(",")
+                            echo "Services to build: ${env.AFFECTED_SERVICES}"
                         }
-
-                        env.AFFECTED_SERVICES = affectedServices.join(",")
-                        echo "Services to build: ${env.AFFECTED_SERVICES}"
                     }
                 }
             }
@@ -68,7 +67,10 @@ pipeline {
 
         stage('Test') {
             when {
-                expression { env.AFFECTED_SERVICES }
+                allOf {
+                    expression { env.AFFECTED_SERVICES }
+                    expression { env.SKIP_PIPELINE != "true" }
+                }
             }
             steps {
                 script {
@@ -93,7 +95,10 @@ pipeline {
 
         stage('Code Coverage') {
             when {
-                expression { env.AFFECTED_SERVICES }
+                allOf {
+                    expression { env.AFFECTED_SERVICES }
+                    expression { env.SKIP_PIPELINE != "true" }
+                }
             }
             steps {
                 script {
@@ -138,7 +143,10 @@ pipeline {
 
         stage('Build') {
             when {
-                expression { env.AFFECTED_SERVICES }
+                allOf {
+                    expression { env.AFFECTED_SERVICES }
+                    expression { env.SKIP_PIPELINE != "true" }
+                }
             }
             steps {
                 script {
@@ -155,12 +163,11 @@ pipeline {
                 }
             }
         }
-
     }
 
     post {
         success {
-            echo "Pipeline completed successfully for ${env.AFFECTED_SERVICES}!"
+            echo "Pipeline completed successfully!"
         }
         failure {
             echo "Pipeline failed!"
