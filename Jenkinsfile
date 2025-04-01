@@ -42,7 +42,8 @@ pipeline {
 
                     echo "Detected changes in services: ${changedServices}"
 
-                    env.CHANGED_SERVICES = changedServices.join(',')
+                    writeFile file: 'changed_services.txt', text: changedServices.join(',')
+                    env.CHANGED_SERVICES = readFile('changed_services.txt').trim()
                     echo "CHANGED_SERVICES set to: ${env.CHANGED_SERVICES}"
                 }
             }
