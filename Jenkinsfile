@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        CHANGED_SERVICES = ''
-    }
-
     stages {
         stage('Detect Changes') {
             steps {
