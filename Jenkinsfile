@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent { label 'built-in' }
 
     environment {
         REPO_URL = 'https://github.com/htloc0610/spring-petclinic-microservices'
