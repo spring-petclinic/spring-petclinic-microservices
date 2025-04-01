@@ -46,32 +46,55 @@ pipeline {
             }
             steps {
                 script {
+                    sh "apt update && apt install -y maven"
                     def services = env.CHANGED_SERVICES.split(',')
                     def coverageResults = []
                     def servicesToBuild = []
 
-                    for (service in services) {
-                        def testCommand = "mvn test -pl ${service} jacoco:report"
-                        echo "Running tests for: ${service}"
-                        sh "${testCommand}"
+                for (service in services) {
+                    def testCommand = "mvn test -pl ${service} jacoco:report"
+                    echo "Running tests for: ${service}"
 
-                        def reportPath = "${service}/target/site/jacoco/index.html"
-                        archiveArtifacts artifacts: reportPath, fingerprint: true
+                    sh "mvn test -pl ${service} -DskipTests=false"
+                    sh "${testCommand}"
 
-                        def coverage = sh(
+                    def reportPath = "${service}/target/site/jacoco/index.html"
+
+                    def coverage = 0 
+
+                    try {
+                        if (fileExists(reportPath)) {
+                            archiveArtifacts artifacts: reportPath, fingerprint: true
+
+                            coverage = sh(
                                 script: """
-                                grep -oP '(?<=<td class="ctr2">)\\\\d+%' ${reportPath} | head -1 | sed 's/%//'
+                                grep -oP '(?<=<td class="ctr2">)\\d+%' ${reportPath} | head -1 | sed 's/%//'
                                 """,
                                 returnStdout: true
-                            ).trim().toInteger()
+                            ).trim()
 
-                        coverageResults << "${service}:${coverage}%"
-                        echo "Code Coverage for ${service}: ${coverage}%"
-
-                        if (coverage > 70) {
-                            servicesToBuild << service
+                            if (!coverage) {
+                                echo "⚠️ Warning: Coverage extraction failed for ${service}. Setting coverage to 0."
+                                coverage = 0
+                            } else {
+                                coverage = coverage.toInteger()
+                            }
+                        } else {
+                            echo "⚠️ Warning: No JaCoCo report found for ${service}. Setting coverage to 0."
                         }
+                    } catch (Exception e) {
+                        echo "❌ Error while processing coverage for ${service}: ${e.getMessage()}"
+                        coverage = 0
                     }
+
+                    coverageResults << "${service}:${coverage}%"
+                    echo "📊 Code Coverage for ${service}: ${coverage}%"
+
+                    if (coverage > 70) {
+                        servicesToBuild << service
+                    }
+                }
+
 
                     env.CODE_COVERAGES = coverageResults.join(', ')
                     env.SERVICES_TO_BUILD = servicesToBuild.join(',')
