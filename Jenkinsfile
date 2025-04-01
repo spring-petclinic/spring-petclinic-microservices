@@ -38,6 +38,8 @@ pipeline {
                         changedServices = ['all']
                     }
 
+                    echo "Changes: ${changedServices}"
+
                     // Convert to string and assign to environment variable
                     env.CHANGED_SERVICES = changedServices.join(',')
                     
