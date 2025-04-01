@@ -11,11 +11,12 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
-                    echo "Cloning repository ${REPO_URL} - Branch: ${BRANCH}"
+                    def branchToCheckout = env.CHANGE_BRANCH ?: BRANCH
+                    echo "Cloning repository ${REPO_URL} - Branch: ${branchToCheckout}"
                     sh "rm -rf ${WORKSPACE_DIR}"
                     sh "mkdir -p ${WORKSPACE_DIR}"
                     dir(WORKSPACE_DIR) {
-                        sh "git clone -b ${BRANCH} ${REPO_URL} ."
+                        sh "git clone -b ${branchToCheckout} ${REPO_URL} ."
                     }
                 }
             }
