@@ -34,3 +34,6 @@ public class AIBeanConfiguration {
         return WebClient.builder();
     }
 }
+
+
+// Test change in genAiService
