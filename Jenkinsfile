@@ -11,12 +11,11 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
-                    def branchToCheckout = env.CHANGE_BRANCH ?: BRANCH
-                    echo "Cloning repository ${REPO_URL} - Branch: ${branchToCheckout}"
+                    echo "Cloning repository ${REPO_URL} - Branch: ${BRANCH}"
                     sh "rm -rf ${WORKSPACE_DIR}"
                     sh "mkdir -p ${WORKSPACE_DIR}"
                     dir(WORKSPACE_DIR) {
-                        sh "git clone -b ${branchToCheckout} ${REPO_URL} ."
+                        sh "git clone -b ${BRANCH} ${REPO_URL} ."
                     }
                 }
             }
@@ -26,7 +25,7 @@ pipeline {
             steps {
                 script {
                     dir(WORKSPACE_DIR) {
-                        def isPR = env.CHANGE_ID != null
+                        def isPR = env.CHANGE_ID != null  // Kiểm tra nếu đang chạy trên Pull Request
                         def changes = ''
 
                         if (isPR) {
@@ -55,13 +54,12 @@ pipeline {
                             .findAll { it in services }
 
                         if (affectedServices.isEmpty()) {
-                            echo "No relevant changes, skipping pipeline"
-                            currentBuild.result = 'ABORTED'
-                            return
+                            echo "No relevant changes, skipping tests and build"
+                            env.SKIP_PIPELINE = "true"
+                        } else {
+                            env.AFFECTED_SERVICES = affectedServices.join(",")
+                            echo "Services to build: ${env.AFFECTED_SERVICES}"
                         }
-
-                        env.AFFECTED_SERVICES = affectedServices.join(",")
-                        echo "Services to build: ${env.AFFECTED_SERVICES}"
                     }
                 }
             }
@@ -69,7 +67,10 @@ pipeline {
 
         stage('Test') {
             when {
-                expression { env.AFFECTED_SERVICES }
+                allOf {
+                    expression { env.AFFECTED_SERVICES }
+                    expression { env.SKIP_PIPELINE != "true" }
+                }
             }
             steps {
                 script {
@@ -94,7 +95,10 @@ pipeline {
 
         stage('Code Coverage') {
             when {
-                expression { env.AFFECTED_SERVICES }
+                allOf {
+                    expression { env.AFFECTED_SERVICES }
+                    expression { env.SKIP_PIPELINE != "true" }
+                }
             }
             steps {
                 script {
@@ -139,7 +143,10 @@ pipeline {
 
         stage('Build') {
             when {
-                expression { env.AFFECTED_SERVICES }
+                allOf {
+                    expression { env.AFFECTED_SERVICES }
+                    expression { env.SKIP_PIPELINE != "true" }
+                }
             }
             steps {
                 script {
@@ -156,12 +163,11 @@ pipeline {
                 }
             }
         }
-
     }
 
     post {
         success {
-            echo "Pipeline completed successfully for ${env.AFFECTED_SERVICES}!"
+            echo "Pipeline completed successfully!"
         }
         failure {
             echo "Pipeline failed!"
