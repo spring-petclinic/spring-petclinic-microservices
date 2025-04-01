@@ -25,7 +25,7 @@ pipeline {
             steps {
                 script {
                     dir(WORKSPACE_DIR) {
-                        def isPR = env.CHANGE_ID != null  // Kiểm tra nếu đang chạy trên Pull Request
+                        def isPR = env.CHANGE_ID != null
                         def changes = ''
 
                         if (isPR) {
