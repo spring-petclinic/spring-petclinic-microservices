@@ -25,7 +25,17 @@ pipeline {
             steps {
                 script {
                     dir(WORKSPACE_DIR) {
-                        def changes = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim()
+                        def isPR = env.CHANGE_ID != null
+                        def changes = ''
+
+                        if (isPR) {
+                            echo "Running pipeline for PR #${env.CHANGE_ID}"
+                            sh 'git fetch origin main'
+                            changes = sh(script: 'git diff --name-only origin/main', returnStdout: true).trim()
+                        } else {
+                            changes = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim()
+                        }
+
                         echo "Files changed:\n${changes}"
 
                         def services = [
@@ -94,7 +104,6 @@ pipeline {
                                 sh 'mvn jacoco:report'
                                 sh 'cat target/site/jacoco/jacoco.csv'
 
-                                // Calculate code coverage
                                 def coverageData = sh(script: '''
                                     tail -n +2 target/site/jacoco/jacoco.csv | awk -F',' '
                                     { total+=$4+$5; covered+=$5 }
@@ -126,7 +135,6 @@ pipeline {
                 }
             }
         }
-
 
         stage('Build') {
             when {
