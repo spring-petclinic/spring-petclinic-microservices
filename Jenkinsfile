@@ -70,12 +70,24 @@ pipeline {
             }
             post {
                 always {
-                    junit '**/target/surefire-reports/*.xml'
-                    jacoco(
-                        execPattern: '**/target/jacoco.exec',
-                        classPattern: '**/target/classes',
-                        sourcePattern: '**/src/main/java'
-                    )
+                    script {
+                        if (fileExists('**/target/surefire-reports/*.xml')) {
+                            junit '**/target/surefire-reports/*.xml'
+                        } else {
+                            echo "No test reports found, likely no tests were executed."
+                        }
+                    }
+                    script {
+                        if (fileExists('**/target/jacoco.exec')) {
+                            jacoco(
+                                execPattern: '**/target/jacoco.exec',
+                                classPattern: '**/target/classes',
+                                sourcePattern: '**/src/main/java'
+                            )
+                        } else {
+                            echo "No JaCoCo execution data found, skipping coverage report."
+                        }
+                    }
                 }
             }
         }
