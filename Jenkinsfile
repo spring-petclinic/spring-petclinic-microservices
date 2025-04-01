@@ -1,9 +1,13 @@
 pipeline {
     agent any
-     buildDiscarder(logRotator(
-        numToKeepStr: '10',      // Giữ logs của 10 builds
-        artifactNumToKeepStr: '5' // Chỉ giữ artifacts của 5 builds gần nhất
-    ))
+
+    options {
+        buildDiscarder(logRotator(
+            numToKeepStr: '10',      // Giữ logs của 10 builds
+            artifactNumToKeepStr: '5' // Chỉ giữ artifacts của 5 builds gần nhất
+        ))
+    }
+
     stages {
         stage('Detect Changes') {
             steps {
