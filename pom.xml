@@ -161,35 +161,22 @@
                 <pluginManagement>
                     <plugins>
                         <plugin>
-                            <groupId>org.codehaus.mojo</groupId>
-                            <artifactId>exec-maven-plugin</artifactId>
-                            <version>3.1.1</version>
+                            <groupId>org.jacoco</groupId>
+                            <artifactId>jacoco-maven-plugin</artifactId>
+                            <version>0.8.10</version>
                             <executions>
                                 <execution>
-                                    <id>docker-build</id>
-                                    <phase>install</phase>
+                                    <id>prepare-agent</id>
                                     <goals>
-                                        <goal>exec</goal>
+                                        <goal>prepare-agent</goal>
                                     </goals>
-                                    <configuration>
-                                        <executable>${container.executable}</executable>
-                                        <workingDirectory>${docker.image.dockerfile.dir}</workingDirectory>
-                                        <arguments>
-                                            <argument>build</argument>
-                                            <argument>-f</argument>
-                                            <argument>Dockerfile</argument>
-                                            <argument>--build-arg</argument>
-                                            <argument>ARTIFACT_NAME=${project.build.finalName}</argument>
-                                            <argument>--build-arg</argument>
-                                            <argument>EXPOSED_PORT=${docker.image.exposed.port}</argument>
-                                            <argument>--platform</argument>
-                                            <argument>${container.platform}</argument>
-                                            <argument>${container.build.extraarg}</argument>
-                                            <argument>-t</argument>
-                                            <argument>${docker.image.prefix}/${project.artifactId}</argument>
-                                            <argument>${project.build.directory}</argument>
-                                        </arguments>
-                                    </configuration>
+                                </execution>
+                                <execution>
+                                    <id>report</id>
+                                    <phase>verify</phase>
+                                    <goals>
+                                        <goal>report</goal>
+                                    </goals>
                                 </execution>
                             </executions>
                         </plugin>

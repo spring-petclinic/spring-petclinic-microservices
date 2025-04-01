@@ -142,7 +142,6 @@ services:
      - 9090:9090
 
   ## Grafana / Prometheus
-
   grafana-server:
     build: ./docker/grafana
     container_name: grafana-server

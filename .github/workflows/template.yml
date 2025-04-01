@@ -1,0 +1,36 @@
+name: Build and Push Docker Image
+
+on:
+  workflow_call:
+    inputs:
+      service_name:
+        required: true
+        type: string
+      dockerfile_path:
+        required: true
+        type: string
+      context_path:
+        required: true
+        type: string
+    secrets:
+      DOCKERHUB_USER:
+        required: true
+      DOCKERHUB_PASS:
+        required: true
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v4
+
+    - name: Build Docker image
+      run: docker build -f ${{ inputs.dockerfile_path }} -t ${{ secrets.DOCKERHUB_USER }}/${{ inputs.service_name }}:latest ${{ inputs.context_path }}
+
+    - name: Log in to Docker Hub
+      run: echo "${{ secrets.DOCKERHUB_PASS }}" | docker login -u "${{ secrets.DOCKERHUB_USER }}" --password-stdin
+
+    - name: Push Docker image
+      run: docker push ${{ secrets.DOCKERHUB_USER }}/${{ inputs.service_name }}:latest
