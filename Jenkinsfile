@@ -1,7 +1,5 @@
 pipeline {
-    agent {
-        label 'development-server'
-    }
+    agent any
 
     environment {
         CHANGED_SERVICES = getChangedServices()
@@ -16,7 +14,7 @@ pipeline {
                     try {
                         
                         def gitTag = sh(script: "git describe --tags --always", returnStdout: true).trim()
-                        env.GIT_TAG = gitTag
+                        env.GIT_TAG = gitTag.split("-")[0]
 
                         echo "Git Tag or Commit: ${env.GIT_TAG}"
                     } catch (Exception e) {
