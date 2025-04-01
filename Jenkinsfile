@@ -56,6 +56,7 @@ pipeline {
             steps {
                 script {
                     if (CHANGED_SERVICES_LIST.contains('all')) {
+                        echo 'Testing all modules'
                         sh './mvnw clean test'
                     } else {
                         def modules = CHANGED_SERVICES_LIST.collect { "spring-petclinic-${it}-service" }.join(',')
@@ -80,6 +81,7 @@ pipeline {
             steps {
                 script {
                     if (CHANGED_SERVICES_LIST.contains('all')) {
+                        echo 'Building all modules'
                         sh './mvnw clean package -DskipTests'
                     } else {
                         def modules = CHANGED_SERVICES_LIST.collect { "spring-petclinic-${it}-service" }.join(',')
