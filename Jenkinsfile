@@ -2,15 +2,17 @@ pipeline {
     agent any
 
     environment {
-        CHANGED_SERVICES = ""
+        CHANGED_SERVICES = "" 
     }
 
     stages {
         stage('Detect Changes') {
             steps {
                 script {
-                    def changedServices = []
                     def changedFiles = sh(script: 'git diff --name-only HEAD~1 HEAD', returnStdout: true).trim()
+                    echo "Changed files: ${changedFiles}"
+
+                    def changedServices = []
 
                     if (changedFiles.contains('spring-petclinic-customers-service')) {
                         changedServices.add('customers')
@@ -38,12 +40,10 @@ pipeline {
                         changedServices = ['all']
                     }
 
-                    echo "Changes: ${changedServices}"
+                    echo "Detected changes in services: ${changedServices}"
 
-                    // Convert to string and assign to environment variable
                     env.CHANGED_SERVICES = changedServices.join(',')
-                    
-                    echo "Changed services: ${env.CHANGED_SERVICES}"
+                    echo "CHANGED_SERVICES set to: ${env.CHANGED_SERVICES}"
                 }
             }
         }
@@ -55,6 +55,7 @@ pipeline {
                         sh './mvnw clean test'
                     } else {
                         def modules = env.CHANGED_SERVICES.split(',').collect { "spring-petclinic-${it}-service" }.join(',')
+                        echo "Testing modules: ${modules}"
                         sh "./mvnw clean test -pl ${modules}"
                     }
                 }
@@ -78,6 +79,7 @@ pipeline {
                         sh './mvnw clean package -DskipTests'
                     } else {
                         def modules = env.CHANGED_SERVICES.split(',').collect { "spring-petclinic-${it}-service" }.join(',')
+                        echo "Building modules: ${modules}"
                         sh "./mvnw clean package -DskipTests -pl ${modules}"
                     }
                     archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
