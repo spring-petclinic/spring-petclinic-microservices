@@ -63,10 +63,16 @@ pipeline {
                     if (CHANGED_SERVICES_LIST.contains('all')) {
                         echo 'Testing all modules'
                         sh './mvnw clean test'
+                        // Debug: Kiểm tra nội dung thư mục target
+                        sh 'find . -name "surefire-reports" -type d'
+                        sh 'find . -name "jacoco.exec" -type f'
                     } else {
                         def modules = CHANGED_SERVICES_LIST.collect { "spring-petclinic-${it}-service" }.join(',')
                         echo "Testing modules: ${modules}"
                         sh "./mvnw clean test -pl ${modules}"
+                        // Debug: Kiểm tra nội dung thư mục target
+                        sh 'find . -name "surefire-reports" -type d'
+                        sh 'find . -name "jacoco.exec" -type f'
                     }
                 }
             }
@@ -77,11 +83,11 @@ pipeline {
                         def jacocoPattern = ''
 
                         if (CHANGED_SERVICES_LIST.contains('all')) {
-                            testReportPattern = '**/target/surefire-reports/*.xml'
+                            testReportPattern = '**/target/surefire-reports/TEST-*.xml'
                             jacocoPattern = '**/target/jacoco.exec'
                         } else {
                             def patterns = CHANGED_SERVICES_LIST.collect {
-                                "spring-petclinic-${it}-service/target/surefire-reports/*.xml"
+                                "spring-petclinic-${it}-service/target/surefire-reports/TEST-*.xml"
                             }.join(',')
                             testReportPattern = patterns
 
@@ -92,6 +98,8 @@ pipeline {
                         }
 
                         echo "Looking for test reports with pattern: ${testReportPattern}"
+                        sh "find . -name 'TEST-*.xml' -type f"
+                        
                         if (fileExists(testReportPattern)) {
                             junit testReportPattern
                         } else {
@@ -99,6 +107,8 @@ pipeline {
                         }
 
                         echo "Looking for JaCoCo data with pattern: ${jacocoPattern}"
+                        sh "find . -name 'jacoco.exec' -type f"
+                        
                         if (fileExists(jacocoPattern)) {
                             jacoco(
                                 execPattern: jacocoPattern,
