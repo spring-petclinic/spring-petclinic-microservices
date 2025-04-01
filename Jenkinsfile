@@ -17,6 +17,9 @@ pipeline {
 
                     def changedServices = []
 
+                    if (changedFiles.contains('spring-petclinic-genai-service')) {
+                        changedServices.add('genai')
+                    }
                     if (changedFiles.contains('spring-petclinic-customers-service')) {
                         changedServices.add('customers')
                     }
