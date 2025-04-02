@@ -132,21 +132,29 @@ class VisitResourceTest {
     }
 
     @Test
-    void shouldReturnBadRequestForInvalidVisitCreation() throws Exception {
-        mvc.perform(post("/owners/1/pets/111/visits")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{}"))
-            .andExpect(status().isBadRequest());
+    void shouldReturnBadRequestForMissingPetIdParameter() throws Exception {
+        mvc.perform(get("/pets/visits"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Required parameter 'petId' is not present."));
     }
 
     @Test
-    void shouldReturnEmptyListForNoPetIds() throws Exception {
-        given(visitRepository.findByPetIdIn(emptyList()))
-            .willReturn(emptyList());
+    void shouldCreateVisitWithEmptyDescription() throws Exception {
+        Visit savedVisit = Visit.VisitBuilder.aVisit()
+            .id(1)
+            .petId(111)
+            .description("")
+            .build();
 
-        mvc.perform(get("/pets/visits"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.items").isArray())
-            .andExpect(jsonPath("$.items").isEmpty());
+        given(visitRepository.save(any(Visit.class)))
+            .willReturn(savedVisit);
+
+        mvc.perform(post("/owners/1/pets/111/visits")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"description\":\"\"}"))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.id").value(1))
+            .andExpect(jsonPath("$.petId").value(111))
+            .andExpect(jsonPath("$.description").value(""));
     }
 }
