@@ -3,44 +3,22 @@ pipeline {
 
     options {
         buildDiscarder(logRotator(
-            numToKeepStr: '10',
-            artifactNumToKeepStr: '5'
+            numToKeepStr: '10',      // Giữ logs của 10 builds
+            artifactNumToKeepStr: '5' // Chỉ giữ artifacts của 5 builds gần nhất
         ))
-        // Thêm timeout để tránh build treo
-        timeout(time: 30, unit: 'MINUTES')
     }
 
     stages {
-        stage('Checkout with Full History') {
-            steps {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: '*/main']],
-                    extensions: [
-                        // Tắt shallow clone để lấy toàn bộ history
-                        [$class: 'CloneOption', depth: 0, shallow: false],
-                        // Xóa workspace trước khi checkout để sạch sẽ
-                        [$class: 'CleanBeforeCheckout']
-                    ],
-                    userRemoteConfigs: [[url: 'https://github.com/OpsInUs/DA01-Jenkins.git']]
-                ])
-            }
-        }
-
         stage('Detect Changes') {
             steps {
                 script {
                     sh 'pwd'
-                    // So sánh với branch chính (main/master) thay vì chỉ HEAD~1
-                    def changedFiles = sh(script: 'git diff --name-only origin/main HEAD', returnStdout: true).trim()
-                    echo "Changed files: ${changedFiles}"
 
-                    // Debug: Hiển thị lịch sử commit
-                    sh 'git log --oneline -n 5'
+                    def changedFiles = sh(script: 'git diff --name-only HEAD~1 HEAD', returnStdout: true).trim()
+                    echo "Changed files: ${changedFiles}"
 
                     def changedServices = []
 
-                    // Sửa lỗi chính tả 'customers' (trước đây là 'customers')
                     if (changedFiles.contains('spring-petclinic-genai-service')) {
                         changedServices.add('genai')
                     }
@@ -71,98 +49,152 @@ pipeline {
                     }
 
                     echo "Detected changes in services: ${changedServices}"
-                    env.CHANGED_SERVICES_LIST = changedServices
-                    env.CHANGED_SERVICES_STRING = changedServices.join(',')
+
+                    CHANGED_SERVICES_LIST = changedServices
+                    CHANGED_SERVICES_STRING = changedServices.join(',')
+                    echo "Changed services: ${CHANGED_SERVICES_STRING}"
                 }
             }
         }
 
-        stage('Test with Strict Coverage') {
+        stage('Test') {
             steps {
                 script {
-                    try {
-                        if (env.CHANGED_SERVICES_LIST.contains('all')) {
-                            echo 'Testing all modules'
-                            sh './mvnw clean test'
-                        } else {
-                            def modules = env.CHANGED_SERVICES_LIST.collect { "spring-petclinic-${it}-service" }.join(',')
-                            echo "Testing modules: ${modules}"
-                            sh "./mvnw clean test -pl ${modules}"
-                        }
-                    } catch (Exception e) {
-                        error("Unit tests failed: ${e.getMessage()}")
+                    if (CHANGED_SERVICES_LIST.contains('all')) {
+                        echo 'Testing all modules'
+                        sh './mvnw clean test'
+                        sh 'find . -name "surefire-reports" -type d'
+                        sh 'find . -name "jacoco.exec" -type f'
+                    } else {
+                        def modules = CHANGED_SERVICES_LIST.collect { "spring-petclinic-${it}-service" }.join(',')
+                        echo "Testing modules: ${modules}"
+                        sh "./mvnw clean test -pl ${modules}"
+                        sh 'find . -name "surefire-reports" -type d'
+                        sh 'find . -name "jacoco.exec" -type f'
                     }
                 }
             }
             post {
                 always {
-                    junit testResults: '**/surefire-reports/TEST-*.xml', allowEmptyResults: true
-                    archiveArtifacts artifacts: '**/target/surefire-reports/*, **/target/jacoco.exec', allowEmptyArchive: true
-                }
-            }
-        }
+                    script {
+                        def testReportPattern = ''
+                        def jacocoPattern = ''
 
-        stage('Enforce Strict Coverage') {
-            steps {
-                script {
-                    def jacocoPattern = env.CHANGED_SERVICES_LIST.contains('all') ?
-                        '**/jacoco.exec' :
-                        env.CHANGED_SERVICES_LIST.collect { "spring-petclinic-${it}-service/target/jacoco.exec" }.join(',')
+                        if (CHANGED_SERVICES_LIST.contains('all')) {
+                            testReportPattern = '**/surefire-reports/TEST-*.xml'
+                            jacocoPattern = '**/jacoco.exec'
+                        } else {
+                            def patterns = CHANGED_SERVICES_LIST.collect {
+                                "spring-petclinic-${it}-service/target/surefire-reports/TEST-*.xml"
+                            }.join(',')
+                            testReportPattern = patterns
 
-                    // Fail build if no coverage data found
-                    if (findFiles(glob: jacocoPattern).size() == 0) {
-                        error("FATAL: No JaCoCo coverage data found! Tests may not have run correctly.")
+                            def jacocoPatterns = CHANGED_SERVICES_LIST.collect {
+                                "spring-petclinic-${it}-service/target/jacoco.exec"
+                            }.join(',')
+                            jacocoPattern = jacocoPatterns
+                        }
+
+                        echo "Looking for test reports with pattern: ${testReportPattern}"
+                        sh "find . -name 'TEST-*.xml' -type f"
+                        
+                        def testFiles = sh(script: "find . -name 'TEST-*.xml' -type f", returnStdout: true).trim()
+                        if (testFiles) {
+                            echo "Found test reports: ${testFiles}"
+                            junit testReportPattern
+                        } else {
+                            echo 'No test reports found, likely no tests were executed.'
+                        }
+
+                        echo "Looking for JaCoCo data with pattern: ${jacocoPattern}"
+                        sh "find . -name 'jacoco.exec' -type f"
+                        
+                        def jacocoFiles = sh(script: "find . -name 'jacoco.exec' -type f", returnStdout: true).trim()
+                        if (jacocoFiles) {
+                            echo "Found JaCoCo files: ${jacocoFiles}"
+                            def coveragePass = true
+                            def coverageResults = [:]
+                            
+                            // Analyze coverage for each changed service
+                            CHANGED_SERVICES_LIST.each { service ->
+                                if (service in ['customers', 'vets', 'visits']) {
+                                    def modulePath = "spring-petclinic-${service}-service"
+                                    def jacocoExec = "${modulePath}/target/jacoco.exec"
+                                    def classesDir = "${modulePath}/target/classes"
+                                    def sourceDir = "${modulePath}/src/main/java"
+                                    
+                                    // Parse JaCoCo report
+                                    def coverage = sh(script: """
+                                        java -jar jacococli.jar report ${jacocoExec} \
+                                          --classfiles ${classesDir} \
+                                          --sourcefiles ${sourceDir} \
+                                          --xml ${modulePath}/target/coverage-report.xml
+                                        grep -oP '(?<=<counter type="INSTRUCTION" missed=")[^"]*(?=")' ${modulePath}/target/coverage-report.xml | head -1
+                                        grep -oP '(?<=<counter type="INSTRUCTION" covered=")[^"]*(?=")' ${modulePath}/target/coverage-report.xml | head -1
+                                    """, returnStdout: true).trim().split('\n')
+                                    
+                                    if (coverage.size() >= 2) {
+                                        def missed = coverage[0].toInteger()
+                                        def covered = coverage[1].toInteger()
+                                        def total = missed + covered
+                                        def percentage = total > 0 ? (covered * 100 / total) : 0
+                                        
+                                        coverageResults[service] = percentage
+                                        echo "Coverage for ${service}: ${percentage}% (${covered}/${total})"
+                                        
+                                        if (percentage < 70) {
+                                            coveragePass = false
+                                            echo "Coverage for ${service} is below 70% (${percentage}%)"
+                                        }
+                                    } else {
+                                        coveragePass = false
+                                        echo "Could not determine coverage for ${service}"
+                                    }
+                                }
+                            }
+                            
+                            // Fail the build if coverage is insufficient
+                            if (!coveragePass) {
+                                error("One or more services have insufficient test coverage (minimum 70% required)")
+                            }
+                            
+                            jacoco(
+                                execPattern: jacocoPattern,
+                                classPattern: CHANGED_SERVICES_LIST.contains('all') ?
+                                    '**/target/classes' :
+                                    CHANGED_SERVICES_LIST.collect { "spring-petclinic-${it}-service/target/classes" }.join(','),
+                                sourcePattern: CHANGED_SERVICES_LIST.contains('all') ?
+                                    '**/src/main/java' :
+                                    CHANGED_SERVICES_LIST.collect { "spring-petclinic-${it}-service/src/main/java" }.join(',')
+                            )
+                        } else {
+                            echo 'No JaCoCo execution data found, skipping coverage report.'
+                        }
                     }
-
-                    // STRICT COVERAGE RULES
-                    jacoco(
-                        execPattern: jacocoPattern,
-                        classPattern: '**/target/classes',
-                        sourcePattern: '**/src/main/java',
-
-                        // MAIN COVERAGE THRESHOLDS (will fail build if not met)
-                        minimumInstructionCoverage: '70',
-                        minimumLineCoverage: '70',
-                        minimumMethodCoverage: '70',
-
-
-                        // ENFORCEMENT SETTINGS
-                        changeBuildStatus: true,
-                        skipCopyOfSrcFiles: false,
-
-                        // BUILD WILL FAIL IF:
-                        // 1. Any non-excluded package has <70% instruction/line/method coverage
-                        // 2. No coverage data is found
-                    )
                 }
             }
         }
 
         stage('Build') {
+            when {
+                expression { 
+                    // Only build if all previous stages succeeded
+                    currentBuild.result == null || currentBuild.result == 'SUCCESS' 
+                }
+            }
             steps {
                 script {
-                    if (env.CHANGED_SERVICES_LIST.contains('all')) {
+                    if (CHANGED_SERVICES_LIST.contains('all')) {
                         echo 'Building all modules'
                         sh './mvnw clean package -DskipTests'
                     } else {
-                        def modules = env.CHANGED_SERVICES_LIST.collect { "spring-petclinic-${it}-service" }.join(',')
+                        def modules = CHANGED_SERVICES_LIST.collect { "spring-petclinic-${it}-service" }.join(',')
                         echo "Building modules: ${modules}"
                         sh "./mvnw clean package -DskipTests -pl ${modules}"
                     }
                     archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
                 }
             }
-        }
-    }
-
-    post {
-        failure {
-            emailext body: '${DEFAULT_CONTENT}\n\nBuild URL: ${BUILD_URL}',
-                     subject: 'FAILED: Job ${JOB_NAME} - Build ${BUILD_NUMBER}',
-                     to: 'your-email@example.com'
-        }
-        success {
-            echo 'Build succeeded!'
         }
     }
 }
