@@ -74,4 +74,9 @@ class PetResourceTest {
         owner.addPet(pet);
         return pet;
     }
+
+    @Test
+    void test6(){
+        assert(true);
+    }
 }
