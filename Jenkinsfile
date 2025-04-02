@@ -15,7 +15,9 @@ pipeline {
                     sh "rm -rf ${WORKSPACE_DIR}"
                     sh "mkdir -p ${WORKSPACE_DIR}"
                     dir(WORKSPACE_DIR) {
-                        sh "git clone -b ${BRANCH} ${REPO_URL} ."
+//                         sh "git clone -b ${BRANCH} ${REPO_URL} ."
+                        sh "git clone --depth 2 -b ${BRANCH} ${REPO_URL} ."
+
                     }
                 }
             }
