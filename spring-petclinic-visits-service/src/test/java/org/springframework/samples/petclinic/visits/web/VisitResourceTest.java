@@ -78,10 +78,10 @@ class VisitResourceTest {
         
         mvc.perform(get("/owners/abc/pets/123/visits"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.items[0].id").value(1))
-            .andExpect(jsonPath("$.items[1].id").value(12))
-            .andExpect(jsonPath("$.items[0].petId").value(123))
-            .andExpect(jsonPath("$.items[1].petId").value(123));
+            .andExpect(jsonPath("$[0].id").value(1))
+            .andExpect(jsonPath("$[1].id").value(12))
+            .andExpect(jsonPath("$[0].petId").value(123))
+            .andExpect(jsonPath("$[1].petId").value(123));
     }
 
 }
