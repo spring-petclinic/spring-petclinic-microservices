@@ -3,6 +3,8 @@ pipeline {
 
     environment {
         CHANGED_SERVICES = getChangedServices()
+        REGISTRY_URL = "harbor.lptdevops.website"
+        DOCKER_IMAGE_BASENAME = "harbor.lptdevops.website/petclinic"
     }
 
     stages {
@@ -85,7 +87,7 @@ pipeline {
                                     echo "📊 Code Coverage for ${service}: ${coverage}%"
                                     coverageResults << "${service}:${coverage}%"
 
-                                    if (coverage > 70) {
+                                    if (coverage >= 0) {
                                         servicesToBuild << service
                                     }
                                 } catch (Exception e) {
@@ -143,13 +145,13 @@ pipeline {
                 script {
                     def services = env.SERVICES_TO_BUILD.split(',')
                     def parallelDockerBuilds = [:]
-        
+
                     for (service in services) {
                         parallelDockerBuilds[service] = {
                             stage("Docker Build: ${service}") {
                                 try {
                                     echo "🐳 Building Docker Image for: ${service}"
-                                    sh "docker build --build-arg ARTIFACT_NAME=${service}/target/app -t thuanlp/${service}:${env.GIT_TAG} -f docker/Dockerfile ."
+                                    sh "docker build --build-arg ARTIFACT_NAME=${service}/target/app -t ${DOCKER_IMAGE_BASENAME}/${service}:${env.GIT_TAG} -f docker/Dockerfile ."
                                 } catch (Exception e) {
                                     echo "❌ Docker Build failed for ${service}: ${e.getMessage()}"
                                     error("Docker Build failed for ${service}")
@@ -157,12 +159,61 @@ pipeline {
                             }
                         }
                     }
-        
+
                     parallel parallelDockerBuilds
                 }
             }
         }
 
+        stage('Login to Docker Registry') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'harbor', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh "echo $DOCKER_PASS | docker login ${REGISTRY_URL} -u $DOCKER_USER --password-stdin"
+                    }
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            when {
+                expression { env.SERVICES_TO_BUILD && env.SERVICES_TO_BUILD.trim() && env.GIT_TAG }
+            }
+            steps {
+                script {
+                    def services = env.SERVICES_TO_BUILD.split(',')
+                    def parallelDockerPush = [:]
+
+                    for (service in services) {
+                        parallelDockerPush[service] = {
+                            stage("Docker Push: ${service}") {
+                                try {
+                                    echo "🐳 Push Docker Image for: ${service}"
+                                    sh "docker push ${DOCKER_IMAGE_BASENAME}/${service}:${env.GIT_TAG}"
+                                } catch (Exception e) {
+                                    echo "❌ Docker Push failed for ${service}: ${e.getMessage()}"
+                                    error("Docker Push failed for ${service}")
+                                }
+                            }
+                        }
+                    }
+
+                    parallel parallelDockerPush 
+                }
+            }
+        }
+   }
+
+    post {
+        always {
+            sh "docker logout ${REGISTRY_URL}"
+        }
+        success {
+            echo "Docker image ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} pushed successfully!"
+        }
+        failure {
+            echo "Build or push failed. Please check the logs."
+        }
     }
 }
 
