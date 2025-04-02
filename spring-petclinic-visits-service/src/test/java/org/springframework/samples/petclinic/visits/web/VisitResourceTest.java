@@ -96,7 +96,7 @@ class VisitResourceTest {
         given(visitRepository.save(visit))
             .willReturn(visit);
 
-        mvc.perform(post("owners/abc/pets/123/visits"))
+        mvc.perform(post("/owners/abc/pets/123/visits"))
             .andDo(print())
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.petId").value(123));
