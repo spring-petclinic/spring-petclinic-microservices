@@ -15,11 +15,14 @@ import org.springframework.http.MediaType;
 
 import static java.util.Arrays.asList;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+// import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+// import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+// import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+// import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+// import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(VisitResource.class)
@@ -97,8 +100,11 @@ class VisitResourceTest {
             .willReturn(visit);
 
         mvc.perform(post("/owners/abc/pets/123/visits"))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"petId\": 123}") 
+            .accept(MediaType.APPLICATION_JSON) 
             .andDo(print())
-            .andExpect(status().isOk())
+            .andExpect(status().isCreated())
             .andExpect(jsonPath("$.petId").value(123));
     }
 }
