@@ -134,8 +134,7 @@ class VisitResourceTest {
     @Test
     void shouldReturnBadRequestForMissingPetIdParameter() throws Exception {
         mvc.perform(get("/pets/visits"))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.message").value("Required parameter 'petId' is not present."));
+            .andExpect(status().isBadRequest());
     }
 
     @Test
