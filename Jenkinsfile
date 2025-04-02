@@ -209,7 +209,7 @@ pipeline {
             sh "docker logout ${REGISTRY_URL}"
         }
         success {
-            echo "Docker image ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} pushed successfully!"
+            echo "CI pipeline run successfully!"
         }
         failure {
             echo "Build or push failed. Please check the logs."
