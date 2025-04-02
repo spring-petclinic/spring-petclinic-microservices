@@ -17,7 +17,6 @@ import static java.util.Arrays.asList;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder.contentType;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -98,7 +97,6 @@ class VisitResourceTest {
             .willReturn(visit);
 
         mvc.perform(post("owners/abc/pets/123/visits"))
-            .contentType(MediaType.APPLICATION_JSON)
             .content("{\"petId\": 123}")
             .accept(MediaType.APPLICATION_JSON)
             .andExpect(status().isOk())
