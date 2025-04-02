@@ -1,6 +1,6 @@
 pipeline {
     // Chạy pipeline trên agent có nhãn 'build-agent'
-    agent { label 'build-agent' }
+    agent any
 
     stages {
         // Giai đoạn 1: Xác định các dịch vụ bị ảnh hưởng bởi thay đổi
