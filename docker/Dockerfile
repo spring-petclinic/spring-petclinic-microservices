@@ -1,3 +1,4 @@
+# docker/Dockerfile
 FROM eclipse-temurin:17 AS builder
 WORKDIR application
 ARG ARTIFACT_NAME

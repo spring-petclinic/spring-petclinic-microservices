@@ -1,3 +1,4 @@
+# spring-petclinic-discovery-server/src/main/resources/application.yml
 spring:
   application:
     name: discovery-server

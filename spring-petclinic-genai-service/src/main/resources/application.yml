@@ -1,3 +1,4 @@
+# spring-petclinic-genai-service/src/main/resources/application.yml
 spring:
   main:
     web-application-type: reactive
@@ -25,9 +26,8 @@ spring:
       api-key: ${OPENAI_API_KEY:demo}
       chat:
         options:
-            temperature: 0.7
-            model: gpt-4o-mini
-
+          temperature: 0.7
+          model: gpt-4o-mini
 
 logging:
   level:

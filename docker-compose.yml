@@ -1,6 +1,7 @@
+# docker-compose.yml
 services:
   config-server:
-    image: hzeroxium/spring-petclinic-config-server
+    image: springcommunity/spring-petclinic-config-server
     container_name: config-server
     deploy:
       resources:
@@ -15,7 +16,7 @@ services:
       - 8888:8888
 
   discovery-server:
-    image: hzeroxium/spring-petclinic-discovery-server
+    image: springcommunity/spring-petclinic-discovery-server
     container_name: discovery-server
     deploy:
       resources:
@@ -33,7 +34,7 @@ services:
       - 8761:8761
 
   customers-service:
-    image: hzeroxium/spring-petclinic-customers-service
+    image: springcommunity/spring-petclinic-customers-service
     container_name: customers-service
     deploy:
       resources:
@@ -48,7 +49,7 @@ services:
       - 8081:8081
 
   visits-service:
-    image: hzeroxium/spring-petclinic-visits-service
+    image: springcommunity/spring-petclinic-visits-service
     container_name: visits-service
     deploy:
       resources:
@@ -63,7 +64,7 @@ services:
       - 8082:8082
 
   vets-service:
-    image: hzeroxium/spring-petclinic-vets-service
+    image: springcommunity/spring-petclinic-vets-service
     container_name: vets-service
     deploy:
       resources:
@@ -78,7 +79,7 @@ services:
       - 8083:8083
 
   genai-service:
-    image: hzeroxium/spring-petclinic-genai-service
+    image: springcommunity/spring-petclinic-genai-service
     container_name: genai-service
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
@@ -97,7 +98,7 @@ services:
       - 8084:8084
 
   api-gateway:
-    image: hzeroxium/spring-petclinic-api-gateway
+    image: springcommunity/spring-petclinic-api-gateway
     container_name: api-gateway
     deploy:
       resources:
@@ -125,7 +126,7 @@ services:
       - 9411:9411
 
   admin-server:
-    image: hzeroxium/spring-petclinic-admin-server
+    image: springcommunity/spring-petclinic-admin-server
     container_name: admin-server
     deploy:
       resources:
@@ -142,14 +143,17 @@ services:
   ## Grafana / Prometheus
 
   grafana-server:
-    build: ./docker/grafana
+    image: grafana/grafana
     container_name: grafana-server
     deploy:
       resources:
         limits:
           memory: 256M
     ports:
-      - 3030:3030
+      - 3030:3000
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
 
   prometheus-server:
     build: ./docker/prometheus

@@ -1,3 +1,4 @@
+# spring-petclinic-vets-service/src/main/resources/application.yml
 spring:
   application:
     name: vets-service
