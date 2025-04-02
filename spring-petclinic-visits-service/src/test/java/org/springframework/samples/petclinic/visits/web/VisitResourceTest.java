@@ -62,12 +62,12 @@ class VisitResourceTest {
     @Test 
     void shouldFetchAVisit() throws Exception {
         given(visitRepository.findByPetId(123))
-            .willReturn(Optional.of(
+            .willReturn(
                 Visit.VisitBuilder.aVisit()
                     .id(1)
                     .petId(123)
                     .build()
-            ));
+            );
         
         mvc.perform(get("owners/abc/pets/123/visits"))
             .andExpect(status().isOk())
