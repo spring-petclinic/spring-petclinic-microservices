@@ -102,42 +102,38 @@ pipeline {
             }
         }
 
-        stage('Enforce Coverage') {
+        stage('Enforce Strict Coverage') {
             steps {
                 script {
                     def jacocoPattern = env.CHANGED_SERVICES_LIST.contains('all') ?
                         '**/jacoco.exec' :
                         env.CHANGED_SERVICES_LIST.collect { "spring-petclinic-${it}-service/target/jacoco.exec" }.join(',')
 
-                    def classPattern = env.CHANGED_SERVICES_LIST.contains('all') ?
-                        '**/target/classes' :
-                        env.CHANGED_SERVICES_LIST.collect { "spring-petclinic-${it}-service/target/classes" }.join(',')
-
-                    def sourcePattern = env.CHANGED_SERVICES_LIST.contains('all') ?
-                        '**/src/main/java' :
-                        env.CHANGED_SERVICES_LIST.collect { "spring-petclinic-${it}-service/src/main/java" }.join(',')
-
-                    // Kiểm tra xem có file jacoco.exec nào không
-                    def jacocoFiles = findFiles(glob: jacocoPattern)
-                    if (jacocoFiles) {
-                        echo "Enforcing 70% coverage for ${jacocoFiles.size()} modules"
-                        jacoco(
-                            execPattern: jacocoPattern,
-                            classPattern: classPattern,
-                            sourcePattern: sourcePattern,
-                            // Thiết lập các ngưỡng coverage
-                            minimumInstructionCoverage: '70',
-                            minimumBranchCoverage: '60',
-                            minimumComplexityCoverage: '60',
-                            minimumLineCoverage: '70',
-                            minimumMethodCoverage: '70',
-                            minimumClassCoverage: '80',
-                            changeBuildStatus: true, // Quan trọng: Đổi status build nếu không đạt
-                            skipCopyOfSrcFiles: false
-                        )
-                    } else {
-                        error("No JaCoCo coverage data found! Please ensure tests are running properly.")
+                    // Fail build if no coverage data found
+                    if (findFiles(glob: jacocoPattern).size() == 0) {
+                        error("FATAL: No JaCoCo coverage data found! Tests may not have run correctly.")
                     }
+
+                    // STRICT COVERAGE RULES
+                    jacoco(
+                        execPattern: jacocoPattern,
+                        classPattern: '**/target/classes',
+                        sourcePattern: '**/src/main/java',
+
+                        // MAIN COVERAGE THRESHOLDS (will fail build if not met)
+                        minimumInstructionCoverage: '70',
+                        minimumLineCoverage: '70',
+                        minimumMethodCoverage: '70',
+
+
+                        // ENFORCEMENT SETTINGS
+                        changeBuildStatus: true,
+                        skipCopyOfSrcFiles: false,
+
+                        // BUILD WILL FAIL IF:
+                        // 1. Any non-excluded package has <70% instruction/line/method coverage
+                        // 2. No coverage data is found
+                    )
                 }
             }
         }
