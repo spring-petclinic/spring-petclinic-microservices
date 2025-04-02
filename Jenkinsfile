@@ -15,7 +15,8 @@ pipeline {
                     sh "rm -rf ${WORKSPACE_DIR}"
                     sh "mkdir -p ${WORKSPACE_DIR}"
                     dir(WORKSPACE_DIR) {
-                        sh "git clone -b ${BRANCH} ${REPO_URL} ."
+                        sh "git clone ${REPO_URL} ."
+                        sh "git checkout ${BRANCH}"
                     }
                 }
             }
@@ -29,11 +30,12 @@ pipeline {
                         def changes = ''
 
                         if (isPR) {
-                            echo "Running pipeline for PR #${env.CHANGE_ID}"
-                            sh 'git fetch origin main'
-                            changes = sh(script: 'git diff --name-only origin/main', returnStdout: true).trim()
+                            echo "Running pipeline for PR #${env.CHANGE_ID} merging into ${env.CHANGE_TARGET}"
+                            sh "git fetch origin refs/pull/${env.CHANGE_ID}/merge"
+                            sh "git checkout -b pr-${env.CHANGE_ID} FETCH_HEAD"
+                            changes = sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}", returnStdout: true).trim()
                         } else {
-                            changes = sh(script: 'git diff --name-only HEAD~1', returnStdout: true).trim()
+                            changes = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
                         }
 
                         echo "Files changed:\n${changes}"
@@ -47,7 +49,6 @@ pipeline {
                             'spring-petclinic-genai-service',
                             'spring-petclinic-vets-service',
                             'spring-petclinic-visits-service',
-
                         ]
 
                         def affectedServices = changes.tokenize("\n")
