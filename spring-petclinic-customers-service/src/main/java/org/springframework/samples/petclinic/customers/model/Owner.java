@@ -139,4 +139,8 @@ public class Owner {
     public void setTelephone(String telephone) {
         this.telephone = telephone;
     }
+
+    public void setId(int i) {
+        this.id=i;
+    }
 }
