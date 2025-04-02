@@ -117,7 +117,7 @@ pipeline {
                     def services = env.SERVICES_TO_BUILD.split(',')
                     def parallelBuilds = [:]
 
-                    for (service in services) {
+                    services.each { service ->
                         parallelBuilds[service] = {
                             stage("Build: ${service}") {
                                 try {
@@ -146,7 +146,7 @@ pipeline {
                     def services = env.SERVICES_TO_BUILD.split(',')
                     def parallelDockerBuilds = [:]
 
-                    for (service in services) {
+                    services.each { service ->
                         parallelDockerBuilds[service] = {
                             stage("Docker Build: ${service}") {
                                 try {
@@ -184,7 +184,7 @@ pipeline {
                     def services = env.SERVICES_TO_BUILD.split(',')
                     def parallelDockerPush = [:]
 
-                    for (service in services) {
+                    services.each { service ->
                         parallelDockerPush[service] = {
                             stage("Docker Push: ${service}") {
                                 try {
