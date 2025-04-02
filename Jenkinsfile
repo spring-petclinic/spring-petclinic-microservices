@@ -222,9 +222,6 @@ pipeline {
             when {
                 expression { SERVICES_CHANGED?.trim() != "" }
             }
-            // agent {
-            //     label 'docker-node' // Agent with Docker installed
-            // }
             steps {
                 script {
                     def servicesList = SERVICES_CHANGED.tokenize(',')
@@ -232,6 +229,17 @@ pipeline {
                     if (servicesList.isEmpty()) {
                         error("❌ No changed services found. Verify 'Detect Changes' stage.")
                     }
+
+                    def servicePorts = [
+                        "spring-petclinic-admin-server": 9090,
+                        "spring-petclinic-api-gateway": 8080,
+                        "spring-petclinic-config-server": 8888,
+                        "spring-petclinic-customers-service": 8081,
+                        "spring-petclinic-discovery-server": 8761,
+                        "spring-petclinic-genai-service": 8084,
+                        "spring-petclinic-vets-service": 8083,
+                        "spring-petclinic-visits-service": 8082
+                    ]
 
                     // Login to DockerHub once before the loop
                     withCredentials([usernamePassword(
@@ -246,15 +254,22 @@ pipeline {
                     for (service in servicesList) {
                         echo "🐳 Building & pushing Docker image for ${service}..."
 
+                        // Extract short service name from the full name
+                        def shortServiceName = service.replaceFirst("spring-petclinic-", "")
+                        
+                        // Get the appropriate port for this service
+                        def servicePort = servicePorts.get(service, 8080)
+                        
                         def commitHash = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
                         def imageTag = "hzeroxium/${service}:${commitHash}"
 
                         sh """
-                        docker build \
-                            --build-arg SERVICE_NAME=${service} \
-                            -f Dockerfile \
-                            -t ${imageTag} \
-                            -t hzeroxium/${service}:latest \
+                        docker build \\
+                            --build-arg SERVICE_NAME=${shortServiceName} \\
+                            --build-arg EXPOSED_PORT=${servicePort} \\
+                            -f Dockerfile \\
+                            -t ${imageTag} \\
+                            -t hzeroxium/${service}:latest \\
                             .
                         docker push ${imageTag}
                         docker push hzeroxium/${service}:latest

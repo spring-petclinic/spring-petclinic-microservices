@@ -144,3 +144,10 @@ else {
     Write-Host "Available services: $($services.Keys -join ', ')" -ForegroundColor Yellow
   }
 }
+
+
+kubectl expose service spring-petclinic-config-server `
+--name=config-server `
+--port=8888 `
+--target-port=8888 `
+--namespace=petclinic
