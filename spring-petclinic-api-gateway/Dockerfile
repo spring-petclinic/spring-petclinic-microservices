@@ -20,7 +20,7 @@ FROM eclipse-temurin:17-jre
 
 # Consistent with docker inspect:
 WORKDIR /application
-ARG EXPOSED_PORT=8081
+ARG EXPOSED_PORT=8080
 EXPOSE ${EXPOSED_PORT}
 
 ENV SPRING_PROFILES_ACTIVE=docker
@@ -31,5 +31,5 @@ COPY --from=builder /application/snapshot-dependencies/ ./
 COPY --from=builder /application/spring-boot-loader/ ./
 COPY --from=builder /application/application/ ./
 
-# ENTRYPOINT phù hợp với history và inspect
+# ENTRYPOINT
 ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
