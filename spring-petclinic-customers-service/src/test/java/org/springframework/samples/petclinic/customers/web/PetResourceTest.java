@@ -18,4 +18,9 @@ class PetResourceTest {
     void testTask6(){
         assert(true);
     }
+
+    @Test
+    void test6(){
+        assert(true);
+    }
 }
