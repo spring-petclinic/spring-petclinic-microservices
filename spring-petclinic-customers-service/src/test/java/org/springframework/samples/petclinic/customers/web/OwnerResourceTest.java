@@ -160,4 +160,9 @@ class OwnerResourceTest {
                 """))
             .andExpect(status().isNoContent());
     }
+
+    @Test
+    void dummyTest(){
+        assert true: "This test is supposed to pass";
+    }
 }
