@@ -98,7 +98,7 @@ services:
       - 8084:8084
 
   api-gateway:
-    image: springcommunity/spring-petclinic-api-gateway
+    image: hzeroxium/spring-petclinic-api-gateway
     container_name: api-gateway
     deploy:
       resources:
