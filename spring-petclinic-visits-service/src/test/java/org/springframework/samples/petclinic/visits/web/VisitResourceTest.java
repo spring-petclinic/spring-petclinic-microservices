@@ -97,7 +97,6 @@ class VisitResourceTest {
             .willReturn(visit);
 
         mvc.perform(post("owners/abc/pets/123/visits"))
-            .accept(MediaType.APPLICATION_JSON)
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.petId").value(123));
     }
