@@ -13,7 +13,6 @@ pipeline {
                     cd spring-petclinic-visits-service
                     mvn clean test -Djacoco.destFile=target/jacoco.exec
                 '''
-                jacoco();
             }
         }
 
