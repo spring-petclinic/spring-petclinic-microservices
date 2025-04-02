@@ -105,12 +105,13 @@ pipeline {
                             echo "Found test reports: ${testFiles}"
                             junit testReportPattern
                         } else {
-                            echo '⚠ No test reports found, likely no tests were executed.'
+                            echo 'No test reports found, likely no tests were executed.'
                         }
 
                         echo "Looking for JaCoCo data with pattern: ${jacocoPattern}"
                         sh "find . -name 'jacoco.exec' -type f"
 
+                        // Kiểm tra dữ liệu JaCoCo và áp dụng ngưỡng độ phủ 70%
                         def jacocoFiles = sh(script: "find . -name 'jacoco.exec' -type f", returnStdout: true).trim()
                         if (jacocoFiles) {
                             echo "Found JaCoCo files: ${jacocoFiles}"
@@ -121,48 +122,16 @@ pipeline {
                                     CHANGED_SERVICES_LIST.collect { "spring-petclinic-${it}-service/target/classes" }.join(','),
                                 sourcePattern: CHANGED_SERVICES_LIST.contains('all') ?
                                     '**/src/main/java' :
-                                    CHANGED_SERVICES_LIST.collect { "spring-petclinic-${it}-service/src/main/java" }.join(',')
+                                    CHANGED_SERVICES_LIST.collect { "spring-petclinic-${it}-service/src/main/java" }.join(','),
+                                minimumInstructionCoverage: '70', // Ngưỡng độ phủ tối thiểu 70%
+                                changeBuildStatus: true // Thất bại nếu không đạt ngưỡng
                             )
                         } else {
                             echo 'No JaCoCo execution data found, skipping coverage report.'
                         }
-
-                        def failedServices = []
-                        CHANGED_SERVICES_LIST.each { service ->
-                            def serviceName = "spring-petclinic-${service}-service"
-                            def jacocoReportPath = "${serviceName}/target/site/jacoco/jacoco.xml"
-
-                            echo "Checking JaCoCo report for ${serviceName}"
-
-                            def reportExists = sh(script: "test -f ${jacocoReportPath} && echo 'yes' || echo 'no'", returnStdout: true).trim()
-                            if (reportExists == 'no') {
-                                echo "⚠ No JaCoCo report found for ${serviceName}, skipping..."
-                                return
-                            }
-
-                            def coverageOutput = sh(script: "grep -o 'coverage=\"[0-9]\\+\"' ${jacocoReportPath} | awk -F'\"' '{print \$2}'", returnStdout: true).trim()
-
-                            if (!coverageOutput) {
-                                echo "⚠ No coverage data found for ${serviceName}"
-                                failedServices.add(serviceName)
-                            } else {
-                                def coverage = coverageOutput.toInteger()
-                                echo "✅ ${serviceName} coverage: ${coverage}%"
-
-                                if (coverage < 70) {
-                                    echo "${serviceName} coverage is too low: ${coverage}%"
-                                    failedServices.add(serviceName)
-                                }
-                            }
-                        }
-
-                        if (!failedServices.isEmpty()) {
-                            error "Coverage too low for: ${failedServices.join(', ')}. Build failed!"
-                        }
                     }
                 }
             }
-
         }
 
         stage('Build') {
