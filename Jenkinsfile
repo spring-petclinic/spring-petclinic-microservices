@@ -63,14 +63,12 @@ pipeline {
                     if (CHANGED_SERVICES_LIST.contains('all')) {
                         echo 'Testing all modules'
                         sh './mvnw clean test'
-                        // Debug: Kiểm tra nội dung thư mục target
                         sh 'find . -name "surefire-reports" -type d'
                         sh 'find . -name "jacoco.exec" -type f'
                     } else {
                         def modules = CHANGED_SERVICES_LIST.collect { "spring-petclinic-${it}-service" }.join(',')
                         echo "Testing modules: ${modules}"
                         sh "./mvnw clean test -pl ${modules}"
-                        // Debug: Kiểm tra nội dung thư mục target
                         sh 'find . -name "surefire-reports" -type d'
                         sh 'find . -name "jacoco.exec" -type f'
                     }
@@ -114,6 +112,52 @@ pipeline {
                         def jacocoFiles = sh(script: "find . -name 'jacoco.exec' -type f", returnStdout: true).trim()
                         if (jacocoFiles) {
                             echo "Found JaCoCo files: ${jacocoFiles}"
+                            def coveragePass = true
+                            def coverageResults = [:]
+                            
+                            // Analyze coverage for each changed service
+                            CHANGED_SERVICES_LIST.each { service ->
+                                if (service in ['customers', 'vets', 'visits']) {
+                                    def modulePath = "spring-petclinic-${service}-service"
+                                    def jacocoExec = "${modulePath}/target/jacoco.exec"
+                                    def classesDir = "${modulePath}/target/classes"
+                                    def sourceDir = "${modulePath}/src/main/java"
+                                    
+                                    // Parse JaCoCo report
+                                    def coverage = sh(script: """
+                                        java -jar jacococli.jar report ${jacocoExec} \
+                                          --classfiles ${classesDir} \
+                                          --sourcefiles ${sourceDir} \
+                                          --xml ${modulePath}/target/coverage-report.xml
+                                        grep -oP '(?<=<counter type="INSTRUCTION" missed=")[^"]*(?=")' ${modulePath}/target/coverage-report.xml | head -1
+                                        grep -oP '(?<=<counter type="INSTRUCTION" covered=")[^"]*(?=")' ${modulePath}/target/coverage-report.xml | head -1
+                                    """, returnStdout: true).trim().split('\n')
+                                    
+                                    if (coverage.size() >= 2) {
+                                        def missed = coverage[0].toInteger()
+                                        def covered = coverage[1].toInteger()
+                                        def total = missed + covered
+                                        def percentage = total > 0 ? (covered * 100 / total) : 0
+                                        
+                                        coverageResults[service] = percentage
+                                        echo "Coverage for ${service}: ${percentage}% (${covered}/${total})"
+                                        
+                                        if (percentage < 70) {
+                                            coveragePass = false
+                                            echo "Coverage for ${service} is below 70% (${percentage}%)"
+                                        }
+                                    } else {
+                                        coveragePass = false
+                                        echo "Could not determine coverage for ${service}"
+                                    }
+                                }
+                            }
+                            
+                            // Fail the build if coverage is insufficient
+                            if (!coveragePass) {
+                                error("One or more services have insufficient test coverage (minimum 70% required)")
+                            }
+                            
                             jacoco(
                                 execPattern: jacocoPattern,
                                 classPattern: CHANGED_SERVICES_LIST.contains('all') ?
@@ -132,6 +176,12 @@ pipeline {
         }
 
         stage('Build') {
+            when {
+                expression { 
+                    // Only build if all previous stages succeeded
+                    currentBuild.result == null || currentBuild.result == 'SUCCESS' 
+                }
+            }
             steps {
                 script {
                     if (CHANGED_SERVICES_LIST.contains('all')) {
