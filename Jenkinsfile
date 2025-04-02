@@ -50,51 +50,52 @@ pipeline {
                     def services = env.CHANGED_SERVICES.split(',')
                     def coverageResults = []
                     def servicesToBuild = []
+                    def parallelTests = [:]
 
-                for (service in services) {
-                    def testCommand = "mvn test -pl ${service} jacoco:report"
-                    echo "Running tests for: ${service}"
+                    for (service in services) {
+                        parallelTests[service] = {
+                            stage("Test: ${service}") {
+                                try {
+                                    sh "mvn test -pl ${service} -DskipTests=false"
+                                    sh "mvn jacoco:report -pl ${service}"
 
-                    sh "mvn test -pl ${service} -DskipTests=false"
-                    sh "${testCommand}"
+                                    def reportPath = "${service}/target/site/jacoco/index.html"
+                                    def coverage = 0
 
-                    def reportPath = "${service}/target/site/jacoco/index.html"
+                                    if (fileExists(reportPath)) {
+                                        archiveArtifacts artifacts: reportPath, fingerprint: true
 
-                    def coverage = 0 
+                                        coverage = sh(
+                                            script: """
+                                            grep -oP '(?<=<td class="ctr2">)\\d+%' ${reportPath} | head -1 | sed 's/%//'
+                                            """,
+                                            returnStdout: true
+                                        ).trim()
 
-                    try {
-                        if (fileExists(reportPath)) {
-                            archiveArtifacts artifacts: reportPath, fingerprint: true
+                                        if (!coverage) {
+                                            echo "⚠️ Warning: Coverage extraction failed for ${service}. Setting coverage to 0."
+                                            coverage = 0
+                                        } else {
+                                            coverage = coverage.toInteger()
+                                        }
+                                    } else {
+                                        echo "⚠️ Warning: No JaCoCo report found for ${service}. Setting coverage to 0."
+                                    }
 
-                            coverage = sh(
-                                script: """
-                                grep -oP '(?<=<td class="ctr2">)\\d+%' ${reportPath} | head -1 | sed 's/%//'
-                                """,
-                                returnStdout: true
-                            ).trim()
+                                    echo "📊 Code Coverage for ${service}: ${coverage}%"
+                                    coverageResults << "${service}:${coverage}%"
 
-                            if (!coverage) {
-                                echo "⚠️ Warning: Coverage extraction failed for ${service}. Setting coverage to 0."
-                                coverage = 0
-                            } else {
-                                coverage = coverage.toInteger()
+                                    if (coverage > 70) {
+                                        servicesToBuild << service
+                                    }
+                                } catch (Exception e) {
+                                    echo "❌ Error while testing ${service}: ${e.getMessage()}"
+                                }
                             }
-                        } else {
-                            echo "⚠️ Warning: No JaCoCo report found for ${service}. Setting coverage to 0."
                         }
-                    } catch (Exception e) {
-                        echo "❌ Error while processing coverage for ${service}: ${e.getMessage()}"
-                        coverage = 0
                     }
 
-                    coverageResults << "${service}:${coverage}%"
-                    echo "📊 Code Coverage for ${service}: ${coverage}%"
-
-                    if (coverage > 70) {
-                        servicesToBuild << service
-                    }
-                }
-
+                    parallel parallelTests
 
                     env.CODE_COVERAGES = coverageResults.join(', ')
                     env.SERVICES_TO_BUILD = servicesToBuild.join(',')
@@ -104,6 +105,7 @@ pipeline {
             }
         }
 
+
         stage('Build Services') {
             when {
                 expression { env.SERVICES_TO_BUILD && env.SERVICES_TO_BUILD.trim() }
@@ -111,30 +113,56 @@ pipeline {
             steps {
                 script {
                     def services = env.SERVICES_TO_BUILD.split(',')
+                    def parallelBuilds = [:]
 
                     for (service in services) {
-                        echo "Building: ${service}"
-                        sh "mvn clean package -pl ${service} -DfinalName=app -DskipTests"
+                        parallelBuilds[service] = {
+                            stage("Build: ${service}") {
+                                try {
+                                    echo "🚀 Building: ${service}"
+                                    sh "mvn clean package -pl ${service} -DfinalName=app -DskipTests"
+                                } catch (Exception e) {
+                                    echo "❌ Build failed for ${service}: ${e.getMessage()}"
+                                    error("Build failed for ${service}")
+                                }
+                            }
+                        }
                     }
+
+                    parallel parallelBuilds
                 }
             }
         }
 
+
         stage('Build Docker Image') {
             when {
-                expression { env.SERVICES_TO_BUILD && env.SERVICES_TO_BUILD.trim() }
+                expression { env.SERVICES_TO_BUILD && env.SERVICES_TO_BUILD.trim() && env.GIT_TAG }
             }
             steps {
                 script {
                     def services = env.SERVICES_TO_BUILD.split(',')
-
+                    def parallelDockerBuilds = [:]
+        
                     for (service in services) {
-                        echo "Building Docker Image for: ${service}"
-                        sh "docker build --build-arg ARTIFACT_NAME=${service}/target/app -t ${service}-image -f docker/Dockerfile ."
+                        parallelDockerBuilds[service] = {
+                            stage("Docker Build: ${service}") {
+                                try {
+                                    echo "🐳 Building Docker Image for: ${service}"
+                                    sh "docker build --build-arg ARTIFACT_NAME=${service}/target/app -t thuanlp/${service}:${env.GIT_TAG} -f docker/Dockerfile ."
+                                } catch (Exception e) {
+                                    echo "❌ Docker Build failed for ${service}: ${e.getMessage()}"
+                                    error("Docker Build failed for ${service}")
+                                }
+                            }
+                        }
                     }
+        
+                    parallel parallelDockerBuilds
                 }
             }
         }
+
     }
 }
 
