@@ -64,15 +64,24 @@ class VisitResourceTest {
     void shouldFetchAVisit() throws Exception {
         given(visitRepository.findByPetId(123))
             .willReturn(
-                Visit.VisitBuilder.aVisit()
-                    .id(1)
-                    .petId(123)
-                    .build()
+                asList(
+                    Visit.VisitBuilder.aVisit()
+                        .id(1)
+                        .petId(123)
+                        .build(),
+                    Visit.VisitBuilder.aVisit()
+                        .id(12)
+                        .petId(123)
+                        .build()
+                )
             );
         
         mvc.perform(get("owners/abc/pets/123/visits"))
             .andExpect(status().isOk())
-            .andDo(print());
+            .andExpect(jsonPath("$.items[0].id").value(1))
+            .andExpect(jsonPath("$.items[1].id").value(12))
+            .andExpect(jsonPath("$.items[0].petId").value(123))
+            .andExpect(jsonPath("$.items[1].petId").value(123));
     }
 
 }
