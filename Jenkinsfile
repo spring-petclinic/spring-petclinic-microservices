@@ -1,12 +1,11 @@
 pipeline {
     agent any
-
+    
     tools {
-        maven 'Maven 3'
+        maven 'Maven_3'  // Tên phải khớp với tên đã cấu hình trong Global Tool Configuration
     }
     
     environment {
-        // Chỉ định nghĩa các biến đơn giản trong environment
         MINIMUM_COVERAGE = '70'
     }
     
@@ -91,12 +90,25 @@ pipeline {
                         if (path) {
                             dir(path) {
                                 echo "Running tests for ${service}"
-                                sh "mvn clean test jacoco:report"
+                                sh "mvn clean test"
                                 
                                 // Publish JUnit test results
                                 junit 'target/surefire-reports/*.xml'
                                 
-                                // Check code coverage and fail if below threshold
+                                // Publish coverage report using Coverage Plugin
+                                publishCoverage(
+                                    adapters: [
+                                        jacocoAdapter(
+                                            path: 'target/site/jacoco/jacoco.xml',
+                                            thresholds: [
+                                                [thresholdTarget: 'INSTRUCTION', unhealthyThreshold: 30.0, unstableThreshold: 70.0]
+                                            ]
+                                        )
+                                    ],
+                                    sourceFileResolver: sourceFiles('STORE_LAST_BUILD')
+                                )
+                                
+                                // Kiểm tra độ phủ bằng script shell
                                 def coverageResult = sh(
                                     script: """
                                     COVERAGE=\$(awk -F"," '{ instructions += \$4 + \$5; covered += \$5 } END { print 100*covered/instructions }' target/site/jacoco/jacoco.csv)
@@ -111,20 +123,10 @@ pipeline {
                                     returnStatus: true
                                 )
                                 
-                                // If coverage check fails, fail the build
+                                // Nếu độ phủ không đạt, fail build
                                 if (coverageResult != 0) {
                                     error "Test coverage for ${service} is below the required threshold of ${MINIMUM_COVERAGE}%"
                                 }
-                                
-                                // Publish coverage report
-                                publishHTML([
-                                    allowMissing: false,
-                                    alwaysLinkToLastBuild: true,
-                                    keepAll: true,
-                                    reportDir: 'target/site/jacoco',
-                                    reportFiles: 'index.html',
-                                    reportName: "${service} - JaCoCo Coverage Report"
-                                ])
                             }
                         } else {
                             echo "Path not found for service: ${service}"
