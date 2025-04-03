@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     tools {
-        maven 'Maven_3'  // Tên phải khớp với tên đã cấu hình trong Global Tool Configuration
+        maven 'Maven 3'  // Tên phải khớp với tên đã cấu hình trong Global Tool Configuration
     }
     
     environment {
