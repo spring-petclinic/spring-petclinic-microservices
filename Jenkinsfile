@@ -7,23 +7,26 @@ pipeline {
     }
 
     stages {
-        stage('Setup Branch') {
-            steps {
-                script {
-                    env.BRANCH = env.BRANCH_NAME
-                    echo "Using branch: ${env.BRANCH}"
-                }
-            }
-        }
-
         stage('Checkout') {
             steps {
                 script {
-                    echo "Cloning repository ${REPO_URL} - Branch: ${env.BRANCH}"
+                    echo "Cloning repository ${REPO_URL}"
                     sh "rm -rf ${WORKSPACE_DIR}"
                     sh "mkdir -p ${WORKSPACE_DIR}"
+
                     dir(WORKSPACE_DIR) {
-                        sh "git clone -b ${env.BRANCH} ${REPO_URL} ."
+                        if (env.CHANGE_ID) {
+                            // Pull Request
+                            echo "Checking out PR #${env.CHANGE_ID} (target: ${env.CHANGE_TARGET})"
+                            sh "git init"
+                            sh "git remote add origin ${REPO_URL}"
+                            sh "git fetch origin refs/pull/${env.CHANGE_ID}/merge:pr-${env.CHANGE_ID}"
+                            sh "git checkout pr-${env.CHANGE_ID}"
+                        } else {
+                            // Branch
+                            echo "Checking out branch ${env.BRANCH_NAME}"
+                            sh "git clone -b ${env.BRANCH_NAME} ${REPO_URL} ."
+                        }
                     }
                 }
             }
@@ -37,9 +40,6 @@ pipeline {
                         def changes = ''
 
                         if (isPR) {
-                            echo "Running pipeline for PR #${env.CHANGE_ID} merging into ${env.CHANGE_TARGET}"
-                            sh "git fetch origin refs/pull/${env.CHANGE_ID}/merge"
-                            sh "git checkout -b pr-${env.CHANGE_ID} FETCH_HEAD"
                             changes = sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}", returnStdout: true).trim()
                         } else {
                             changes = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
@@ -55,7 +55,7 @@ pipeline {
                             'spring-petclinic-discovery-server',
                             'spring-petclinic-genai-service',
                             'spring-petclinic-vets-service',
-                            'spring-petclinic-visits-service',
+                            'spring-petclinic-visits-service'
                         ]
 
                         def affectedServices = changes.tokenize("\n")
