@@ -32,6 +32,14 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.hamcrest.Matchers.containsString;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Collections;
+
 
 /**
  * @author Maciej Szarlinski
@@ -61,7 +69,108 @@ class VetResourceTest {
     }
 
     @Test
-    void test6(){
-        assert(true);
+    void shouldReturnEmptyListWhenNoVets() throws Exception {
+        given(vetRepository.findAll()).willReturn(java.util.Collections.emptyList());
+
+        mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$").isEmpty());
     }
+
+
+    @Test
+    void shouldReturnVetWithMultipleSpecialties() throws Exception {
+        Vet vet = new Vet();
+        vet.setId(4);
+        vet.setFirstName("Rafael");
+        vet.setLastName("Ortega");
+
+        // Create a modifiable collection first
+        Set<org.springframework.samples.petclinic.vets.model.Specialty> specialties = new HashSet<>();
+
+        for (int i = 1; i <= 3; i++) {
+            org.springframework.samples.petclinic.vets.model.Specialty specialty =
+                new org.springframework.samples.petclinic.vets.model.Specialty();
+            specialty.setName("specialty" + i);
+
+            try {
+                java.lang.reflect.Field idField = specialty.getClass().getDeclaredField("id");
+                idField.setAccessible(true);
+                idField.set(specialty, i);
+            } catch (Exception e) {
+                // Ignore reflection errors
+            }
+
+            specialties.add(specialty);
+        }
+
+        // Using reflection to set the specialties collection
+        try {
+            java.lang.reflect.Field specialtiesField = vet.getClass().getDeclaredField("specialties");
+            specialtiesField.setAccessible(true);
+            specialtiesField.set(vet, specialties);
+        } catch (Exception e) {
+            // Fallback if reflection fails
+        }
+
+        given(vetRepository.findAll()).willReturn(asList(vet));
+
+        mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].id").value(4))
+            .andExpect(jsonPath("$[0].specialties.length()").value(3));
+    }
+
+
+    @Test
+    void shouldReturnCorrectContentType() throws Exception {
+        given(vetRepository.findAll()).willReturn(java.util.Collections.emptyList());
+
+        mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(header().string("Content-Type", containsString(MediaType.APPLICATION_JSON_VALUE)));
+    }
+
+    @Test
+    void shouldReturnVetWithEmptySpecialties() throws Exception {
+        Vet vet = new Vet();
+        vet.setId(3);
+        vet.setFirstName("Sharon");
+        vet.setLastName("Jenkins");
+        // No specialties added
+
+        given(vetRepository.findAll()).willReturn(asList(vet));
+
+        mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].id").value(3))
+            .andExpect(jsonPath("$[0].firstName").value("Sharon"))
+            .andExpect(jsonPath("$[0].lastName").value("Jenkins"))
+            .andExpect(jsonPath("$[0].specialties").isEmpty());
+    }
+
+
+
+    @Test
+    void shouldReturnLargeVetList() throws Exception {
+        List<Vet> vets = new ArrayList<>();
+        for (int i = 1; i <= 10; i++) {
+            Vet vet = new Vet();
+            vet.setId(i);
+            vet.setFirstName("FirstName" + i);
+            vet.setLastName("LastName" + i);
+            vets.add(vet);
+        }
+
+        given(vetRepository.findAll()).willReturn(vets);
+
+        mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(10))
+            .andExpect(jsonPath("$[9].id").value(10));
+    }
+
+
 }
