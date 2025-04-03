@@ -306,25 +306,17 @@ pipeline {
                         """
                         
                         dir('spring-petclinic-microservices-config') {
-                            // Make sure yq is available
-                            sh """
-                            if ! command -v yq &> /dev/null; then
-                                echo "Installing yq..."
-                                wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-                                chmod +x /usr/local/bin/yq
-                            fi
-                            """
                             
                             // Update image tags for each changed service
                             for (service in servicesList) {
                                 def shortServiceName = service.replaceFirst("spring-petclinic-", "")
                                 def valuesFile = "dev/values-${shortServiceName}.yaml"
                                 
-                                // Check if file exists before updating
+                                // Check if file exists and update with sed
                                 sh """
                                 if [ -f "${valuesFile}" ]; then
                                     echo "Updating image tag in ${valuesFile}"
-                                    yq e '.image.tag = "${commitHash}"' -i ${valuesFile}
+                                    sed -i 's/\\(image:\\s*tag:\\s*\\).*/\\1"${commitHash}"/' ${valuesFile}
                                 else
                                     echo "Warning: ${valuesFile} not found"
                                 fi
