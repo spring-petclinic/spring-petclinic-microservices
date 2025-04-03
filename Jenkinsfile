@@ -310,9 +310,8 @@ pipeline {
                             sh """
                             if ! command -v yq &> /dev/null; then
                                 echo "Installing yq..."
-                                mkdir -p tools
-                                wget -qO tools/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-                                chmod +x tools/yq
+                                wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+                                chmod +x /usr/local/bin/yq
                             fi
                             """
                             
@@ -325,7 +324,7 @@ pipeline {
                                 sh """
                                 if [ -f "${valuesFile}" ]; then
                                     echo "Updating image tag in ${valuesFile}"
-                                    sh "./tools/yq e '.image.tag = \"${commitHash}\"' -i ${valuesFile}"
+                                    yq e '.image.tag = "${commitHash}"' -i ${valuesFile}
                                 else
                                     echo "Warning: ${valuesFile} not found"
                                 fi
