@@ -131,35 +131,44 @@ pipeline {
             }
         }
 
-                stage('Check Code Coverage') {
-            steps {
-                script {
-                    def failedServices = []
-                    
-                    CHANGED_SERVICES_LIST.each { service ->
-                        if (service in ['customers', 'visits', 'vets']) {
-                            def coverageReport = "spring-petclinic-${service}-service/target/site/jacoco/jacoco.xml"
-                            def coverageThreshold = 70.0
-                            def lineCoverage = sh(script: "grep '<counter type=\"LINE\"' ${coverageReport} | awk -F'[=\" ]+' '{print \$6}'", returnStdout: true).trim()
-                            
-                            if (lineCoverage) {
-                                echo "Code coverage for ${service}: ${lineCoverage}%"
-                                if (lineCoverage.toDouble() < coverageThreshold) {
-                                    failedServices.add(service)
-                                }
-                            } else {
-                                echo "No coverage report found for ${service}, assuming 0%"
-                                failedServices.add(service)
-                            }
-                        }
-                    }
+stage('Check Code Coverage') {
+    steps {
+        script {
+            def failedServices = []
 
-                    if (!failedServices.isEmpty()) {
-                        error "Code coverage below 70% for services: ${failedServices.join(', ')}"
+            CHANGED_SERVICES_LIST.each { service ->
+                if (service in ['customers', 'visits', 'vets']) {
+                    def coverageReport = "spring-petclinic-${service}-service/target/site/jacoco/jacoco.xml"
+                    def coverageThreshold = 70.0
+
+                    // Đọc file jacoco.xml và trích xuất giá trị coverage của LINE
+                    def lineCoverage = sh(script: """
+                        grep '<counter type="LINE"' ${coverageReport} | \
+                        awk -F'[=\" ]+' '{print \$6}'
+                    """, returnStdout: true).trim()
+
+                    // Kiểm tra nếu có giá trị coverage
+                    if (lineCoverage) {
+                        echo "Code coverage for ${service}: ${lineCoverage}%"
+                        // Kiểm tra xem coverage có thấp hơn ngưỡng không
+                        if (lineCoverage.toDouble() < coverageThreshold) {
+                            failedServices.add(service)
+                        }
+                    } else {
+                        echo "No coverage report found for ${service}, assuming 0%"
+                        failedServices.add(service)
                     }
                 }
             }
+
+            // Kiểm tra nếu có services nào không đạt yêu cầu coverage
+            if (!failedServices.isEmpty()) {
+                error "Code coverage below 70% for services: ${failedServices.join(', ')}"
+            }
         }
+    }
+}
+
 
 
         stage('Build') {
