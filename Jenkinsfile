@@ -2,18 +2,8 @@ pipeline {
     agent any
     
     environment {
-        // Define microservices paths for change detection
-        SERVICES = [
-            'customers-service': 'spring-petclinic-customers-service',
-            'vets-service': 'spring-petclinic-vets-service',
-            'visits-service': 'spring-petclinic-visits-service',
-            'api-gateway': 'spring-petclinic-api-gateway',
-            'discovery-server': 'spring-petclinic-discovery-server',
-            'config-server': 'spring-petclinic-config-server',
-            'admin-server': 'spring-petclinic-admin-server',
-            'genai-service': 'spring-petclinic-genai-service'
-        ]
-        MINIMUM_COVERAGE = 70
+        // Chỉ định nghĩa các biến đơn giản trong environment
+        MINIMUM_COVERAGE = '70'
     }
     
     options {
@@ -26,6 +16,18 @@ pipeline {
         stage('Determine Changed Services') {
             steps {
                 script {
+                    // Định nghĩa SERVICES trong script block
+                    def SERVICES = [
+                        'customers-service': 'spring-petclinic-customers-service',
+                        'vets-service': 'spring-petclinic-vets-service',
+                        'visits-service': 'spring-petclinic-visits-service',
+                        'api-gateway': 'spring-petclinic-api-gateway',
+                        'discovery-server': 'spring-petclinic-discovery-server',
+                        'config-server': 'spring-petclinic-config-server',
+                        'admin-server': 'spring-petclinic-admin-server',
+                        'genai-service': 'spring-petclinic-genai-service'
+                    ]
+                    
                     // Initialize empty list to store changed services
                     env.CHANGED_SERVICES = ""
                     
@@ -67,6 +69,9 @@ pipeline {
                     }
                     
                     echo "Services to process: ${env.CHANGED_SERVICES}"
+                    
+                    // Store SERVICES map for later stages
+                    env.SERVICES_JSON = groovy.json.JsonOutput.toJson(SERVICES)
                 }
             }
         }
@@ -74,6 +79,7 @@ pipeline {
         stage('Test') {
             steps {
                 script {
+                    def SERVICES = readJSON text: env.SERVICES_JSON
                     def servicesToTest = env.CHANGED_SERVICES.trim().split(" ")
                     
                     servicesToTest.each { service ->
@@ -127,6 +133,7 @@ pipeline {
         stage('Build') {
             steps {
                 script {
+                    def SERVICES = readJSON text: env.SERVICES_JSON
                     def servicesToBuild = env.CHANGED_SERVICES.trim().split(" ")
                     
                     servicesToBuild.each { service ->
