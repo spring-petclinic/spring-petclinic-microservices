@@ -1,5 +1,9 @@
 pipeline {
     agent any
+
+    tools {
+        maven 'Maven 3'
+    }
     
     environment {
         // Chỉ định nghĩa các biến đơn giản trong environment
