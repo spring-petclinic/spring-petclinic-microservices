@@ -76,9 +76,9 @@ pipeline {
                     echo "✅ Normalized changed files: ${normalizedChanges.join(', ')}"
 
                     def services = [
-                        "spring-petclinic-admin-server",
-                        "spring-petclinic-api-gateway",
-                        "spring-petclinic-config-server",
+                        // "spring-petclinic-admin-server",
+                        // "spring-petclinic-api-gateway",
+                        // "spring-petclinic-config-server",
                         // "spring-petclinic-customers-service",
                         "spring-petclinic-discovery-server",
                         // "spring-petclinic-genai-service",
