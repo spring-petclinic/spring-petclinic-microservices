@@ -141,17 +141,18 @@ stage('Check Code Coverage') {
                     def coverageReport = "spring-petclinic-${service}-service/target/site/jacoco/jacoco.xml"
                     def coverageThreshold = 70.0
 
-                    // Đọc file jacoco.xml và trích xuất giá trị coverage của LINE
                     def lineCoverage = sh(script: """
-                        grep '<counter type="LINE"' ${coverageReport} | \
-                        awk -F'[=\" ]+' '{print \$6}'
+                        if [ -f ${coverageReport} ]; then
+                            awk '/<counter type="LINE"/ {split(\$0,a,"[ \\\"=]+"); print (a[8]/(a[6]+a[8]))*100}' ${coverageReport}
+                        else
+                            echo "0"
+                        fi
                     """, returnStdout: true).trim()
 
-                    // Kiểm tra nếu có giá trị coverage
                     if (lineCoverage) {
                         echo "Code coverage for ${service}: ${lineCoverage}%"
-                        // Kiểm tra xem coverage có thấp hơn ngưỡng không
-                        if (lineCoverage.toDouble() < coverageThreshold) {
+                        def coverageValue = lineCoverage.toDouble()
+                        if (coverageValue < coverageThreshold) {
                             failedServices.add(service)
                         }
                     } else {
@@ -160,15 +161,13 @@ stage('Check Code Coverage') {
                     }
                 }
             }
-
-            // Kiểm tra nếu có services nào không đạt yêu cầu coverage
+            
             if (!failedServices.isEmpty()) {
-                error "Code coverage below 70% for services: ${failedServices.join(', ')}"
+                error "The following services failed code coverage threshold (${coverageThreshold}%): ${failedServices.join(', ')}"
             }
         }
     }
 }
-
 
 
         stage('Build') {
