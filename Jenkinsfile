@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         REPO_URL = 'https://github.com/htloc0610/spring-petclinic-microservices'
-        BRANCH = "main"
+       BRANCH = env.BRANCH_NAME ?: "main"
         WORKSPACE_DIR = "repo"
     }
 
