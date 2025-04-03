@@ -316,7 +316,7 @@ pipeline {
                                 sh """
                                 if [ -f "${valuesFile}" ]; then
                                     echo "Updating image tag in ${valuesFile}"
-                                    sed -i 's/\\(image:\\s*tag:\\s*\\).*/\\1"${commitHash}"/' ${valuesFile}
+                                    sed -i 's/\\(tag:\\s*\\).*/\\1"'${commitHash}'"/' ${valuesFile}
                                 else
                                     echo "Warning: ${valuesFile} not found"
                                 fi
