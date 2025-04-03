@@ -128,38 +128,14 @@ pipeline {
 
                                 echo "Code Coverage for ${service}: ${coverageData}%"
 
-                                // Check coverage > 70% for pull request to main
+                                // Check coverage > 70 pull request for main
                                 if (env.CHANGE_ID && env.CHANGE_TARGET == 'main') {
                                     def coverageValue = coverageData.toFloat()
-                                    if (coverageValue >= 70) {
-                                        // Success
-                                        githubPRStatusPublisher(
-                                            statusMsg: [content: "Coverage for ${service}: ${coverageValue}% (Passed)"],
-                                            context: "CI/PetClinic/Coverage/${service}",
-                                            state: 'SUCCESS',
-                                            targetUrl: "${env.BUILD_URL}"
-                                        )
-                                    } else {
-                                        // Failed
-                                        githubPRStatusPublisher(
-                                            statusMsg: [content: "Coverage for ${service}: ${coverageValue}% (Failed, < 70%)"],
-                                            context: "CI/PetClinic/Coverage/${service}",
-                                            state: 'FAILURE',
-                                            targetUrl: "${env.BUILD_URL}"
-                                        )
+                                    if (coverageValue < 70) {
                                         error "Code coverage for ${service} is ${coverageValue}%, which is below the required 70% for PRs to main. Failing the pipeline."
                                     }
                                 }
                             } catch (Exception e) {
-                                // Failed
-                                if (env.CHANGE_ID && env.CHANGE_TARGET == 'main') {
-                                    githubPRStatusPublisher(
-                                        statusMsg: [content: "Coverage report generation failed for ${service}"],
-                                        context: "CI/PetClinic/Coverage/${service}",
-                                        state: 'ERROR',
-                                        targetUrl: "${env.BUILD_URL}"
-                                    )
-                                }
                                 error "Code coverage report generation failed for ${service}"
                             }
                         }
@@ -210,47 +186,9 @@ pipeline {
     post {
         success {
             echo "Pipeline completed successfully!"
-            script {
-                if (env.CHANGE_ID) {
-                    // Pull Request
-                    githubPRStatusPublisher(
-                        statusMsg: [content: 'PetClinic PR build passed'],
-                        context: 'CI/PetClinic/PR',
-                        state: 'SUCCESS',
-                        targetUrl: "${env.BUILD_URL}"
-                    )
-                } else {
-                    // Branch
-                    githubPRStatusPublisher(
-                        statusMsg: [content: 'PetClinic Branch build passed'],
-                        context: 'CI/PetClinic/Branch',
-                        state: 'SUCCESS',
-                        targetUrl: "${env.BUILD_URL}"
-                    )
-                }
-            }
         }
         failure {
             echo "Pipeline failed!"
-            script {
-                if (env.CHANGE_ID) {
-                    // Pull Request
-                    githubPRStatusPublisher(
-                        statusMsg: [content: 'PetClinic PR build failed'],
-                        context: 'CI/PetClinic/PR',
-                        state: 'FAILURE',
-                        targetUrl: "${env.BUILD_URL}"
-                    )
-                } else {
-                    // Branch
-                    githubPRStatusPublisher(
-                        statusMsg: [content: 'PetClinic Branch build failed'],
-                        context: 'CI/PetClinic/Branch',
-                        state: 'FAILURE',
-                        targetUrl: "${env.BUILD_URL}"
-                    )
-                }
-            }
         }
         always {
             script {
