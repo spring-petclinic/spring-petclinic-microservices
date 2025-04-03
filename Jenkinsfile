@@ -16,11 +16,16 @@ pipeline {
         stage('Test & Build') {
             steps {
                 script {
+                    // Kiểm tra các file thay đổi và chạy lệnh sh trong mỗi service thay đổi
                     servicePath.each { service, path ->
                         if (changedFiles.contains(path)) {
                             echo "Changes detected in ${service}, running tests..."
-                            sh "cd ${path} && mvn clean test"
-                            sh "cd ${path} && mvn package"
+                            
+                            // Chạy trong môi trường node để đảm bảo các lệnh sh được thực thi chính xác
+                            node {
+                                sh "cd ${path} && mvn clean test"
+                                sh "cd ${path} && mvn package"
+                            }
                         }
                     }
                 }
