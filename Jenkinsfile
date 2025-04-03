@@ -105,7 +105,7 @@ pipeline {
                             echo "Found test reports: ${testFiles}"
                             junit testReportPattern
                         } else {
-                            echo '⚠ No test reports found, likely no tests were executed.'
+                            echo 'No test reports found, likely no tests were executed.'
                         }
 
                         echo "Looking for JaCoCo data with pattern: ${jacocoPattern}"
@@ -126,44 +126,41 @@ pipeline {
                         } else {
                             echo 'No JaCoCo execution data found, skipping coverage report.'
                         }
-
-                        def failedServices = []
-                        CHANGED_SERVICES_LIST.each { service ->
-                            def serviceName = "spring-petclinic-${service}-service"
-                            def jacocoReportPath = "${serviceName}/target/site/jacoco/jacoco.xml"
-
-                            echo "Checking JaCoCo report for ${serviceName}"
-
-                            def reportExists = sh(script: "test -f ${jacocoReportPath} && echo 'yes' || echo 'no'", returnStdout: true).trim()
-                            if (reportExists == 'no') {
-                                echo "⚠ No JaCoCo report found for ${serviceName}, skipping..."
-                                return
-                            }
-
-                            def coverageOutput = sh(script: "grep -o 'coverage=\"[0-9]\\+\"' ${jacocoReportPath} | awk -F'\"' '{print \$2}'", returnStdout: true).trim()
-
-                            if (!coverageOutput) {
-                                echo "⚠ No coverage data found for ${serviceName}"
-                                failedServices.add(serviceName)
-                            } else {
-                                def coverage = coverageOutput.toInteger()
-                                echo "✅ ${serviceName} coverage: ${coverage}%"
-
-                                if (coverage < 70) {
-                                    echo "${serviceName} coverage is too low: ${coverage}%"
-                                    failedServices.add(serviceName)
-                                }
-                            }
-                        }
-
-                        if (!failedServices.isEmpty()) {
-                            error "Coverage too low for: ${failedServices.join(', ')}. Build failed!"
-                        }
                     }
                 }
             }
-
         }
+
+                stage('Check Code Coverage') {
+            steps {
+                script {
+                    def failedServices = []
+                    
+                    CHANGED_SERVICES_LIST.each { service ->
+                        if (service in ['customers', 'visits', 'vets']) {
+                            def coverageReport = "spring-petclinic-${service}-service/target/site/jacoco/jacoco.xml"
+                            def coverageThreshold = 70.0
+                            def lineCoverage = sh(script: "grep '<counter type=\"LINE\"' ${coverageReport} | awk -F'[=\" ]+' '{print \$6}'", returnStdout: true).trim()
+                            
+                            if (lineCoverage) {
+                                echo "Code coverage for ${service}: ${lineCoverage}%"
+                                if (lineCoverage.toDouble() < coverageThreshold) {
+                                    failedServices.add(service)
+                                }
+                            } else {
+                                echo "No coverage report found for ${service}, assuming 0%"
+                                failedServices.add(service)
+                            }
+                        }
+                    }
+
+                    if (!failedServices.isEmpty()) {
+                        error "Code coverage below 70% for services: ${failedServices.join(', ')}"
+                    }
+                }
+            }
+        }
+
 
         stage('Build') {
             steps {
