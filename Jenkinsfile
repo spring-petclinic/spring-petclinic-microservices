@@ -282,81 +282,76 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes (Helm)') {
+        stage('Update GitOps Repository') {
             when {
                 expression { SERVICES_CHANGED?.trim() != "" }
-                beforeAgent true
-            }
-            agent {
-                label 'k8s-node'
             }
             steps {
                 script {
                     def servicesList = SERVICES_CHANGED.tokenize(',')
-                    if (servicesList.isEmpty()) {
-                        echo "ℹ️ No changed services found. Skipping deployment."
-                        return
-                    }
-
-                    def servicePorts = [
-                        "spring-petclinic-admin-server": 9090,
-                        "spring-petclinic-api-gateway": 8080,
-                        "spring-petclinic-config-server": 8888,
-                        "spring-petclinic-customers-service": 8081,
-                        "spring-petclinic-discovery-server": 8761,
-                        "spring-petclinic-genai-service": 8084,
-                        "spring-petclinic-vets-service": 8083,
-                        "spring-petclinic-visits-service": 8082
-                    ]
-
-                    withKubeConfig([
-                        credentialsId: 'k8s-credentials',
-                        serverUrl: 'https://kubernetes.example.com',
-                        namespace: "${DEPLOY_ENV}"
-                    ]) {
-                        sh "kubectl get nodes -o wide"
-
-                        for (service in servicesList) {
-                            echo "🚀 Deploying ${service}..."
-
-                            def commitHash = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                            def imageTag = "hzeroxium/${service}:${commitHash}"
-                            def releaseName = "${service}-${DEPLOY_ENV}"
-                            def servicePort = servicePorts.get(service, 8080)
-
-                            try {
+                    def commitHash = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    
+                    // Create a temporary directory for the GitOps repo
+                    sh "rm -rf spring-petclinic-microservices-config || true"
+                    
+                    // Use credentials for Git operations
+                    withCredentials([usernamePassword(
+                        credentialsId: 'github-credentials', 
+                        usernameVariable: 'GIT_USERNAME', 
+                        passwordVariable: 'GIT_PASSWORD'
+                    )]) {
+                        // Clone with credentials
+                        sh """
+                        git clone https://\${GIT_USERNAME}:\${GIT_PASSWORD}@github.com/HZeroxium/spring-petclinic-microservices-config.git
+                        """
+                        
+                        dir('spring-petclinic-microservices-config') {
+                            // Make sure yq is available
+                            sh """
+                            if ! command -v yq &> /dev/null; then
+                                echo "Installing yq..."
+                                wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+                                chmod +x /usr/local/bin/yq
+                            fi
+                            """
+                            
+                            // Update image tags for each changed service
+                            for (service in servicesList) {
+                                def shortServiceName = service.replaceFirst("spring-petclinic-", "")
+                                def valuesFile = "dev/values-${shortServiceName}.yaml"
+                                
+                                // Check if file exists before updating
                                 sh """
-                                helm upgrade --install ${releaseName} chart/ \
-                                --namespace "${DEPLOY_ENV}" \
-                                --create-namespace \
-                                --wait --timeout 180s \
-                                --set image.repository="hzeroxium/${service}" \
-                                --set image.tag="${commitHash}" \
-                                --set service.port=${servicePort} \
-                                --set livenessProbe.port=${servicePort} \
-                                --set readinessProbe.port=${servicePort}
+                                if [ -f "${valuesFile}" ]; then
+                                    echo "Updating image tag in ${valuesFile}"
+                                    yq e '.image.tag = "${commitHash}"' -i ${valuesFile}
+                                else
+                                    echo "Warning: ${valuesFile} not found"
+                                fi
                                 """
-                                echo "✅ Helm deployment success for ${service}"
-                            } catch (err) {
-                                echo "❌ Helm deployment failed for ${service}: ${err.message}"
-                                if (params.AUTO_ROLLBACK) {
-                                    echo "🔄 Rolling back ${releaseName}..."
-                                    sh "helm rollback ${releaseName}"
-                                }
-                                if (params.FAIL_FAST) {
-                                    error("Deployment failed for ${service}")
-                                }
                             }
+                            
+                            // Configure Git and commit changes
+                            sh """
+                            git config user.email "jenkins@example.com"
+                            git config user.name "Jenkins CI"
+                            git status
+                            
+                            # Only commit if there are changes
+                            if ! git diff --quiet; then
+                                git add .
+                                git commit -m "Update image tags for ${SERVICES_CHANGED} to ${commitHash}"
+                                git push
+                                echo "✅ Successfully updated GitOps repository"
+                            else
+                                echo "ℹ️ No changes to commit in GitOps repository"
+                            fi
+                            """
                         }
-
-                        echo "📊 Deployment Summary (${DEPLOY_ENV}):"
-                        sh "helm list --namespace ${DEPLOY_ENV}"
                     }
-                }
-            }
-            post {
-                success {
-                    echo "🎉 All deployments (Helm) completed successfully in ${DEPLOY_ENV} environment!"
+                    
+                    // Clean up after ourselves
+                    sh "rm -rf spring-petclinic-microservices-config || true"
                 }
             }
         }
