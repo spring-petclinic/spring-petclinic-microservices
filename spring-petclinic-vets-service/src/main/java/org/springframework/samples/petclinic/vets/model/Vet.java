@@ -73,6 +73,9 @@ public class Vet {
     }
 
     public void addSpecialty(Specialty specialty) {
+        if (specialty == null) {
+            throw new IllegalArgumentException("Specialty must not be null");
+        }
         getSpecialtiesInternal().add(specialty);
     }
 
@@ -99,4 +102,6 @@ public class Vet {
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
+
+ 
 }
