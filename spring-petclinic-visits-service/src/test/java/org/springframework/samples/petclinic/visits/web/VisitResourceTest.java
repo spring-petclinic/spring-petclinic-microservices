@@ -29,6 +29,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @Import(TestConfig.class)
 class VisitResourceTest {
 
+
     @Autowired
     MockMvc mvc;
 
