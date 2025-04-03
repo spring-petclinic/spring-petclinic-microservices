@@ -20,11 +20,13 @@ pipeline {
                     servicePath.each { service, path ->
                         if (changedFiles.contains(path)) {
                             echo "Changes detected in ${service}, running tests..."
-                            
+
                             // Chạy trong môi trường node để đảm bảo các lệnh sh được thực thi chính xác
                             node {
-                                sh "cd ${path} && mvn clean test"
-                                sh "cd ${path} && mvn package"
+                                dir(path) {
+                                    sh "mvn clean test"
+                                    sh "mvn package"
+                                }
                             }
                         }
                     }
