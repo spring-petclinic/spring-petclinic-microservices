@@ -136,4 +136,69 @@ class PetResourceTest {
             .andExpect(jsonPath("$.name").value("Buddy"));
     }
 
+    @Test
+    void shouldReturnNotFound_WhenPetDoesNotExist() throws Exception {
+        given(petRepository.findById(999)).willReturn(Optional.empty());
+
+        mockMvc.perform(get("/owners/*/pets/999")
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound());
+    }
+    @Test
+    void shouldReturnBadRequest_WhenCreatingPetWithInvalidData() throws Exception {
+        mockMvc.perform(post("/owners/1/pets")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                {
+                    "name": "",
+                    "birthDate": "",
+                    "typeId": null
+                }
+                """))
+            .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void shouldReturnNotFound_WhenCreatingPetForNonExistentOwner() throws Exception {
+        given(ownerRepository.findById(999)).willReturn(Optional.empty());
+
+        mockMvc.perform(post("/owners/999/pets")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                {
+                    "name": "Buddy",
+                    "birthDate": "2020-01-01",
+                    "typeId": 2
+                }
+                """))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldReturnNotFound_WhenUpdatingNonExistentPet() throws Exception {
+        given(petRepository.findById(999)).willReturn(Optional.empty());
+
+        mockMvc.perform(put("/owners/*/pets/999")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                {
+                    "id": 999,
+                    "name": "Max",
+                    "birthDate": "2021-05-05",
+                    "typeId": 3
+                }
+                """))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldReturnEmptyList_WhenNoPetTypesExist() throws Exception {
+        given(petRepository.findPetTypes()).willReturn(List.of());
+
+        mockMvc.perform(get("/petTypes")
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isEmpty());
+    }
+
 }

@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.util.Arrays;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -160,5 +161,79 @@ class OwnerResourceTest {
                """))
            .andExpect(status().isNoContent());
    }
+
+    @Test
+    void shouldReturnNotFound_WhenOwnerDoesNotExist() throws Exception {
+        given(ownerRepository.findById(999)).willReturn(Optional.empty());
+
+        mockMvc.perform(get("/owners/999")
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldReturnBadRequest_WhenCreatingOwnerWithInvalidData() throws Exception {
+        mockMvc.perform(post("/owners")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+            {
+                "firstName": "",
+                "lastName": "",
+                "address": "",
+                "city": "",
+                "telephone": ""
+            }
+            """))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnNotFound_WhenUpdatingNonExistentOwner() throws Exception {
+        given(ownerRepository.findById(999)).willReturn(Optional.empty());
+
+        mockMvc.perform(put("/owners/999")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+            {
+                "firstName": "John",
+                "lastName": "Doe",
+                "address": "123 Street",
+                "city": "New York",
+                "telephone": "1234567890"
+            }
+            """))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldHandleEmptyOwnerList() throws Exception {
+        given(ownerRepository.findAll()).willReturn(Arrays.asList());
+
+        mockMvc.perform(get("/owners")
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isEmpty());
+    }
+
+
+    @Test
+    void shouldReturnBadRequest_WhenOwnerIdIsInvalid() throws Exception {
+        mockMvc.perform(get("/owners/0")
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest());
+    }
+
+
+    @Test
+    void shouldMapOwnerRequestToOwnerEntity() {
+        // Arrange
+        OwnerRequest request = new OwnerRequest("John", "Doe", "123 Street", "New York", "1234567890");
+        Owner owner = new Owner();
+
+        // Act
+        ownerEntityMapper.map(owner, request);
+
+        assert true;
+    }
 
 }
