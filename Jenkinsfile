@@ -26,7 +26,7 @@ pipeline {
                         } else {
                             // Branch
                             echo "Checking out branch ${env.BRANCH_NAME}"
-                            sh "git clone -b ${env.BRANCH_NAME} ${REAffectPO_URL} ."
+                            sh "git clone -b ${env.BRANCH_NAME} ${REPO_URL} ."
                         }
                     }
                 }
@@ -128,7 +128,7 @@ pipeline {
 
                                 echo "Code Coverage for ${service}: ${coverageData}%"
 
-                                // Check coverage > 70% for pull request to branch main
+                                // Check coverage > 70 pull request for main
                                 if (env.CHANGE_ID && env.CHANGE_TARGET == 'main') {
                                     def coverageValue = coverageData.toFloat()
                                     if (coverageValue < 70) {
