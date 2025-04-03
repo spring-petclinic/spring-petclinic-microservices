@@ -95,17 +95,12 @@ pipeline {
                                 // Publish JUnit test results
                                 junit 'target/surefire-reports/*.xml'
                                 
-                                // Publish coverage report using Coverage Plugin
-                                publishCoverage(
-                                    adapters: [
-                                        jacocoAdapter(
-                                            path: 'target/site/jacoco/jacoco.xml',
-                                            thresholds: [
-                                                [thresholdTarget: 'INSTRUCTION', unhealthyThreshold: 30.0, unstableThreshold: 70.0]
-                                            ]
-                                        )
-                                    ],
-                                    sourceFileResolver: sourceFiles('STORE_LAST_BUILD')
+                                recordCoverage(
+                                    tools: [[parser: 'JACOCO', pattern: 'target/site/jacoco/jacoco.xml']],
+                                    id: 'jacoco', name: 'JaCoCo Coverage',
+                                    qualityGates: [
+                                        [threshold: 70.0, metric: 'LINE', unstable: true]
+                                    ]
                                 )
                                 
                                 // Kiểm tra độ phủ bằng script shell
