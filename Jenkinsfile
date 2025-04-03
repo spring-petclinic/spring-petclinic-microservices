@@ -8,28 +8,29 @@ pipeline {
         }
         stage('Build & Test') {
             steps {
-                sh 'make test'  // Lệnh build hoặc test của bạn
+                sh './mvnw verify'  // Chạy test Maven
             }
         }
     }
     post {
         success {
-            setGithubStatus('success', 'Build Passed!')
+            githubCheck('success', 'CI Passed ✅')
         }
         failure {
-            setGithubStatus('failure', 'Build Failed!')
+            githubCheck('failure', 'CI Failed ❌')
         }
     }
 }
 
-def setGithubStatus(state, message) {
+def githubCheck(state, message) {
     step([
-        $class: 'GitHubCommitStatusSetter',
-        context: 'ci/build',
-        statusBackref: '',
-        statusResultSource: [
-            $class: 'ConditionalStatusResultSource',
-            results: [[status: state, message: message]]
+        $class: 'GitHubChecksPublisher',
+        name: 'Jenkins CI',  // Tên check
+        status: 'COMPLETED',
+        conclusion: state,
+        output: [
+            title: 'CI/CD Pipeline',
+            summary: message
         ]
     ])
 }
