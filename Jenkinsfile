@@ -21,6 +21,7 @@ pipeline {
                             sh "git init"
                             sh "git remote add origin ${REPO_URL}"
                             sh "git fetch origin refs/pull/${env.CHANGE_ID}/merge:pr-${env.CHANGE_ID}"
+                            sh "git fetch origin ${env.CHANGE_TARGET}:refs/remotes/origin/${env.CHANGE_TARGET}"
                             sh "git checkout pr-${env.CHANGE_ID}"
                         } else {
                             // Branch
