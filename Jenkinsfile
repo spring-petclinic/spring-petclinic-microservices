@@ -128,6 +128,11 @@ pipeline {
 
                                 echo "Code Coverage for ${service}: ${coverageData}%"
 
+                                // Check coverage
+                                def coverageValue = coverageData.toFloat()
+                                if (coverageValue < 70) {
+                                    error "Code coverage for ${service} is ${coverageValue}%, which is below the required 70%. Failing the pipeline."
+                                }
                             } catch (Exception e) {
                                 error "Code coverage report generation failed for ${service}"
                             }
