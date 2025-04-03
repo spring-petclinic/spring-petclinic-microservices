@@ -93,6 +93,7 @@ public class Vet {
     }
 
     public void setFirstName(String firstName) {
+        System.out.println("Hello, world!");
         this.firstName = firstName;
     }
 
