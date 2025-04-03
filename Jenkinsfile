@@ -128,14 +128,23 @@ pipeline {
 
                                 echo "Code Coverage for ${service}: ${coverageData}%"
 
-                                // Check coverage > 70 pull request for main
+                                // Check coverage > 70% for pull request to main
                                 if (env.CHANGE_ID && env.CHANGE_TARGET == 'main') {
                                     def coverageValue = coverageData.toFloat()
-                                    if (coverageValue < 70) {
+                                    if (coverageValue >= 70) {
+                                        // Success
+                                        githubNotify context: "CI/PetClinic/Coverage/${service}", description: "Coverage for ${service}: ${coverageValue}% (Passed)", status: 'SUCCESS', targetUrl: "${env.BUILD_URL}"
+                                    } else {
+                                        // Failed
+                                        githubNotify context: "CI/PetClinic/Coverage/${service}", description: "Coverage for ${service}: ${coverageValue}% (Failed, < 70%)", status: 'FAILURE', targetUrl: "${env.BUILD_URL}"
                                         error "Code coverage for ${service} is ${coverageValue}%, which is below the required 70% for PRs to main. Failing the pipeline."
                                     }
                                 }
                             } catch (Exception e) {
+                                // Failed
+                                if (env.CHANGE_ID && env.CHANGE_TARGET == 'main') {
+                                    githubNotify context: "CI/PetClinic/Coverage/${service}", description: "Coverage report generation failed for ${service}", status: 'ERROR', targetUrl: "${env.BUILD_URL}"
+                                }
                                 error "Code coverage report generation failed for ${service}"
                             }
                         }
@@ -186,9 +195,27 @@ pipeline {
     post {
         success {
             echo "Pipeline completed successfully!"
+            script {
+                if (env.CHANGE_ID) {
+                    // Pull Request
+                    githubNotify context: 'CI/PetClinic/PR', description: 'PetClinic PR build passed', status: 'SUCCESS', targetUrl: "${env.BUILD_URL}"
+                } else {
+                    // Branch
+                    githubNotify context: 'CI/PetClinic/Branch', description: 'PetClinic Branch build passed', status: 'SUCCESS', targetUrl: "${env.BUILD_URL}"
+                }
+            }
         }
         failure {
             echo "Pipeline failed!"
+            script {
+                if (env.CHANGE_ID) {
+                    // Pull Request
+                    githubNotify context: 'CI/PetClinic/PR', description: 'PetClinic PR build failed', status: 'FAILURE', targetUrl: "${env.BUILD_URL}"
+                } else {
+                    // Branch
+                    githubNotify context: 'CI/PetClinic/Branch', description: 'PetClinic Branch build failed', status: 'FAILURE', targetUrl: "${env.BUILD_URL}"
+                }
+            }
         }
         always {
             script {
