@@ -56,6 +56,7 @@ public class Pet {
 
     @Override
     public String toString() {
+        System.out.print("Hello, how are you?");
         return new ToStringCreator(this)
             .append("id", this.getId())
             .append("name", this.getName())
