@@ -3,20 +3,27 @@ pipeline {
 
     environment {
         REPO_URL = 'https://github.com/htloc0610/spring-petclinic-microservices'
-       BRANCH = env.BRANCH_NAME
         WORKSPACE_DIR = "repo"
     }
 
     stages {
+        stage('Setup Branch') {
+            steps {
+                script {
+                    env.BRANCH = env.BRANCH_NAME
+                    echo "Using branch: ${env.BRANCH}"
+                }
+            }
+        }
+
         stage('Checkout') {
             steps {
                 script {
-                    echo "Cloning repository ${REPO_URL} - Branch: ${BRANCH}"
+                    echo "Cloning repository ${REPO_URL} - Branch: ${env.BRANCH}"
                     sh "rm -rf ${WORKSPACE_DIR}"
                     sh "mkdir -p ${WORKSPACE_DIR}"
                     dir(WORKSPACE_DIR) {
-                           sh "git clone -b ${BRANCH} ${REPO_URL} ."
-//                         sh "git clone --depth 2 -b ${BRANCH} ${REPO_URL} ."
+                        sh "git clone -b ${env.BRANCH} ${REPO_URL} ."
                     }
                 }
             }
@@ -182,4 +189,3 @@ pipeline {
         }
     }
 }
-
