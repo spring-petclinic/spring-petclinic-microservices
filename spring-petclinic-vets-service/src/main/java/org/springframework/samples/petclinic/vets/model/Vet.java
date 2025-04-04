@@ -81,6 +81,7 @@ public class Vet {
     }
 
     public String getFirstName() {
+        System.out.println("Hello");
         return this.firstName;
     }
 
