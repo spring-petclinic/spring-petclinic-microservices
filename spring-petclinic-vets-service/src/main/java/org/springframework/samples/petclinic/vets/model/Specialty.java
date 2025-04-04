@@ -41,7 +41,7 @@ public class Specialty {
     public String getName() {
         return this.name;
     }
-
+    // test pr check
     public void setName(String name) {
         this.name = name;
     }
