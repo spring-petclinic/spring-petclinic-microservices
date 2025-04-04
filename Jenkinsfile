@@ -28,32 +28,29 @@ pipeline {
             }
         }
         stage('Test') {
-            // when {
-            //     expression { env.SERVICE != 'none' }
-            // }
-            // steps {
-            //     sh "cd ${env.SERVICE} && mvn test"
-            // }
-            // post {
-            //     always {
-            //         junit "${env.SERVICE}/target/surefire-reports/*.xml"
-            //         jacoco execPattern: "${env.SERVICE}/target/jacoco.exec"
-            //     }
-            // }
-            script {
-                    echo "testing..."
-                }
+            when {
+                expression { env.SERVICE != 'none' }
+            }
+            steps {
+                // sh "cd ${env.SERVICE} && mvn test"
+                echo "testing... ${env.SERVICE}"
+            }
+            post {
+                // always {
+                //     junit "${env.SERVICE}/target/surefire-reports/*.xml"
+                //     jacoco execPattern: "${env.SERVICE}/target/jacoco.exec"
+                // }
+                echo "end testing..."
+            }
         }
         stage('Build') {
-            // when {
-            //     expression { env.SERVICE != 'none' }
-            // }
-            // steps {
-            //     sh "cd ${env.SERVICE} && mvn package"
-            // }
-            script {
-                    echo "building..."
-                }
+            when {
+                expression { env.SERVICE != 'none' }
+            }
+            steps {
+                // sh "cd ${env.SERVICE} && mvn package"
+                echo "building... ${env.SERVICE}"
+            }
         }
     }
 }
