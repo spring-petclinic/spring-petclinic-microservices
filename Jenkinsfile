@@ -35,13 +35,13 @@ pipeline {
                 // sh "cd ${env.SERVICE} && mvn test"
                 echo "testing... ${env.SERVICE}"
             }
-            post {
-                // always {
-                //     junit "${env.SERVICE}/target/surefire-reports/*.xml"
-                //     jacoco execPattern: "${env.SERVICE}/target/jacoco.exec"
-                // }
-                echo "end testing..."
-            }
+            // post {
+            //     // always {
+            //     //     junit "${env.SERVICE}/target/surefire-reports/*.xml"
+            //     //     jacoco execPattern: "${env.SERVICE}/target/jacoco.exec"
+            //     // }
+            //     echo "end testing..."
+            // }
         }
         stage('Build') {
             when {
