@@ -4,7 +4,7 @@ pipeline {
         skipDefaultCheckout()
     }
     environment {
-      //Cấu hình các biến cần thiết
+        MAVEN_OPTS = "-Dmaven.repo.local=.m2/repository"  // Thêm biến môi trường nếu cần
     }
     stages {
         stage('Checkout') {
