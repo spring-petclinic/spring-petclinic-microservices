@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.samples.petclinic.vets.model.Specialty;
 import org.springframework.samples.petclinic.vets.model.Vet;
 import org.springframework.samples.petclinic.vets.model.VetRepository;
 import org.springframework.test.context.ActiveProfiles;
@@ -32,9 +33,37 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import java.util.List;
 
+// /**
+//  * @author Maciej Szarlinski
+//  */
+// @ExtendWith(SpringExtension.class)
+// @WebMvcTest(VetResource.class)
+// @ActiveProfiles("test")
+// class VetResourceTest {
+
+//     @Autowired
+//     MockMvc mvc;
+
+//     @MockBean
+//     VetRepository vetRepository;
+
+//     @Test
+//     void shouldGetAListOfVets() throws Exception {
+
+//         Vet vet = new Vet();
+//         vet.setId(1);
+
+//         given(vetRepository.findAll()).willReturn(asList(vet));
+
+//         mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
+//             .andExpect(status().isOk())
+//             .andExpect(jsonPath("$[0].id").value(1));
+//     }
+// }
 /**
- * @author Maciej Szarlinski
+ * @author Linh Van Vo
  */
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(VetResource.class)
@@ -50,13 +79,25 @@ class VetResourceTest {
     @Test
     void shouldGetAListOfVets() throws Exception {
 
-        Vet vet = new Vet();
-        vet.setId(1);
+    Vet vet = new Vet();
+    vet.setId(1);
+    vet.setFirstName("Anna");
+    vet.setLastName("Smith");
 
-        given(vetRepository.findAll()).willReturn(asList(vet));
+    Specialty specialty = new Specialty();
+    specialty.setName("surgery");
 
-        mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$[0].id").value(1));
+    // Cách đúng để thêm specialties
+    vet.getSpecialties().add(specialty);
+
+    given(vetRepository.findAll()).willReturn(List.of(vet));
+
+    mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].id").value(1))
+        .andExpect(jsonPath("$[0].firstName").value("Anna"))
+        .andExpect(jsonPath("$[0].lastName").value("Smith"))
+        .andExpect(jsonPath("$[0].specialties[0].name").value("surgery"));
     }
 }
+
