@@ -4,7 +4,7 @@ pipeline {
         skipDefaultCheckout()
     }
     environment {
-        SERVICES_TO_BUILD = ""  // Đảm bảo biến được khai báo và có giá trị mặc định
+        MAVEN_OPTS = "-Dmaven.repo.local=.m2/repository"
     }
     stages {
         stage('Checkout') {
@@ -26,10 +26,6 @@ pipeline {
                     // Chuyển changedServices thành List<String> và sử dụng intersect
                     def changedServicesList = changedServices as List
                     env.SERVICES_TO_BUILD = allServices.findAll { it in changedServicesList }.join(',')
-                    // Nếu không có service nào được thay đổi, SERVICES_TO_BUILD sẽ là một chuỗi rỗng
-                    if (!env.SERVICES_TO_BUILD) {
-                        echo "No services changed, skipping build."
-                    }
                 }
             }
         }
