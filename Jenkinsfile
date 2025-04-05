@@ -21,7 +21,7 @@ pipeline {
                         git diff --name-only origin/main...HEAD | awk -F/ '{print $1}' | sort -u
                     ''', returnStdout: true).trim().split('\n')
 
-                    def allServices = ['spring-petclinic-vets-service', 'spring-petclinic-visits-service', 'spring-petclinic-customers-service']
+                    def allServices = ['spring-petclinic-vets-service', 'spring-petclinic-visits-service', 'spring-petclinic-customers-service', 'spring-petclinic-genai-service']
                     
                     // Chuyển changedServices thành List<String> và sử dụng intersect
                     def changedServicesList = changedServices as List
