@@ -4,7 +4,7 @@ pipeline {
         skipDefaultCheckout()
     }
     environment {
-        MAVEN_OPTS = "-Dmaven.repo.local=.m2/repository"  // Thêm biến môi trường nếu cần
+        MAVEN_OPTS = "-Dmaven.repo.local=.m2/repository"
     }
     stages {
         stage('Checkout') {
@@ -22,7 +22,10 @@ pipeline {
                     ''', returnStdout: true).trim().split('\n')
 
                     def allServices = ['spring-petclinic-vets-service', 'spring-petclinic-visits-service', 'spring-petclinic-customers-service']
-                    env.SERVICES_TO_BUILD = allServices.intersect(changedServices).join(',')
+                    
+                    // Chuyển changedServices thành List<String> và sử dụng intersect
+                    def changedServicesList = changedServices as List
+                    env.SERVICES_TO_BUILD = allServices.findAll { it in changedServicesList }.join(',')
                 }
             }
         }
@@ -36,16 +39,9 @@ pipeline {
                     def services = env.SERVICES_TO_BUILD.split(',')
                     for (s in services) {
                         dir("${s}") {
-                            // Sử dụng Maven mặc định để build và test
                             sh "mvn clean test"
-                            
-                            // Báo cáo kết quả unit test
                             junit '**/target/surefire-reports/*.xml'
-                            
-                            // Sử dụng JaCoCo (hoặc Cobertura) để tạo coverage report
                             jacoco execPattern: '**/target/jacoco.exec', classPattern: '**/target/classes', sourcePattern: '**/src/main/java'
-                            
-                            // Nếu bạn muốn tiếp tục package ứng dụng, có thể chạy lại lệnh clean package
                             sh "mvn clean package"
                         }
                     }
