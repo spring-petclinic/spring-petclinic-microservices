@@ -3,10 +3,6 @@ pipeline {
         label 'slave1'
     }
 
-    environment {
-       SONARQUBE_SERVER = 'SonarQube'
-    }
-
     stages {
         stage('Install Lib') {
             steps {
@@ -165,8 +161,8 @@ pipeline {
                             echo "Code Coverage for ${service}: ${coverage}%"
 
                             // If coverage is below 70%, mark as failed
-                            if (coverage < 50) {
-                                echo "Coverage for ${service} is below 50%. Build failed!"
+                            if (coverage < 70) {
+                                echo "Coverage for ${service} is below 70%. Build failed!"
                                 coveragePass = false
                             }
                         } else {
@@ -175,34 +171,13 @@ pipeline {
                         }
                     }
 
-                    // Fail the build if any service's coverage is below 50%
+                    // Fail the build if any service's coverage is below 70%
                     if (!coveragePass) {
-                        error "Test coverage is below 50% for one or more services. Build failed!"
+                        error "Test coverage is below 70% for one or more services. Build failed!"
                     }
                 }
             }
         }
-
-//         stage('SonarQube Analysis') {
-//             steps {
-//                 withSonarQubeEnv(SONARQUBE_SERVER) {
-//                     sh "mvn sonar:sonar"
-//                 }
-//             }
-//         }
-//
-//         stage('Quality Gate') {
-//             steps {
-//                 script {
-//                     timeout(time: 2, unit: 'MINUTES') {
-//                         def qualityGate = waitForQualityGate()
-//                         if (qualityGate.status != 'OK') {
-//                             error "Pipeline failed due to SonarQube Quality Gate"
-//                         }
-//                     }
-//                 }
-//             }
-//         }
 
         stage('Build') {
             when {

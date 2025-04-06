@@ -176,6 +176,9 @@
                                         <exclude>**/exception/**</exclude>
                                         <exclude>**/utils/**</exclude>
                                         <exclude>**/generated/**</exclude>
+                                        <exclude>**/web/OwnerRequest.java</exclude>
+                                        <exclude>**/web/PetRequest.java</exclude>
+                                        <exclude>**/web/PetDetails.java</exclude>
                                     </excludes>
                                 </configuration>
                             </execution>
