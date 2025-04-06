@@ -78,7 +78,7 @@ class VisitResourceTest {
                 )
             );
         
-        mvc.perform(get("/owners/abc/pets/123/visits"))
+        mvc.perform(get("/owners/2/pets/123/visits"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(1))
             .andExpect(jsonPath("$[1].id").value(12))

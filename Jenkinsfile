@@ -6,15 +6,15 @@ pipeline {
     }
 
     stages {
-        stage('Test') {
-            steps {
-                echo 'Testing ...'
-                sh '''
-                    cd spring-petclinic-visits-service
-                    mvn clean test -Djacoco.destFile=target/jacoco.exec
-                '''
-            }
-        }
+        // stage('Test') {
+        //     steps {
+        //         echo 'Testing ...'
+        //         sh '''
+        //             cd spring-petclinic-visits-service
+        //             mvn clean test -Djacoco.destFile=target/jacoco.exec
+        //         '''
+        //     }
+        // }
 
         // stage('Building') {
         //     steps {
@@ -25,18 +25,27 @@ pipeline {
         //         '''
         //     }
         // }
+        stage('Test') {
+            steps {
+                echo 'Testing ...'
+                sh '''
+                    mvn clean test
+                '''
+            }
+        }
     }
 
     post {
         always {
-            junit 'spring-petclinic-visits-service/target/surefire-reports/*.xml'
-            jacoco(
-                execPattern: 'spring-petclinic-visits-service/target/jacoco.exec',
-                classPattern: 'spring-petclinic-visits-service/target/classes',
-                sourcePattern: 'spring-petclinic-visits-service/src/main/java',
-                inclusionPattern: 'spring-petclinic-visits-service/*.class',
-                exclusionPattern: ''
-            )
+            junit '*/target/surefire-reports/*.xml'
+            // junit 'spring-petclinic-visits-service/target/surefire-reports/*.xml'
+            // jacoco(
+            //     execPattern: 'spring-petclinic-visits-service/target/jacoco.exec',
+            //     classPattern: 'spring-petclinic-visits-service/target/classes',
+            //     sourcePattern: 'spring-petclinic-visits-service/src/main/java',
+            //     inclusionPattern: 'spring-petclinic-visits-service/*.class',
+            //     exclusionPattern: ''
+            // )
             
         }
     }

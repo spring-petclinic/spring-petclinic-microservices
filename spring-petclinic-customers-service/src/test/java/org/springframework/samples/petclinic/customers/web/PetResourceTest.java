@@ -57,6 +57,23 @@ class PetResourceTest {
             .andExpect(jsonPath("$.type.id").value(6));
     }
 
+    // -------------------------------------------------------------------------------------------
+    @Test
+    void shouldGetAListOfPetTypes() throw Exception {
+        PetType petType = new PetType();
+        petType.setId(1);
+        petType.setName("dog");
+        given(petRepository.findPetTypes()).willReturn(List.of(petType));
+
+        mvc.perform(get("/petTypes").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].id").value(1))
+            .andExpect(jsonPath("$[0].name").value("dog"));
+    }   
+    
+
+    // -------------------------------------------------------------------------------------------
+
     private Pet setupPet() {
         Owner owner = new Owner();
         owner.setFirstName("George");
