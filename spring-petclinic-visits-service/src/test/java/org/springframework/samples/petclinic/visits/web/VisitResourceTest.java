@@ -119,7 +119,7 @@ class VisitResourceTest {
             .build();
 
         given(visitRepository.save(visit))
-            .willReturn(Optional.of(visit));
+            .willReturn(visit);
 
         mvc.perform(post("/owners/2/pets/123/visits")
                 .contentType(MediaType.APPLICATION_JSON)
