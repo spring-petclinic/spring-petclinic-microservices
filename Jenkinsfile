@@ -26,7 +26,7 @@ pipeline {
                 echo 'Testing ...'
                 // sh "mvn clean test"
                 sh '''
-                    .mvnw clean test -f spring-petclinic-visits-service/pom.xml  
+                    ./mvnw clean test -f spring-petclinic-visits-service/pom.xml  
                 '''
             }
         }
