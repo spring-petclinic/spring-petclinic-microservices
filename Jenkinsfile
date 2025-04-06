@@ -51,7 +51,6 @@ pipeline {
                 exclusionPattern: 'spring-petclinic-customers-service/target/test-classes'
             )
 
-            updateGithubCommitStatus(currentBuild)
         }
 
         success {
