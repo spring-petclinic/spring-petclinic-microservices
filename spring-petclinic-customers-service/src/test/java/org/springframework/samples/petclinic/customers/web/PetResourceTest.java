@@ -121,7 +121,7 @@ class PetResourceTest {
 
         mvc.perform(put("/owners/*/pets/{petId}", 2)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"name\":\"Basil\",\"birthDate\":\"2023-10-01\",\"typeId\":6}"))
+                .content("{\"id\":2, \"name\":\"Basil\",\"birthDate\":\"2023-10-01\",\"typeId\":6}"))
             .andExpect(status().isNoContent());
     }
     // -------------------------------------------------------------------------------------------
