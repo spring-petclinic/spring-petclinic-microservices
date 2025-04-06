@@ -24,7 +24,7 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Testing ...'
-                sh "./mvnw -f */pom.xml test"
+                sh "./mvnw test"
             }
         }
     }
