@@ -26,7 +26,7 @@ pipeline {
                 echo 'Testing ...'
                 // sh "mvn clean test"
                 sh '''
-                    ./mvnw clean test -f spring-petclinic-vets-service/pom.xml  
+                    ./mvnw clean test -f spring-petclinic-customers-service/pom.xml  
                 '''
             }
         }
@@ -35,7 +35,7 @@ pipeline {
     post {
         always {
             // junit '**/target/surefire-reports/*.xml'
-            junit 'spring-petclinic-vets-service/target/surefire-reports/*.xml'
+            junit 'spring-petclinic-customers-service/target/surefire-reports/*.xml'
 
             // jacoco (
             //     execPattern: '**/target/jacoco.exec',
@@ -45,10 +45,10 @@ pipeline {
             // )
 
             jacoco (
-                execPattern: 'spring-petclinic-vets-service/target/jacoco.exec',
-                classPattern: 'spring-petclinic-vets-service/target/classes',
-                sourcePattern: 'spring-petclinic-vets-service/src/main/java',
-                exclusionPattern: 'spring-petclinic-vets-service/target/test-classes'
+                execPattern: 'spring-petclinic-customers-service/target/jacoco.exec',
+                classPattern: 'spring-petclinic-customers-service/target/classes',
+                sourcePattern: 'spring-petclinic-customers-service/src/main/java',
+                exclusionPattern: 'spring-petclinic-customers-service/target/test-classes'
             )
         }
     }
