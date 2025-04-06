@@ -1,6 +1,8 @@
 package org.springframework.samples.petclinic.visits.web;
 
 import java.util.Date;
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,7 +77,7 @@ class VisitResourceTest {
     }
 
     @Test 
-    void shouldFetchAVisit() throws Exception {
+    void shouldFetchVisitsByPetId() throws Exception {
         Date date = new Date();
 
         given(visitRepository.findByPetId(123))
@@ -116,14 +118,12 @@ class VisitResourceTest {
             .description("Visit 1")
             .build();
 
-        String jsonVisit = "{\"id\":1,\"petId\":123,\"description\":\"Visit 1\"}";
-
         given(visitRepository.save(visit))
-            .willReturn(jsonVisit);
+            .willReturn(Optional.of(visit));
 
         mvc.perform(post("/owners/2/pets/123/visits")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonVisit))
+                .content("{\"id\":1,\"petId\":123,\"description\":\"Visit 1\"}"))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.id").value(1))
             .andExpect(jsonPath("$.petId").value(123))
