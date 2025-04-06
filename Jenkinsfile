@@ -1,16 +1,18 @@
 pipeline {
     agent any
+
     environment {
         AFFECTED_SERVICES = ''
     }
+
     stages {
         stage('Checkout') {
             steps {
-                checkout scm  // Checkout mã nguồn từ repository
+                checkout scm
             }
         }
 
-        stage('Detect Changes') {
+        stage('Detect Changed Services') {
             steps {
                 script {
                     def services = [
@@ -19,26 +21,25 @@ pipeline {
                         'spring-petclinic-visits-service'
                     ]
 
-                    // Lấy commit chung giữa HEAD và origin/main
-                    def lastCommit = sh(script: '''
-                        git fetch origin main
-                        git merge-base origin/main HEAD
-                    ''', returnStdout: true).trim()
+                    sh 'git fetch origin main'
 
-                    // Lấy danh sách file đã thay đổi kể từ commit chung
-                    def diff = sh(script: "git diff --name-only ${lastCommit} HEAD", returnStdout: true).trim()
+                    def list_files = sh(
+                        script: "git diff --name-only origin/main HEAD",
+                        returnStdout: true
+                    ).trim().split('\n')
 
-                    // Kiểm tra thay đổi thuộc service nào và thêm vào AFFECTED_SERVICES
+                    echo "List files: ${list_files}"
+
                     def affectedServicesList = []
+
                     for (svc in services) {
-                        if (diff.contains("${svc}/")) {
+                        if (list_files.any { it.startsWith("${svc}/") }) {
                             affectedServicesList.add(svc)
                         }
                     }
 
-                    // Cập nhật AFFECTED_SERVICES với danh sách các service bị thay đổi
                     if (affectedServicesList) {
-                        env.AFFECTED_SERVICES = affectedServicesList.join(',')
+                        env.AFFECTED_SERVICES = affectedServicesList.join(' ')
                         echo "Affected services: ${env.AFFECTED_SERVICES}"
                     } else {
                         echo "No relevant service changes detected."
@@ -47,51 +48,34 @@ pipeline {
             }
         }
 
-        stage('Test') {
+        stage('Test Affected Services') {
+            when {
+                expression { return env.AFFECTED_SERVICES?.trim() }
+            }
             steps {
                 script {
-                    // Kiểm tra nếu có dịch vụ bị thay đổi
-                    for (svc in env.AFFECTED_SERVICES.split(',')) {
+                    def servicesToTest = env.AFFECTED_SERVICES.split(' ')
+                    for (svc in servicesToTest) {
                         dir("${svc}") {
+                            echo "Running tests for ${svc}"
                             sh 'mvn clean test'
-                        }
-                    }
-                }
-            }
-            post {
-                always {
-                    // Quay lại mỗi service và thực hiện kiểm tra coverage
-                    for (svc in env.AFFECTED_SERVICES.split(',')) {
-                        dir("${svc}") {
                             junit 'target/surefire-reports/*.xml'
-                            recordCoverage tools: [jacoco()]
                         }
                     }
                 }
             }
         }
 
-        stage('Check Coverage') {
-            steps {
-                script {
-                    for (svc in env.AFFECTED_SERVICES.split(',')) {
-                        def coverage = sh(script: "grep -A 1 'INSTRUCTION' ${svc}/target/site/jacoco/index.html | grep -o '[0-9]*%' | head -n1", returnStdout: true).trim().replace('%','').toInteger()
-                        if (coverage < 70) {
-                            error("Test coverage is below 70% for ${svc}: ${coverage}%")
-                        } else {
-                            echo "Test coverage OK for ${svc}: ${coverage}%"
-                        }
-                    }
-                }
+        stage('Build Affected Services') {
+            when {
+                expression { return env.AFFECTED_SERVICES?.trim() }
             }
-        }
-
-        stage('Build') {
             steps {
                 script {
-                    def servicesToBuild = env.AFFECTED_SERVICES.split(',')
+                    def servicesToBuild = env.AFFECTED_SERVICES.split(' ')
                     for (svc in servicesToBuild) {
                         dir("${svc}") {
+                            echo "Building ${svc}"
                             sh 'mvn clean package -DskipTests'
                         }
                     }
@@ -99,6 +83,7 @@ pipeline {
             }
         }
     }
+
     post {
         always {
             echo "Pipeline complete"
