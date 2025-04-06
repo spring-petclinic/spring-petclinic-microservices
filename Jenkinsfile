@@ -13,26 +13,35 @@ pipeline {
         stage('Detect Changes') {
             steps {
                 script {
+                    def services = [
+                        'spring-petclinic-customers-service',
+                        'spring-petclinic-vets-service',
+                        'spring-petclinic-visits-service'
+                    ]
 
-                    sh 'git fetch --all' // Fetch các cập nhật
-                    sh 'git branch -a'  // Kiểm tra các nhánh hiện tại
-                    sh 'git remote -v'  // Kiểm tra remote repository
-                    sh 'git log --oneline -n 5'  // Xem các commit gần nhất
+                    // Lấy commit chung giữa HEAD và origin/main
+                    def lastCommit = sh(script: '''
+                        git fetch origin main
+                        git merge-base origin/main HEAD
+                    ''', returnStdout: true).trim()
 
-                    sh 'git fetch origin main:refs/remotes/origin/main' // lấy origin/main vào local
+                    // Lấy danh sách file đã thay đổi kể từ commit chung
+                    def diff = sh(script: "git diff --name-only ${lastCommit} HEAD", returnStdout: true).trim()
 
+                    // Kiểm tra thay đổi thuộc service nào
+                    env.SERVICE_CHANGED = ''
+                    for (svc in services) {
+                        if (diff.contains("${svc}/")) {
+                            env.SERVICE_CHANGED = svc
+                            break
+                        }
+                    }
 
-                    def diff = sh(script: 'git diff --name-only origin/main', returnStdout: true).trim()
-                    if (diff.contains('spring-petclinic-customers-service/')) {
-                        env.SERVICE_CHANGED = 'spring-petclinic-customers-service'
-                    } else if (diff.contains('spring-petclinic-vets-service/')) {
-                        env.SERVICE_CHANGED = 'spring-petclinic-vets-service'
-                    } else if (diff.contains('spring-petclinic-visits-service/')) {
-                        env.SERVICE_CHANGED = 'spring-petclinic-visits-service'
+                    if (env.SERVICE_CHANGED) {
+                        echo "Changed service: ${env.SERVICE_CHANGED}"
                     } else {
                         echo "No relevant service changes detected."
                     }
-                    echo "Changed service: ${env.SERVICE_CHANGED}"
                 }
             }
         }
