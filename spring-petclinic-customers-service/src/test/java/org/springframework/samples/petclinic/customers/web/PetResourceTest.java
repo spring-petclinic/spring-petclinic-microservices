@@ -61,6 +61,16 @@ class PetResourceTest {
 
     // -------------------------------------------------------------------------------------------
     @Test
+    void findPet_invalidPetId_shouldReturnNotFound() throws Exception {
+        int nonExistentPetId = 999;
+        given(petRepository.findById(nonExistentPetId)).willReturn(Optional.empty());
+
+        mvc.perform(get("/pets/{petId}", nonExistentPetId)
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound());
+    }
+    
+    @Test
     void shouldGetAListOfPetTypes() throws Exception {
         PetType petType = new PetType();
         petType.setId(1);
@@ -92,7 +102,7 @@ class PetResourceTest {
     }
 
     @Test
-    void shouldReturnNotFoundWhenOwnerIdDoesNotExist() throws Exception {
+    void processCreationForm_validOwnerId_shouldReturnNotFound() throws Exception {
         int nonExistentOwnerId = 999;
         given(ownerRepository.findById(nonExistentOwnerId)).willReturn(java.util.Optional.empty());
 
@@ -101,6 +111,17 @@ class PetResourceTest {
                 .content("{\"name\":\"Buddy\",\"birthDate\":\"2023-01-01\",\"typeId\":1}")
         )
         .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void processUpdateForm_validPetId_shouldReturnNoContent() throws Exception {
+        Pet pet = setupPet();
+        given(petRepository.findById(2)).willReturn(Optional.of(pet));
+
+        mvc.perform(post("/owners/*/pets/{petId}", 2)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Basil\",\"birthDate\":\"2023-10-01\",\"typeId\":6}"))
+            .andExpect(status().isNoContent());
     }
     // -------------------------------------------------------------------------------------------
 
