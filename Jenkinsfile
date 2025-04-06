@@ -7,6 +7,13 @@ pipeline {
         stage('Detect Changes') {
             steps {
                 script {
+
+                    sh 'git fetch --all' // Fetch các cập nhật
+                    sh 'git branch -a'  // Kiểm tra các nhánh hiện tại
+                    sh 'git remote -v'  // Kiểm tra remote repository
+                    sh 'git log --oneline -n 5'  // Xem các commit gần nhất
+
+
                     def diff = sh(script: 'git diff --name-only origin/main', returnStdout: true).trim()
                     if (diff.contains('spring-petclinic-customers-service/')) {
                         env.SERVICE_CHANGED = 'spring-petclinic-customers-service'
