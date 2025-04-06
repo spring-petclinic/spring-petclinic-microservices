@@ -42,6 +42,7 @@ class PetResourceTest {
         owner.setLastName("Maria");
         owner.setAddress("123 Main St");
         owner.setCity("Springfield");
+        owner.setTelephone("0332120108");
 
         given(ownerRepository.findById(1))
             .willReturn(Optional.of(owner));
@@ -61,12 +62,14 @@ class PetResourceTest {
         owner1.setLastName("Maria");
         owner1.setAddress("123 Main St");
         owner1.setCity("Springfield");
+        owner1.setTelephone("0332120108");
 
         Owner owner2 = new Owner();
         owner2.setFirstName("Smith");
         owner2.setLastName("John");
         owner2.setAddress("456 Elm St");
         owner2.setCity("Shelbyville");
+        owner2.setTelephone("0332120789");
 
         given(ownerRepository.findAll())
             .willReturn(List.of(owner1, owner2));
