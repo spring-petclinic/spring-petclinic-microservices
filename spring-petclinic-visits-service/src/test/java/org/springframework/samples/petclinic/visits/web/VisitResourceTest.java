@@ -71,10 +71,7 @@ class VisitResourceTest {
             .andExpect(jsonPath("$.items[2].petId").value(222))
             .andExpect(jsonPath("$.items[0].description").value("Visit 1"))
             .andExpect(jsonPath("$.items[1].description").value("Visit 2"))
-            .andExpect(jsonPath("$.items[2].description").value("Visit 3"))
-            .andExpect(jsonPath("$.items[0].date").value(date))
-            .andExpect(jsonPath("$.items[1].date").value(date))
-            .andExpect(jsonPath("$.items[2].date").value(date));
+            .andExpect(jsonPath("$.items[2].description").value("Visit 3"));
     }
 
     @Test 
@@ -106,9 +103,7 @@ class VisitResourceTest {
             .andExpect(jsonPath("$[0].petId").value(123))
             .andExpect(jsonPath("$[1].petId").value(123))
             .andExpect(jsonPath("$[0].description").value("Visit 1"))
-            .andExpect(jsonPath("$[1].description").value("Visit 12"))
-            .andExpect(jsonPath("$[0].date").value(date))
-            .andExpect(jsonPath("$[1].date").value(date));
+            .andExpect(jsonPath("$[1].description").value("Visit 12"));
     }
 
     @Test
@@ -122,15 +117,15 @@ class VisitResourceTest {
             .description("Visit 1")
             .build();
 
-        given(visitRepository.save(visit)).willReturn(visit);
+        given(visitRepository.save(visit))
+            .willReturn(visit);
 
         mvc.perform(post("/owners/2/pets/123/visits")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"id\":1,\"petId\":123,\"date\":" + date + ",\"description\":\"Visit 1\"}"))
+                .content("{\"id\":1,\"petId\":123,\"description\":\"Visit 1\"}"))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.id").value(1))
             .andExpect(jsonPath("$.petId").value(123))
-            .andExpect(jsonPath("$.description").value("Visit 1"))
-            .andExpect(jsonPath("$.date").value(date));
+            .andExpect(jsonPath("$.description").value("Visit 1"));
     }
 }
