@@ -29,20 +29,7 @@ pipeline {
                 script {
                     def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
                     echo "Changed files:\n${changedFiles}"
-                    echo "${changedFiles.contains("vets-service")}"
-                  
-                    if(changedFiles.contains("vets-service")){
-                        env.BUILD_VETS = "true"
-                        echo " hello ${changedFiles.contains("vets-service")}"
-                    }
-                    if(changedFiles.contains("visits-service"))
-                        env.BUILD_VISITS = "true"
-                    if(changedFiles.contains("customers-service"))
-                        env.BUILD_CUSTOMERS = "true"
-
-                    echo "BUILD_VETS: ${env.BUILD_VETS}"
-                    echo "BUILD_VISITS: ${env.BUILD_VISITS}"
-                    echo "BUILD_CUSTOMERS: ${env.BUILD_CUSTOMERS}"
+                    env.changedFiles = changedFiles
                 }
             }
         }
@@ -60,9 +47,9 @@ pipeline {
 
                 when {
                     expression {
-                        return (SERVICE == 'spring-petclinic-vets-service' && env.BUILD_VETS == "true") ||
-                               (SERVICE == 'spring-petclinic-visits-service' && env.BUILD_VISITS == "true") ||
-                               (SERVICE == 'spring-petclinic-customers-service' && env.BUILD_CUSTOMERS == "true")
+                        return (SERVICE == 'spring-petclinic-vets-service' && changedFiles.contains("vets-service")) ||
+                               (SERVICE == 'spring-petclinic-visits-service' && changedFiles.contains("visits-service")) ||
+                               (SERVICE == 'spring-petclinic-customers-service' && changedFiles.contains("customers-service"))
                     }
                 }
 
