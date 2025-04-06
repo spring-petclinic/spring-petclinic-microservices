@@ -18,6 +18,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
 
+import static java.util.Arrays.asList;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -47,7 +48,7 @@ class PetResourceTest {
         given(ownerRepository.findById(1))
             .willReturn(Optional.of(owner));
 
-        mvc.perform(get("/owners/1"))
+        mvc.perform(get("/owners/1").accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.firstName").value("Rivera"))
             .andExpect(jsonPath("$.lastName").value("Maria"))
@@ -72,9 +73,9 @@ class PetResourceTest {
         owner2.setTelephone("0332120789");
 
         given(ownerRepository.findAll())
-            .willReturn(List.of(owner1, owner2));
+            .willReturn(asList(owner1, owner2));
 
-        mvc.perform(get("/owners"))
+        mvc.perform(get("/owners").accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].firstName").value("Rivera"))
             .andExpect(jsonPath("$[0].lastName").value("Maria"))

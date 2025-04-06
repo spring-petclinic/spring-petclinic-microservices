@@ -52,7 +52,7 @@ class VisitResourceTest {
                 )
             );
 
-        mvc.perform(get("/pets/visits?petId=111,222"))
+        mvc.perform(get("/pets/visits?petId=111,222").accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.items[0].id").value(1))
             .andExpect(jsonPath("$.items[1].id").value(2))
@@ -78,7 +78,7 @@ class VisitResourceTest {
                 )
             );
         
-        mvc.perform(get("/owners/2/pets/123/visits"))
+        mvc.perform(get("/owners/2/pets/123/visits").accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(1))
             .andExpect(jsonPath("$[1].id").value(12))
