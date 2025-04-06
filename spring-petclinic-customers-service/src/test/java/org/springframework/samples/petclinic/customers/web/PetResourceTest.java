@@ -64,7 +64,7 @@ class PetResourceTest {
         PetType petType = new PetType();
         petType.setId(1);
         petType.setName("dog");
-        given(petRepository.findPetTypes()).willReturn(List.of(petType));
+        given(petRepository.findPetTypes()).willReturn(asList(petType));
 
         mvc.perform(get("/petTypes").accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
