@@ -87,4 +87,49 @@ class OwnerResourceTest {
             .andExpect(jsonPath("$[1].address").value("456 Elm St"))
             .andExpect(jsonPath("$[1].city").value("Shelbyville"));
     }
+
+    @Test
+    void createOwner_validOwner_shouldReturnCreated() throws Exception {
+        Owner owner = new Owner();
+        owner.setFirstName("Rivera");
+        owner.setLastName("Maria");
+        owner.setAddress("123 Main St");
+        owner.setCity("Springfield");
+        owner.setTelephone("0332120108");
+
+        given(ownerRepository.save(owner)).willReturn(owner);
+
+        mvc.perform(get("/owners")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"firstName\":\"Rivera\",\"lastName\":\"Maria\",\"address\":\"123 Main St\",\"city\":\"Springfield\",\"telephone\":\"0332120108\"}"))
+            .andExpect(status().isCreated());
+    }
+
+    @Test
+    void updateOwner_validOwnerId_shouldReturnNoContent() throws Exception {
+        Owner owner = new Owner();
+        owner.setFirstName("Rivera");
+        owner.setLastName("Maria");
+        owner.setAddress("123 Main St");
+        owner.setCity("Springfield");
+        owner.setTelephone("0332120108");
+
+        given(ownerRepository.findById(1)).willReturn(Optional.of(owner));
+
+        mvc.perform(get("/owners/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"firstName\":\"Rivera\",\"lastName\":\"Maria\",\"address\":\"123 Main St\",\"city\":\"Springfield\",\"telephone\":\"0332120108\"}"))
+            .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void updateOwner_invalidOwnerId_shouldReturnNotFound() throws Exception {
+        int nonExistentOwnerId = 999;
+        given(ownerRepository.findById(nonExistentOwnerId)).willReturn(Optional.empty());
+
+        mvc.perform(get("/owners/{ownerId}", nonExistentOwnerId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"firstName\":\"Rivera\",\"lastName\":\"Maria\",\"address\":\"123 Main St\",\"city\":\"Springfield\",\"telephone\":\"0332120108\"}"))
+            .andExpect(status().isNotFound());
+    }
 };
