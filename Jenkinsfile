@@ -29,7 +29,7 @@ pipeline {
             steps {
                 echo 'Testing ...'
                 sh '''
-                    mvn clean test
+                    mvn clean test jacoco:report
                 '''
             }
         }
@@ -37,7 +37,7 @@ pipeline {
 
     post {
         always {
-            junit '*/target/surefire-reports/*.xml'
+            junit '**/target/surefire-reports/*.xml'
             // junit 'spring-petclinic-visits-service/target/surefire-reports/*.xml'
             // jacoco(
             //     execPattern: 'spring-petclinic-visits-service/target/jacoco.exec',
@@ -46,7 +46,12 @@ pipeline {
             //     inclusionPattern: 'spring-petclinic-visits-service/*.class',
             //     exclusionPattern: ''
             // )
-            
+            jacoco {
+                execPattern: '**/target/jacoco.exec',
+                classPattern: '**/target/classes',
+                sourcePattern: '**/src/main/java',
+                exclusionPattern: '**/target/test-classes'
+            }
         }
     }
 }
