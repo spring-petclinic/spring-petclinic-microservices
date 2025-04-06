@@ -72,9 +72,9 @@ class VisitResourceTest {
             .andExpect(jsonPath("$.items[0].description").value("Visit 1"))
             .andExpect(jsonPath("$.items[1].description").value("Visit 2"))
             .andExpect(jsonPath("$.items[2].description").value("Visit 3"))
-            .andExpect(jsonPath("$.items[0].date").value(date.getTime()))
-            .andExpect(jsonPath("$.items[1].date").value(date.getTime()))
-            .andExpect(jsonPath("$.items[2].date").value(date.getTime()));
+            .andExpect(jsonPath("$.items[0].date").value(date)))
+            .andExpect(jsonPath("$.items[1].date").value(date)))
+            .andExpect(jsonPath("$.items[2].date").value(date)));
     }
 
     @Test 
@@ -107,8 +107,8 @@ class VisitResourceTest {
             .andExpect(jsonPath("$[1].petId").value(123))
             .andExpect(jsonPath("$[0].description").value("Visit 1"))
             .andExpect(jsonPath("$[1].description").value("Visit 12"))
-            .andExpect(jsonPath("$[0].date").value(date.getTime()))
-            .andExpect(jsonPath("$[1].date").value(date.getTime()));
+            .andExpect(jsonPath("$[0].date").value(date)))
+            .andExpect(jsonPath("$[1].date").value(date)));
     }
 
     @Test
@@ -131,6 +131,6 @@ class VisitResourceTest {
             .andExpect(jsonPath("$.id").value(1))
             .andExpect(jsonPath("$.petId").value(123))
             .andExpect(jsonPath("$.description").value("Visit 1"))
-            .andExpect(jsonPath("$.date").value(date.getTime()));
+            .andExpect(jsonPath("$.date").value(date));
     }
 }
