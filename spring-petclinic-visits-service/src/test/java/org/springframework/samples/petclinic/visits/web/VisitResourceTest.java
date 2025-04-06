@@ -113,16 +113,17 @@ class VisitResourceTest {
         Visit visit = Visit.VisitBuilder.aVisit()
             .id(1)
             .petId(123)
-            .date(date)
             .description("Visit 1")
             .build();
 
+        String jsonVisit = "{\"id\":1,\"petId\":123,\"description\":\"Visit 1\"}";
+
         given(visitRepository.save(visit))
-            .willReturn(visit);
+            .willReturn(jsonVisit);
 
         mvc.perform(post("/owners/2/pets/123/visits")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"id\":1,\"petId\":123,\"description\":\"Visit 1\"}"))
+                .content(jsonVisit))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.id").value(1))
             .andExpect(jsonPath("$.petId").value(123))
