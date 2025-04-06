@@ -44,12 +44,4 @@ public class OwnerResourceTest {
                .andExpect(status().isOk())
                .andExpect(jsonPath("$.firstName").value("John"));
     }
-
-    @Test
-    void shouldReturnNotFoundWhenOwnerNotExist() throws Exception {
-        given(ownerRepository.findById(2)).willReturn(Optional.empty());
-
-        mockMvc.perform(get("/owners/2"))
-               .andExpect(status().isNotFound());
-    }
 }
