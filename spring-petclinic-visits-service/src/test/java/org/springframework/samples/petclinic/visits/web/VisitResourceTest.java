@@ -1,5 +1,6 @@
 package org.springframework.samples.petclinic.visits.web;
 
+import java.util.Date;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
