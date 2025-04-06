@@ -30,13 +30,13 @@ pipeline {
     post {
         always {
             junit 'spring-petclinic-visits-service/target/surefire-reports/*.xml'
-            // jacoco(
-            //     execPattern: 'spring-petclinic-visits-service/target/jacoco.exec',
-            //     classPattern: 'spring-petclinic-visits-service/target/classes',
-            //     sourcePattern: 'spring-petclinic-visits-service/src/main/java',
-            //     inclusionPattern: 'spring-petclinic-visits-service/*.class',
-            //     exclusionPattern: ''
-            // )
+            jacoco(
+                execPattern: 'spring-petclinic-visits-service/target/jacoco.exec',
+                classPattern: 'spring-petclinic-visits-service/target/classes',
+                sourcePattern: 'spring-petclinic-visits-service/src/main/java',
+                inclusionPattern: 'spring-petclinic-visits-service/*.class',
+                exclusionPattern: ''
+            )
             
         }
     }
