@@ -1,78 +1,134 @@
 package org.springframework.samples.petclinic.customers.web;
 
-import java.util.Optional;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.samples.petclinic.customers.model.Owner;
-import org.springframework.samples.petclinic.customers.model.OwnerRepository;
-
-import org.springframework.samples.petclinic.customers.model.Pet;
-import org.springframework.samples.petclinic.customers.model.PetRepository;
-import org.springframework.samples.petclinic.customers.model.PetType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.samples.petclinic.customers.model.*;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.sql.Date;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 
-import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/**
- * @author Maciej Szarlinski
- */
-@ExtendWith(SpringExtension.class)
 @WebMvcTest(PetResource.class)
-@ActiveProfiles("test")
 class PetResourceTest {
 
     @Autowired
-    MockMvc mvc;
+    private MockMvc mockMvc;
 
     @MockBean
-    PetRepository petRepository;
+    private PetRepository petRepository;
 
     @MockBean
-    OwnerRepository ownerRepository;
+    private OwnerRepository ownerRepository;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
-    void shouldGetAPetInJSonFormat() throws Exception {
+    void getPetTypes_shouldReturnListOfPetTypes() throws Exception {
+        PetType dog = new PetType();
+        dog.setName("Dog");
 
-        Pet pet = setupPet();
+        PetType cat = new PetType();
+        cat.setName("Cat");
 
-        given(petRepository.findById(2)).willReturn(Optional.of(pet));
+        List<PetType> petTypes = List.of(dog, cat);
+        Mockito.when(petRepository.findPetTypes()).thenReturn(petTypes);
 
-
-        mvc.perform(get("/owners/2/pets/2").accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/petTypes"))
             .andExpect(status().isOk())
-            .andExpect(content().contentType("application/json"))
-            .andExpect(jsonPath("$.id").value(2))
-            .andExpect(jsonPath("$.name").value("Basil"))
-            .andExpect(jsonPath("$.type.id").value(6));
+            .andExpect(jsonPath("$", hasSize(2)));
     }
 
-    private Pet setupPet() {
+    @Test
+    void processCreationForm_shouldCreatePet() throws Exception {
+        PetRequest request = new PetRequest(1, Date.valueOf(LocalDate.of(2020, 1, 1)), "Buddy", 2);
         Owner owner = new Owner();
-        owner.setFirstName("George");
-        owner.setLastName("Bush");
-
-        Pet pet = new Pet();
-
-        pet.setName("Basil");
-        pet.setId(2);
+        Mockito.when(ownerRepository.findById(1)).thenReturn(Optional.of(owner));
 
         PetType petType = new PetType();
-        petType.setId(6);
-        pet.setType(petType);
+        Mockito.when(petRepository.findPetTypeById(2)).thenReturn(Optional.of(petType));
 
-        owner.addPet(pet);
-        return pet;
+        Pet savedPet = new Pet();
+        savedPet.setId(1);
+        Mockito.when(petRepository.save(any(Pet.class))).thenReturn(savedPet);
+
+        mockMvc.perform(post("/owners/1/pets")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isCreated());
+    }
+
+    @Test
+    void processCreationForm_ownerNotFound_shouldReturn404() throws Exception {
+        PetRequest request = new PetRequest(1, Date.valueOf(LocalDate.of(2020, 1, 1)), "Buddy", 2);
+        Mockito.when(ownerRepository.findById(1)).thenReturn(Optional.empty());
+
+        mockMvc.perform(post("/owners/1/pets")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void processUpdateForm_shouldUpdatePet() throws Exception {
+        PetRequest request = new PetRequest(5, Date.valueOf(LocalDate.of(2019, 5, 1)), "Max", 3);
+        Pet existingPet = new Pet();
+        existingPet.setId(5);
+
+        PetType petType = new PetType();
+        petType.setName("Parrot");
+
+        Mockito.when(petRepository.findById(5)).thenReturn(Optional.of(existingPet));
+        Mockito.when(petRepository.findPetTypeById(3)).thenReturn(Optional.of(petType));
+        Mockito.when(petRepository.save(any(Pet.class))).thenReturn(existingPet);
+
+        mockMvc.perform(put("/owners/any/pets/5")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void processUpdateForm_petNotFound_shouldReturn404() throws Exception {
+        PetRequest request = new PetRequest(10, Date.valueOf(LocalDate.of(2018, 1, 1)), "Ghost", 4);
+        Mockito.when(petRepository.findById(10)).thenReturn(Optional.empty());
+
+        mockMvc.perform(put("/owners/any/pets/10")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void findPet_shouldReturnPetDetails() throws Exception {
+        Pet pet = new Pet();
+        pet.setId(3);
+        pet.setName("Luna");
+        Mockito.when(petRepository.findById(3)).thenReturn(Optional.of(pet));
+
+        mockMvc.perform(get("/owners/any/pets/3"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(3))
+            .andExpect(jsonPath("$.name").value("Luna"));
+    }
+
+    @Test
+    void findPet_petNotFound_shouldReturn404() throws Exception {
+        Mockito.when(petRepository.findById(100)).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/owners/any/pets/100"))
+            .andExpect(status().isNotFound());
     }
 }
