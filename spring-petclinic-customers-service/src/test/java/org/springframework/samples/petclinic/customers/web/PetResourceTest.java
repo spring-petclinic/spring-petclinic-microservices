@@ -21,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static java.util.Arrays.asList;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -76,7 +77,9 @@ class PetResourceTest {
     void processCreationForm_validOwnerId_shouldReturnCreated() throws Exception {
         Pet pet = setupPet();
         Owner owner = new Owner();
-        owner.setId(2);
+        owner.setFirstName("George");
+        owner.setLastName("Bush");
+
         given(ownerRepository.findById(2))
             .willReturn(Optional.of(owner));
         given(petRepository.findPetTypeById(6))
@@ -93,7 +96,7 @@ class PetResourceTest {
         int nonExistentOwnerId = 999;
         given(ownerRepository.findById(nonExistentOwnerId)).willReturn(java.util.Optional.empty());
 
-        mockMvc.perform(post("/owners/{ownerId}/pets", nonExistentOwnerId)
+        mvc.perform(post("/owners/{ownerId}/pets", nonExistentOwnerId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"Buddy\",\"birthDate\":\"2023-01-01\",\"typeId\":1}")
         )
