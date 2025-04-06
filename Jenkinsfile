@@ -67,11 +67,11 @@ pipeline {
 
         stage('Build Affected Services') {
             when {
-                expression { return env.AFFECTED_SERVICES?.trim() }
+                expression { return env.SERVICES_TO_BUILD?.trim() }
             }
             steps {
                 script {
-                    def servicesToBuild = env.AFFECTED_SERVICES.split(' ')
+                    def servicesToBuild = env.SERVICES_TO_BUILD.split(' ')
                     for (svc in servicesToBuild) {
                         dir("${svc}") {
                             echo "Building ${svc}"
