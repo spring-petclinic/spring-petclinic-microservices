@@ -70,7 +70,7 @@ class VisitResourceTest {
             .andExpect(jsonPath("$.items[2].petId").value(222))
             .andExpect(jsonPath("$.items[0].description").value("Visit 1"))
             .andExpect(jsonPath("$.items[1].description").value("Visit 2"))
-            .andExpect(jsonPath("$.items[2].description").value("Visit 3"));
+            .andExpect(jsonPath("$.items[2].description").value("Visit 3"))
             .andExpect(jsonPath("$.items[0].date").value(date.getTime()))
             .andExpect(jsonPath("$.items[1].date").value(date.getTime()))
             .andExpect(jsonPath("$.items[2].date").value(date.getTime()));
