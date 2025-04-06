@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        maven '3.9.9'
+    }
+
     stages {
         // stage('Test') {
         //     steps {
@@ -24,7 +28,7 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Testing ...'
-                sh "./mvnw test"
+                sh "mvn clean test -Djacoco.agent.destfile=target/jacoco.exec"
             }
         }
     }
