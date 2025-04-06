@@ -22,6 +22,7 @@ import static java.util.Arrays.asList;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -118,7 +119,7 @@ class PetResourceTest {
         Pet pet = setupPet();
         given(petRepository.findById(2)).willReturn(Optional.of(pet));
 
-        mvc.perform(post("/owners/*/pets/{petId}", 2)
+        mvc.perform(put("/owners/*/pets/{petId}", 2)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"Basil\",\"birthDate\":\"2023-10-01\",\"typeId\":6}"))
             .andExpect(status().isNoContent());
