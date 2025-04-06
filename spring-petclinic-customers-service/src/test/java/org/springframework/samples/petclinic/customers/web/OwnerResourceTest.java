@@ -19,6 +19,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import static java.util.Arrays.asList;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -99,7 +101,7 @@ class OwnerResourceTest {
 
         given(ownerRepository.save(owner)).willReturn(owner);
 
-        mvc.perform(get("/owners")
+        mvc.perform(post("/owners")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"firstName\":\"Rivera\",\"lastName\":\"Maria\",\"address\":\"123 Main St\",\"city\":\"Springfield\",\"telephone\":\"0332120108\"}"))
             .andExpect(status().isCreated());
@@ -116,7 +118,7 @@ class OwnerResourceTest {
 
         given(ownerRepository.findById(1)).willReturn(Optional.of(owner));
 
-        mvc.perform(get("/owners/1")
+        mvc.perform(put("/owners/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"firstName\":\"Rivera\",\"lastName\":\"Maria\",\"address\":\"123 Main St\",\"city\":\"Springfield\",\"telephone\":\"0332120108\"}"))
             .andExpect(status().isNoContent());
@@ -127,7 +129,7 @@ class OwnerResourceTest {
         int nonExistentOwnerId = 999;
         given(ownerRepository.findById(nonExistentOwnerId)).willReturn(Optional.empty());
 
-        mvc.perform(get("/owners/{ownerId}", nonExistentOwnerId)
+        mvc.perform(put("/owners/{ownerId}", nonExistentOwnerId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"firstName\":\"Rivera\",\"lastName\":\"Maria\",\"address\":\"123 Main St\",\"city\":\"Springfield\",\"telephone\":\"0332120108\"}"))
             .andExpect(status().isNotFound());
