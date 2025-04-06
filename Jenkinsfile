@@ -9,7 +9,16 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: "*/${env.BRANCH_NAME}"]],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[$class: 'CloneOption', noTags: false, shallow: false, depth: 0]],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/MyTruong28022004/spring-petclinic-microservices.git',
+                        credentialsId: 'github-token-1'
+                    ]]
+                ])
             }
         }
 
@@ -17,8 +26,13 @@ pipeline {
             steps {
                 script {
                     def changedServices = sh(script: '''
-                        git fetch origin main
-                        git diff --name-only $(git merge-base origin/main HEAD) HEAD | awk -F/ '{print $1}' | sort -u
+                        git fetch origin main || true
+                        if git show-ref --verify --quiet refs/remotes/origin/main; then
+                            BASE=$(git merge-base origin/main HEAD)
+                        else
+                            BASE=HEAD~1
+                        fi
+                        git diff --name-only $BASE HEAD | awk -F/ '{print $1}' | sort -u
                     ''', returnStdout: true).trim().split('\n')
 
                     def allServices = ['spring-petclinic-vets-service', 'spring-petclinic-visits-service', 'spring-petclinic-customers-service', 'spring-petclinic-genai-service']
