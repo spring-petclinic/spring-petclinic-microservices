@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        
+        AFFECTED_SERVICES = ''
     }
     stages {
         stage('Checkout') {
