@@ -8,9 +8,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.samples.petclinic.api.dto.Visits;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.function.Consumer;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
