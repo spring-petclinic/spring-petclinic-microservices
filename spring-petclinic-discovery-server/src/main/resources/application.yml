@@ -4,6 +4,9 @@ spring:
   config:
     import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
 
+server:
+  port: 8761
+
 # Avoid some debugging logs at startup
 logging:
   level:
