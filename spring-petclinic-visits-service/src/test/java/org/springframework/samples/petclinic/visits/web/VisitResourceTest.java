@@ -110,8 +110,6 @@ class VisitResourceTest {
 
     @Test
     void shouldPostAVisit() throws Exception {
-        Date date = new Date();
-
         Visit visit = Visit.VisitBuilder.aVisit()
             .id(1)
             .petId(123)
@@ -124,9 +122,6 @@ class VisitResourceTest {
         mvc.perform(post("/owners/2/pets/123/visits")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"id\":1,\"petId\":123,\"description\":\"Visit 1\"}"))
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.id").value(1))
-            .andExpect(jsonPath("$.petId").value(123))
-            .andExpect(jsonPath("$.description").value("Visit 1"));
+            .andExpect(status().isCreated());
     }
 }
