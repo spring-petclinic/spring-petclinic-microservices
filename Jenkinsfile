@@ -1,11 +1,14 @@
 pipeline {
     agent any
+
     options {
         skipDefaultCheckout()
     }
+
     environment {
         MAVEN_OPTS = "-Dmaven.repo.local=.m2/repository"
     }
+
     stages {
         stage('Checkout') {
             steps {
@@ -25,21 +28,29 @@ pipeline {
         stage('Determine Changed Services') {
             steps {
                 script {
-                    def changedServices = sh(script: '''
+                    // Lấy base commit để so sánh, hoạt động cả với PR
+                    def baseCommit = sh(script: '''
                         git fetch origin main || true
                         if git show-ref --verify --quiet refs/remotes/origin/main; then
-                            BASE=$(git merge-base origin/main HEAD)
+                            git merge-base origin/main HEAD
                         else
-                            BASE=HEAD~1
+                            git rev-parse HEAD~1
                         fi
-                        git diff --name-only $BASE HEAD | awk -F/ '{print $1}' | sort -u
-                    ''', returnStdout: true).trim().split('\n')
+                    ''', returnStdout: true).trim()
 
-                    def allServices = ['spring-petclinic-vets-service', 'spring-petclinic-visits-service', 'spring-petclinic-customers-service', 'spring-petclinic-genai-service']
-                    
-                    // Chuyển changedServices thành List<String> và sử dụng intersect
+                    // Lấy danh sách file thay đổi
+                    def changedServices = sh(script: "git diff --name-only ${baseCommit} HEAD | awk -F/ '{print \$1}' | sort -u", returnStdout: true).trim().split('\n')
+
+                    def allServices = [
+                        'spring-petclinic-vets-service',
+                        'spring-petclinic-visits-service',
+                        'spring-petclinic-customers-service',
+                        'spring-petclinic-genai-service'
+                    ]
+
                     def changedServicesList = changedServices as List
                     env.SERVICES_TO_BUILD = allServices.findAll { it in changedServicesList }.join(',')
+                    echo "Services to build: ${env.SERVICES_TO_BUILD}"
                 }
             }
         }
@@ -63,6 +74,7 @@ pipeline {
             }
         }
     }
+
     post {
         always {
             echo "Pipeline complete"
