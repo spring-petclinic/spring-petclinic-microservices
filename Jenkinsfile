@@ -4,6 +4,12 @@ pipeline {
         SERVICE_CHANGED = ""
     }
     stages {
+         stage('Checkout') {
+            steps {
+                checkout scm  // Checkout mã nguồn từ repository
+            }
+        }
+
         stage('Detect Changes') {
             steps {
                 script {
