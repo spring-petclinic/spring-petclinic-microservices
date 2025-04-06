@@ -28,7 +28,7 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Testing ...'
-                sh "mvn clean test -Djacoco.agent.destfile=target/jacoco.exec"
+                sh "mvn clean test -Djacoco.agent.destfile=**/target/jacoco.exec"
             }
         }
     }
