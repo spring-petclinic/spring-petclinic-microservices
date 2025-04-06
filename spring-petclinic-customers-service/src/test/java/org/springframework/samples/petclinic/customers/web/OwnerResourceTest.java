@@ -34,7 +34,7 @@ class OwnerResourceTest {
     MockMvc mvc;
 
     @MockBean
-    PetRepository petRepository;
+    OwnerEntityMapper ownerEntityMapper;
 
     @MockBean
     OwnerRepository ownerRepository;
