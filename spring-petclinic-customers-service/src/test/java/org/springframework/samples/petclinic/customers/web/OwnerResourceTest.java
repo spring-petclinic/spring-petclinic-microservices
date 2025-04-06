@@ -56,7 +56,7 @@ class PetResourceTest {
     }
 
     @Test
-    void shouldGetListOfOwners() throws Exception() {
+    void shouldGetListOfOwners() throws Exception {
         Owner owner1 = new Owner();
         owner1.setFirstName("Rivera");
         owner1.setLastName("Maria");

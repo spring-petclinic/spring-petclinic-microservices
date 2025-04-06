@@ -59,7 +59,7 @@ class PetResourceTest {
 
     // -------------------------------------------------------------------------------------------
     @Test
-    void shouldGetAListOfPetTypes() throw Exception {
+    void shouldGetAListOfPetTypes() throws Exception {
         PetType petType = new PetType();
         petType.setId(1);
         petType.setName("dog");
