@@ -13,6 +13,8 @@ pipeline {
                     sh 'git remote -v'  // Kiểm tra remote repository
                     sh 'git log --oneline -n 5'  // Xem các commit gần nhất
 
+                    sh 'git fetch origin main:refs/remotes/origin/main' // lấy origin/main vào local
+
 
                     def diff = sh(script: 'git diff --name-only origin/main', returnStdout: true).trim()
                     if (diff.contains('spring-petclinic-customers-service/')) {
@@ -22,7 +24,7 @@ pipeline {
                     } else if (diff.contains('spring-petclinic-visits-service/')) {
                         env.SERVICE_CHANGED = 'spring-petclinic-visits-service'
                     } else {
-                        error "No relevant service changes detected."
+                        echo "No relevant service changes detected."
                     }
                     echo "Changed service: ${env.SERVICE_CHANGED}"
                 }
