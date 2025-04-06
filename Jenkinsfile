@@ -34,6 +34,7 @@ pipeline {
 
                     for (svc in services) {
                         if (list_files.any { it.startsWith("${svc}/") }) {
+                            echo "service: ${svc}"
                             affectedServicesList.add(svc)
                         }
                     }
