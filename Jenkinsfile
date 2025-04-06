@@ -29,7 +29,7 @@ pipeline {
                 script {
                     def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
                     echo "Changed files:\n${changedFiles}"
-
+                    echo "${changedFiles.contains("vets-service")}"
                     env.BUILD_VETS = changedFiles.contains("vets-service")
                     env.BUILD_VISITS = changedFiles.contains("visits-service")
                     env.BUILD_CUSTOMERS = changedFiles.contains("customers-service")
