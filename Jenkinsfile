@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        AFFECTED_SERVICES = ''
+        
     }
 
     stages {
@@ -36,12 +36,14 @@ pipeline {
                         if (list_files.any { it.startsWith("${svc}/") }) {
                             echo "service: ${svc}"
                             affectedServicesList.add(svc)
+                            echo "List services: ${affectedServicesList}"
                         }
                     }
 
                     if (affectedServicesList) {
-                        env.AFFECTED_SERVICES = affectedServicesList.join(' ')
-                        echo "Affected services: ${env.AFFECTED_SERVICES}"
+                        echo "String services: ${affectedServicesList.join(' ')}"
+                        env.SERVICES_TO_BUILD = affectedServicesList.join(' ')
+                        echo "Affected services: ${env.SERVICES_TO_BUILD}"
                     } else {
                         echo "No relevant service changes detected."
                     }
@@ -51,11 +53,11 @@ pipeline {
 
         stage('Test Affected Services') {
             when {
-                expression { return env.AFFECTED_SERVICES?.trim() }
+                expression { return env.SERVICES_TO_BUILD?.trim() }
             }
             steps {
                 script {
-                    def servicesToTest = env.AFFECTED_SERVICES.split(' ')
+                    def servicesToTest = env.SERVICES_TO_BUILD.split(' ')
                     for (svc in servicesToTest) {
                         dir("${svc}") {
                             echo "Running tests for ${svc}"
