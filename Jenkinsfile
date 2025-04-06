@@ -51,5 +51,15 @@ pipeline {
                 exclusionPattern: 'spring-petclinic-customers-service/target/test-classes'
             )
         }
+
+
+
+        success {
+            githubCommitStatus(name: 'jenkins/build', state: 'SUCCESS')
+        }
+
+        failure {
+            githubCommitStatus(name: 'jenkins/build', state: 'FAILURE')
+        }
     }
 }
