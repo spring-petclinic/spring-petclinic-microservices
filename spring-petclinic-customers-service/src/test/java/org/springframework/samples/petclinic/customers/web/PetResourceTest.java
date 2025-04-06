@@ -72,7 +72,33 @@ class PetResourceTest {
             .andExpect(jsonPath("$[0].name").value("dog"));
     }   
     
+    @Test
+    void processCreationForm_validOwnerId_shouldReturnCreated() throws Exception {
+        Pet pet = setupPet();
+        Owner owner = new Owner();
+        owner.setId(2);
+        given(ownerRepository.findById(2))
+            .willReturn(Optional.of(owner));
+        given(petRepository.findPetTypeById(6))
+            .willReturn(Optional.of(new PetType()));
 
+        mvc.perform(post("/owners/2/pets")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Basil\",\"birthDate\":\"2023-10-01\",\"typeId\":6}"))
+            .andExpect(status().isCreated());
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenOwnerIdDoesNotExist() throws Exception {
+        int nonExistentOwnerId = 999;
+        given(ownerRepository.findById(nonExistentOwnerId)).willReturn(java.util.Optional.empty());
+
+        mockMvc.perform(post("/owners/{ownerId}/pets", nonExistentOwnerId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Buddy\",\"birthDate\":\"2023-01-01\",\"typeId\":1}")
+        )
+        .andExpect(status().isNotFound());
+    }
     // -------------------------------------------------------------------------------------------
 
     private Pet setupPet() {
@@ -82,8 +108,9 @@ class PetResourceTest {
 
         Pet pet = new Pet();
 
-        pet.setName("Basil");
         pet.setId(2);
+        pet.setName("Basil");
+        pet.setBirthDate(java.sql.Date.valueOf("2023-10-01"));
 
         PetType petType = new PetType();
         petType.setId(6);
