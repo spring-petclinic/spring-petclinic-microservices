@@ -51,6 +51,7 @@ pipeline {
                 exclusionPattern: 'spring-petclinic-customers-service/target/test-classes'
             )
         }
+        // hihii
 
         success {
             step([
@@ -59,7 +60,7 @@ pipeline {
                 statusResultSource: [$class: 'AnyBuildResult', successStatus: 'SUCCESS', errorStatus: 'FAILURE']
             ])
         }
-        
+
         failure {
             step([
                 $class: 'GitHubCommitStatusSetter',
