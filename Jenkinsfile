@@ -1,10 +1,10 @@
 pipeline {
     agent any
     environment {
-        SERVICE_CHANGED = ""
+        
     }
     stages {
-         stage('Checkout') {
+        stage('Checkout') {
             steps {
                 checkout scm  // Checkout mã nguồn từ repository
             }
@@ -28,17 +28,18 @@ pipeline {
                     // Lấy danh sách file đã thay đổi kể từ commit chung
                     def diff = sh(script: "git diff --name-only ${lastCommit} HEAD", returnStdout: true).trim()
 
-                    // Kiểm tra thay đổi thuộc service nào
-                    env.SERVICE_CHANGED = ''
+                    // Kiểm tra thay đổi thuộc service nào và thêm vào AFFECTED_SERVICES
+                    def affectedServicesList = []
                     for (svc in services) {
                         if (diff.contains("${svc}/")) {
-                            env.SERVICE_CHANGED = svc
-                            break
+                            affectedServicesList.add(svc)
                         }
                     }
 
-                    if (env.SERVICE_CHANGED) {
-                        echo "Changed service: ${env.SERVICE_CHANGED}"
+                    // Cập nhật AFFECTED_SERVICES với danh sách các service bị thay đổi
+                    if (affectedServicesList) {
+                        env.AFFECTED_SERVICES = affectedServicesList.join(',')
+                        echo "Affected services: ${env.AFFECTED_SERVICES}"
                     } else {
                         echo "No relevant service changes detected."
                     }
@@ -48,15 +49,25 @@ pipeline {
 
         stage('Test') {
             steps {
-                dir("${SERVICE_CHANGED}") {
-                    sh 'mvn clean test'
+                script {
+                    // Kiểm tra nếu có dịch vụ bị thay đổi
+                    def servicesToTest = env.AFFECTED_SERVICES.split(',')
+                    for (svc in servicesToTest) {
+                        dir("${svc}") {
+                            sh 'mvn clean test'
+                        }
+                    }
                 }
             }
             post {
                 always {
-                    dir("${SERVICE_CHANGED}") {
-                        junit 'target/surefire-reports/*.xml'
-                        recordCoverage tools: [jacoco()]
+                    // Quay lại mỗi service và thực hiện kiểm tra coverage
+                    def servicesToTest = env.AFFECTED_SERVICES.split(',')
+                    for (svc in servicesToTest) {
+                        dir("${svc}") {
+                            junit 'target/surefire-reports/*.xml'
+                            recordCoverage tools: [jacoco()]
+                        }
                     }
                 }
             }
@@ -65,11 +76,14 @@ pipeline {
         stage('Check Coverage') {
             steps {
                 script {
-                    def coverage = sh(script: "grep -A 1 'INSTRUCTION' ${SERVICE_CHANGED}/target/site/jacoco/index.html | grep -o '[0-9]*%' | head -n1", returnStdout: true).trim().replace('%','').toInteger()
-                    if (coverage < 70) {
-                        error("Test coverage is below 70%: ${coverage}%")
-                    } else {
-                        echo "Test coverage OK: ${coverage}%"
+                    def servicesToTest = env.AFFECTED_SERVICES.split(',')
+                    for (svc in servicesToTest) {
+                        def coverage = sh(script: "grep -A 1 'INSTRUCTION' ${svc}/target/site/jacoco/index.html | grep -o '[0-9]*%' | head -n1", returnStdout: true).trim().replace('%','').toInteger()
+                        if (coverage < 70) {
+                            error("Test coverage is below 70% for ${svc}: ${coverage}%")
+                        } else {
+                            echo "Test coverage OK for ${svc}: ${coverage}%"
+                        }
                     }
                 }
             }
@@ -77,10 +91,20 @@ pipeline {
 
         stage('Build') {
             steps {
-                dir("${SERVICE_CHANGED}") {
-                    sh 'mvn clean package -DskipTests'
+                script {
+                    def servicesToBuild = env.AFFECTED_SERVICES.split(',')
+                    for (svc in servicesToBuild) {
+                        dir("${svc}") {
+                            sh 'mvn clean package -DskipTests'
+                        }
+                    }
                 }
             }
+        }
+    }
+    post {
+        always {
+            echo "Pipeline complete"
         }
     }
 }
