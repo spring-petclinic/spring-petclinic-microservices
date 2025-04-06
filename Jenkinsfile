@@ -18,7 +18,7 @@ pipeline {
                 script {
                     def changedServices = sh(script: '''
                         git fetch origin main
-                        git diff --name-only origin/main...HEAD | awk -F/ '{print $1}' | sort -u
+                        git diff --name-only $(git merge-base origin/main HEAD) HEAD | awk -F/ '{print $1}' | sort -u
                     ''', returnStdout: true).trim().split('\n')
 
                     def allServices = ['spring-petclinic-vets-service', 'spring-petclinic-visits-service', 'spring-petclinic-customers-service', 'spring-petclinic-genai-service']
