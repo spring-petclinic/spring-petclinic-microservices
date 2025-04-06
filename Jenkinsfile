@@ -52,14 +52,20 @@ pipeline {
             )
         }
 
-
-
         success {
-            githubCommitStatus(name: 'jenkins/build', state: 'SUCCESS')
+            step([
+                $class: 'GitHubCommitStatusSetter',
+                contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'jenkins/build'],
+                statusResultSource: [$class: 'AnyBuildResult', successStatus: 'SUCCESS', errorStatus: 'FAILURE']
+            ])
         }
-
+        
         failure {
-            githubCommitStatus(name: 'jenkins/build', state: 'FAILURE')
+            step([
+                $class: 'GitHubCommitStatusSetter',
+                contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'jenkins/build'],
+                statusResultSource: [$class: 'AnyBuildResult', successStatus: 'SUCCESS', errorStatus: 'FAILURE']
+            ])
         }
     }
 }
