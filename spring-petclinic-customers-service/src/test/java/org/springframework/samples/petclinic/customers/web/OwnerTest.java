@@ -5,6 +5,7 @@ import org.springframework.samples.petclinic.customers.model.Pet;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -70,5 +71,36 @@ class OwnerTest {
         assertTrue(toString.contains("address = '123 Main St'"));
         assertTrue(toString.contains("city = 'Springfield'"));
         assertTrue(toString.contains("telephone = '1234567890'"));
+    }
+
+        @Test
+    void testGetPetsInternal_WhenPetsIsNull_ShouldInitializePets() throws Exception {
+        Owner owner = new Owner();
+
+        var method = Owner.class.getDeclaredMethod("getPetsInternal");
+        method.setAccessible(true);
+
+        @SuppressWarnings("unchecked")
+        Set<Pet> pets = (Set<Pet>) method.invoke(owner);
+        assertNotNull(pets);
+        assertTrue(pets.isEmpty());
+    }
+
+    @Test
+    void testGetPetsInternal_WhenPetsIsNotNull_ShouldReturnExistingPets() throws Exception {
+        Owner owner = new Owner();
+
+        var method = Owner.class.getDeclaredMethod("getPetsInternal");
+        method.setAccessible(true);
+
+        @SuppressWarnings("unchecked")
+        Set<Pet> pets = (Set<Pet>) method.invoke(owner);
+        Pet pet = new Pet();
+        pets.add(pet);
+
+        @SuppressWarnings("unchecked")
+        Set<Pet> result = (Set<Pet>) method.invoke(owner);
+        assertEquals(1, result.size());
+        assertTrue(result.contains(pet));
     }
 }

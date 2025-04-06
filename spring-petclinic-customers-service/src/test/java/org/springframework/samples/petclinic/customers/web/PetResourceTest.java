@@ -1,8 +1,13 @@
 package org.springframework.samples.petclinic.customers.web;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -17,14 +22,20 @@ import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @WebMvcTest(PetResource.class)
 class PetResourceTest {
     @Autowired
     private MockMvc mockMvc;
     
+    @MockBean
+    private OwnerResource ownerResource;
 
     @MockBean
     private PetRepository petRepository;
@@ -34,6 +45,11 @@ class PetResourceTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @BeforeEach
+    void setUp(){
+        MockitoAnnotations.openMocks(this);
+    }
 
     @Test
     void getPetTypes_shouldReturnListOfPetTypes() throws Exception {
@@ -111,18 +127,56 @@ class PetResourceTest {
             .andExpect(status().isNotFound());
     }
 
-    // @Test
-    // void findPet_shouldReturnPetDetails() throws Exception {
-    //     Pet pet = new Pet();
-    //     pet.setId(3);
-    //     pet.setName("Luna");
-    //     Mockito.when(petRepository.findById(3)).thenReturn(Optional.of(pet));
+    @Test
+    void testProcessCreationForm_Success() throws JsonProcessingException, Exception {
+        // Mock input data
+        PetRequest request = new PetRequest(1, Date.valueOf(LocalDate.of(2020, 1, 1)), "Buddy", 2);
 
-    //     mockMvc.perform(get("/owners/any/pets/3"))
-    //         .andExpect(status().isOk())
-    //         .andExpect(jsonPath("$.id").value(3))
-    //         .andExpect(jsonPath("$.name").value("Luna"));
-    // }
+        // Mock Owner
+        Owner owner = new Owner();
+        owner.setFirstName("John");
+        owner.setLastName("Doe");
+        owner.setAddress("123 Main St");
+        owner.setCity("Springfield");
+        owner.setTelephone("1234567890");
+
+        // Mock the behavior of OwnerResource to simulate creating an Owner with ID 1
+        when(ownerResource.createOwner(any(OwnerRequest.class))).thenAnswer(invocation -> {
+            OwnerRequest ownerRequest = invocation.getArgument(0);
+            Owner createdOwner = new Owner();
+            createdOwner.setFirstName(ownerRequest.firstName());
+            createdOwner.setLastName(ownerRequest.lastName());
+            createdOwner.setAddress(ownerRequest.address());
+            createdOwner.setCity(ownerRequest.city());
+            createdOwner.setTelephone(ownerRequest.telephone());
+
+            // Use reflection to set the ID
+            var field = Owner.class.getDeclaredField("id");
+            field.setAccessible(true);
+            field.set(createdOwner, 1);
+            return createdOwner;
+        });
+
+        // Mock PetType
+        PetType petType = new PetType();
+        petType.setId(2);
+
+        // Mock Pet
+        Pet savedPet = new Pet();
+        savedPet.setId(1);
+        savedPet.setName("Buddy");
+        // Mock repository behavior
+        when(ownerRepository.findById(1)).thenReturn(Optional.of(owner));
+        when(petRepository.findPetTypeById(2)).thenReturn(Optional.of(petType));
+        when(petRepository.save(any(Pet.class))).thenReturn(savedPet);
+
+        // Perform the POST request
+        mockMvc.perform(post("/owners/1/pets")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isCreated());
+    }
+
 
     @Test
     void findPet_petNotFound_shouldReturn404() throws Exception {

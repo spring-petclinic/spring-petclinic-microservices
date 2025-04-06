@@ -76,9 +76,9 @@ class OwnerResourceTest {
     @Test
     void testFindAll() {
         Owner owner1 = new Owner();
-        setOwnerId(owner1, 1); // Set the ID using reflection
+        setOwnerId(owner1, 1);
         Owner owner2 = new Owner();
-        setOwnerId(owner2, 2); // Set the ID using reflection
+        setOwnerId(owner2, 2);
 
         when(ownerRepository.findAll()).thenReturn(Arrays.asList(owner1, owner2));
 
@@ -116,7 +116,6 @@ class OwnerResourceTest {
         verify(ownerEntityMapper).map(existingOwner, ownerRequest);
         verify(ownerRepository).save(existingOwner);
 
-        // Additional assertions to verify the updated fields
         assertEquals("Jane", existingOwner.getFirstName());
         assertEquals("Doe", existingOwner.getLastName());
         assertEquals("456 Elm St", existingOwner.getAddress());
@@ -132,7 +131,7 @@ class OwnerResourceTest {
         );
     
         Owner existingOwner = new Owner();
-        setOwnerId(existingOwner, ownerId); // Set the ID using reflection
+        setOwnerId(existingOwner, ownerId); 
     
         when(ownerRepository.findById(ownerId)).thenReturn(Optional.of(existingOwner));
         // Mock the mapping behavior
