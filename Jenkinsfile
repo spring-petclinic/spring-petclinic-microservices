@@ -80,9 +80,9 @@ def updateGithubCommitStatus(build) {
         statusResultSource: [
         $class: 'ConditionalStatusResultSource',
         results: [
-            [$class: 'BetterThanOrEqualBuildResult', result: 'SUCCESS', state: 'SUCCESS', message: build.description],
-            [$class: 'BetterThanOrEqualBuildResult', result: 'FAILURE', state: 'FAILURE', message: build.description],
-            [$class: 'AnyBuildResult', state: 'FAILURE', message: 'Loophole']
+            [$class: 'BetterThanOrEqualBuildResult', result: 'SUCCESS', state: 'SUCCESS', message: build.description, statusName: 'CI/Success'],
+            [$class: 'BetterThanOrEqualBuildResult', result: 'FAILURE', state: 'FAILURE', message: build.description, statusName: 'CI/Failure'],
+            [$class: 'AnyBuildResult', state: 'FAILURE', message: 'Loophole', statusName: 'CI/Failure']
         ]
         ]
     ])
