@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        maven '3.9.9'
-    }
-
     stages {
         // stage('Test') {
         //     steps {
@@ -28,27 +24,31 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Testing ...'
-                sh "mvn clean test"
+                // sh "mvn clean test"
+                sh '''
+                    .mvnw clean test -f spring-petclinic-visits-service/pom.xml  
+                '''
             }
         }
     }
 
     post {
         always {
-            junit '**/target/surefire-reports/*.xml'
-            // junit 'spring-petclinic-visits-service/target/surefire-reports/*.xml'
-            // jacoco(
-            //     execPattern: 'spring-petclinic-visits-service/target/jacoco.exec',
-            //     classPattern: 'spring-petclinic-visits-service/target/classes',
-            //     sourcePattern: 'spring-petclinic-visits-service/src/main/java',
-            //     inclusionPattern: 'spring-petclinic-visits-service/*.class',
-            //     exclusionPattern: ''
+            // junit '**/target/surefire-reports/*.xml'
+            junit 'spring-petclinic-visits-service/target/surefire-reports/*.xml'
+
+            // jacoco (
+            //     execPattern: '**/target/jacoco.exec',
+            //     classPattern: '**/target/classes',
+            //     sourcePattern: '**/src/main/java',
+            //     exclusionPattern: '**/target/test-classes'
             // )
+
             jacoco (
-                execPattern: '**/target/jacoco.exec',
-                classPattern: '**/target/classes',
-                sourcePattern: '**/src/main/java',
-                exclusionPattern: '**/target/test-classes'
+                execPattern: 'spring-petclinic-visits-service/target/jacoco.exec',
+                classPattern: 'spring-petclinic-visits-service/target/classes',
+                sourcePattern: 'spring-petclinic-visits-service/src/main/java',
+                exclusionPattern: 'spring-petclinic-visits-service/target/test-classes'
             )
         }
     }
