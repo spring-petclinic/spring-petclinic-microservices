@@ -51,8 +51,7 @@ pipeline {
             steps {
                 script {
                     // Kiểm tra nếu có dịch vụ bị thay đổi
-                    def servicesToTest = env.AFFECTED_SERVICES.split(',')
-                    for (svc in servicesToTest) {
+                    for (svc in env.AFFECTED_SERVICES.split(',')) {
                         dir("${svc}") {
                             sh 'mvn clean test'
                         }
@@ -62,8 +61,7 @@ pipeline {
             post {
                 always {
                     // Quay lại mỗi service và thực hiện kiểm tra coverage
-                    def servicesToTest = env.AFFECTED_SERVICES.split(',')
-                    for (svc in servicesToTest) {
+                    for (svc in env.AFFECTED_SERVICES.split(',')) {
                         dir("${svc}") {
                             junit 'target/surefire-reports/*.xml'
                             recordCoverage tools: [jacoco()]
@@ -76,8 +74,7 @@ pipeline {
         stage('Check Coverage') {
             steps {
                 script {
-                    def servicesToTest = env.AFFECTED_SERVICES.split(',')
-                    for (svc in servicesToTest) {
+                    for (svc in env.AFFECTED_SERVICES.split(',')) {
                         def coverage = sh(script: "grep -A 1 'INSTRUCTION' ${svc}/target/site/jacoco/index.html | grep -o '[0-9]*%' | head -n1", returnStdout: true).trim().replace('%','').toInteger()
                         if (coverage < 70) {
                             error("Test coverage is below 70% for ${svc}: ${coverage}%")
