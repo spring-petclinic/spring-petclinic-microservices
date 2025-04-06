@@ -14,7 +14,7 @@ pipeline {
             steps {
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: "*/${env.BRANCH_NAME}"]],
+                    branches: [[name: "*/${env.BRANCH_NAME}"]], // Checkout nhánh mới
                     doGenerateSubmoduleConfigurations: false,
                     extensions: [[$class: 'CloneOption', noTags: false, shallow: false, depth: 0]],
                     userRemoteConfigs: [[
@@ -22,13 +22,22 @@ pipeline {
                         credentialsId: 'github-token-1'
                     ]]
                 ])
+
+                script {
+                    // Kiểm tra nếu đây là một Pull Request
+                    if (env.CHANGE_ID) {
+                        // Nếu là PR, fetch và checkout đúng nhánh PR
+                        echo "PR detected: Fetching PR from refs/pull/${env.CHANGE_ID}/head"
+                        sh "git fetch origin pull/${env.CHANGE_ID}/head:pr-${env.CHANGE_ID}"
+                        sh "git checkout pr-${env.CHANGE_ID}"
+                    }
+                }
             }
         }
 
         stage('Determine Changed Services') {
             steps {
                 script {
-                    // Lấy base commit để so sánh, hoạt động cả với PR
                     def baseCommit = sh(script: '''
                         git fetch origin main || true
                         if git show-ref --verify --quiet refs/remotes/origin/main; then
@@ -38,7 +47,6 @@ pipeline {
                         fi
                     ''', returnStdout: true).trim()
 
-                    // Lấy danh sách file thay đổi
                     def changedServices = sh(script: "git diff --name-only ${baseCommit} HEAD | awk -F/ '{print \$1}' | sort -u", returnStdout: true).trim().split('\n')
 
                     def allServices = [
