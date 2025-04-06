@@ -12,9 +12,9 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout([
+                checkout([ 
                     $class: 'GitSCM',
-                    branches: [[name: "*/${env.BRANCH_NAME}"]], // Checkout nhánh mới
+                    branches: [[name: "*/${env.BRANCH_NAME}"]], // Checkout nhánh hiện tại
                     doGenerateSubmoduleConfigurations: false,
                     extensions: [[$class: 'CloneOption', noTags: false, shallow: false, depth: 0]],
                     userRemoteConfigs: [[
@@ -30,6 +30,8 @@ pipeline {
                         echo "PR detected: Fetching PR from refs/pull/${env.CHANGE_ID}/head"
                         sh "git fetch origin pull/${env.CHANGE_ID}/head:pr-${env.CHANGE_ID}"
                         sh "git checkout pr-${env.CHANGE_ID}"
+                    } else {
+                        echo "No PR detected, checking out branch ${env.BRANCH_NAME}"
                     }
                 }
             }
