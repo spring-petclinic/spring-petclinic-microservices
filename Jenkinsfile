@@ -12,24 +12,12 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout([ 
-                    $class: 'GitSCM',
-                    branches: [[name: "*/${env.BRANCH_NAME}"]], // Checkout nhánh hiện tại
-                    doGenerateSubmoduleConfigurations: false,
-                    extensions: [[$class: 'CloneOption', noTags: false, shallow: false, depth: 0]],
-                    userRemoteConfigs: [[
-                        url: 'https://github.com/MyTruong28022004/spring-petclinic-microservices.git',
-                        credentialsId: 'github-token-1'
-                    ]]
-                ])
-
+                checkout scm
                 script {
                     // Kiểm tra nếu đây là một Pull Request
                     if (env.CHANGE_ID) {
-                        // Nếu là PR, fetch và checkout đúng nhánh PR
+                        // Nếu là PR, GitHub Branch Source plugin sẽ tự động xử lý việc checkout đúng nhánh PR
                         echo "PR detected: Fetching PR from refs/pull/${env.CHANGE_ID}/head"
-                        sh "git fetch origin pull/${env.CHANGE_ID}/head:pr-${env.CHANGE_ID}"
-                        sh "git checkout pr-${env.CHANGE_ID}"
                     } else {
                         echo "No PR detected, checking out branch ${env.BRANCH_NAME}"
                     }
