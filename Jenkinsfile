@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        maven '3.9.9'
-    }
-
     stages {
         // stage('Test') {
         //     steps {
@@ -28,9 +24,7 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Testing ...'
-                sh '''
-                    mvn clean test jacoco:report
-                '''
+                sh "./mvnw -f */pom.xml test"
             }
         }
     }
