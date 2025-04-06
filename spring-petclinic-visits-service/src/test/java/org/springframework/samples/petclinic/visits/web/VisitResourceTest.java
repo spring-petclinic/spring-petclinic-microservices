@@ -22,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 class VisitResourceTest {
 
+    
     @Autowired
     MockMvc mvc;
 

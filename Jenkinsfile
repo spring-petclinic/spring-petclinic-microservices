@@ -28,14 +28,15 @@ pipeline {
             steps {
                 script {
                     def changedFiles = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
-                    echo "Changed files:\n${changedFiles}"
-                    echo "${changedFiles.contains("vets-service")}"
-                    env.BUILD_VETS = changedFiles.contains("vets-service")
-                    env.BUILD_VISITS = changedFiles.contains("visits-service")
-                    env.BUILD_CUSTOMERS = changedFiles.contains("customers-service")
-                    echo "BUILD_VETS: ${env.BUILD_VETS}"
-                    echo "BUILD_VISITS: ${env.BUILD_VISITS}"
-                    echo "BUILD_CUSTOMERS: ${env.BUILD_CUSTOMERS}"
+                     echo "Changed files:\n${changedFiles}"
+ 
+                     // Kiểm tra service nào có thay đổi
+                     env.BUILD_VETS = changedFiles.contains("vets-service/")
+                     env.BUILD_VISITS = changedFiles.contains("visits-service/")
+                     env.BUILD_CUSTOMERS = changedFiles.contains("customers-service/")
+                     echo "BUILD_VETS: ${env.BUILD_VETS}"
+                     echo "BUILD_VISITS: ${env.BUILD_VISITS}"
+                     echo "BUILD_CUSTOMERS: ${env.BUILD_CUSTOMERS}"
                 }
             }
         }
