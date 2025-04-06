@@ -31,13 +31,15 @@ pipeline {
                     echo "Changed files:\n${changedFiles}"
                     echo "${changedFiles.contains("vets-service")}"
                   
-                    if(changedFiles.contains("vets-service"))
+                    if(changedFiles.contains("vets-service")){
                         env.BUILD_VETS = "true"
+                        echo " hello ${changedFiles.contains("vets-service")}"
+                    }
                     if(changedFiles.contains("visits-service"))
                         env.BUILD_VISITS = "true"
                     if(changedFiles.contains("customers-service"))
                         env.BUILD_CUSTOMERS = "true"
-                        
+
                     echo "BUILD_VETS: ${env.BUILD_VETS}"
                     echo "BUILD_VISITS: ${env.BUILD_VISITS}"
                     echo "BUILD_CUSTOMERS: ${env.BUILD_CUSTOMERS}"

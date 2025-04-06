@@ -16,13 +16,12 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(VisitResource.class)
 @ActiveProfiles("test")
 class VisitResourceTest {
 
-    
+
 
     @Autowired
     MockMvc mvc;
