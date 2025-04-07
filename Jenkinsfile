@@ -49,5 +49,10 @@ pipeline {
                 echo 'Reporting...'
             }
         }
+        stage ('Approval') {
+            steps {
+                echo 'Approval...'
+            }
+        }
     }
 }
