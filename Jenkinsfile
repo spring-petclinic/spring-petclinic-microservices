@@ -67,7 +67,7 @@ pipeline {
                     for (svc in servicesToTest) {
                         dir("${svc}") {
                             echo "Running tests for ${svc}"
-                            sh 'mvn clean test'
+                            sh 'mvn test'
                             junit 'target/surefire-reports/*.xml'
 
                             jacoco classPattern: "target/classes", 
