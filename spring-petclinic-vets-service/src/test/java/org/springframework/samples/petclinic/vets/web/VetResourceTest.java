@@ -20,15 +20,25 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.samples.petclinic.vets.model.Vet;
 import org.springframework.samples.petclinic.vets.model.VetRepository;
+import org.springframework.samples.petclinic.vets.system.TestCacheConfig;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Arrays;
+import java.util.List;
+
 import static java.util.Arrays.asList;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -39,6 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(VetResource.class)
 @ActiveProfiles("test")
+@Import(TestCacheConfig.class)
 class VetResourceTest {
 
     @Autowired
@@ -46,6 +57,9 @@ class VetResourceTest {
 
     @MockBean
     VetRepository vetRepository;
+
+    @Autowired
+    CacheManager cacheManager;
 
     @Test
     void shouldGetAListOfVets() throws Exception {
@@ -58,5 +72,27 @@ class VetResourceTest {
         mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(1));
+    }
+
+    @Test
+    void shouldCacheVets() throws Exception {
+        Vet vet = new Vet();
+        vet.setId(1);
+        List<Vet> vets = asList(vet);
+
+        given(vetRepository.findAll()).willReturn(vets);
+
+        Cache cache = cacheManager.getCache("vets");
+        if (cache != null) {
+            cache.clear();
+        }
+
+        mvc.perform(get("/vets"));
+
+        verify(vetRepository, times(1)).findAll();
+
+        mvc.perform(get("/vets"));
+
+        verify(vetRepository, times(1)).findAll();
     }
 }

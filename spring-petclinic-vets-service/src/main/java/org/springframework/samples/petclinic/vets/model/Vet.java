@@ -61,6 +61,14 @@ public class Vet {
         return this.specialties;
     }
 
+    public Vet(){
+        this.specialties = new HashSet<>();
+    }
+
+    public Vet(String fistName){
+        this.firstName = fistName;
+    }
+
     @XmlElement
     public List<Specialty> getSpecialties() {
         List<Specialty> sortedSpecs = new ArrayList<>(getSpecialtiesInternal());
