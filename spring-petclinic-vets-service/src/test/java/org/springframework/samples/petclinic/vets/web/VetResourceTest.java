@@ -76,7 +76,7 @@ class VetResourceTest {
     }
 
     // [TEST] [TEST CACHE]: GET ALL VETS WITH CACHE
-    // File TestCacheConfig in system folder
+    // File TestCacheConfig in system folder to view set up test cache
     @Test
     void shouldCacheVets() throws Exception {
         Vet vet = new Vet();
