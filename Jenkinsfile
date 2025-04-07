@@ -15,6 +15,7 @@ pipeline {
         stage('Detect Changed Services') {
             steps {
                 script {
+                    echo "Current user: $USER"
                     def services = [
                         'spring-petclinic-customers-service',
                         'spring-petclinic-vets-service',
