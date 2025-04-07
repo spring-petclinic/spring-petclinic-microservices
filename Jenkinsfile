@@ -7,9 +7,6 @@ pipeline {
     
     environment {
         MINIMUM_COVERAGE = '70'
-        GITHUB_TOKEN = credentials('github-token')
-        REPO_OWNER = 'buonnguwaaa'
-        REPO_NAME = 'spring-petclinic-microservices'
     }
     
     options {
@@ -19,29 +16,6 @@ pipeline {
     }
     
     stages {
-        stage('GitHub Setup') {
-            steps {
-                script {
-                    // Notify GitHub that the build has started
-                    if (env.CHANGE_ID) {
-                        echo "Setting GitHub commit status for PR #${env.CHANGE_ID}"
-                        sh """
-                            curl -s -X POST \
-                              -H "Authorization: token ${GITHUB_TOKEN}" \
-                              -H "Accept: application/vnd.github.v3+json" \
-                              https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/statuses/\$(git rev-parse HEAD) \
-                              -d '{
-                                "state": "pending",
-                                "context": "jenkins/pipeline",
-                                "description": "Jenkins pipeline is running",
-                                "target_url": "${env.BUILD_URL}"
-                              }'
-                        """
-                    }
-                }
-            }
-        }
-        
         stage('Determine Changed Services') {
             steps {
                 script {
@@ -151,15 +125,38 @@ pipeline {
                                             # Sử dụng awk để so sánh thay vì bc
                                             if (( \$(awk 'BEGIN {print (\$COVERAGE < ${MINIMUM_COVERAGE}) ? 1 : 0}') )); then
                                                 echo "Coverage below minimum threshold of ${MINIMUM_COVERAGE}%"
+                                                echo "\${COVERAGE}" > coverage-result.txt
                                                 exit 1
                                             else
                                                 echo "Coverage meets minimum threshold of ${MINIMUM_COVERAGE}%"
+                                                echo "\${COVERAGE}" > coverage-result.txt
                                             fi
                                         else
                                             echo "No coverage data found, skipping coverage check"
+                                            echo "0" > coverage-result.txt
                                         fi
                                     """
                                     def coverageResult = sh(script: coverageScript, returnStatus: true)
+                                    
+                                    // Read actual coverage for GitHub check
+                                    def codeCoverage = sh(script: "cat coverage-result.txt", returnStdout: true).trim()
+                                    
+                                    // Create GitHub check for code coverage
+                                    if (env.CHANGE_ID) {
+                                        def conclusion = coverageResult == 0 ? 'SUCCESS' : 'FAILURE'
+                                        
+                                        githubChecks(
+                                            name: "Test Code Coverage - ${service}",
+                                            status: 'COMPLETED',
+                                            conclusion: conclusion,
+                                            detailsURL: env.BUILD_URL,
+                                            output: [
+                                                title: conclusion == 'SUCCESS' ? 'Code Coverage Check Passed' : 'Code Coverage Check Failed',
+                                                summary: "Coverage must be at least ${MINIMUM_COVERAGE}%. Your coverage's of ${service} is ${codeCoverage}%.",
+                                                text: conclusion == 'SUCCESS' ? 'All tests pass with sufficient coverage.' : 'Increase test coverage and retry the build.'
+                                            ]
+                                        )
+                                    }
                                     
                                     // Nếu độ phủ không đạt, đánh dấu unstable thay vì fail
                                     if (coverageResult != 0) {
@@ -167,6 +164,20 @@ pipeline {
                                     }
                                 } catch (Exception e) {
                                     echo "Warning: Coverage reporting failed for ${service}: ${e.message}"
+                                    
+                                    if (env.CHANGE_ID) {
+                                        githubChecks(
+                                            name: "Test Code Coverage - ${service}",
+                                            status: 'COMPLETED',
+                                            conclusion: 'FAILURE',
+                                            detailsURL: env.BUILD_URL,
+                                            output: [
+                                                title: 'Coverage Check Error',
+                                                summary: "Failed to analyze code coverage for ${service}",
+                                                text: "Error: ${e.message}"
+                                            ]
+                                        )
+                                    }
                                 }
                             }
                         } else {
@@ -209,60 +220,12 @@ pipeline {
         }
         success {
             echo 'Pipeline completed successfully!'
-            script {
-                if (env.CHANGE_ID) {
-                    sh """
-                        curl -s -X POST \
-                          -H "Authorization: token ${GITHUB_TOKEN}" \
-                          -H "Accept: application/vnd.github.v3+json" \
-                          https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/statuses/\$(git rev-parse HEAD) \
-                          -d '{
-                            "state": "success",
-                            "context": "jenkins/pipeline",
-                            "description": "All checks passed",
-                            "target_url": "${env.BUILD_URL}"
-                          }'
-                    """
-                }
-            }
         }
         unstable {
             echo 'Pipeline completed but with unstable status (e.g. test coverage below threshold)'
-            script {
-                if (env.CHANGE_ID) {
-                    sh """
-                        curl -s -X POST \
-                          -H "Authorization: token ${GITHUB_TOKEN}" \
-                          -H "Accept: application/vnd.github.v3+json" \
-                          https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/statuses/\$(git rev-parse HEAD) \
-                          -d '{
-                            "state": "failure",
-                            "context": "jenkins/pipeline",
-                            "description": "Pipeline is unstable (test coverage below threshold)",
-                            "target_url": "${env.BUILD_URL}"
-                          }'
-                    """
-                }
-            }
         }
         failure {
             echo 'Pipeline failed!'
-            script {
-                if (env.CHANGE_ID) {
-                    sh """
-                        curl -s -X POST \
-                          -H "Authorization: token ${GITHUB_TOKEN}" \
-                          -H "Accept: application/vnd.github.v3+json" \
-                          https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/statuses/\$(git rev-parse HEAD) \
-                          -d '{
-                            "state": "failure",
-                            "context": "jenkins/pipeline",
-                            "description": "Pipeline failed",
-                            "target_url": "${env.BUILD_URL}"
-                          }'
-                    """
-                }
-            }
         }
     }
 }
