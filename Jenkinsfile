@@ -5,7 +5,12 @@ pipeline {
         MIN_COVERAGE = 70
     }
 
+    tools {
+        maven '3.9.9'
+    }
+
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -62,15 +67,13 @@ pipeline {
                     for (svc in servicesToTest) {
                         dir("${svc}") {
                             echo "Running tests for ${svc}"
-                            // Chạy các bài kiểm tra của Maven
                             sh 'mvn clean test'
                             junit 'target/surefire-reports/*.xml'
 
                             jacoco classPattern: "target/classes", 
-                                execPattern: "target/coverage-reports/jacoco.exec",
-                                runAlways: true, 
-                                sourcePattern: "src/main/java"
-
+                                   execPattern: "target/coverage-reports/jacoco.exec",
+                                   runAlways: true, 
+                                   sourcePattern: "src/main/java"
 
                             // Get Code Coverage
                             def codeCoverages = []
@@ -84,18 +87,16 @@ pipeline {
                                     echo "Overall code coverage of ${svc}: ${coverage}%"
 
                                     // Kiểm tra coverage có đạt yêu cầu không
-                                    if (coverage < env.MIN_COVERAGE.toInteger()) {
+                                    if (coverage.toFloat() < env.MIN_COVERAGE.toInteger()) {
                                         error("Coverage for ${svc} is too low (${coverage}%), must be >= ${env.MIN_COVERAGE}%")
                                     } else {
                                         echo "Coverage OK (${coverage}%)"
                                     }
                                 }
-                                
                             }
                         }
                     }
                 }
-
             }
         }
 
@@ -115,6 +116,7 @@ pipeline {
                 }
             }
         }
+
     }
 
     post {
