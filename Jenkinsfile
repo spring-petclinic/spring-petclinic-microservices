@@ -97,6 +97,9 @@ pipeline {
 
 
 void setBuildStatus(String message, String state) {
+    echo "Repo URL: ${env.GIT_URL}"
+    echo "Repo name: ${scm.getUserRemoteConfigs()[0].getUrl()}"
+
     step([
         $class: "GitHubCommitStatusSetter",
         reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/huyen-nguyen-04/spring-petclinic-microservices.git"],
