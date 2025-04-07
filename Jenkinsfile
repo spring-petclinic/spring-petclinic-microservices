@@ -39,5 +39,10 @@ pipeline {
                 echo 'Notifying...'
             }
         }
+        stage ('Archive') {
+            steps {
+                echo 'Archiving...'
+            }
+        }
     }
 }
