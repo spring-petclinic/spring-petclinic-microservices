@@ -65,10 +65,13 @@ pipeline {
                             sh 'mvn clean test'
                             junit 'target/surefire-reports/*.xml'
 
-                            // Xuất báo cáo JaCoCo
-                            jacoco execPattern: 'target/jacoco.exec',
-                                classPattern: 'target/classes',
-                                sourcePattern: 'src/main/java'
+                            // // Xuất báo cáo JaCoCo
+                            // jacoco execPattern: 'target/jacoco.exec',
+                            //     classPattern: 'target/classes',
+                            //     sourcePattern: 'src/main/java'
+
+                            sh 'mvn jacoco:report'
+                            sh 'cat target/site/jacoco/jacoco.csv'
 
                             // Đọc báo cáo JaCoCo và tính toán coverage
                             def coverageResult = sh(script: '''
