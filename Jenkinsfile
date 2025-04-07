@@ -21,7 +21,7 @@ pipeline {
                         'spring-petclinic-visits-service'
                     ]
 
-                    sh 'git fetch origin main'
+                    sh 'git fetch origin refs/heads/main:refs/remotes/origin/main'
 
                     def list_files = sh(
                         script: "git diff --name-only origin/main HEAD",
