@@ -61,6 +61,7 @@ class VetResourceTest {
     @Autowired
     CacheManager cacheManager;
 
+    // [TEST] [CORRECT WAY]: GET ALL VETS
     @Test
     void shouldGetAListOfVets() throws Exception {
 
@@ -74,6 +75,7 @@ class VetResourceTest {
             .andExpect(jsonPath("$[0].id").value(1));
     }
 
+    // [TEST] [TEST CACHE]: GET ALL VETS WITH CACHE
     @Test
     void shouldCacheVets() throws Exception {
         Vet vet = new Vet();
