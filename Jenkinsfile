@@ -24,10 +24,5 @@ pipeline {
                 echo 'Deploying...'
             }
         }
-        stage ('Cleanup') {
-            steps {
-                echo 'Cleaning up...'
-            }
-        }
     }
 }
