@@ -34,5 +34,10 @@ pipeline {
                 echo 'Post build actions...'
             }
         }
+        stage ('Notify') {
+            steps {
+                echo 'Notifying...'
+            }
+        }
     }
 }
