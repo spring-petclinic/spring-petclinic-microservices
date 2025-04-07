@@ -44,7 +44,6 @@ import static org.mockito.ArgumentMatchers.any;
 @WebMvcTest(PetResource.class)
 @ActiveProfiles("test")
 class PetResourceTest {
-
     @Autowired
     MockMvc mvc;
 
