@@ -139,9 +139,4 @@ public class Owner {
     public void setTelephone(String telephone) {
         this.telephone = telephone;
     }
-
-    // This is a convenience method for the JPA implementation to use.
-    public void setId(Integer id) {
-        this.id = id;
-    }
 }
