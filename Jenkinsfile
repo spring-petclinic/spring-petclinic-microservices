@@ -6,7 +6,6 @@ pipeline {
                 echo "Building.."
                 sh '''
                     echo "test.."
-                    exit 1
                 '''
             }
         }
