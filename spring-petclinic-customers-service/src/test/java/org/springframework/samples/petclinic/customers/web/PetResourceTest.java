@@ -57,6 +57,14 @@ class PetResourceTest {
             .andExpect(jsonPath("$.type.id").value(6));
     }
 
+    @Test
+    void shouldReturnNotFoundWhenPetDoesNotExist() throws Exception {
+    given(petRepository.findById(99)).willReturn(Optional.empty());
+
+    mvc.perform(get("/owners/1/pets/99"))
+           .andExpect(status().isNotFound());
+}
+
     private Pet setupPet() {
         Owner owner = new Owner();
         owner.setFirstName("George");
