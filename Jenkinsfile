@@ -67,13 +67,15 @@ pipeline {
                     for (svc in servicesToTest) {
                         dir("${svc}") {
                             echo "Running tests for ${svc}"
-                            sh 'mvn test'
+                            sh 'mvn clean test'
                             junit 'target/surefire-reports/*.xml'
 
-                            jacoco classPattern: "target/classes", 
-                                   execPattern: "target/coverage-reports/jacoco.exec",
-                                   runAlways: true, 
-                                   sourcePattern: "src/main/java"
+                            // jacoco classPattern: "target/classes", 
+                            //        execPattern: "target/coverage-reports/jacoco.exec",
+                            //        runAlways: true, 
+                            //        sourcePattern: "src/main/java"
+                            
+                            sh 'mvn jacoco:report'
 
                             // Get Code Coverage
                             def codeCoverages = []
