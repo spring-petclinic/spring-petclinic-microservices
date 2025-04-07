@@ -7,6 +7,9 @@ pipeline {
     
     environment {
         MINIMUM_COVERAGE = '70'
+        GITHUB_TOKEN = credentials('github-token')
+        REPO_OWNER = 'buonnguwaaa'
+        REPO_NAME = 'spring-petclinic-microservices'
     }
     
     options {
@@ -16,6 +19,29 @@ pipeline {
     }
     
     stages {
+        stage('GitHub Setup') {
+            steps {
+                script {
+                    // Notify GitHub that the build has started
+                    if (env.CHANGE_ID) {
+                        echo "Setting GitHub commit status for PR #${env.CHANGE_ID}"
+                        sh """
+                            curl -s -X POST \
+                              -H "Authorization: token ${GITHUB_TOKEN}" \
+                              -H "Accept: application/vnd.github.v3+json" \
+                              https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/statuses/\$(git rev-parse HEAD) \
+                              -d '{
+                                "state": "pending",
+                                "context": "jenkins/pipeline",
+                                "description": "Jenkins pipeline is running",
+                                "target_url": "${env.BUILD_URL}"
+                              }'
+                        """
+                    }
+                }
+            }
+        }
+        
         stage('Determine Changed Services') {
             steps {
                 script {
@@ -183,12 +209,60 @@ pipeline {
         }
         success {
             echo 'Pipeline completed successfully!'
+            script {
+                if (env.CHANGE_ID) {
+                    sh """
+                        curl -s -X POST \
+                          -H "Authorization: token ${GITHUB_TOKEN}" \
+                          -H "Accept: application/vnd.github.v3+json" \
+                          https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/statuses/\$(git rev-parse HEAD) \
+                          -d '{
+                            "state": "success",
+                            "context": "jenkins/pipeline",
+                            "description": "All checks passed",
+                            "target_url": "${env.BUILD_URL}"
+                          }'
+                    """
+                }
+            }
         }
         unstable {
             echo 'Pipeline completed but with unstable status (e.g. test coverage below threshold)'
+            script {
+                if (env.CHANGE_ID) {
+                    sh """
+                        curl -s -X POST \
+                          -H "Authorization: token ${GITHUB_TOKEN}" \
+                          -H "Accept: application/vnd.github.v3+json" \
+                          https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/statuses/\$(git rev-parse HEAD) \
+                          -d '{
+                            "state": "failure",
+                            "context": "jenkins/pipeline",
+                            "description": "Pipeline is unstable (test coverage below threshold)",
+                            "target_url": "${env.BUILD_URL}"
+                          }'
+                    """
+                }
+            }
         }
         failure {
             echo 'Pipeline failed!'
+            script {
+                if (env.CHANGE_ID) {
+                    sh """
+                        curl -s -X POST \
+                          -H "Authorization: token ${GITHUB_TOKEN}" \
+                          -H "Accept: application/vnd.github.v3+json" \
+                          https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/statuses/\$(git rev-parse HEAD) \
+                          -d '{
+                            "state": "failure",
+                            "context": "jenkins/pipeline",
+                            "description": "Pipeline failed",
+                            "target_url": "${env.BUILD_URL}"
+                          }'
+                    """
+                }
+            }
         }
     }
 }
