@@ -5,7 +5,12 @@ pipeline {
         MIN_COVERAGE = 70
     }
 
+    tools {
+        maven '3.9.9'
+    }
+
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -15,6 +20,7 @@ pipeline {
         stage('Detect Changed Services') {
             steps {
                 script {
+                    echo "Current user: $USER"
                     def services = [
                         'spring-petclinic-customers-service',
                         'spring-petclinic-vets-service',
@@ -64,28 +70,32 @@ pipeline {
                             sh 'mvn clean test'
                             junit 'target/surefire-reports/*.xml'
 
-                            // Publish JaCoCo coverage report
-                            // Publish JaCoCo
-                            jacoco execPattern: 'target/jacoco.exec',
-                                   classPattern: 'target/classes',
-                                   sourcePattern: 'src/main/java'
+                            // jacoco classPattern: "target/classes", 
+                            //        execPattern: "target/coverage-reports/jacoco.exec",
+                            //        runAlways: true, 
+                            //        sourcePattern: "src/main/java"
+                            
+                            sh 'mvn jacoco:report'
 
-                            // Check Coverage
-                            def coverageResult = jacoco(
-                                execPattern: 'target/jacoco.exec',
-                                classPattern: 'target/classes',
-                                sourcePattern: 'src/main/java'
-                            )
-                            
-                            def coverage = coverageResult.instructionCoverage?.coveredRatio * 100
-                            echo "Coverage for ${svc}: ${coverage}%"
-                            
-                            if (coverage < env.MIN_COVERAGE.toInteger()) {
-                                error("Coverage for ${svc} is too low (${coverage}%), must be >= ${env.MIN_COVERAGE}%")
-                            } else {
-                                echo "Coverage OK (${coverage}%)"
+                            // Get Code Coverage
+                            def codeCoverages = []
+                            def coverageReport = readFile(file: "target/site/jacoco/index.html")
+                            def matcher = coverageReport =~ /<tfoot>(.*?)<\/tfoot>/
+                            if (matcher.find()) {
+                                def coverageMatch = matcher[0]
+                                def instructionMatcher = coverageMatch =~ /<td class="ctr2">(.*?)%<\/td>/
+                                if (instructionMatcher.find()) {
+                                    def coverage = instructionMatcher[0][1]
+                                    echo "Overall code coverage of ${svc}: ${coverage}%"
+
+                                    // Kiểm tra coverage có đạt yêu cầu không
+                                    if (coverage.toFloat() < env.MIN_COVERAGE.toInteger()) {
+                                        error("Coverage for ${svc} is too low (${coverage}%), must be >= ${env.MIN_COVERAGE}%")
+                                    } else {
+                                        echo "Coverage OK (${coverage}%)"
+                                    }
+                                }
                             }
-
                         }
                     }
                 }
@@ -108,6 +118,7 @@ pipeline {
                 }
             }
         }
+
     }
 
     post {
