@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        MIN_COVERAGE = 70
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -59,6 +63,29 @@ pipeline {
                             echo "Running tests for ${svc}"
                             sh 'mvn clean test'
                             junit 'target/surefire-reports/*.xml'
+
+                            // Publish JaCoCo coverage report
+                            // Publish JaCoCo
+                            jacoco execPattern: 'target/jacoco.exec',
+                                   classPattern: 'target/classes',
+                                   sourcePattern: 'src/main/java'
+
+                            // Check Coverage
+                            def coverageResult = jacoco(
+                                execPattern: 'target/jacoco.exec',
+                                classPattern: 'target/classes',
+                                sourcePattern: 'src/main/java'
+                            )
+                            
+                            def coverage = coverageResult.instructionCoverage?.coveredRatio * 100
+                            echo "Coverage for ${svc}: ${coverage}%"
+                            
+                            if (coverage < env.MIN_COVERAGE.toInteger()) {
+                                error("Coverage for ${svc} is too low (${coverage}%), must be >= ${env.MIN_COVERAGE}%")
+                            } else {
+                                echo "Coverage OK (${coverage}%)"
+                            }
+
                         }
                     }
                 }
