@@ -16,7 +16,6 @@ pipeline {
 
                     dir(WORKSPACE_DIR) {
                         if (env.CHANGE_ID) {
-                            // Pull Request
                             echo "Checking out PR #${env.CHANGE_ID} (target: ${env.CHANGE_TARGET})"
                             sh "git init"
                             sh "git remote add origin ${REPO_URL}"
@@ -24,7 +23,6 @@ pipeline {
                             sh "git fetch origin ${env.CHANGE_TARGET}:refs/remotes/origin/${env.CHANGE_TARGET}"
                             sh "git checkout pr-${env.CHANGE_ID}"
                         } else {
-                            // Branch
                             echo "Checking out branch ${env.BRANCH_NAME}"
                             sh "git clone -b ${env.BRANCH_NAME} ${REPO_URL} ."
                         }
@@ -128,11 +126,33 @@ pipeline {
 
                                 echo "Code Coverage for ${service}: ${coverageData}%"
 
-                                // Check coverage > 70 pull request for main
                                 if (env.CHANGE_ID && env.CHANGE_TARGET == 'main') {
                                     def coverageValue = coverageData.toFloat()
                                     if (coverageValue < 70) {
+                                        githubChecks(
+                                            name: "Test Code Coverage - ${service}",
+                                            status: 'COMPLETED',
+                                            conclusion: 'FAILURE',
+                                            detailsURL: env.BUILD_URL,
+                                            output: [
+                                                title: 'Code Coverage Check Failed',
+                                                summary: "Coverage for ${service} is ${coverageValue}%, which is below 70%",
+                                                text: 'Please increase test coverage before merging.'
+                                            ]
+                                        )
                                         error "Code coverage for ${service} is ${coverageValue}%, which is below the required 70% for PRs to main. Failing the pipeline."
+                                    } else {
+                                        githubChecks(
+                                            name: "Test Code Coverage - ${service}",
+                                            status: 'COMPLETED',
+                                            conclusion: 'SUCCESS',
+                                            detailsURL: env.BUILD_URL,
+                                            output: [
+                                                title: 'Code Coverage Check Success',
+                                                summary: "Coverage for ${service} is ${coverageValue}%",
+                                                text: 'Check Success!'
+                                            ]
+                                        )
                                     }
                                 }
                             } catch (Exception e) {
