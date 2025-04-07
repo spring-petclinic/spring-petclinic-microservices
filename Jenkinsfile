@@ -29,5 +29,15 @@ pipeline {
                 echo 'Cleaning up...'
             }
         }
+        stage ('Post') {
+            steps {
+                echo 'Post build actions...'
+            }
+        }
+        stage ('Notify') {
+            steps {
+                echo 'Notifying...'
+            }
+        }
     }
 }
