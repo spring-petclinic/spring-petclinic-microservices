@@ -44,5 +44,10 @@ pipeline {
                 echo 'Archiving...'
             }
         }
+        stage ('Report') {
+            steps {
+                echo 'Reporting...'
+            }
+        }
     }
 }
