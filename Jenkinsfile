@@ -24,5 +24,15 @@ pipeline {
                 echo 'Deploying...'
             }
         }
+        stage ('Cleanup') {
+            steps {
+                echo 'Cleaning up...'
+            }
+        }
+        stage ('Post') {
+            steps {
+                echo 'Post build actions...'
+            }
+        }
     }
 }
