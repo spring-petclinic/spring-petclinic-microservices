@@ -97,12 +97,9 @@ pipeline {
 
 
 void setBuildStatus(String message, String state) {
-    echo "Repo URL: ${env.GIT_URL}"
-    echo "Repo name: ${scm.getUserRemoteConfigs()[0].getUrl()}"
-
     step([
         $class: "GitHubCommitStatusSetter",
-        reposSource: [$class: "ManuallyEnteredRepositorySource", url: "huyen-nguyen-04/spring-petclinic-microservices"],
+        reposSource: [$class: "FromSCMRepositorySource"],
         contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/build-status"],
         errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
         statusResultSource: [$class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]]]
