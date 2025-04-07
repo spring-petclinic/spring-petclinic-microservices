@@ -61,34 +61,36 @@ pipeline {
                     for (svc in servicesToTest) {
                         dir("${svc}") {
                             echo "Running tests for ${svc}"
+                            // Chạy các bài kiểm tra của Maven
                             sh 'mvn clean test'
                             junit 'target/surefire-reports/*.xml'
 
-                            // Publish JaCoCo coverage report
-                            // Publish JaCoCo
+                            // Xuất báo cáo JaCoCo
                             jacoco execPattern: 'target/jacoco.exec',
-                                   classPattern: 'target/classes',
-                                   sourcePattern: 'src/main/java'
-
-                            // Check Coverage
-                            def coverageResult = jacoco(
-                                execPattern: 'target/jacoco.exec',
                                 classPattern: 'target/classes',
                                 sourcePattern: 'src/main/java'
-                            )
-                            
-                            def coverage = coverageResult.instructionCoverage?.coveredRatio * 100
-                            echo "Coverage for ${svc}: ${coverage}%"
-                            
+
+                            // Đọc báo cáo JaCoCo và tính toán coverage
+                            def coverageResult = sh(script: '''
+                                tail -n +2 target/site/jacoco/jacoco.csv | awk -F',' '
+                                { total+=$4+$5; covered+=$5 }
+                                END { if (total>0) { coverage=(covered/total)*100; if (coverage>100) coverage=100; print coverage } else print 0 }'
+                            ''', returnStdout: true).trim()
+
+                            // In kết quả coverage
+                            echo "Coverage for ${svc}: ${coverageResult}%"
+
+                            // Kiểm tra coverage có đạt yêu cầu không
+                            def coverage = coverageResult.toFloat()
                             if (coverage < env.MIN_COVERAGE.toInteger()) {
                                 error("Coverage for ${svc} is too low (${coverage}%), must be >= ${env.MIN_COVERAGE}%")
                             } else {
                                 echo "Coverage OK (${coverage}%)"
                             }
-
                         }
                     }
                 }
+
             }
         }
 
