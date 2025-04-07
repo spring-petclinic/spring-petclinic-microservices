@@ -90,7 +90,7 @@ pipeline {
 
                                     // Kiểm tra coverage có đạt yêu cầu không
                                     if (coverage.toFloat() < env.MIN_COVERAGE.toInteger()) {
-                                        echo "Coverage for ${svc} is too low (${coverage}%), must be >= ${env.MIN_COVERAGE}%"
+                                        error("Coverage for ${svc} is too low (${coverage}%), must be >= ${env.MIN_COVERAGE}%")
                                     } else {
                                         echo "Coverage OK (${coverage}%)"
                                     }
