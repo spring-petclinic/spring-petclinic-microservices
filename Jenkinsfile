@@ -53,13 +53,26 @@ pipeline {
     post {
         success {
             script {
-                githubNotify context: 'CI', status: 'SUCCESS', description: 'All checks passed'
+                githubNotify context: 'CI',
+                    status: 'SUCCESS',
+                    description: 'Build passed',
+                    repo: 'test-project1-devops',
+                    account: 'vuden2605',
+                    sha: env.GIT_COMMIT,
+                    credentialsId: 'github-creds'
             }
         }
         failure {
             script {
-                githubNotify context: 'CI', status: 'FAILURE', description: 'Build failed'
+                githubNotify context: 'CI',
+                    status: 'FAILURE',
+                    description: 'Build failed',
+                    repo: 'test-project1-devops',
+                    account: 'vuden2605',
+                    sha: env.GIT_COMMIT,
+                    credentialsId: 'github-creds'
             }
         }
-    }
+}
+
 }
