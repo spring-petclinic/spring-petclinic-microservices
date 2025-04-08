@@ -55,7 +55,7 @@ pipeline {
             }
         }
 
-       stage('Test') {
+       stage('Test & Coverage') {
             when {
                 expression { return env.SERVICES_TO_BUILD?.trim() }
             }
@@ -65,42 +65,36 @@ pipeline {
                     for (s in services) {
                         dir("${s}") {
                             echo "Testing service: ${s}"
-                            
-                            // Capture output to a file using tee
-                            sh """
-                                mvn clean test jacoco:report | tee mvn_output.log
-                            """
-        
+                            sh "mvn clean test jacoco:report"
                             junit '**/target/surefire-reports/*.xml'
-                            jacoco execPattern: '**/target/jacoco.exec', classPattern: '**/target/classes', sourcePattern: '**/src/main/java'
-        
-                            // Read instruction coverage from captured output
-                            def coverageLine = sh(
-                                script: "grep '\\[JaCoCo plugin\\] Overall coverage:' mvn_output.log || true",
+
+                            // Đọc từ file jacoco.xml
+                            def missed = sh(
+                                script: "grep -oPm1 '(?<=<counter type=\"INSTRUCTION\" missed=\")[0-9]+' target/site/jacoco/jacoco.xml",
                                 returnStdout: true
                             ).trim()
-        
-                            if (!coverageLine) {
-                                echo "Coverage summary line not found. Skipping coverage check."
-                            } else {
-                                def matcher = coverageLine =~ /instruction: ([\\d.]+)/
-                                if (matcher) {
-                                    def instructionCoverage = matcher[0][1].toFloat()
-                                    echo "${s} Instruction Coverage: ${instructionCoverage}%"
-        
-                                    if (instructionCoverage < 70.0) {
-                                        error "${s} instruction coverage is below 70% (${instructionCoverage}%). Failing pipeline."
-                                    }
-                                } else {
-                                    echo "Instruction coverage not found in the summary line."
+                            def covered = sh(
+                                script: "grep -oPm1 '(?<=missed=\"${missed}\" covered=\")[0-9]+' target/site/jacoco/jacoco.xml",
+                                returnStdout: true
+                            ).trim()
+
+                            if (missed && covered) {
+                                def total = missed.toInteger() + covered.toInteger()
+                                def coverage = (covered.toFloat() / total) * 100
+                                echo "${s} Instruction Coverage: ${String.format('%.2f', coverage)}%"
+
+                                if (coverage < 70.0) {
+                                    error "${s} instruction coverage is below 70% (${String.format('%.2f', coverage)}%). Failing pipeline."
                                 }
+                            } else {
+                                echo "Could not extract instruction coverage for ${s}."
                             }
                         }
                     }
                 }
             }
         }
-
+        
         stage('Build') {
             when {
                 expression { return env.SERVICES_TO_BUILD?.trim() }
