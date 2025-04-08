@@ -59,7 +59,7 @@ pipeline {
                     repo: 'test-project1-devops',
                     account: 'vuden2605',
                     sha: env.GIT_COMMIT,
-                    credentialsId: 'github-creds'
+                    credentialsId: 'test'
             }
         }
         failure {
@@ -70,7 +70,7 @@ pipeline {
                     repo: 'test-project1-devops',
                     account: 'vuden2605',
                     sha: env.GIT_COMMIT,
-                    credentialsId: 'github-creds'
+                    credentialsId: 'test'
             }
         }
 }
