@@ -66,28 +66,17 @@ pipeline {
                         dir("${s}") {
                             echo "Testing service: ${s}"
                             sh "mvn clean test jacoco:report"
-
+        
                             junit '**/target/surefire-reports/*.xml'
                             jacoco execPattern: '**/target/jacoco.exec', classPattern: '**/target/classes', sourcePattern: '**/src/main/java'
-
-                            // Check instruction coverage from jacoco.xml
-                            def jacocoXmlPath = "target/site/jacoco/jacoco.xml"
-                            def xmlFile = new File(jacocoXmlPath)
-
-                            if (!xmlFile.exists()) {
-                                echo "jacoco.xml not found for ${s}, skipping coverage check"
-                                continue
-                            }
-
-                            def parser = new XmlSlurper().parse(xmlFile)
-                            def instructionCounter = parser.counter.find { it.@type == 'INSTRUCTION' }
-                            def missed = instructionCounter.@missed.toInteger()
-                            def covered = instructionCounter.@covered.toInteger()
+        
+                            def missed = sh(script: "grep '<counter type=\"INSTRUCTION\"' target/site/jacoco/jacoco.xml | sed -n 's/.*missed=\"\\([0-9]*\\)\".*/\\1/p'", returnStdout: true).trim().toInteger()
+                            def covered = sh(script: "grep '<counter type=\"INSTRUCTION\"' target/site/jacoco/jacoco.xml | sed -n 's/.*covered=\"\\([0-9]*\\)\".*/\\1/p'", returnStdout: true).trim().toInteger()
+        
                             def total = missed + covered
-                            def coverage = (covered / total) * 100
-
+                            def coverage = (covered * 100.0) / total
                             echo "${s} instruction coverage: ${String.format('%.2f', coverage)}%"
-
+        
                             if (coverage < 70.0) {
                                 error "${s} instruction coverage is below 70% (${String.format('%.2f', coverage)}%). Failing pipeline."
                             }
