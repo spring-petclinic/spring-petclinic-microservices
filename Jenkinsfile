@@ -49,11 +49,6 @@ pipeline {
                 echo 'Reporting...'
             }
         }
-        stage('Approval') {
-            steps {
-                echo 'Approval...'
-            }
-        }
     }
     post {
         success {
