@@ -14,9 +14,7 @@ pipeline {
             steps {
                 checkout scm
                 script {
-                    // Kiểm tra nếu đây là một Pull Request
                     if (env.CHANGE_ID) {
-                        // Nếu là PR, GitHub Branch Source plugin sẽ tự động xử lý việc checkout đúng nhánh PR
                         echo "PR detected: Fetching PR from refs/pull/${env.CHANGE_ID}/head"
                     } else {
                         echo "No PR detected, checking out branch ${env.BRANCH_NAME}"
@@ -48,12 +46,51 @@ pipeline {
 
                     def changedServicesList = changedServices as List
                     env.SERVICES_TO_BUILD = allServices.findAll { it in changedServicesList }.join(',')
-                    echo "Services to build: ${env.SERVICES_TO_BUILD}"
+                    echo "Services to test and build: ${env.SERVICES_TO_BUILD}"
                 }
             }
         }
 
-        stage('Build and Test') {
+        stage('Test') {
+            when {
+                expression { return env.SERVICES_TO_BUILD?.trim() }
+            }
+            steps {
+                script {
+                    env.OVERALL_COVERAGE = '0'
+                    def totalCoverage = 0
+                    def serviceCount = 0
+
+                    def services = env.SERVICES_TO_BUILD.split(',')
+                    for (s in services) {
+                        dir("${s}") {
+                            sh "mvn clean test"
+                            junit '**/target/surefire-reports/*.xml'
+                            jacoco execPattern: '**/target/jacoco.exec', classPattern: '**/target/classes', sourcePattern: '**/src/main/java'
+
+                            def missed = sh(script: "grep -oPm1 '(?<=<counter type=\"INSTRUCTION\" missed=\")[0-9]+' target/site/jacoco/jacoco.xml", returnStdout: true).trim().toInteger()
+                            def covered = sh(script: "grep -oPm1 '(?<=<counter type=\"INSTRUCTION\" covered=\")[0-9]+' target/site/jacoco/jacoco.xml", returnStdout: true).trim().toInteger()
+                            def total = missed + covered
+                            def coveragePercent = (100 * covered) / total
+                            echo "${s} Coverage: ${coveragePercent}%"
+
+                            totalCoverage += coveragePercent
+                            serviceCount += 1
+                        }
+                    }
+
+                    def avgCoverage = totalCoverage / serviceCount
+                    env.OVERALL_COVERAGE = "${avgCoverage}"
+                    echo "Average coverage: ${env.OVERALL_COVERAGE}%"
+
+                    if (avgCoverage < 70) {
+                        error "Code coverage is below threshold (${avgCoverage}%). Failing pipeline at Test stage."
+                    }
+                }
+            }
+        }
+
+        stage('Build') {
             when {
                 expression { return env.SERVICES_TO_BUILD?.trim() }
             }
@@ -62,12 +99,10 @@ pipeline {
                     def services = env.SERVICES_TO_BUILD.split(',')
                     for (s in services) {
                         dir("${s}") {
-                            sh "mvn clean test"
-                            junit '**/target/surefire-reports/*.xml'
-                            jacoco execPattern: '**/target/jacoco.exec', classPattern: '**/target/classes', sourcePattern: '**/src/main/java'
                             sh "mvn clean package"
                         }
                     }
+                    echo "Build succeeded. Code coverage: ${env.OVERALL_COVERAGE}%"
                 }
             }
         }
@@ -76,6 +111,9 @@ pipeline {
     post {
         always {
             echo "Pipeline complete"
+        }
+        failure {
+            echo "Pipeline failed"
         }
     }
 }
