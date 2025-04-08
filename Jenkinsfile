@@ -61,22 +61,21 @@ pipeline {
                     for (s in services) {
                         dir("${s}") {
                             echo "Testing service: ${s}"
-                            sh "mvn clean test jacoco:report"
+                            sh "mvn clean test"
                             junit '**/target/surefire-reports/*.xml'
-        
-                            // Kiểm tra tồn tại file jacoco.xml trước khi tính coverage
-                            if (fileExists('target/site/jacoco/jacoco.xml')) {
-                                def missed = sh(script: "grep -oPm1 '(?<=<counter type=\"INSTRUCTION\" missed=\")[0-9]+' target/site/jacoco/jacoco.xml", returnStdout: true).trim().toInteger()
-                                def covered = sh(script: "grep -oPm1 '(?<=<counter type=\"INSTRUCTION\" covered=\")[0-9]+' target/site/jacoco/jacoco.xml", returnStdout: true).trim().toInteger()
-                                def total = missed + covered
-                                def coveragePercent = (100 * covered) / total
-                                echo "${s} Coverage: ${coveragePercent}%"
-        
-                                if (coveragePercent < 70) {
-                                    error "${s} code coverage is below 70% (${coveragePercent}%). Failing pipeline."
-                                }
-                            } else {
-                                error "JaCoCo report not found for ${s}. Make sure jacoco:report is executed and properly configured."
+                            jacoco execPattern: '**/target/jacoco.exec', classPattern: '**/target/classes', sourcePattern: '**/src/main/java'
+
+                            // Tính toán code coverage
+                            def missed = sh(script: "grep -oPm1 '(?<=<counter type=\"INSTRUCTION\" missed=\")[0-9]+' target/site/jacoco/jacoco.xml", returnStdout: true).trim().toInteger()
+                            def covered = sh(script: "grep -oPm1 '(?<=<counter type=\"INSTRUCTION\" covered=\")[0-9]+' target/site/jacoco/jacoco.xml", returnStdout: true).trim().toInteger()
+                            def total = missed + covered
+                            def coveragePercent = (100 * covered) / total
+
+                            echo "${s} Coverage: ${coveragePercent}%"
+
+                            // Kiểm tra điều kiện coverage
+                            if (coveragePercent < 70) {
+                                error "${s} code coverage is below 70% (${coveragePercent}%). Failing pipeline."
                             }
                         }
                     }
