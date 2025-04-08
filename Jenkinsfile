@@ -66,6 +66,7 @@ pipeline {
                         dir("${s}") {
                             echo "Testing service: ${s}"
                             sh "mvn clean test"
+                            sh "mvn jacoco:report"
                             junit '**/target/surefire-reports/*.xml'
                             jacoco execPattern: '**/target/jacoco.exec', classPattern: '**/target/classes', sourcePattern: '**/src/main/java'
 
