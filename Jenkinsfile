@@ -50,14 +50,4 @@ pipeline {
             }
         }
     }
-    post {
-        success {
-            // Báo CI pass về GitHub
-            githubNotify context: 'jenkins-ci', status: 'SUCCESS', description: 'CI Passed'
-        }
-        failure {
-            // Báo CI fail về GitHub
-            githubNotify context: 'jenkins-ci', status: 'FAILURE', description: 'CI Failed'
-        }
-    }
 }
