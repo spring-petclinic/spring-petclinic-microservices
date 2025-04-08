@@ -51,20 +51,15 @@ pipeline {
         }
     }
     post {
-        always {
-            echo 'This will always run'
-        }
         success {
-            echo 'This will run only if the build is successful'
+            script {
+                githubNotify context: 'CI', status: 'SUCCESS', description: 'All checks passed'
+            }
         }
         failure {
-            echo 'This will run only if the build fails'
-        }
-        unstable {
-            echo 'This will run only if the build is unstable'
-        }
-        changed {
-            echo 'This will run only if the build status has changed'
+            script {
+                githubNotify context: 'CI', status: 'FAILURE', description: 'Build failed'
+            }
         }
     }
 }
