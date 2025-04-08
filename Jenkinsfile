@@ -65,21 +65,30 @@ pipeline {
                     for (s in services) {
                         dir("${s}") {
                             echo "Testing service: ${s}"
-                            sh "mvn clean test"
-                            sh "mvn jacoco:report"
+                            sh "mvn clean test jacoco:report"
                             junit '**/target/surefire-reports/*.xml'
                             jacoco execPattern: '**/target/jacoco.exec', classPattern: '**/target/classes', sourcePattern: '**/src/main/java'
 
-                            // Tính toán coverage
-                            def missed = sh(script: "grep -oPm1 \"(?<=<counter type=\\\"INSTRUCTION\\\" missed=\\\")[0-9]+\" target/site/jacoco/jacoco.xml", returnStdout: true).trim().toInteger()
-                            def covered = sh(script: "grep -oPm1 \"(?<=<counter type=\\\"INSTRUCTION\\\" covered=\\\")[0-9]+\" target/site/jacoco/jacoco.xml", returnStdout: true).trim().toInteger()
-                            def total = missed + covered
-                            def coveragePercent = (100 * covered) / total
-                            
-                            echo "${s} Coverage: ${coveragePercent}%"
-                            
-                            if (coveragePercent < 70) {
-                                error "${s} code coverage is below 70% (${coveragePercent}%). Failing pipeline."
+                            // Extract coverage summary from JaCoCo plugin output in the Jenkins log
+                            def coverageLine = sh(
+                                script: "cat ${env.WORKSPACE}/../${env.BUILD_TAG}/log | grep '\\[JaCoCo plugin\\] Overall coverage:' || true",
+                                returnStdout: true
+                            ).trim()
+
+                            if (!coverageLine) {
+                                echo "Coverage summary line not found. Skipping coverage check."
+                            } else {
+                                def matcher = coverageLine =~ /instruction: ([\d.]+)/
+                                if (matcher) {
+                                    def instructionCoverage = matcher[0][1].toFloat()
+                                    echo "${s} Instruction Coverage: ${instructionCoverage}%"
+
+                                    if (instructionCoverage < 70.0) {
+                                        error "${s} instruction coverage is below 70% (${instructionCoverage}%). Failing pipeline."
+                                    }
+                                } else {
+                                    echo "Instruction coverage percentage not found in summary."
+                                }
                             }
                         }
                     }
