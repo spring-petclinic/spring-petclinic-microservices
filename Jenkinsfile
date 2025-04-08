@@ -7,6 +7,7 @@ pipeline {
                 sh '''
                     echo "test.."
                 '''
+                exit 1
             }
         }
         stage('Test') {
@@ -19,27 +20,27 @@ pipeline {
                 echo 'Deliver....'
             }
         }
-        stage ('Deploy') {
+        stage('Deploy') {
             steps {
                 echo 'Deploying...'
             }
         }
-        stage ('Cleanup') {
+        stage('Cleanup') {
             steps {
                 echo 'Cleaning up...'
             }
         }
-        stage ('Post') {
+        stage('Post') {
             steps {
                 echo 'Post build actions...'
             }
         }
-        stage ('Notify') {
+        stage('Notify') {
             steps {
                 echo 'Notifying...'
             }
         }
-        stage ('Archive') {
+        stage('Archive') {
             steps {
                 echo 'Archiving...'
             }
@@ -48,6 +49,23 @@ pipeline {
             steps {
                 echo 'Reporting...'
             }
+        }
+    }
+    post {
+        always {
+            echo 'This will always run'
+        }
+        success {
+            echo 'This will run only if the build is successful'
+        }
+        failure {
+            echo 'This will run only if the build fails'
+        }
+        unstable {
+            echo 'This will run only if the build is unstable'
+        }
+        changed {
+            echo 'This will run only if the build status has changed'
         }
     }
 }
