@@ -7,7 +7,6 @@ pipeline {
                 sh '''
                     echo "test.."
                 '''
-                exit 1
             }
         }
         stage('Test') {
