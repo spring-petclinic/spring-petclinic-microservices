@@ -19,48 +19,48 @@ pipeline {
                 echo 'Deliver....'
             }
         }
-        stage ('Deploy') {
+        stage('Deploy') {
             steps {
                 echo 'Deploying...'
             }
         }
-        stage ('Cleanup') {
+        stage('Cleanup') {
             steps {
                 echo 'Cleaning up...'
             }
         }
-        stage ('Post') {
+        stage('Post') {
             steps {
                 echo 'Post build actions...'
             }
         }
-        stage ('Notify') {
+        stage('Notify') {
             steps {
                 echo 'Notifying...'
             }
         }
-        stage ('Archive') {
+        stage('Archive') {
             steps {
                 echo 'Archiving...'
             }
         }
-        stage ('Report') {
+        stage('Report') {
             steps {
                 echo 'Reporting...'
             }
         }
-        stage ('Approval') {
+        stage('Approval') {
             steps {
                 echo 'Approval...'
             }
         }
-        post {
-            success {
-                githubNotify context: 'jenkins-ci', status: 'SUCCESS', description: 'CI Passed'
-            }
-            failure {
-                githubNotify context: 'jenkins-ci', status: 'FAILURE', description: 'CI Failed'
-            }
+    }
+    post {
+        success {
+            githubNotify context: 'jenkins-ci', status: 'SUCCESS', description: 'CI Passed'
+        }
+        failure {
+            githubNotify context: 'jenkins-ci', status: 'FAILURE', description: 'CI Failed'
         }
     }
 }
