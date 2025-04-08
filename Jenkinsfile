@@ -57,34 +57,27 @@ pipeline {
             }
             steps {
                 script {
-                    env.OVERALL_COVERAGE = '0'
-                    def totalCoverage = 0
-                    def serviceCount = 0
-
                     def services = env.SERVICES_TO_BUILD.split(',')
                     for (s in services) {
                         dir("${s}") {
+                            echo "Testing service: ${s}"
                             sh "mvn clean test"
                             junit '**/target/surefire-reports/*.xml'
                             jacoco execPattern: '**/target/jacoco.exec', classPattern: '**/target/classes', sourcePattern: '**/src/main/java'
 
+                            // Tính toán code coverage
                             def missed = sh(script: "grep -oPm1 '(?<=<counter type=\"INSTRUCTION\" missed=\")[0-9]+' target/site/jacoco/jacoco.xml", returnStdout: true).trim().toInteger()
                             def covered = sh(script: "grep -oPm1 '(?<=<counter type=\"INSTRUCTION\" covered=\")[0-9]+' target/site/jacoco/jacoco.xml", returnStdout: true).trim().toInteger()
                             def total = missed + covered
                             def coveragePercent = (100 * covered) / total
+
                             echo "${s} Coverage: ${coveragePercent}%"
 
-                            totalCoverage += coveragePercent
-                            serviceCount += 1
+                            // Kiểm tra điều kiện coverage
+                            if (coveragePercent < 70) {
+                                error "${s} code coverage is below 70% (${coveragePercent}%). Failing pipeline."
+                            }
                         }
-                    }
-
-                    def avgCoverage = totalCoverage / serviceCount
-                    env.OVERALL_COVERAGE = "${avgCoverage}"
-                    echo "Average coverage: ${env.OVERALL_COVERAGE}%"
-
-                    if (avgCoverage < 70) {
-                        error "Code coverage is below threshold (${avgCoverage}%). Failing pipeline at Test stage."
                     }
                 }
             }
@@ -99,10 +92,10 @@ pipeline {
                     def services = env.SERVICES_TO_BUILD.split(',')
                     for (s in services) {
                         dir("${s}") {
+                            echo "Building service: ${s}"
                             sh "mvn clean package"
                         }
                     }
-                    echo "Build succeeded. Code coverage: ${env.OVERALL_COVERAGE}%"
                 }
             }
         }
