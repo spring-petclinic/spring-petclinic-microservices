@@ -55,7 +55,7 @@ pipeline {
             }
         }
 
-        stage('Test') {
+       stage('Test') {
             when {
                 expression { return env.SERVICES_TO_BUILD?.trim() }
             }
@@ -65,29 +65,34 @@ pipeline {
                     for (s in services) {
                         dir("${s}") {
                             echo "Testing service: ${s}"
-                            sh "mvn clean test jacoco:report"
+                            
+                            // Capture output to a file using tee
+                            sh """
+                                mvn clean test jacoco:report | tee mvn_output.log
+                            """
+        
                             junit '**/target/surefire-reports/*.xml'
                             jacoco execPattern: '**/target/jacoco.exec', classPattern: '**/target/classes', sourcePattern: '**/src/main/java'
-
-                            // Extract coverage summary from JaCoCo plugin output in the Jenkins log
+        
+                            // Read instruction coverage from captured output
                             def coverageLine = sh(
-                                script: "cat ${env.WORKSPACE}/../${env.BUILD_TAG}/log | grep '\\[JaCoCo plugin\\] Overall coverage:' || true",
+                                script: "grep '\\[JaCoCo plugin\\] Overall coverage:' mvn_output.log || true",
                                 returnStdout: true
                             ).trim()
-
+        
                             if (!coverageLine) {
                                 echo "Coverage summary line not found. Skipping coverage check."
                             } else {
-                                def matcher = coverageLine =~ /instruction: ([\d.]+)/
+                                def matcher = coverageLine =~ /instruction: ([\\d.]+)/
                                 if (matcher) {
                                     def instructionCoverage = matcher[0][1].toFloat()
                                     echo "${s} Instruction Coverage: ${instructionCoverage}%"
-
+        
                                     if (instructionCoverage < 70.0) {
                                         error "${s} instruction coverage is below 70% (${instructionCoverage}%). Failing pipeline."
                                     }
                                 } else {
-                                    echo "Instruction coverage percentage not found in summary."
+                                    echo "Instruction coverage not found in the summary line."
                                 }
                             }
                         }
