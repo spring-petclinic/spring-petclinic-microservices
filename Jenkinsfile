@@ -7,7 +7,6 @@ pipeline {
                 sh '''
                     echo "test.."
                 '''
-                exit 1
             }
         }
         stage('Test') {
@@ -50,10 +49,22 @@ pipeline {
                 echo 'Reporting...'
             }
         }
-        stage ('Approval') {
-            steps {
-                echo 'Approval...'
-            }
+    }
+    post {
+        always {
+            echo 'This will always run'
+        }
+        success {
+            echo 'This will run only if the build is successful'
+        }
+        failure {
+            echo 'This will run only if the build fails'
+        }
+        unstable {
+            echo 'This will run only if the build is unstable'
+        }
+        changed {
+            echo 'This will run only if the build status has changed'
         }
     }
 }
