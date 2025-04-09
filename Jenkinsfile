@@ -5,10 +5,6 @@ pipeline {
         maven 'Maven 3.8.7'
     }
 
-    environment {
-        GITHUB_TOKEN = credentials('github-token')
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -18,22 +14,26 @@ pipeline {
 
         stage('Test') {
             steps {
-                script {
-                    githubNotify context: 'Test', status: 'PENDING', description: 'Running tests'
-                    sh './mvnw test'
-                    githubNotify context: 'Test', status: 'SUCCESS', description: 'Tests passed'
-                }
+                echo 'Running tests...'
+                sh './mvnw test'
+                junit '**/target/surefire-reports/*.xml'
             }
         }
 
         stage('Build') {
             steps {
-                script {
-                    githubNotify context: 'Build', status: 'PENDING', description: 'Building app'
-                    sh './mvnw package -DskipTests'
-                    githubNotify context: 'Build', status: 'SUCCESS', description: 'Build successful'
-                }
+                echo 'Building...'
+                sh './mvnw package -DskipTests'
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'Build and test succeeded.'
+        }
+        failure {
+            echo 'Build or test failed.'
         }
     }
 }
