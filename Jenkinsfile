@@ -76,14 +76,14 @@ pipeline {
                     echo "✅ Normalized changed files: ${normalizedChanges.join(', ')}"
 
                     def services = [
-                        // "spring-petclinic-admin-server",
-                        // "spring-petclinic-api-gateway",
-                        // "spring-petclinic-config-server",
-                        // "spring-petclinic-customers-service",
+                        "spring-petclinic-admin-server",
+                        "spring-petclinic-api-gateway",
+                        "spring-petclinic-config-server",
+                        "spring-petclinic-customers-service",
                         "spring-petclinic-discovery-server",
-                        // "spring-petclinic-genai-service",
-                        // "spring-petclinic-vets-service",
-                        // "spring-petclinic-visits-service",
+                        "spring-petclinic-genai-service",
+                        "spring-petclinic-vets-service",
+                        "spring-petclinic-visits-service",
                     ]
 
                     // Identify which services have changes
@@ -310,7 +310,7 @@ pipeline {
                             // Update image tags for each changed service
                             for (service in servicesList) {
                                 def shortServiceName = service.replaceFirst("spring-petclinic-", "")
-                                def valuesFile = "dev/values-${shortServiceName}.yaml"
+                                def valuesFile = "values/dev/values-${shortServiceName}.yaml"
                                 
                                 // Check if file exists and update with sed
                                 sh """

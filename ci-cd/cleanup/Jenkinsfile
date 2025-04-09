@@ -1,0 +1,45 @@
+// ci-cd/cleanup/Jenkinsfile
+pipeline {
+  agent any
+  parameters {
+    string(name: 'FEATURE_NAME', defaultValue: 'test-vet-1', description: 'Tên feature')
+    string(name: 'SERVICE_NAME', defaultValue: 'vets-service', description: 'Tên service cần xóa')
+  }
+  stages {
+    stage('Clean GitOps') {
+      steps {
+        script {
+          def fea = params.FEATURE_NAME
+          def svc = params.SERVICE_NAME
+
+          withCredentials([usernamePassword(credentialsId: 'github-credentials', 
+            usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
+            sh "rm -rf config-repo"
+            sh """
+              git clone https://${GIT_USER}:${GIT_PASS}@github.com/HZeroxium/spring-petclinic-microservices-config.git config-repo
+            """
+            dir("config-repo") {
+              // xóa file values/preview/<feature>/values-<svc>.yaml
+              sh "rm -f values/preview/${fea}/values-${svc}.yaml || true"
+              // xóa ingress preview
+              sh "rm -f ingress/preview/${fea}-ingress.yaml || true"
+
+              // commit & push
+              sh """
+                git config user.name "jenkins"
+                git config user.email "jenkins@company.com"
+                git add .
+                if git diff --cached --quiet; then
+                  echo "No changes to remove."
+                else
+                  git commit -m "[Cleanup] Remove ${fea} - ${svc}"
+                  git push
+                fi
+              """
+            }
+          }
+        }
+      }
+    }
+  }
+}

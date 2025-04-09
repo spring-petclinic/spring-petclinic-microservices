@@ -1,0 +1,110 @@
+// ci-cd/preview/Jenkinsfile
+pipeline {
+  agent any
+  parameters {
+    string(name: 'FEATURE_NAME', defaultValue: 'test-vet-1', description: 'Tên feature tuỳ ý')
+    string(name: 'SERVICE_NAME', defaultValue: 'vets-service', description: 'Tên service (vets-service, visits-service, ...')
+    string(name: 'BRANCH', defaultValue: 'dev_vets_branch', description: 'Branch code')
+  }
+  environment {
+    GIT_REPO = 'https://github.com/HZeroxium/spring-petclinic-microservices'
+    CONFIG_REPO = 'https://github.com/HZeroxium/spring-petclinic-microservices-config'
+  }
+
+  stages {
+    stage('Checkout & Build') {
+      steps {
+        dir("${params.SERVICE_NAME}") {
+          git url: "${env.GIT_REPO}", branch: "${params.BRANCH}"
+          script {
+            def commitId = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+            env.IMAGE_TAG = commitId
+            def image = "hzeroxium/spring-petclinic-${params.SERVICE_NAME}:${commitId}"
+
+            withCredentials([usernamePassword(credentialsId: 'hzeroxium-dockerhub',
+              usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
+              sh "docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PASSWORD"
+              sh "docker build -t ${image} ."
+              sh "docker push ${image}"
+            }
+          }
+        }
+      }
+    }
+
+    stage('Generate GitOps Files') {
+      steps {
+        script {
+          def fea = params.FEATURE_NAME
+          def svc = params.SERVICE_NAME
+          def commitId = env.IMAGE_TAG
+
+          sh "rm -rf config-repo"
+          withCredentials([usernamePassword(credentialsId: 'github-credentials',
+            usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
+            sh """
+              git clone https://${GIT_USER}:${GIT_PASS}@github.com/HZeroxium/spring-petclinic-microservices-config.git config-repo
+            """
+            dir("config-repo") {
+              // Tạo folder cho feature nếu chưa có
+              sh "mkdir -p values/preview/${fea}"
+
+              // Ghi file Helm values override
+              writeFile file: "values/preview/${fea}/values-${svc}.yaml", text: """
+image:
+  repository: hzeroxium/spring-petclinic-${svc}
+  tag: "${commitId}"
+  pullPolicy: IfNotPresent
+
+replicas: 1
+
+service:
+  port: 8080
+  type: ClusterIP
+
+env:
+  - name: SPRING_PROFILES_ACTIVE
+    value: docker
+  - name: CONFIG_SERVER_URL
+    value: http://config-server.petclinic-core.svc.cluster.local:8888
+  - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+    value: http://discovery-server.petclinic-core.svc.cluster.local:8761/eureka
+"""
+
+              // Optionally, generate ingress for this preview
+              sh "mkdir -p ingress/preview"
+              writeFile file: "ingress/preview/${fea}-ingress.yaml", text: """
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ${fea}-ingress
+  namespace: preview-${fea}
+spec:
+  rules:
+    - host: ${fea}.petclinic.local
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: ${svc}
+                port:
+                  number: 8080
+"""
+
+              // Commit & push
+              sh """
+                git config user.name "jenkins"
+                git config user.email "jenkins@company.com"
+                git add .
+                git commit -m "[Preview] ${fea}: ${svc} -> ${commitId}"
+                git push
+              """
+            }
+          }
+        }
+      }
+    }
+  }
+}

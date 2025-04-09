@@ -27,3 +27,5 @@ scripts/docker/*
 config
 
 spring-petclinic-microservices-config
+
+.vscode
