@@ -1,7 +1,7 @@
 pipeline {
     agent any
-
-     parameters {
+    
+    parameters {
         string(name: 'CUSTOMERS_BRANCH', defaultValue: 'main', description: 'Branch for customers-service')
         string(name: 'GENAI_BRANCH', defaultValue: 'main', description: 'Branch for genai-service')
         string(name: 'VETS_BRANCH', defaultValue: 'main', description: 'Branch for vets-service')
@@ -35,7 +35,6 @@ pipeline {
                             echo "Publishing test results for Customers Service..."
                             dir('spring-petclinic-customers-service') {
                                 junit 'target/surefire-reports/*.xml'
-                                 // Save Jacoco report with a unique ID for this service
                                 recordCoverage(
                                     tools: [[parser: 'JACOCO']],
                                     id: 'customers-service-coverage',
@@ -45,9 +44,6 @@ pipeline {
                                         [threshold: 71.0, metric: 'LINE', criticality: 'FAILURE'],
                                         [threshold: 65.0, metric: 'BRANCH', criticality: 'FAILURE'],
                                         [threshold: 75.0, metric: 'METHOD', criticality: 'FAILURE']
-                                        // LINE, BRANCH, METHOD, CLASS, INSTRUCTION, FILE, PACKAGE, ... Ngoài ra còn nhiều, check document chính thức
-                                        // threshold: giá trị phần trăm tối thiểu cần đạt
-                                        // criticality: loại mức độ quan trọng của lỗi (FAILURE, UNSTABLE, NOTE, ERROR)
                                     ]
                                 )
                                 archiveArtifacts artifacts: 'target/surefire-reports/*.xml', fingerprint: true
@@ -78,9 +74,6 @@ pipeline {
                                         [threshold: 71.0, metric: 'LINE', criticality: 'UNSTABLE'],
                                         [threshold: 65.0, metric: 'BRANCH', criticality: 'UNSTABLE'],
                                         [threshold: 75.0, metric: 'METHOD', criticality: 'UNSTABLE']
-                                        // LINE, BRANCH, METHOD, CLASS, INSTRUCTION, FILE, PACKAGE, ... Ngoài ra còn nhiều, check document chính thức
-                                        // threshold: giá trị phần trăm tối thiểu cần đạt
-                                        // criticality: loại mức độ quan trọng của lỗi (FAILURE, UNSTABLE, NOTE, ERROR)
                                     ]
                                 )
                                 archiveArtifacts artifacts: 'target/surefire-reports/*.xml', fingerprint: true, allowEmptyArchive: true
@@ -111,9 +104,6 @@ pipeline {
                                         [threshold: 71.0, metric: 'LINE',criticality: 'FAILURE'],
                                         [threshold: 65.0, metric: 'BRANCH', criticality: 'FAILURE'],
                                         [threshold: 75.0, metric: 'METHOD', criticality: 'FAILURE']
-                                        // LINE, BRANCH, METHOD, CLASS, INSTRUCTION, FILE, PACKAGE, ... Ngoài ra còn nhiều, check document chính thức
-                                        // threshold: giá trị phần trăm tối thiểu cần đạt
-                                        // criticality: loại mức độ quan trọng của lỗi (FAILURE, UNSTABLE, NOTE, ERROR)
                                     ]
                                 )
                                 archiveArtifacts artifacts: 'target/surefire-reports/*.xml', fingerprint: true
@@ -135,7 +125,6 @@ pipeline {
                             echo "Publishing test results for Visits Service..."
                             dir('spring-petclinic-visits-service') {
                                 junit 'target/surefire-reports/*.xml'
-                                // Save Jacoco report with a unique ID for this service
                                 recordCoverage(
                                     tools: [[parser: 'JACOCO']],
                                     id: 'visits-service-coverage',
@@ -145,9 +134,6 @@ pipeline {
                                         [threshold: 71.0, metric: 'LINE', criticality: 'FAILURE'],
                                         [threshold: 65.0, metric: 'BRANCH', criticality: 'FAILURE'],
                                         [threshold: 75.0, metric: 'METHOD', criticality: 'FAILURE']
-                                        // LINE, BRANCH, METHOD, CLASS, INSTRUCTION, FILE, PACKAGE, ... Ngoài ra còn nhiều, check document chính thức
-                                        // threshold: giá trị phần trăm tối thiểu cần đạt
-                                        // criticality: loại mức độ quan trọng của lỗi (FAILURE, UNSTABLE, NOTE, ERROR)
                                     ]
                                 )
                                 archiveArtifacts artifacts: 'target/surefire-reports/*.xml', fingerprint: true
@@ -157,7 +143,6 @@ pipeline {
                 }
             }
         }
-        
         
         stage('Build Services') {
             parallel {
@@ -202,9 +187,8 @@ pipeline {
                 }
             }
         }
-    }
-
-    stage('Build Docker Images') {
+        
+        stage('Build Docker Images') {
             steps {
                 script {
                     // Get current commit ID for tagging
@@ -247,8 +231,8 @@ pipeline {
                 }
             }
         }
-
-    stage('Deploy to Kubernetes') {
+        
+        stage('Deploy to Kubernetes') {
             when {
                 expression { return params.RUN_DEPLOY == 'true' }
             }
@@ -332,7 +316,6 @@ pipeline {
             }
         }
     }
-
 
     post {
         success {
