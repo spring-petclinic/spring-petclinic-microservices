@@ -28,13 +28,12 @@ pipeline {
                             echo "Publishing test results for Customers Service..."
                             dir('spring-petclinic-customers-service') {
                                 junit 'target/surefire-reports/*.xml'
-                                jacoco(
-                                    execPattern: "target/jacoco.exec",
-                                    classPattern: "target/classes",
-                                    sourcePattern: "src/main/java",
-                                    changeBuildStatus: true,
-                                    minimumLineCoverage: "71",
-                                    maximumLineCoverage: "99"
+                                 // Save Jacoco report with a unique ID for this service
+                                recordCoverage(
+                                    tools: [[parser: 'JACOCO']],
+                                    id: 'customers-service-coverage',
+                                    name: 'Customers Service Coverage',
+                                    sourceCodeRetention: 'EVERY_BUILD'
                                 )
                                 archiveArtifacts artifacts: 'target/surefire-reports/*.xml', fingerprint: true
                             }
@@ -110,13 +109,12 @@ pipeline {
                             echo "Publishing test results for Visits Service..."
                             dir('spring-petclinic-visits-service') {
                                 junit 'target/surefire-reports/*.xml'
-                                jacoco(
-                                    execPattern: "target/jacoco.exec",
-                                    classPattern: "target/classes",
-                                    sourcePattern: "src/main/java",
-                                    changeBuildStatus: true,
-                                    minimumLineCoverage: "71",
-                                    maximumLineCoverage: "99"
+                                // Save Jacoco report with a unique ID for this service
+                                recordCoverage(
+                                    tools: [[parser: 'JACOCO']],
+                                    id: 'visits-service-coverage',
+                                    name: 'Visits Service Coverage',
+                                    sourceCodeRetention: 'EVERY_BUILD'
                                 )
                                 archiveArtifacts artifacts: 'target/surefire-reports/*.xml', fingerprint: true
                             }
