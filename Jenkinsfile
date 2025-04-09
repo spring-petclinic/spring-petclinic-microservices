@@ -33,7 +33,17 @@ pipeline {
                                     tools: [[parser: 'JACOCO']],
                                     id: 'customers-service-coverage',
                                     name: 'Customers Service Coverage',
-                                    sourceCodeRetention: 'EVERY_BUILD'
+                                    sourceCodeRetention: 'EVERY_BUILD',
+                                    qualityGates: [
+                                        [threshold: 71.0, metric: 'LINE', unstable: false, failing: true],
+                                        [threshold: 65.0, metric: 'BRANCH', unstable: false, failing: true],
+                                        [threshold: 75.0, metric: 'METHOD', unstable: true, failing: false]
+                                        // LINE, BRANCH, METHOD, CLASS, INSTRUCTION, FILE, PACKAGE, ... Ngoài ra còn nhiều, check document chính thức
+                                        // threshold: giá trị phần trăm tối thiểu cần đạt
+                                        // metric: loại coverage áp dụng
+                                        // unstable: đánh dấu build là unstable nếu không đạt threshold
+                                        // failing: đánh dấu build là failed nếu không đạt threshold
+                                    ]
                                 )
                                 archiveArtifacts artifacts: 'target/surefire-reports/*.xml', fingerprint: true
                             }
@@ -55,13 +65,21 @@ pipeline {
                             echo "Publishing test results for Genai Service..."
                             dir('spring-petclinic-genai-service') {
                                 junit allowEmptyResults: true, testResults: 'target/surefire-reports/*.xml'
-                                jacoco(
-                                    execPattern: "target/jacoco.exec",
-                                    classPattern: "target/classes",
-                                    sourcePattern: "src/main/java",
-                                    changeBuildStatus: true,
-                                    minimumLineCoverage: "71",
-                                    maximumLineCoverage: "99"
+                                recordCoverage(
+                                    tools: [[parser: 'JACOCO']],
+                                    id: 'genai-service-coverage',
+                                    name: 'Gen Ai Service Coverage',
+                                    sourceCodeRetention: 'EVERY_BUILD',
+                                    qualityGates: [
+                                        [threshold: 71.0, metric: 'LINE', unstable: false, failing: true],
+                                        [threshold: 65.0, metric: 'BRANCH', unstable: false, failing: true],
+                                        [threshold: 75.0, metric: 'METHOD', unstable: true, failing: false]
+                                        // LINE, BRANCH, METHOD, CLASS, INSTRUCTION, FILE, PACKAGE, ... Ngoài ra còn nhiều, check document chính thức
+                                        // threshold: giá trị phần trăm tối thiểu cần đạt
+                                        // metric: loại coverage áp dụng
+                                        // unstable: đánh dấu build là unstable nếu không đạt threshold
+                                        // failing: đánh dấu build là failed nếu không đạt threshold
+                                    ]
                                 )
                                 archiveArtifacts artifacts: 'target/surefire-reports/*.xml', fingerprint: true, allowEmptyArchive: true
                             }
@@ -82,13 +100,21 @@ pipeline {
                             echo "Publishing test results for Vets Service..."
                             dir('spring-petclinic-vets-service') {
                                 junit 'target/surefire-reports/*.xml'
-                                jacoco(
-                                    execPattern: "target/jacoco.exec",
-                                    classPattern: "target/classes",
-                                    sourcePattern: "src/main/java",
-                                    changeBuildStatus: true,
-                                    minimumLineCoverage: "71",
-                                    maximumLineCoverage: "99"
+                                recordCoverage(
+                                    tools: [[parser: 'JACOCO']],
+                                    id: 'vets-service-coverage',
+                                    name: 'vets Service Coverage',
+                                    sourceCodeRetention: 'EVERY_BUILD',
+                                    qualityGates: [
+                                        [threshold: 71.0, metric: 'LINE', unstable: false, failing: true],
+                                        [threshold: 65.0, metric: 'BRANCH', unstable: false, failing: true],
+                                        [threshold: 75.0, metric: 'METHOD', unstable: true, failing: false]
+                                        // LINE, BRANCH, METHOD, CLASS, INSTRUCTION, FILE, PACKAGE, ... Ngoài ra còn nhiều, check document chính thức
+                                        // threshold: giá trị phần trăm tối thiểu cần đạt
+                                        // metric: loại coverage áp dụng
+                                        // unstable: đánh dấu build là unstable nếu không đạt threshold
+                                        // failing: đánh dấu build là failed nếu không đạt threshold
+                                    ]
                                 )
                                 archiveArtifacts artifacts: 'target/surefire-reports/*.xml', fingerprint: true
                             }
@@ -113,8 +139,18 @@ pipeline {
                                 recordCoverage(
                                     tools: [[parser: 'JACOCO']],
                                     id: 'visits-service-coverage',
-                                    name: 'Visits Service Coverage',
-                                    sourceCodeRetention: 'EVERY_BUILD'
+                                    name: 'visits Service Coverage',
+                                    sourceCodeRetention: 'EVERY_BUILD',
+                                    qualityGates: [
+                                        [threshold: 71.0, metric: 'LINE', unstable: false, failing: true],
+                                        [threshold: 65.0, metric: 'BRANCH', unstable: false, failing: true],
+                                        [threshold: 75.0, metric: 'METHOD', unstable: true, failing: false]
+                                        // LINE, BRANCH, METHOD, CLASS, INSTRUCTION, FILE, PACKAGE, ... Ngoài ra còn nhiều, check document chính thức
+                                        // threshold: giá trị phần trăm tối thiểu cần đạt
+                                        // metric: loại coverage áp dụng
+                                        // unstable: đánh dấu build là unstable nếu không đạt threshold
+                                        // failing: đánh dấu build là failed nếu không đạt threshold
+                                    ]
                                 )
                                 archiveArtifacts artifacts: 'target/surefire-reports/*.xml', fingerprint: true
                             }
