@@ -1,7 +1,21 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'Maven 3.9.6' // hoặc version bạn cài trong Jenkins
+    }
+
+    environment {
+        GITHUB_TOKEN = credentials('github-token') // tạo credential trong Jenkins
+    }
+
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
         stage('Test') {
             steps {
                 echo 'Running tests...'
@@ -15,6 +29,12 @@ pipeline {
                 echo 'Building...'
                 sh './mvnw package -DskipTests'
             }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline finished'
         }
     }
 }
