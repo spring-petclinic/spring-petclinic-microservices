@@ -14,11 +14,11 @@ pipeline {
         // === Configuration: Adjust these lists based on your project ===
         // List ALL service directory names expected in the repository
         // Updated based on "Đồ án 2" description (Eureka, Admin, Zipkin, API GW, Customers, Genai, Vets, Visits)
-        ALL_SERVICES = "spring-petclinic-admin-server spring-petclinic-api-gateway spring-petclinic-customers-service spring-petclinic-eureka-server spring-petclinic-genai-service spring-petclinic-vets-service spring-petclinic-visits-service spring-petclinic-zipkin-server"
+        ALL_SERVICES = "spring-petclinic-admin-server spring-petclinic-api-gateway spring-petclinic-config-server spring-petclinic-customers-service spring-petclinic-discovery-server spring-petclinic-genai-service spring-petclinic-vets-service spring-petclinic-visits-service"
 
         // List service directories that DO NOT have a standard /src/test or meaningful unit/integration tests
         // Verification needed by checking the actual source code. This is a likely list:
-        SERVICES_WITHOUT_TESTS = "spring-petclinic-admin-server spring-petclinic-eureka-server spring-petclinic-zipkin-server spring-petclinic-genai-service" // Tentative list
+        SERVICES_WITHOUT_TESTS = "spring-petclinic-admin-server spring-petclinic-genai-service" // Tentative list
 
         // === Internal Flags ===
         // Flag to track if any tests failed during the Test stage
