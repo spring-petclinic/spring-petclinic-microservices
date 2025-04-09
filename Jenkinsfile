@@ -201,29 +201,28 @@ pipeline {
                         
                         // Build and push images for each service
                         def services = [
-                            ['name': 'customers-service', 'branch': params.CUSTOMERS_BRANCH], 
-                            ['name': 'genai-service', 'branch': params.GENAI_BRANCH], 
-                            ['name': 'vets-service', 'branch': params.VETS_BRANCH], 
-                            ['name': 'visits-service', 'branch': params.VISITS_BRANCH]
+                            'customers-service', 
+                            'genai-service', 
+                            'vets-service', 
+                            'visits-service'
                         ]
                         
                         for (service in services) {
-                            def serviceDir = "spring-petclinic-${service.name}"
-                            def serviceTag = service.branch == 'main' ? 'main' : commitId
-                            def imageName = "${DOCKER_USERNAME}/spring-petclinic-${service.name}"
+                            def serviceDir = "spring-petclinic-${service}"
+                            def imageName = "${DOCKER_USERNAME}/spring-petclinic-${service}"
                             
                             // Build the service JAR file
                             sh "./mvnw -pl ${serviceDir} -am clean package -DskipTests"
                             
                             // Build and push Docker image
                             sh """
-                            cp ${serviceDir}/target/*.jar docker/${service.name}.jar
+                            cp ${serviceDir}/target/*.jar docker/${service}.jar
                             cd docker
-                            docker build --build-arg ARTIFACT_NAME=${service.name} --build-arg EXPOSED_PORT=8080 -t ${imageName}:${serviceTag} .
-                            docker tag ${imageName}:${serviceTag} ${imageName}:latest
-                            docker push ${imageName}:${serviceTag}
+                            docker build --build-arg ARTIFACT_NAME=${service} --build-arg EXPOSED_PORT=8080 -t ${imageName}:${commitId} .
+                            docker tag ${imageName}:${commitId} ${imageName}:latest
+                            docker push ${imageName}:${commitId}
                             docker push ${imageName}:latest
-                            rm ${service.name}.jar
+                            rm ${service}.jar
                             cd ..
                             """
                         }
