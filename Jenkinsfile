@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    tools {
+        jdk 'jdk-17'
+    }
     options {
         buildDiscarder(logRotator(numToKeepStr: '5'))
     }
