@@ -2,39 +2,32 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven 3.8.7' // hoặc version bạn cài trong Jenkins
+        maven 'Maven 3.8.7'
     }
 
     environment {
-        GITHUB_TOKEN = credentials('github-token') // tạo credential trong Jenkins
+        GITHUB_TOKEN = credentials('github-token') 
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
         stage('Test') {
             steps {
-                echo 'Running tests...'
-                sh './mvnw test'
-                junit '**/target/surefire-reports/*.xml'
+                script {
+                    githubNotify context: 'Test', status: 'PENDING'
+                    sh './mvnw test'
+                    githubNotify context: 'Test', status: 'SUCCESS'
+                }
             }
         }
 
         stage('Build') {
             steps {
-                echo 'Building...'
-                sh './mvnw package -DskipTests'
+                script {
+                    githubNotify context: 'Build', status: 'PENDING'
+                    sh './mvnw package -DskipTests'
+                    githubNotify context: 'Build', status: 'SUCCESS'
+                }
             }
-        }
-    }
-
-    post {
-        always {
-            echo 'Pipeline finished'
         }
     }
 }
