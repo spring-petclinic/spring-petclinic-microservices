@@ -7,6 +7,15 @@ pipeline {
     }
 
     stages {
+        stage('Environment Check') {
+            steps {
+                echo "Maven Home: ${tool 'Maven'}"
+                echo "Java Home: ${tool 'JDK 17'}"
+                sh "mvn -version"
+                sh "java -version"
+            }
+        }
+
         stage('Checkout') {
             steps {
                 checkout scm
