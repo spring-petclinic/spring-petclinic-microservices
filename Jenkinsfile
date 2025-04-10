@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven 3.8.7'
+        maven 'Maven 3.8.7'  // Đảm bảo Maven được cài sẵn trên Jenkins
     }
 
     environment {
@@ -53,7 +53,7 @@ pipeline {
             }
             steps {
                 dir("${env.SERVICE}") {
-                    sh './mvnw verify'
+                    sh 'mvn verify'  // Thay đổi từ ./mvnw verify thành mvn verify
                 }
             }
         }
@@ -84,13 +84,26 @@ pipeline {
             }
         }
 
+        stage('Publish Coverage Report') {
+            when {
+                expression { return env.SERVICE?.trim() }
+            }
+            steps {
+                jacoco execPattern: "${env.SERVICE}/target/jacoco.exec",
+                       classPattern: "${env.SERVICE}/target/classes",
+                       sourcePattern: "${env.SERVICE}/src/main/java",
+                       inclusionPattern: '**/*.class',
+                       exclusionPattern: '**/*Test*'
+            }
+        }
+
         stage('Build') {
             when {
                 expression { return env.SERVICE?.trim() }
             }
             steps {
                 dir("${env.SERVICE}") {
-                    sh './mvnw package -DskipTests'
+                    sh 'mvn package -DskipTests'  // Thay đổi từ ./mvnw package -DskipTests thành mvn package -DskipTests
                 }
             }
         }
