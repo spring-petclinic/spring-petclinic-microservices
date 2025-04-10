@@ -19,11 +19,13 @@ pipeline {
        stage('Detect Changed Service') {
             steps {
                 script {
+                    def currentCommit = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
+
                     def changedFiles = sh(
-                        script: "git diff-tree --no-commit-id --name-only -r HEAD",
+                        script: "git diff-tree --no-commit-id --name-only -r ${currentCommit}",
                         returnStdout: true
                     ).trim().split('\n')
-        
+
                     def services = ['vets-service', 'visit-service', 'customers-service']
                     def touchedService = services.find { s -> changedFiles.any { it.startsWith(s + '/') } }
         
