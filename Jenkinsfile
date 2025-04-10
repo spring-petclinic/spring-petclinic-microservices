@@ -84,20 +84,6 @@ pipeline {
             }
         }
 
-        stage('Publish Coverage Report') {
-            when {
-                expression { return env.SERVICE?.trim() }
-            }
-            steps {
-                jacoco execPattern: "${env.SERVICE}/target/jacoco.exec",
-                       classPattern: "${env.SERVICE}/target/classes",
-                       sourcePattern: "${env.SERVICE}/src/main/java",
-                       inclusionPattern: '**/*.class',
-                       exclusionPattern: '**/*Test*'
-            }
-        }
-
-
         stage('Build') {
             when {
                 expression { return env.SERVICE?.trim() }
