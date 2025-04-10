@@ -1,8 +1,6 @@
 pipeline {
-    agent any
-
-    tools {
-        maven 'Maven 3.9.9'
+    agent {
+        label 'maven-agent'
     }
 
     environment {
