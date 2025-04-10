@@ -16,30 +16,32 @@ pipeline {
             }
         }
 
-       stage('Detect Changed Service') {
+        stage('Detect Changed Service') {
             steps {
                 script {
                     def currentCommit = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
+                    def previousCommit = sh(script: "git rev-parse HEAD~1", returnStdout: true).trim()
 
                     def changedFiles = sh(
-                        script: "git diff-tree --no-commit-id --name-only -r ${currentCommit}",
+                        script: "git diff --name-only ${previousCommit} ${currentCommit}",
                         returnStdout: true
                     ).trim().split('\n')
 
+                    echo "📄 Changed files: ${changedFiles.join(', ')}"
+
                     def services = ['vets-service', 'visit-service', 'customers-service']
                     def touchedService = services.find { s -> changedFiles.any { it.startsWith(s + '/') } }
-        
+
                     if (touchedService == null) {
+                        echo "🔍 No service directories modified."
                         error "No changes detected in services. Aborting pipeline."
                     }
-        
+
                     env.SERVICE = touchedService
                     echo "📦 Changed service: ${env.SERVICE}"
                 }
             }
         }
-
-
 
         stage('Test') {
             steps {
@@ -60,13 +62,13 @@ pipeline {
                         def missed = jacoco.counter.find { it.@type == 'INSTRUCTION' }.@missed.toInteger()
                         def covered = jacoco.counter.find { it.@type == 'INSTRUCTION' }.@covered.toInteger()
                         coverage = (covered * 100) / (missed + covered)
-                        echo "Test coverage: ${coverage}%"
+                        echo "📊 Test coverage: ${coverage}%"
                     } else {
-                        error "Coverage file not found"
+                        error "❌ Coverage file not found"
                     }
 
                     if (coverage < env.MIN_COVERAGE.toInteger()) {
-                        error "Coverage below ${env.MIN_COVERAGE}%. Failing build."
+                        error "📉 Coverage below ${env.MIN_COVERAGE}%. Failing build."
                     }
                 }
             }
