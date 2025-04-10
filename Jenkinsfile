@@ -78,7 +78,9 @@ pipeline {
                         def commonFilesChanged = changedFilesList.any { file ->
                             file == 'pom.xml' ||                 // Root Maven POM
                             file == 'Jenkinsfile' ||             // This pipeline script
+                            file == 'docker-compose' ||          // Docker compose file
                             file.startsWith('.mvn/') ||          // Maven wrapper config
+                            file.startsWith('.github/') ||       // Github workflows
                             file == 'mvnw' || file == 'mvnw.cmd' // Maven wrapper scripts
                             // Add other critical shared files/directories if needed: e.g., shared libraries, parent POMs in specific locations
                         }
