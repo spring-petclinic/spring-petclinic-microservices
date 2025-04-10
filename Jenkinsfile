@@ -52,8 +52,14 @@ pipeline {
                 expression { return env.SERVICE?.trim() }
             }
             steps {
-                dir("${env.SERVICE}") {
-                    sh 'mvn verify'  // Thay đổi từ ./mvnw verify thành mvn verify
+                script {
+                    def serviceDir = "spring-petclinic-${env.SERVICE}"
+                    dir(serviceDir) {
+                        if (!fileExists('pom.xml')) {
+                            error "❌ pom.xml not found in ${serviceDir}. Skipping tests."
+                        }
+                        sh 'mvn verify'  // Thay đổi từ ./mvnw verify thành mvn verify
+                    }
                 }
             }
         }
@@ -64,7 +70,7 @@ pipeline {
             }
             steps {
                 script {
-                    def coverageFile = "${env.WORKSPACE}/${env.SERVICE}/target/site/jacoco/jacoco.xml"
+                    def coverageFile = "${env.WORKSPACE}/spring-petclinic-${env.SERVICE}/target/site/jacoco/jacoco.xml"
                     def coverage = 0
 
                     if (fileExists(coverageFile)) {
@@ -89,11 +95,14 @@ pipeline {
                 expression { return env.SERVICE?.trim() }
             }
             steps {
-                jacoco execPattern: "${env.SERVICE}/target/jacoco.exec",
-                       classPattern: "${env.SERVICE}/target/classes",
-                       sourcePattern: "${env.SERVICE}/src/main/java",
-                       inclusionPattern: '**/*.class',
-                       exclusionPattern: '**/*Test*'
+                script {
+                    def serviceDir = "spring-petclinic-${env.SERVICE}"
+                    jacoco execPattern: "${serviceDir}/target/jacoco.exec",
+                           classPattern: "${serviceDir}/target/classes",
+                           sourcePattern: "${serviceDir}/src/main/java",
+                           inclusionPattern: '**/*.class',
+                           exclusionPattern: '**/*Test*'
+                }
             }
         }
 
@@ -102,8 +111,14 @@ pipeline {
                 expression { return env.SERVICE?.trim() }
             }
             steps {
-                dir("${env.SERVICE}") {
-                    sh 'mvn package -DskipTests'  // Thay đổi từ ./mvnw package -DskipTests thành mvn package -DskipTests
+                script {
+                    def serviceDir = "spring-petclinic-${env.SERVICE}"
+                    dir(serviceDir) {
+                        if (!fileExists('pom.xml')) {
+                            error "❌ pom.xml not found in ${serviceDir}. Skipping build."
+                        }
+                        sh 'mvn package -DskipTests'  // Thay đổi từ ./mvnw package -DskipTests thành mvn package -DskipTests
+                    }
                 }
             }
         }
