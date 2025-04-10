@@ -34,7 +34,7 @@ pipeline {
                         // Nếu thay đổi ở thư mục root (như pom.xml hoặc Jenkinsfile), build tất cả các dịch vụ
                         env.SERVICE = 'all-services'
                     } else {
-                        env.SERVICE = null
+                        env.SERVICE = ''
                     }
         
                     if (env.SERVICE == null) {
