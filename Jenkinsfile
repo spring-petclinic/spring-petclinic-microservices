@@ -16,27 +16,26 @@ pipeline {
             }
         }
 
-        stage('Detect Changed Service') {
+       stage('Detect Changed Service') {
             steps {
                 script {
-                    def branch = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
-                    
                     sh 'git fetch origin main'
-
-                    def changedFiles = sh(script: "git diff --name-only origin/main...${branch}", returnStdout: true).trim().split("\n")
-
+        
+                    def changedFiles = sh(script: "git diff --name-only origin/main", returnStdout: true).trim().split('\n')
+        
                     def services = ['vets-service', 'visit-service', 'customers-service']
                     def touchedService = services.find { s -> changedFiles.any { it.startsWith(s + '/') } }
-
+        
                     if (touchedService == null) {
                         error "No changes detected in services. Aborting pipeline."
                     }
-
+        
                     env.SERVICE = touchedService
                     echo "📦 Changed service: ${env.SERVICE}"
                 }
             }
         }
+
 
         stage('Test') {
             steps {
