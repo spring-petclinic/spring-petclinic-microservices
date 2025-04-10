@@ -6,47 +6,41 @@ pipeline {
     }
 
     environment {
-        MIN_COVERAGE = 70
+        MIN_COVERAGE = 70  // Đặt giá trị độ phủ tối thiểu là 70%
     }
 
     stages {
+        // Checkout mã nguồn từ Git
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
 
-        stage('Detect Changed Service') {
+        // Kiểm tra sự thay đổi trong các thư mục dịch vụ và xác định dịch vụ cần build
+        stage('Check Changes') {
             steps {
                 script {
-                    def prevCommit = sh(script: "git rev-parse HEAD~1", returnStdout: true).trim()
-                    def currCommit = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
-                    def changedFiles = sh(
-                        script: "git diff --name-only ${prevCommit} ${currCommit}",
-                        returnStdout: true
-                    ).trim().split('\n')
-
-                    echo "📄 Changed files: ${changedFiles.join(', ')}"
-
-                    def services = ['vets-service', 'visit-service', 'customers-service']
-
-                    // Tìm service nào xuất hiện trong đường dẫn file
-                    def touchedService = services.find { s ->
-                        changedFiles.any { it.contains("${s}/") }
+                    def changes = sh(script: 'git diff --name-only $GIT_PREVIOUS_COMMIT $GIT_COMMIT', returnStdout: true).trim()
+                    if (changes.contains('vets-service/')) {
+                        env.SERVICE = 'vets-service'
+                    } else if (changes.contains('customer-service/')) {
+                        env.SERVICE = 'customer-service'
+                    } else if (changes.contains('visit-service/')) {
+                        env.SERVICE = 'visit-service'
+                    } else {
+                        env.SERVICE = null
                     }
 
-                    if (touchedService == null) {
-                        echo "🔍 No service directories modified."
-                        echo "No service changes detected. Skipping pipeline stages."
-                        env.SERVICE = ''
-                    } else {
-                        env.SERVICE = touchedService
-                        echo "📦 Changed service: ${env.SERVICE}"
+                    if (!env.SERVICE) {
+                        currentBuild.result = 'SUCCESS'
+                        echo "No changes in any service. Skipping build."
                     }
                 }
             }
         }
 
+        // Test cho dịch vụ đã thay đổi
         stage('Test') {
             when {
                 expression { return env.SERVICE?.trim() }
@@ -58,12 +52,14 @@ pipeline {
                         if (!fileExists('pom.xml')) {
                             error "❌ pom.xml not found in ${serviceDir}. Skipping tests."
                         }
-                        sh 'mvn verify'  // Thay đổi từ ./mvnw verify thành mvn verify
+                        echo "Running tests for ${env.SERVICE}..."
+                        sh 'mvn verify'  // Chạy test với Maven
                     }
                 }
             }
         }
 
+        // Kiểm tra độ phủ test
         stage('Check Coverage') {
             when {
                 expression { return env.SERVICE?.trim() }
@@ -80,16 +76,17 @@ pipeline {
                         coverage = (covered * 100) / (missed + covered)
                         echo "📊 Test coverage: ${coverage}%"
                     } else {
-                        error "❌ Coverage file not found"
+                        error "❌ Coverage file not found for ${env.SERVICE}."
                     }
 
                     if (coverage < env.MIN_COVERAGE.toInteger()) {
-                        error "❌ Coverage below ${env.MIN_COVERAGE}%. Failing build."
+                        error "❌ Coverage below ${env.MIN_COVERAGE}%. Failing build for ${env.SERVICE}."
                     }
                 }
             }
         }
 
+        // Publish báo cáo coverage (JaCoCo)
         stage('Publish Coverage Report') {
             when {
                 expression { return env.SERVICE?.trim() }
@@ -97,6 +94,7 @@ pipeline {
             steps {
                 script {
                     def serviceDir = "spring-petclinic-${env.SERVICE}"
+                    echo "Publishing coverage report for ${env.SERVICE}..."
                     jacoco execPattern: "${serviceDir}/target/jacoco.exec",
                            classPattern: "${serviceDir}/target/classes",
                            sourcePattern: "${serviceDir}/src/main/java",
@@ -106,6 +104,7 @@ pipeline {
             }
         }
 
+        // Build dịch vụ đã thay đổi
         stage('Build') {
             when {
                 expression { return env.SERVICE?.trim() }
@@ -117,7 +116,8 @@ pipeline {
                         if (!fileExists('pom.xml')) {
                             error "❌ pom.xml not found in ${serviceDir}. Skipping build."
                         }
-                        sh 'mvn package -DskipTests'  // Thay đổi từ ./mvnw package -DskipTests thành mvn package -DskipTests
+                        echo "Building ${env.SERVICE}..."
+                        sh 'mvn package -DskipTests'  // Chạy build với Maven
                     }
                 }
             }
