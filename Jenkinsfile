@@ -56,6 +56,16 @@ pipeline {
                         }
                         // Add other services similarly
                     }
+
+                    def coverageThreshold = 70
+                    servicesToTest.each { service ->
+                        def coverageReport = readFile "${service}/target/site/jacoco/jacoco.csv"
+                        def coverage = calculateCoverage(coverageReport)
+                        
+                        if (coverage < coverageThreshold) {
+                            error "Code coverage for ${service} is ${coverage}%, which is below the required ${coverageThreshold}%"
+                        }
+                    }
                 }
             }
             post {
@@ -103,4 +113,11 @@ def getServicesToBuild(changedFiles) {
     }
     
     return services
+}
+
+def calculateCoverage(reportPath) {
+    def coverageFile = readFile reportPath
+    def lines = coverageFile.split('\n')
+    def instructionCoverage = lines[1].split(',')[3] // Adjust based on jacoco.csv format
+    return instructionCoverage as float
 }
