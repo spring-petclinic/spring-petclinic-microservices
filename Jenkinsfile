@@ -101,6 +101,24 @@ pipeline {
                 }
             }
         }
+        stage('Build') {
+            steps {
+                script {
+                    if (globalServiceChanged && globalServiceChanged.size() > 0) {
+                        echo "Building changed services: ${globalServiceChanged}"
+                        globalServiceChanged.each { svc ->
+                            dir("${svc}") {
+                                sh '../mvnw package'
+                            }
+                        }
+                    } else {
+                        echo "No specific service changed — building the whole project"
+                        sh './mvnw clean package'
+                    }
+                }
+            }
+        }
+
     }
     post {
         always {
