@@ -5,6 +5,10 @@ pipeline {
         maven 'Maven 3.8.7'
     }
 
+    environment {
+        MIN_COVERAGE = 70
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -12,28 +16,69 @@ pipeline {
             }
         }
 
+        stage('Detect Changed Service') {
+            steps {
+                script {
+                    def changedFiles = sh(script: "git diff --name-only origin/main", returnStdout: true).trim().split("\n")
+                    def services = ['vets-service', 'visit-service', 'customers-service']
+                    def touchedService = services.find { s -> changedFiles.any { it.startsWith(s + '/') } }
+
+                    if (touchedService == null) {
+                        error "No changes detected in services. Aborting pipeline."
+                    }
+
+                    env.SERVICE = touchedService
+                    echo "Changed service: ${env.SERVICE}"
+                }
+            }
+        }
+
         stage('Test') {
             steps {
-                echo 'Running tests...'
-                sh './mvnw test'
-                junit '**/target/surefire-reports/*.xml'
+                dir("${env.SERVICE}") {
+                    sh './mvnw verify'
+                }
+            }
+        }
+
+        stage('Check Coverage') {
+            steps {
+                script {
+                    def coverageFile = "${env.WORKSPACE}/${env.SERVICE}/target/site/jacoco/jacoco.xml"
+                    def coverage = 0
+
+                    if (fileExists(coverageFile)) {
+                        def jacoco = new XmlSlurper().parse(new File(coverageFile))
+                        def missed = jacoco.counter.find { it.@type == 'INSTRUCTION' }.@missed.toInteger()
+                        def covered = jacoco.counter.find { it.@type == 'INSTRUCTION' }.@covered.toInteger()
+                        coverage = (covered * 100) / (missed + covered)
+                        echo "Test coverage: ${coverage}%"
+                    } else {
+                        error "Coverage file not found"
+                    }
+
+                    if (coverage < env.MIN_COVERAGE.toInteger()) {
+                        error "Coverage below ${env.MIN_COVERAGE}%. Failing build."
+                    }
+                }
             }
         }
 
         stage('Build') {
             steps {
-                echo 'Building...'
-                sh './mvnw package -DskipTests'
+                dir("${env.SERVICE}") {
+                    sh './mvnw package -DskipTests'
+                }
             }
         }
     }
 
     post {
         success {
-            echo 'Build and test succeeded.'
+            echo '✅ Build, test, and coverage passed.'
         }
         failure {
-            echo 'Build or test failed.'
+            echo '❌ Pipeline failed.'
         }
     }
 }
