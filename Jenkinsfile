@@ -34,7 +34,7 @@ pipeline {
                     if (touchedService == null) {
                         echo "🔍 No service directories modified."
                         echo "No service changes detected. Skipping pipeline stages."
-                        env.SERVICE = null
+                        env.SERVICE = ''
                     } else {
                         env.SERVICE = touchedService
                         echo "📦 Changed service: ${env.SERVICE}"
@@ -45,7 +45,7 @@ pipeline {
 
         stage('Test') {
             when {
-                expression { return env.SERVICE != null }
+                expression { return env.SERVICE?.trim() }
             }
             steps {
                 dir("${env.SERVICE}") {
@@ -56,7 +56,7 @@ pipeline {
 
         stage('Check Coverage') {
             when {
-                expression { return env.SERVICE != null }
+                expression { return env.SERVICE?.trim() }
             }
             steps {
                 script {
@@ -82,7 +82,7 @@ pipeline {
 
         stage('Build') {
             when {
-                expression { return env.SERVICE != null }
+                expression { return env.SERVICE?.trim() }
             }
             steps {
                 dir("${env.SERVICE}") {
