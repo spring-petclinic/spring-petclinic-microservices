@@ -6,3 +6,4 @@ docker push ${REPOSITORY_PREFIX}/spring-petclinic-visits-service:${VERSION}
 docker push ${REPOSITORY_PREFIX}/spring-petclinic-vets-service:${VERSION}
 docker push ${REPOSITORY_PREFIX}/spring-petclinic-customers-service:${VERSION}
 docker push ${REPOSITORY_PREFIX}/spring-petclinic-admin-server:${VERSION}
+docker push ${REPOSITORY_PREFIX}/spring-petclinic-genai-service:${VERSION}

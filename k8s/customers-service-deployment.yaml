@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose -f docker-compose-nomon.yml convert
+    kompose.version: 1.35.0 (HEAD)
+  labels:
+    io.kompose.service: customers-service
+  name: customers-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: customers-service
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose -f docker-compose-nomon.yml convert
+        kompose.version: 1.35.0 (HEAD)
+      labels:
+        io.kompose.service: customers-service
+    spec:
+      containers:
+        - image: astoklas177/spring-petclinic-customers-service:2025.4.9
+          name: customers-service
+          ports:
+            - containerPort: 8081
+              protocol: TCP
+          resources:
+            limits:
+              memory: "536870912"
+      restartPolicy: Always

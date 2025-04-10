@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose -f docker-compose-nomon.yml convert
+    kompose.version: 1.35.0 (HEAD)
+  labels:
+    io.kompose.service: genai-service
+  name: genai-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: genai-service
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose -f docker-compose-nomon.yml convert
+        kompose.version: 1.35.0 (HEAD)
+      labels:
+        io.kompose.service: genai-service
+    spec:
+      containers:
+        - env:
+            - name: AZURE_OPENAI_ENDPOINT
+            - name: AZURE_OPENAI_KEY
+            - name: OPENAI_API_KEY
+          image: astoklas177/spring-petclinic-genai-service:2025.4.9
+          name: genai-service
+          ports:
+            - containerPort: 8084
+              protocol: TCP
+          resources:
+            limits:
+              memory: "536870912"
+      restartPolicy: Always

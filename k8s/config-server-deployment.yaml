@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose -f docker-compose-nomon.yml convert
+    kompose.version: 1.35.0 (HEAD)
+  labels:
+    io.kompose.service: config-server
+  name: config-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: config-server
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose -f docker-compose-nomon.yml convert
+        kompose.version: 1.35.0 (HEAD)
+      labels:
+        io.kompose.service: config-server
+    spec:
+      containers:
+        - image: astoklas177/spring-petclinic-config-server:2025.4.9
+          livenessProbe:
+            exec:
+              command:
+                - curl
+                - -I
+                - http://config-server:8888
+            failureThreshold: 10
+            periodSeconds: 5
+            timeoutSeconds: 5
+          name: config-server
+          ports:
+            - containerPort: 8888
+              protocol: TCP
+          resources:
+            limits:
+              memory: "536870912"
+      restartPolicy: Always
