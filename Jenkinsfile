@@ -9,6 +9,25 @@ pipeline {
     }
 
     stages {
+        
+         stage('Pre-check') {
+            steps {
+                script {
+                    // Lấy thông điệp của commit hiện tại
+                    def commitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
+                    echo "Commit Message: ${commitMessage}"
+                    
+                    // Nếu nhánh không phải main và commit là merge pull request thì dừng pipeline
+                    if (env.BRANCH_NAME != 'main' && commitMessage.contains("Merge pull request")) {
+                        echo "Nhánh ${env.BRANCH_NAME} là nhánh merge PR. Bỏ qua pipeline."
+                        // Dừng pipeline: ta có thể dùng error() để dừng và báo kết quả thành công
+                        currentBuild.result = 'SUCCESS'
+                        error("Skip build for non-main branch after merge")
+                    }
+                }
+            }
+        }
+
         stage('Checkout Code') {
             steps {
                 script {
