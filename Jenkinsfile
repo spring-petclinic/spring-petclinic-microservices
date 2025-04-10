@@ -34,7 +34,10 @@ pipeline {
 
                     if (touchedService == null) {
                         echo "🔍 No service directories modified."
-                        error "No changes detected in services. Aborting pipeline."
+                        echo "No service changes detected. Skipping pipeline stages."
+                        currentBuild.result = 'SUCCESS'
+                        return
+
                     }
 
                     env.SERVICE = touchedService
