@@ -29,7 +29,11 @@ pipeline {
                     echo "📄 Changed files: ${changedFiles.join(', ')}"
 
                     def services = ['vets-service', 'visit-service', 'customers-service']
-                    def touchedService = services.find { s -> changedFiles.any { it.startsWith(s + '/') } }
+
+                    // Tìm service nào xuất hiện trong đường dẫn file
+                    def touchedService = services.find { s ->
+                        changedFiles.any { it.contains("${s}/") }
+                    }
 
                     if (touchedService == null) {
                         echo "🔍 No service directories modified."
