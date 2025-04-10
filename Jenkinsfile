@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven 3.8.7'
+        maven 'Maven 3.8.7'  // Đảm bảo Maven đã được cài trong Jenkins
     }
 
     environment {
@@ -32,7 +32,7 @@ pipeline {
             when { expression { return env.SERVICE?.trim() } }
             steps {
                 dir("${env.SERVICE}") {
-                    sh './mvnw verify'
+                    sh 'mvn verify'  // Chạy Maven đã cài sẵn trong Jenkins
                 }
             }
         }
@@ -93,7 +93,7 @@ pipeline {
             when { expression { return env.SERVICE?.trim() } }
             steps {
                 dir("${env.SERVICE}") {
-                    sh './mvnw package -DskipTests'
+                    sh 'mvn package -DskipTests'
                 }
             }
         }
