@@ -52,7 +52,7 @@ pipeline {
                     for (service in services) {
                         dir(service) {
                             echo "Running tests for ${service}"
-                            sh "mvn clean verify -P Jacoco"
+                            sh "mvn verify -P Jacoco"
                         }
                     }
                 }
@@ -66,7 +66,7 @@ pipeline {
                     for (service in services) {
                         dir(service) {
                             echo "Building ${service}"
-                            sh "mvn clean package -DskipTests"
+                            sh "mvn package -DskipTests"
                         }
                     }
                 }
@@ -111,7 +111,14 @@ pipeline {
                     for (service in services) {
                         dir(service) {
                             junit 'target/surefire-reports/*.xml'
-                            recordCoverage(tools: [jacoco()])
+                            publishHTML(target: [
+                                reportDir: 'target/site/jacoco',
+                                reportFiles: 'index.html',
+                                reportName: "${service} JaCoCo Report",
+                                keepAll: true,
+                                alwaysLinkToLastBuild: true,
+                                allowMissing: false
+                            ])
                         }
                     }
                 }
