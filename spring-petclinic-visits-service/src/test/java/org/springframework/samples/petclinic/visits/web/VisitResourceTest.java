@@ -75,4 +75,38 @@ class VisitResourceTest {
             .andExpect(jsonPath("$.items[1].description").value("Visit 2"))
             .andExpect(jsonPath("$.items[2].description").value("Visit 3"));
     }
+
+
+    @Test 
+    void shouldFetchVisitsByPetId() throws Exception {
+        Date date = new Date();
+
+        given(visitRepository.findByPetId(123))
+            .willReturn(
+                asList(
+                    Visit.VisitBuilder.aVisit()
+                        .id(1)
+                        .petId(123)
+                        .date(date)
+                        .description("Visit 1")
+                        .build(),
+                    Visit.VisitBuilder.aVisit()
+                        .id(12)
+                        .petId(123)
+                        .date(date)
+                        .description("Visit 12")
+                        .build()
+                )
+            );
+        
+        mvc.perform(get("/owners/2/pets/123/visits").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].id").value(1))
+            .andExpect(jsonPath("$[1].id").value(12))
+            .andExpect(jsonPath("$[0].petId").value(123))
+            .andExpect(jsonPath("$[1].petId").value(123))
+            .andExpect(jsonPath("$[0].description").value("Visit 1"))
+            .andExpect(jsonPath("$[1].description").value("Visit 12"));
+    }
+
 }
