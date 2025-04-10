@@ -19,7 +19,12 @@ pipeline {
         stage('Detect Changed Service') {
             steps {
                 script {
-                    def changedFiles = sh(script: "git diff --name-only origin/main", returnStdout: true).trim().split("\n")
+                    def branch = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+                    
+                    sh 'git fetch origin main'
+
+                    def changedFiles = sh(script: "git diff --name-only origin/main...${branch}", returnStdout: true).trim().split("\n")
+
                     def services = ['vets-service', 'visit-service', 'customers-service']
                     def touchedService = services.find { s -> changedFiles.any { it.startsWith(s + '/') } }
 
@@ -28,7 +33,7 @@ pipeline {
                     }
 
                     env.SERVICE = touchedService
-                    echo "Changed service: ${env.SERVICE}"
+                    echo "📦 Changed service: ${env.SERVICE}"
                 }
             }
         }
