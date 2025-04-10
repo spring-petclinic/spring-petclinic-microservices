@@ -19,11 +19,10 @@ pipeline {
         stage('Detect Changed Service') {
             steps {
                 script {
-                    def currentCommit = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
-                    def previousCommit = sh(script: "git rev-parse HEAD~1", returnStdout: true).trim()
-
+                    def prevCommit = sh(script: "git rev-parse HEAD~1", returnStdout: true).trim()
+                    def currCommit = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
                     def changedFiles = sh(
-                        script: "git diff --name-only ${previousCommit} ${currentCommit}",
+                        script: "git diff --name-only ${prevCommit} ${currCommit}",
                         returnStdout: true
                     ).trim().split('\n')
 
@@ -35,18 +34,19 @@ pipeline {
                     if (touchedService == null) {
                         echo "🔍 No service directories modified."
                         echo "No service changes detected. Skipping pipeline stages."
-                        currentBuild.result = 'SUCCESS'
-                        return
-
+                        env.SERVICE = null
+                    } else {
+                        env.SERVICE = touchedService
+                        echo "📦 Changed service: ${env.SERVICE}"
                     }
-
-                    env.SERVICE = touchedService
-                    echo "📦 Changed service: ${env.SERVICE}"
                 }
             }
         }
 
         stage('Test') {
+            when {
+                expression { return env.SERVICE != null }
+            }
             steps {
                 dir("${env.SERVICE}") {
                     sh './mvnw verify'
@@ -55,6 +55,9 @@ pipeline {
         }
 
         stage('Check Coverage') {
+            when {
+                expression { return env.SERVICE != null }
+            }
             steps {
                 script {
                     def coverageFile = "${env.WORKSPACE}/${env.SERVICE}/target/site/jacoco/jacoco.xml"
@@ -71,13 +74,16 @@ pipeline {
                     }
 
                     if (coverage < env.MIN_COVERAGE.toInteger()) {
-                        error "📉 Coverage below ${env.MIN_COVERAGE}%. Failing build."
+                        error "❌ Coverage below ${env.MIN_COVERAGE}%. Failing build."
                     }
                 }
             }
         }
 
         stage('Build') {
+            when {
+                expression { return env.SERVICE != null }
+            }
             steps {
                 dir("${env.SERVICE}") {
                     sh './mvnw package -DskipTests'
