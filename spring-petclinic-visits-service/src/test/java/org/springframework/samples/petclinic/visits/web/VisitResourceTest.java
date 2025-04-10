@@ -108,5 +108,21 @@ class VisitResourceTest {
             .andExpect(jsonPath("$[0].description").value("Visit 1"))
             .andExpect(jsonPath("$[1].description").value("Visit 12"));
     }
+    
+    @Test
+    void shouldPostAVisit() throws Exception {
+        Visit visit = Visit.VisitBuilder.aVisit()
+            .id(1)
+            .petId(123)
+            .description("Visit 1")
+            .build();
 
+        given(visitRepository.save(visit))
+            .willReturn(visit);
+
+        mvc.perform(post("/owners/2/pets/123/visits")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"id\":1,\"petId\":123,\"description\":\"Visit 1\"}"))
+            .andExpect(status().isCreated());
+    }
 }
