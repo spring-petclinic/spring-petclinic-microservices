@@ -45,20 +45,47 @@ pipeline {
         stage('Coverage Analysis') {
             steps {
                 script {
-                    def changedServices = getChangedServices()
-                    def servicesToCheck = changedServices.isEmpty() ? getAllServices() : changedServices
+                    def services = getChangedServices() ?: getAllServices()
                     
-                    // Generate enhanced HTML reports
-                    sh 'mvn jacoco:report -Djacoco.destFile=aggregate.exec'
+                    // Generate coverage reports first
+                    sh 'mvn jacoco:report'
                     
-                    // Process coverage for each service
-                    servicesToCheck.each { service ->
-                        def coverage = verifyCoverage(service)
-                        generateCoverageBadge(service, coverage)
-                    }
+                    // Record coverage with proper configuration
+                    recordCoverage(
+                        tools: [
+                            [parser: 'JACOCO', pattern: services.collect { "**/$it/target/site/jacoco/jacoco.xml" }.join(',')]
+                        ],
+                        sourceFileResolver: [
+                            [projectDir: "$WORKSPACE"],
+                            [projectDir: "$WORKSPACE", subDir: "spring-petclinic-*"]
+                        ],
+                        failUnhealthy: true,
+                        failUnstable: true,
+                        healthyTarget: [
+                            methodCoverage: 70,
+                            classCoverage: 70,
+                            lineCoverage: 70,
+                            instructionCoverage: 70,
+                            branchCoverage: 60
+                        ],
+                        unstableTarget: [
+                            methodCoverage: 60,
+                            classCoverage: 60,
+                            lineCoverage: 60,
+                            instructionCoverage: 60,
+                            branchCoverage: 50
+                        ]
+                    )
                     
-                    // Generate aggregated report
-                    generateAggregateReport(servicesToCheck)
+                    // Additional visualization
+                    publishHTML(
+                        target: [
+                            reportDir: 'target/site/jacoco-aggregate',
+                            reportFiles: 'index.html',
+                            reportName: 'JaCoCo Coverage Report',
+                            keepAll: true
+                        ]
+                    )
                 }
             }
         }
