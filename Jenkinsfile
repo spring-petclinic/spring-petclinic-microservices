@@ -48,11 +48,11 @@ pipeline {
 
         stage('Test') {
             when {
-                expression { return env.SKIP_PIPELINE != 'true' }
+                expression { return env.SKIP_PIPELINE != 'true' && env.CHANGED_SERVICES }
             }
             steps {
                 script {
-                    def services = env.CHANGED_SERVICES.split(',')
+                    def services = env.CHANGED_SERVICES?.split(',') ?: []
                     for (service in services) {
                         dir(service) {
                             echo "Running tests for ${service}"
@@ -65,11 +65,11 @@ pipeline {
 
         stage('Build') {
             when {
-                expression { return env.SKIP_PIPELINE != 'true' }
+                expression { return env.SKIP_PIPELINE != 'true' && env.CHANGED_SERVICES }
             }
             steps {
                 script {
-                    def services = env.CHANGED_SERVICES.split(',')
+                    def services = env.CHANGED_SERVICES?.split(',') ?: []
                     for (service in services) {
                         dir(service) {
                             echo "Building ${service}"
@@ -82,11 +82,11 @@ pipeline {
 
         stage('Check Coverage') {
             when {
-                expression { return env.SKIP_PIPELINE != 'true' }
+                expression { return env.SKIP_PIPELINE != 'true' && env.CHANGED_SERVICES }
             }
             steps {
                 script {
-                    def services = env.CHANGED_SERVICES.split(',')
+                    def services = env.CHANGED_SERVICES?.split(',') ?: []
                     for (service in services) {
                         dir(service) {
                             echo "Checking code coverage for ${service}"
@@ -116,11 +116,11 @@ pipeline {
 
         stage('Publish Test & Coverage Report') {
             when {
-                expression { return env.SKIP_PIPELINE != 'true' }
+                expression { return env.SKIP_PIPELINE != 'true' && env.CHANGED_SERVICES }
             }
             steps {
                 script {
-                    def services = env.CHANGED_SERVICES.split(',')
+                    def services = env.CHANGED_SERVICES?.split(',') ?: []
                     for (service in services) {
                         dir(service) {
                             junit 'target/surefire-reports/*.xml'
