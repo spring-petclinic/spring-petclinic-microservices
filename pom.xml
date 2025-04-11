@@ -160,16 +160,24 @@
                         <executions>
                             <execution>
                                 <id>prepare-agent</id>
-                                <goals>
-                                    <goal>prepare-agent</goal>
-                                </goals>
+                                <goals><goal>prepare-agent</goal></goals>
                             </execution>
                             <execution>
                                 <id>report</id>
                                 <phase>test</phase>
                                 <goals>
                                     <goal>report</goal>
+                                    <goal>report-aggregate</goal>
                                 </goals>
+                                <configuration>
+                                    <outputDirectory>${project.reporting.outputDirectory}/jacoco</outputDirectory>
+                                    <dataFile>${project.build.directory}/jacoco.exec</dataFile>
+                                    <formats>
+                                        <format>HTML</format>
+                                        <format>XML</format>
+                                        <format>CSV</format>
+                                    </formats>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
