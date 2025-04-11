@@ -108,32 +108,7 @@ pipeline {
             
             cleanWs()
         }
-}
-
-def getChangedServices(String changes) {
-    if (changes.isEmpty()) {
-        return 'all'
     }
-    
-    def serviceMap = [
-        // 'spring-petclinic-api-gateway': 'api-gateway',
-        // 'spring-petclinic-customers-service': 'customers-service',
-        // 'spring-petclinic-vets-service': 'vets-service',
-        // 'spring-petclinic-visits-service': 'visits-service',
-        // 'spring-petclinic-config-server': 'config-server',
-        // 'spring-petclinic-discovery-server': 'discovery-server',
-        // 'spring-petclinic-admin-server': 'admin-server'
-    ]
-    
-    def changedServices = []
-    serviceMap.each { dir, service ->
-        if (changes.contains(dir)) {
-            changedServices.add(service)
-        }
-    }
-    
-    return changedServices.isEmpty() ? 'all' : changedServices.join(',')
-}
 }
 
 def getChangedServices(String changes) {
