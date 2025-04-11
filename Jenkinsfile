@@ -36,7 +36,7 @@ pipeline {
             steps {
                 script {
                     // Generate aggregated coverage report
-                    sh './mvnw jacoco:report-aggregate'
+                    // sh './mvnw jacoco:report-aggregate'
                     
                     // Define coverage pattern based on changed services
                     def coveragePattern = (env.CHANGED_SERVICES == 'all') ? 
