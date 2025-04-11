@@ -2,10 +2,10 @@ pipeline {
     agent any
     
     parameters {
-        string(name: 'CUSTOMERS_BRANCH', defaultValue: 'main', description: 'Branch for customers-service')
-        string(name: 'GENAI_BRANCH', defaultValue: 'main', description: 'Branch for genai-service')
-        string(name: 'VETS_BRANCH', defaultValue: 'main', description: 'Branch for vets-service')
-        string(name: 'VISITS_BRANCH', defaultValue: 'main', description: 'Branch for visits-service')
+        string(name: 'CUSTOMERS_BRANCH', defaultValue: 'latest', description: 'Branch for customers-service')
+        string(name: 'GENAI_BRANCH', defaultValue: 'latest', description: 'Branch for genai-service')
+        string(name: 'VETS_BRANCH', defaultValue: 'latest', description: 'Branch for vets-service')
+        string(name: 'VISITS_BRANCH', defaultValue: 'latest', description: 'Branch for visits-service')
     }
 
     stages {
@@ -260,12 +260,19 @@ pipeline {
                             cp ${serviceDir}/target/*.jar docker/${service}.jar
                             cd docker
                             docker build --build-arg ARTIFACT_NAME=${service} --build-arg EXPOSED_PORT=8080 -t ${imageName}:${commitId} .
-                            docker tag ${imageName}:${commitId} ${imageName}:latest
+
                             docker push ${imageName}:${commitId}
-                            docker push ${imageName}:latest
+
                             rm ${service}.jar
                             cd ..
                             """
+                            // Only tag/push latest if on main branch
+                            if (env.BRANCH_NAME == 'main') {
+                                sh """
+                                docker tag ${imageName}:${commitId} ${imageName}:latest
+                                docker push ${imageName}:latest
+                                """
+                            }
                         }
                     }
                 }
