@@ -290,7 +290,7 @@ pipeline {
                         ['name': 'visits-service', 'branch': params.VISITS_BRANCH, 'port': 8084]
                     ]
                     
-                       withCredentials([usernamePassword(credentialsId: 'docker_hub_credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                       withCredentials([usernamePassword(credentialsId: 'docker_hub_PAT', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                             // Login to Docker Hub
                             sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
 
