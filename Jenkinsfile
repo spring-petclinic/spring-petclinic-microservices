@@ -90,13 +90,13 @@ def getChangedServices(String changes) {
     }
     
     def serviceMap = [
-        'spring-petclinic-api-gateway': 'api-gateway',
-        'spring-petclinic-customers-service': 'customers-service',
-        'spring-petclinic-vets-service': 'vets-service',
-        'spring-petclinic-visits-service': 'visits-service',
-        'spring-petclinic-config-server': 'config-server',
-        'spring-petclinic-discovery-server': 'discovery-server',
-        'spring-petclinic-admin-server': 'admin-server'
+        // 'spring-petclinic-api-gateway': 'api-gateway',
+        // 'spring-petclinic-customers-service': 'customers-service',
+        // 'spring-petclinic-vets-service': 'vets-service',
+        // 'spring-petclinic-visits-service': 'visits-service',
+        // 'spring-petclinic-config-server': 'config-server',
+        // 'spring-petclinic-discovery-server': 'discovery-server',
+        // 'spring-petclinic-admin-server': 'admin-server'
     ]
     
     def changedServices = []
