@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.samples.petclinic.vets.model.Specialty;
 import org.springframework.samples.petclinic.vets.model.Vet;
 import org.springframework.samples.petclinic.vets.model.VetRepository;
 import org.springframework.test.context.ActiveProfiles;
@@ -32,6 +33,8 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.Arrays;
 
 /**
  * @author Maciej Szarlinski
@@ -49,14 +52,31 @@ class VetResourceTest {
 
     @Test
     void shouldGetAListOfVets() throws Exception {
-
+        Specialty specialty = new Specialty();
+        specialty.setName("Surgery");
+        
         Vet vet = new Vet();
         vet.setId(1);
-
+        vet.setFirstName("Alice");
+        vet.setLastName("Walker");
+        vet.addSpecialty(specialty);
+        
         given(vetRepository.findAll()).willReturn(asList(vet));
 
         mvc.perform(get("/vets").accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$[0].id").value(1));
+            .andExpect(jsonPath("$[0].id").value(1))
+            .andExpect(jsonPath("$[0].firstName").value("Alice"))
+            .andExpect(jsonPath("$[0].lastName").value("Walker"))
+            .andExpect(jsonPath("$[0].specialties[0].name").value("Surgery"));
+    }
+     @Test
+    void shouldReturnEmptyListWhenNoVets() throws Exception {
+        given(vetRepository.findAll()).willReturn(Arrays.asList());
+
+        mvc.perform(get("/vets")
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(0));
     }
 }
