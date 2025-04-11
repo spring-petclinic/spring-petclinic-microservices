@@ -280,88 +280,72 @@ pipeline {
         }
         
         stage('Deploy to Kubernetes') {
-            when {
-                expression { return params.RUN_DEPLOY == 'true' }
-            }
             steps {
                 script {
-                    // Get Kubernetes config
-                    sh "mkdir -p ~/.kube"
-                    sh "cp /var/jenkins_home/.kube/config ~/.kube/config"
-                    
-                    // Get commit ID for tagging
                     def commitId = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    def services = [
+                        ['name': 'customers-service', 'branch': params.CUSTOMERS_BRANCH, 'port': 8081], 
+                        ['name': 'genai-service', 'branch': params.GENAI_BRANCH, 'port': 8082], 
+                        ['name': 'vets-service', 'branch': params.VETS_BRANCH, 'port': 8083], 
+                        ['name': 'visits-service', 'branch': params.VISITS_BRANCH, 'port': 8084]
+                    ]
                     
-                    // Deploy services to Kubernetes
-                    withCredentials([usernamePassword(credentialsId: 'docker_hub_PAT', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        def services = [
-                            ['name': 'customers-service', 'branch': params.CUSTOMERS_BRANCH, 'port': 8081], 
-                            ['name': 'genai-service', 'branch': params.GENAI_BRANCH, 'port': 8082], 
-                            ['name': 'vets-service', 'branch': params.VETS_BRANCH, 'port': 8083], 
-                            ['name': 'visits-service', 'branch': params.VISITS_BRANCH, 'port': 8084]
-                        ]
+                    for (service in services) {
+                        def serviceTag = service.branch == 'main' ? 'latest' : commitId
+                        def imageName = "${DOCKER_USERNAME}/spring-petclinic-${service.name}:${serviceTag}"
                         
-                        // Create namespace if it doesn't exist
-                        sh "kubectl create namespace petclinic-dev --dry-run=client -o yaml | kubectl apply -f -"
-                        
-                        for (service in services) {
-                            def serviceTag = service.branch == 'main' ? 'main' : commitId
-                            def imageName = "${DOCKER_USERNAME}/spring-petclinic-${service.name}:${serviceTag}"
-                            
-                            // Create Kubernetes deployment and service
-                            sh """
-                            cat <<EOF | kubectl apply -f -
-                            apiVersion: apps/v1
-                            kind: Deployment
-                            metadata:
-                              name: ${service.name}
-                              namespace: petclinic-dev
-                            spec:
-                              replicas: 1
-                              selector:
-                                matchLabels:
-                                  app: ${service.name}
-                              template:
-                                metadata:
-                                  labels:
-                                    app: ${service.name}
-                                spec:
-                                  containers:
-                                  - name: ${service.name}
-                                    image: ${imageName}
-                                    ports:
-                                    - containerPort: 8080
-                                    env:
-                                    - name: SPRING_PROFILES_ACTIVE
-                                      value: docker
-                            ---
-                            apiVersion: v1
-                            kind: Service
-                            metadata:
-                              name: ${service.name}
-                              namespace: petclinic-dev
-                            spec:
-                              type: NodePort
-                              ports:
-                              - port: 8080
-                                targetPort: 8080
-                                nodePort: ${service.port}
-                              selector:
+                        // Create Kubernetes deployment and service
+                        sh """
+                        cat <<EOF | kubectl apply -f -
+                        apiVersion: apps/v1
+                        kind: Deployment
+                        metadata:
+                            name: ${service.name}
+                            namespace: petclinic-dev
+                        spec:
+                            replicas: 1
+                            selector:
+                            matchLabels:
                                 app: ${service.name}
-                            EOF
-                            """
-                        }
-                        
-                        // Get Minikube IP
-                        def minikubeIp = sh(script: 'minikube ip', returnStdout: true).trim()
-                        echo "Services are accessible at:"
-                        for (service in services) {
-                            echo "${service.name}: ${minikubeIp}:${service.port}"
-                        }
+                            template:
+                            metadata:
+                                labels:
+                                app: ${service.name}
+                            spec:
+                                containers:
+                                - name: ${service.name}
+                                image: ${imageName}
+                                ports:
+                                - containerPort: 8080
+                                env:
+                                - name: SPRING_PROFILES_ACTIVE
+                                    value: docker
+                        ---
+                        apiVersion: v1
+                        kind: Service
+                        metadata:
+                            name: ${service.name}
+                            namespace: petclinic-dev
+                        spec:
+                            type: NodePort
+                            ports:
+                            - port: 8080
+                            targetPort: 8080
+                            nodePort: ${service.port}
+                            selector:
+                            app: ${service.name}
+                        EOF
+                        """
+                    }
+                    
+                    def minikubeIp = sh(script: 'minikube ip', returnStdout: true).trim()
+                    echo "Services are accessible at:"
+                    for (service in services) {
+                        echo "${service.name}: ${minikubeIp}:${service.port}"
                     }
                 }
             }
-        }
+   }
     }
 
     post {
