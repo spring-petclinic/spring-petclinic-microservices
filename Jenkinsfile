@@ -61,18 +61,6 @@ pipeline {
                                 def reportPath = "${svc}/target/surefire-reports"
                                 if (fileExists(reportPath)) {
                                     junit "${svc}/target/surefire-reports/*.xml"
-                                    
-                                    // Xuất báo cáo JaCoCo
-                                    def jacocoReportFile = "${svc}/target/site/jacoco/jacoco.xml"
-                                    if (fileExists(jacocoReportFile)) {
-                                        jacoco execPattern: "${svc}/target/jacoco.exec", 
-                                               classPattern: '**/classes', 
-                                               sourcePattern: '**/src/main/java', 
-                                               inclusionPattern: '**/*.java', 
-                                               exclusionPattern: '**/*Test.java'
-                                    } else {
-                                        echo "No JaCoCo report found for ${svc}."
-                                    }
                                 } else {
                                     echo "No test reports found for ${svc}."
                                 }
@@ -82,17 +70,6 @@ pipeline {
                             def reportPath = "target/surefire-reports"
                             if (fileExists(reportPath)) {
                                 junit "target/surefire-reports/*.xml"
-                                
-                                def jacocoReportFile = "target/site/jacoco/jacoco.xml"
-                                if (fileExists(jacocoReportFile)) {
-                                    jacoco execPattern: "target/jacoco.exec", 
-                                           classPattern: '**/classes', 
-                                           sourcePattern: '**/src/main/java', 
-                                           inclusionPattern: '**/*.java', 
-                                           exclusionPattern: '**/*Test.java'
-                                } else {
-                                    echo "No JaCoCo report found for full system build."
-                                }
                             } else {
                                 echo "No test reports found for full system build."
                             }
