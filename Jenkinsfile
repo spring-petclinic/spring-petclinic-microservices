@@ -32,20 +32,18 @@ pipeline {
             }
         }
         
-        stage('Coverage Analysis') {
+        stage('Coverage Processing') {
             steps {
                 script {
-                    // Generate aggregated coverage report
-                    sh './mvnw jacoco:report-aggregate'
+                    // Generate individual JaCoCo reports (done automatically by maven)
                     
-                    // Define coverage pattern based on changed services
+                    // Process coverage for multibranch view
                     def coveragePattern = (env.CHANGED_SERVICES == 'all') ? 
                         '**/target/site/jacoco/jacoco.xml' : 
                         env.CHANGED_SERVICES.split(',').collect { 
                             "**/${it}/target/site/jacoco/jacoco.xml" 
                         }.join(',')
                     
-                    // Record coverage for multibranch view
                     recordCoverage(
                         tools: [[
                             parser: 'JACOCO',
@@ -55,7 +53,6 @@ pipeline {
                             [projectDir: "$WORKSPACE"],
                             [projectDir: "$WORKSPACE", subDir: "spring-petclinic-*"]
                         ],
-                        // Optional: Set coverage thresholds
                         healthyTarget: [
                             instructionCoverage: 70,
                             lineCoverage: 70,
@@ -68,15 +65,28 @@ pipeline {
                         ]
                     )
                     
-                    // Publish HTML report for detailed viewing
-                    publishHTML(
-                        target: [
-                            reportDir: 'target/site/jacoco-aggregate',
-                            reportFiles: 'index.html',
-                            reportName: 'JaCoCo Coverage Report',
-                            keepAll: true
-                        ]
-                    )
+                    // Publish HTML reports for each service
+                    if (env.CHANGED_SERVICES != 'all') {
+                        env.CHANGED_SERVICES.split(',').each { service ->
+                            publishHTML(
+                                target: [
+                                    reportDir: "${service}/target/site/jacoco",
+                                    reportFiles: 'index.html',
+                                    reportName: "JaCoCo ${service}",
+                                    keepAll: true
+                                ]
+                            )
+                        }
+                    } else {
+                        publishHTML(
+                            target: [
+                                reportDir: "target/site/jacoco",
+                                reportFiles: 'index.html',
+                                reportName: "JaCoCo Coverage",
+                                keepAll: true
+                            ]
+                        )
+                    }
                 }
             }
         }
@@ -84,7 +94,6 @@ pipeline {
     
     post {
         always {
-            // Publish test results
             junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true
             cleanWs()
         }
