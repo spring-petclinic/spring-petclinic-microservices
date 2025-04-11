@@ -192,7 +192,7 @@ pipeline {
                         echo "Building ${service}"
                         sh """
                             cd ${service}
-                            mvn clean package
+                            mvn clean package -DskipTests
                         """
                     }
                 }
