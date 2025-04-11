@@ -290,54 +290,58 @@ pipeline {
                         ['name': 'visits-service', 'branch': params.VISITS_BRANCH, 'port': 8084]
                     ]
                     
-                    for (service in services) {
-                        def serviceTag = service.branch == 'main' ? 'latest' : commitId
-                        def imageName = "${DOCKER_USERNAME}/spring-petclinic-${service.name}:${serviceTag}"
-                        
-                        // Create Kubernetes deployment and service
-                        sh """
-                        cat <<EOF | kubectl apply -f -
-                        apiVersion: apps/v1
-                        kind: Deployment
-                        metadata:
-                            name: ${service.name}
-                            namespace: petclinic-dev
-                        spec:
-                            replicas: 1
-                            selector:
-                            matchLabels:
-                                app: ${service.name}
-                            template:
-                            metadata:
-                                labels:
-                                app: ${service.name}
-                            spec:
-                                containers:
-                                - name: ${service.name}
-                                image: ${imageName}
-                                ports:
-                                - containerPort: 8080
-                                env:
-                                - name: SPRING_PROFILES_ACTIVE
-                                    value: docker
-                        ---
-                        apiVersion: v1
-                        kind: Service
-                        metadata:
-                            name: ${service.name}
-                            namespace: petclinic-dev
-                        spec:
-                            type: NodePort
-                            ports:
-                            - port: 8080
-                            targetPort: 8080
-                            nodePort: ${service.port}
-                            selector:
-                            app: ${service.name}
-                        EOF
-                        """
-                    }
-                    
+                       withCredentials([usernamePassword(credentialsId: 'docker_hub_credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                            // Login to Docker Hub
+                            sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+
+                            for (service in services) {
+                                def serviceTag = service.branch == 'main' ? 'latest' : commitId
+                                def imageName = "${DOCKER_USERNAME}/spring-petclinic-${service.name}:${serviceTag}"
+                                
+                                // Create Kubernetes deployment and service
+                                sh """
+                                cat <<EOF | kubectl apply -f -
+                                apiVersion: apps/v1
+                                kind: Deployment
+                                metadata:
+                                    name: ${service.name}
+                                    namespace: petclinic-dev
+                                spec:
+                                    replicas: 1
+                                    selector:
+                                    matchLabels:
+                                        app: ${service.name}
+                                    template:
+                                    metadata:
+                                        labels:
+                                        app: ${service.name}
+                                    spec:
+                                        containers:
+                                        - name: ${service.name}
+                                        image: ${imageName}
+                                        ports:
+                                        - containerPort: 8080
+                                        env:
+                                        - name: SPRING_PROFILES_ACTIVE
+                                            value: docker
+                                ---
+                                apiVersion: v1
+                                kind: Service
+                                metadata:
+                                    name: ${service.name}
+                                    namespace: petclinic-dev
+                                spec:
+                                    type: NodePort
+                                    ports:
+                                    - port: 8080
+                                    targetPort: 8080
+                                    nodePort: ${service.port}
+                                    selector:
+                                    app: ${service.name}
+                                EOF
+                                """
+                            }
+                       }
                     def minikubeIp = sh(script: 'minikube ip', returnStdout: true).trim()
                     echo "Services are accessible at:"
                     for (service in services) {
