@@ -4,17 +4,35 @@
   "https://checkstyle.org/dtds/configuration_1_3.dtd">
 <module name="Checker">
     
-    <!-- Vérifie la longueur des lignes (en dehors de TreeWalker) -->
+    <!-- Verifie la longueur des lignes (en dehors de TreeWalker) -->
     <module name="LineLength">
         <property name="max" value="120"/>
     </module>
 
     <module name="TreeWalker">
-        <!-- Autres règles qui nécessitent TreeWalker -->
+        <!-- Style et organisation -->
+        <module name="Indentation"/>
+        <module name="MethodLength">
+            <property name="max" value="50"/>
+        </module>
+
+        <!-- Bonnes pratiques -->
         <module name="AvoidStarImport"/>
+        <module name="UnusedImports"/>
+        <module name="FinalParameters"/>
+        <module name="AvoidNestedBlocks"/>
+        
+        <!-- Securité et robustesse -->
+        <module name="IllegalCatch"/>
+        <module name="AvoidUsingHardCodedIP"/>
+        <module name="MissingOverride"/>
+
+        <!-- Observabilité et lisibilité -->
         <module name="JavadocMethod"/>
         <module name="JavadocType"/>
-        <module name="UnusedImports"/>
+        <module name="RequireThis"/>
+        <module name="LogStatementUsage"/>
+        
     </module>
     
 </module>
