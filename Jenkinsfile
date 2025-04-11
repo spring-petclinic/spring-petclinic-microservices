@@ -2,8 +2,8 @@ pipeline {
     agent any
     
     tools {
-        maven 'M3'
-        jdk 'jdk17'
+        maven 'M3' // Cần cấu hình Maven trong Global Tool Configuration
+        jdk 'jdk17' // Cần cấu hình JDK trong Global Tool Configuration
     }
     
     stages {
@@ -11,95 +11,98 @@ pipeline {
             steps {
                 checkout scm
                 script {
+                    // Xác định service bị thay đổi
                     def changes = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
                     env.CHANGED_SERVICES = getChangedServices(changes)
                 }
             }
         }
         
-        stage('Build & Test') {
+        stage('Build Changed Services') {
+            when {
+                expression { return env.CHANGED_SERVICES != 'all' && env.CHANGED_SERVICES != '' }
+            }
             steps {
                 script {
-                    if (env.CHANGED_SERVICES == 'all') {
-                        sh './mvnw clean verify'
-                    } else {
-                        def services = env.CHANGED_SERVICES.split(',')
-                        services.each { service ->
-                            sh "./mvnw clean verify -pl :${service} -am"
-                        }
+                    def services = env.CHANGED_SERVICES.split(',')
+                    services.each { service ->
+                        echo "Building ${service}"
+                        sh "./mvnw clean package -DskipTests -pl :${service} -am"
                     }
                 }
             }
         }
         
-        stage('Coverage Analysis') {
+        stage('Build All') {
+            when {
+                expression { return env.CHANGED_SERVICES == 'all' }
+            }
+            steps {
+                sh './mvnw clean package -DskipTests'
+            }
+        }
+        
+        stage('Test Changed Services') {
+            when {
+                expression { return env.CHANGED_SERVICES != 'all' && env.CHANGED_SERVICES != '' }
+            }
             steps {
                 script {
-                    // Generate aggregated report
-                    sh './mvnw jacoco:report-aggregate'
-                    
-                    // Record coverage with proper paths
-                    recordCoverage(
-                        tools: [[
-                            parser: 'JACOCO',
-                            pattern: env.CHANGED_SERVICES == 'all' ? 
-                                '**/target/site/jacoco/jacoco.xml' : 
-                                env.CHANGED_SERVICES.split(',').collect { 
-                                    "**/${it}/target/site/jacoco/jacoco.xml" 
-                                }.join(',')
-                        ]],
-                        sourceFileResolver: [
-                            [projectDir: "$WORKSPACE"],
-                            [projectDir: "$WORKSPACE", subDir: "spring-petclinic-*"]
-                        ]
-                    )
-                    
-                    // Publish HTML report for visualization
-                    publishHTML(
-                        target: [
-                            reportDir: 'target/site/jacoco-aggregate',
-                            reportFiles: 'index.html',
-                            reportName: 'JaCoCo Coverage Report',
-                            keepAll: true
-                        ]
-                    )
+                    def services = env.CHANGED_SERVICES.split(',')
+                    services.each { service ->
+                        echo "Testing ${service}"
+                        sh "./mvnw test -pl :${service}"
+                        junit "**/${service}/target/surefire-reports/*.xml"
+                        jacoco execPattern: "**/${service}/target/jacoco.exec"
+                    }
                 }
+            }
+        }
+        
+        stage('Test All') {
+            when {
+                expression { return env.CHANGED_SERVICES == 'all' }
+            }
+            steps {
+                sh './mvnw test'
+                junit '**/target/surefire-reports/*.xml'
+                jacoco execPattern: '**/target/jacoco.exec'
             }
         }
     }
     
     post {
         always {
-            // Publish test results
-            junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true
+            // Xuất báo cáo JaCoCo
+            jacoco exclusionPattern: '**/target/classes/**',
+            sourceExclusionPattern: '**/src/test/**',
+            sourceInclusionPattern: '**/src/main/**'
             
-            // Clean workspace
+            // Dọn dẹp workspace
             cleanWs()
         }
     }
 }
 
 def getChangedServices(String changes) {
-    if (changes.isEmpty() || changes.contains('pom.xml')) {
+    if (changes.isEmpty()) {
         return 'all'
     }
     
     def serviceMap = [
-        'spring-petclinic-api-gateway': 'api-gateway',
-        'spring-petclinic-customers-service': 'customers-service',
-        'spring-petclinic-vets-service': 'vets-service',
-        'spring-petclinic-visits-service': 'visits-service',
-        'spring-petclinic-config-server': 'config-server',
-        'spring-petclinic-discovery-server': 'discovery-server',
-        'spring-petclinic-admin-server': 'admin-server'
+        // 'spring-petclinic-api-gateway': 'api-gateway',
+        // 'spring-petclinic-customers-service': 'customers-service',
+        // 'spring-petclinic-vets-service': 'vets-service',
+        // 'spring-petclinic-visits-service': 'visits-service',
+        // 'spring-petclinic-config-server': 'config-server',
+        // 'spring-petclinic-discovery-server': 'discovery-server',
+        // 'spring-petclinic-admin-server': 'admin-server'
     ]
     
     def changedServices = []
-    changes.split('\n').each { change ->
-        serviceMap.each { dir, service ->
-            if (change.contains(dir) && !changedServices.contains(service)) {
-                changedServices.add(service)
-            }
+    serviceMap.each { dir, service ->
+        if (changes.contains(dir)) {
+            changedServices.add(service)
         }
     }
     
