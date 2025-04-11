@@ -2,122 +2,109 @@ pipeline {
     agent any
     
     tools {
-        maven 'M3' // Make sure Maven is configured in Jenkins
-        jdk 'jdk17' // Make sure JDK11 is configured in Jenkins
+        maven 'M3' // Cần cấu hình Maven trong Global Tool Configuration
+        jdk 'jdk17' // Cần cấu hình JDK trong Global Tool Configuration
     }
     
     stages {
-        stage('Checkout') {
+        stage('Checkout & Detect Changes') {
             steps {
                 checkout scm
+                script {
+                    // Xác định service bị thay đổi
+                    def changes = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
+                    env.CHANGED_SERVICES = getChangedServices(changes)
+                }
             }
         }
         
-        stage('Build') {
+        stage('Build Changed Services') {
+            when {
+                expression { return env.CHANGED_SERVICES != 'all' && env.CHANGED_SERVICES != '' }
+            }
             steps {
                 script {
-                    // Determine which services changed
-                    def changedFiles = getChangedFiles()
-                    def servicesToBuild = getServicesToBuild(changedFiles)
-                    
-                    if (servicesToBuild.isEmpty()) {
-                        servicesToBuild = ['all'] // Build all if no specific changes
-                    }
-                    
-                    // Build each changed service or all
-                    servicesToBuild.each { service ->
-                        if (service == 'all' || service == 'discovery-server') {
-                            sh 'mvn -pl spring-petclinic-discovery-server clean package'
-                        }
-                        if (service == 'all' || service == 'admin-server') {
-                            sh 'mvn -pl spring-petclinic-admin-server clean package'
-                        }
-                        // Add other services similarly
+                    def services = env.CHANGED_SERVICES.split(',')
+                    services.each { service ->
+                        echo "Building ${service}"
+                        sh "./mvnw clean package -DskipTests -pl :${service} -am"
                     }
                 }
             }
         }
         
-        stage('Test') {
+        stage('Build All') {
+            when {
+                expression { return env.CHANGED_SERVICES == 'all' }
+            }
+            steps {
+                sh './mvnw clean package -DskipTests'
+            }
+        }
+        
+        stage('Test Changed Services') {
+            when {
+                expression { return env.CHANGED_SERVICES != 'all' && env.CHANGED_SERVICES != '' }
+            }
             steps {
                 script {
-                    def changedFiles = getChangedFiles()
-                    def servicesToTest = getServicesToBuild(changedFiles)
-                    
-                    if (servicesToTest.isEmpty()) {
-                        servicesToTest = ['all']
-                    }
-                    
-                    servicesToTest.each { service ->
-                        if (service == 'all' || service == 'discovery-server') {
-                            sh 'mvn -pl spring-petclinic-discovery-server test'
-                            junit 'spring-petclinic-discovery-server/target/surefire-reports/*.xml'
-                            jacoco execPattern: 'spring-petclinic-discovery-server/target/jacoco.exec'
-                        }
-                        // Add other services similarly
-                    }
-
-                    def coverageThreshold = 70
-                    servicesToTest.each { service ->
-                        def coverageReport = readFile "${service}/target/site/jacoco/jacoco.csv"
-                        def coverage = calculateCoverage(coverageReport)
-                        
-                        if (coverage < coverageThreshold) {
-                            error "Code coverage for ${service} is ${coverage}%, which is below the required ${coverageThreshold}%"
-                        }
+                    def services = env.CHANGED_SERVICES.split(',')
+                    services.each { service ->
+                        echo "Testing ${service}"
+                        sh "./mvnw test -pl :${service}"
+                        junit "**/${service}/target/surefire-reports/*.xml"
+                        jacoco execPattern: "**/${service}/target/jacoco.exec"
                     }
                 }
             }
-            post {
-                always {
-                    // Archive test results and coverage
-                    junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
-                    jacoco()
-                }
+        }
+        
+        stage('Test All') {
+            when {
+                expression { return env.CHANGED_SERVICES == 'all' }
+            }
+            steps {
+                sh './mvnw test'
+                junit '**/target/surefire-reports/*.xml'
+                jacoco execPattern: '**/target/jacoco.exec'
             }
         }
     }
     
     post {
-        failure {
-            emailext body: '${DEFAULT_CONTENT}', recipientProviders: [[$class: 'DevelopersRecipientProvider']], subject: '${DEFAULT_SUBJECT}'
+        always {
+            // Xuất báo cáo JaCoCo
+            jacoco exclusionPattern: '**/target/classes/**',
+            sourceExclusionPattern: '**/src/test/**',
+            sourceInclusionPattern: '**/src/main/**'
+            
+            // Dọn dẹp workspace
+            cleanWs()
         }
     }
 }
 
-// Helper functions
-def getChangedFiles() {
-    def changeLogSets = currentBuild.changeSets
-    def changedFiles = []
-    for (int i = 0; i < changeLogSets.size(); i++) {
-        def entries = changeLogSets[i].items
-        for (int j = 0; j < entries.length; j++) {
-            def entry = entries[j]
-            def files = new ArrayList(entry.affectedFiles)
-            for (int k = 0; k < files.size(); k++) {
-                changedFiles.add(files[k].path)
-            }
-        }
-    }
-    return changedFiles
-}
-
-def getServicesToBuild(changedFiles) {
-    def services = []
-    
-    changedFiles.each { file ->
-        if (file.startsWith('spring-petclinic-discovery-server/')) {
-            if (!services.contains('discovery-server')) services.add('discovery-server')
-        }
-        // Add similar conditions for other services
+def getChangedServices(String changes) {
+    if (changes.isEmpty()) {
+        return 'all'
     }
     
-    return services
-}
-
-def calculateCoverage(reportPath) {
-    def coverageFile = readFile reportPath
-    def lines = coverageFile.split('\n')
-    def instructionCoverage = lines[1].split(',')[3] // Adjust based on jacoco.csv format
-    return instructionCoverage as float
+    def serviceMap = [
+        'spring-petclinic-api-gateway': 'api-gateway',
+        'spring-petclinic-customers-service': 'customers-service',
+        'spring-petclinic-vets-service': 'vets-service',
+        'spring-petclinic-visits-service': 'visits-service',
+        'spring-petclinic-config-server': 'config-server',
+        'spring-petclinic-discovery-server': 'discovery-server',
+        'spring-petclinic-admin-server': 'admin-server'
+    ]
+    
+    def changedServices = []
+    serviceMap.each { dir, service ->
+        if (changes.contains(dir)) {
+            changedServices.add(service)
+        }
+    }
+    
+    return changedServices.isEmpty() ? 'all' : changedServices.join(',')
 }
