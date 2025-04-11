@@ -35,8 +35,6 @@ pipeline {
         stage('Coverage Processing') {
             steps {
                 script {
-                    // Generate individual JaCoCo reports (done automatically by maven)
-                    
                     // Process coverage for multibranch view
                     def coveragePattern = (env.CHANGED_SERVICES == 'all') ? 
                         '**/target/site/jacoco/jacoco.xml' : 
@@ -65,27 +63,13 @@ pipeline {
                         ]
                     )
                     
-                    // Publish HTML reports for each service
+                    // Archive coverage reports as build artifacts instead of using publishHTML
                     if (env.CHANGED_SERVICES != 'all') {
                         env.CHANGED_SERVICES.split(',').each { service ->
-                            publishHTML(
-                                target: [
-                                    reportDir: "${service}/target/site/jacoco",
-                                    reportFiles: 'index.html',
-                                    reportName: "JaCoCo ${service}",
-                                    keepAll: true
-                                ]
-                            )
+                            archiveArtifacts artifacts: "${service}/target/site/jacoco/**/*"
                         }
                     } else {
-                        publishHTML(
-                            target: [
-                                reportDir: "target/site/jacoco",
-                                reportFiles: 'index.html',
-                                reportName: "JaCoCo Coverage",
-                                keepAll: true
-                            ]
-                        )
+                        archiveArtifacts artifacts: "target/site/jacoco/**/*"
                     }
                 }
             }
