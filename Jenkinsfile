@@ -108,5 +108,5 @@ def getChangedServices(String changes) {
         }
     }
     
-    return changedServices.isEmpty() ? '' : changedServices.join(',')
+    return changedServices.isEmpty() ? 'all' : changedServices.join(',')
 }
