@@ -7,56 +7,32 @@ pipeline {
     }
     
     stages {
-        stage('Checkout & Detect Changes') {
+        stage('Checkout') {
             steps {
                 checkout scm
-                script {
-                    def changes = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
-                    env.CHANGED_SERVICES = getChangedServices(changes)
-                }
             }
         }
         
         stage('Build & Test') {
             steps {
                 script {
-                    if (env.CHANGED_SERVICES == 'all') {
-                        sh './mvnw clean verify -Djacoco.destFile=target/jacoco.exec'
-                    } else {
-                        def services = env.CHANGED_SERVICES.split(',')
-                        services.each { service ->
-                            sh "./mvnw clean verify -pl :${service} -am -Djacoco.destFile=${service}/target/jacoco.exec"
-                        }
-                    }
+                    // Always use clean verify to ensure JaCoCo reports are generated
+                    sh 'mvn clean verify'
                 }
             }
         }
         
-        stage('Coverage Processing') {
+        stage('Coverage') {
             steps {
                 script {
-                    // Ensure reports are generated
-                    if (env.CHANGED_SERVICES == 'all') {
-                        sh './mvnw jacoco:report -Djacoco.dataFile=target/jacoco.exec'
-                    } else {
-                        env.CHANGED_SERVICES.split(',').each { service ->
-                            sh "./mvnw jacoco:report -pl :${service} -Djacoco.dataFile=${service}/target/jacoco.exec"
-                        }
-                    }
-                    
-                    // Record coverage with proper paths
+                    // Record coverage with explicit paths
                     recordCoverage(
                         tools: [[
                             parser: 'JACOCO',
-                            pattern: (env.CHANGED_SERVICES == 'all') ? 
-                                '**/target/site/jacoco/jacoco.xml' : 
-                                env.CHANGED_SERVICES.split(',').collect { 
-                                    "**/${it}/target/site/jacoco/jacoco.xml" 
-                                }.join(',')
+                            pattern: '**/target/site/jacoco/jacoco.xml'
                         ]],
                         sourceFileResolver: [
-                            [projectDir: "$WORKSPACE"],
-                            [projectDir: "$WORKSPACE", subDir: "spring-petclinic-*"]
+                            [projectDir: "$WORKSPACE"]
                         ],
                         healthyTarget: [
                             instructionCoverage: 70,
@@ -69,6 +45,9 @@ pipeline {
                             branchCoverage: 50
                         ]
                     )
+                    
+                    // Archive the coverage report files
+                    archiveArtifacts artifacts: '**/target/site/jacoco/jacoco.xml,**/target/site/jacoco/index.html'
                 }
             }
         }
@@ -76,19 +55,7 @@ pipeline {
     
     post {
         always {
-            junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true
-            
-            // Archive the specific files we know exist
-            script {
-                if (env.CHANGED_SERVICES == 'all') {
-                    archiveArtifacts artifacts: 'target/site/jacoco/jacoco.xml,target/site/jacoco/index.html'
-                } else {
-                    env.CHANGED_SERVICES.split(',').each { service ->
-                        archiveArtifacts artifacts: "${service}/target/site/jacoco/jacoco.xml,${service}/target/site/jacoco/index.html"
-                    }
-                }
-            }
-            
+            junit '**/target/surefire-reports/*.xml'
             cleanWs()
         }
     }
