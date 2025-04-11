@@ -156,21 +156,21 @@
                     <plugin>
                         <groupId>org.jacoco</groupId>
                         <artifactId>jacoco-maven-plugin</artifactId>
-                        <version>0.8.7</version>
+                        <version>0.8.8</version>
                         <executions>
                             <execution>
                                 <id>prepare-agent</id>
-                                <goals>
-                                    <goal>prepare-agent</goal>
-                                </goals>
-                                <phase>initialize</phase>
+                                <goals><goal>prepare-agent</goal></goals>
                             </execution>
                             <execution>
                                 <id>report</id>
-                                <goals>
-                                    <goal>report</goal>
-                                </goals>
+                                <phase>test</phase>
+                                <goals><goal>report</goal></goals>
+                            </execution>
+                            <execution>
+                                <id>report-aggregate</id>
                                 <phase>verify</phase>
+                                <goals><goal>report-aggregate</goal></goals>
                             </execution>
                         </executions>
                     </plugin>
