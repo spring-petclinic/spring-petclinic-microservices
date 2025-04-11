@@ -39,3 +39,4 @@ public class CustomersServiceClient {
             .bodyToMono(OwnerDetails.class);
     }
 }
+
