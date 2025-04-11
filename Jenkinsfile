@@ -73,12 +73,39 @@ pipeline {
     
     post {
         always {
-            // Xuất báo cáo JaCoCo
-            jacoco exclusionPattern: '**/target/classes/**',
-            sourceExclusionPattern: '**/src/test/**',
-            sourceInclusionPattern: '**/src/main/**'
+            // Process test results
+            junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true
             
-            // Dọn dẹp workspace
+            // Record coverage for multibranch view
+            script {
+                def coveragePattern = (env.CHANGED_SERVICES == 'all') ? 
+                    '**/target/site/jacoco/jacoco.xml' : 
+                    env.CHANGED_SERVICES.split(',').collect { 
+                        "**/${it}/target/site/jacoco/jacoco.xml" 
+                    }.join(',')
+                
+                recordCoverage(
+                    tools: [[
+                        parser: 'JACOCO',
+                        pattern: coveragePattern
+                    ]],
+                    sourceFileResolver: [
+                        [projectDir: "$WORKSPACE"],
+                        [projectDir: "$WORKSPACE", subDir: "spring-petclinic-*"]
+                    ]
+                )
+            }
+            
+            // Publish HTML report for detailed viewing
+            publishHTML(
+                target: [
+                    reportDir: 'target/site/jacoco-aggregate',
+                    reportFiles: 'index.html',
+                    reportName: 'JaCoCo Coverage Report',
+                    keepAll: true
+                ]
+            )
+            
             cleanWs()
         }
     }
