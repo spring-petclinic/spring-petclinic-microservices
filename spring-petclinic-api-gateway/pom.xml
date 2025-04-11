@@ -270,6 +270,7 @@
                                         <exclude>**/exception/**</exclude>
                                         <exclude>**/utils/**</exclude>
                                         <exclude>**/generated/**</exclude>
+                                        <exclude>**/ApiGatewayApplication.java</exclude>
                                     </excludes>
                                 </configuration>
                             </execution>
