@@ -280,7 +280,6 @@ pipeline {
         }
         
         stage('Deploy to Kubernetes') {
-            agent { label 'kubectl' }
             steps {
                 script {
                     def commitId = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
