@@ -1,75 +1,107 @@
 pipeline {
     agent any
-
+    
+    tools {
+        maven 'M3'
+        jdk 'jdk17'
+    }
+    
     stages {
-        stage('Detect Changes') {
+        stage('Checkout & Detect Changes') {
             steps {
+                checkout scm
                 script {
-                    def changedFiles = getChangedFiles()
-                    env.CHANGED_SERVICES = changedFiles.collect { 
-                        // Sử dụng hàm findServiceDir đã sửa đổi
-                        findServiceDir(it) 
-                    }.unique().join(',')
+                    def changes = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
+                    env.CHANGED_SERVICES = getChangedServices(changes)
                 }
             }
         }
-
+        
         stage('Build & Test') {
-            when { expression { env.CHANGED_SERVICES?.trim() } }
             steps {
                 script {
-                    def services = env.CHANGED_SERVICES.split(',') as List
-                    def parallelBuilds = [:]
-                    
-                    services.each { service ->
-                        parallelBuilds[service] = {
-                            dir(service) {
-                                sh 'mvn clean verify -pl . -am'
-                            }
+                    if (env.CHANGED_SERVICES == 'all') {
+                        sh './mvnw clean verify'
+                    } else {
+                        def services = env.CHANGED_SERVICES.split(',')
+                        services.each { service ->
+                            sh "./mvnw clean verify -pl :${service} -am"
                         }
                     }
-                    parallel parallelBuilds
+                }
+            }
+        }
+        
+        stage('Coverage Analysis') {
+            steps {
+                script {
+                    // Generate aggregated report
+                    sh './mvnw jacoco:report-aggregate'
                     
+                    // Record coverage with proper paths
                     recordCoverage(
-                        tools: [[parser: 'JACOCO']],
-                        sourceFileResolver: [[projectDir: "$WORKSPACE"]], 
-                        includes: services.collect { "$it/target/site/jacoco/jacoco.xml" }.join(',')
+                        tools: [[
+                            parser: 'JACOCO',
+                            pattern: env.CHANGED_SERVICES == 'all' ? 
+                                '**/target/site/jacoco/jacoco.xml' : 
+                                env.CHANGED_SERVICES.split(',').collect { 
+                                    "**/${it}/target/site/jacoco/jacoco.xml" 
+                                }.join(',')
+                        ]],
+                        sourceFileResolver: [
+                            [projectDir: "$WORKSPACE"],
+                            [projectDir: "$WORKSPACE", subDir: "spring-petclinic-*"]
+                        ]
+                    )
+                    
+                    // Publish HTML report for visualization
+                    publishHTML(
+                        target: [
+                            reportDir: 'target/site/jacoco-aggregate',
+                            reportFiles: 'index.html',
+                            reportName: 'JaCoCo Coverage Report',
+                            keepAll: true
+                        ]
                     )
                 }
             }
         }
     }
-}
-
-// Hàm helper tìm service dir bằng string manipulation và fileExists
-def findServiceDir(String filePath) {
-    def currentPath = filePath
-    while (true) {
-        // Kiểm tra pom.xml trong thư mục hiện tại
-        if (fileExists("${currentPath}/pom.xml")) {
-            return currentPath
+    
+    post {
+        always {
+            // Publish test results
+            junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true
+            
+            // Clean workspace
+            cleanWs()
         }
-        // Di chuyển lên thư mục cha
-        int lastSlash = currentPath.lastIndexOf('/')
-        if (lastSlash == -1) break
-        currentPath = currentPath.substring(0, lastSlash)
     }
-    // Kiểm tra thư mục gốc
-    if (fileExists("pom.xml")) {
-        return ""
-    }
-    return null
 }
 
-// Hàm helper lấy danh sách file thay đổi (giữ nguyên)
-def getChangedFiles() {
-    def changedFiles = []
-    currentBuild.changeSets.each { changeSet ->
-        changeSet.items.each { commit ->
-            commit.affectedFiles.each { file ->
-                changedFiles.add(file.path)
+def getChangedServices(String changes) {
+    if (changes.isEmpty() || changes.contains('pom.xml')) {
+        return 'all'
+    }
+    
+    def serviceMap = [
+        'spring-petclinic-api-gateway': 'api-gateway',
+        'spring-petclinic-customers-service': 'customers-service',
+        'spring-petclinic-vets-service': 'vets-service',
+        'spring-petclinic-visits-service': 'visits-service',
+        'spring-petclinic-config-server': 'config-server',
+        'spring-petclinic-discovery-server': 'discovery-server',
+        'spring-petclinic-admin-server': 'admin-server'
+    ]
+    
+    def changedServices = []
+    changes.split('\n').each { change ->
+        serviceMap.each { dir, service ->
+            if (change.contains(dir) && !changedServices.contains(service)) {
+                changedServices.add(service)
             }
         }
     }
-    return changedFiles
+    
+    return changedServices.isEmpty() ? 'all' : changedServices.join(',')
 }
