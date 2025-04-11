@@ -3,19 +3,12 @@ pipeline {
         label 'slave1'
     }
 
-    stages {
-        stage('Install Lib') {
-            steps {
-                echo 'Installing Maven...'
+    tools {
+        maven 'Maven-3.9.4'
+        jdk 'OpenJDK-21'
+    }
 
-                sh '''
-                    sudo apt-get update
-                    sudo apt-get install -y maven
-                    mvn -v
-                '''
-            }
-        }
-         
+    stages {
         stage('Checkout Code') {
             steps {
                 checkout([
@@ -43,7 +36,7 @@ pipeline {
                         'spring-petclinic-api-gateway',
                         'spring-petclinic-config-server',
                         'spring-petclinic-customers-service',
-                    //    'spring-petclinic-discovery-server',  // Note: Fixed name from "service" to "server"
+                        'spring-petclinic-discovery-server',
                         'spring-petclinic-vets-service',
                         'spring-petclinic-visits-service',
                     ]
@@ -125,7 +118,6 @@ pipeline {
                                     execPattern: '**/target/jacoco.exec',
                                     classPattern: '**/target/classes',
                                     sourcePattern: '**/src/main/java',
-                                    exclusionPattern: '**/config/**, **/dto/**, **/entity/**, **/exception/**, **/utils/**, **/generated/**'
                                 )
 
                             }

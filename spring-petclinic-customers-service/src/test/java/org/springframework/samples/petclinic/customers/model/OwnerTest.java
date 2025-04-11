@@ -46,7 +46,7 @@ class OwnerTest {
     @Test
     @DisplayName("Should add pet to owner")
     void shouldAddPetToOwner() {
-        // When
+        // When.
         owner.addPet(pet1);
 
         // Then

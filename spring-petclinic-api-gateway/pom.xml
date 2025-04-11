@@ -264,6 +264,7 @@
                                 <configuration>
                                     <excludes>
                                         <exclude>**/config/**</exclude>
+                                        <exclude>**/application/**</exclude>
                                         <exclude>**/dto/**</exclude>
                                         <exclude>**/entity/**</exclude>
                                         <exclude>**/exception/**</exclude>
