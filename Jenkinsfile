@@ -119,7 +119,6 @@ pipeline {
                                     classPattern: '**/target/classes',
                                     sourcePattern: '**/src/main/java',
                                 )
-
                             }
                         }
                     }
