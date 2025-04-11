@@ -4,7 +4,7 @@ pipeline {
     }
 
     environment {
-        GIT_URL = 'https://github.com/vantaicn/petclinic.git'
+        GIT_URL = 'https://github.com/ithnan17/spring-petclinic-microservices.git'
     }
 
     stages {
