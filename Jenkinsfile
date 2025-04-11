@@ -34,8 +34,11 @@ pipeline {
                         .unique()
 
                     if (changedServices.size() == 0) {
-                        error "No microservice directories changed."
+                        echo "No microservice directories changed. Skipping test and build stages."
+                        currentBuild.result = 'SUCCESS'
+                        return
                     }
+
 
                     env.CHANGED_SERVICES = changedServices.join(',')
                     echo "Changed Services: ${env.CHANGED_SERVICES}"
