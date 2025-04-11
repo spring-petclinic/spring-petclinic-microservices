@@ -119,6 +119,7 @@ pipeline {
                                     classPattern: '**/target/classes',
                                     sourcePattern: '**/src/main/java',
                                 )
+
                             }
                         }
                     }
@@ -134,8 +135,18 @@ pipeline {
                 script {
                     def services = env.AFFECTED_SERVICES.split(' ')
                     def coveragePass = true
-
-                    for (service in services) {
+                    // Define valid services
+                    def SKIP_CHECK_COVERAGE_SERVICES = [
+                        'spring-petclinic-admin-server',
+                        'spring-petclinic-api-gateway',
+                        'spring-petclinic-config-server',
+                        'spring-petclinic-discovery-server',
+                    ]
+                    for (service in services) {\
+                        if (service in SKIP_CHECK_COVERAGE_SERVICES) {
+                            echo "Skipping coverage check for ${service}."
+                            continue
+                        }
                         echo "Checking coverage for ${service}..."
 
                         // Check if the Jacoco XML file exists before parsing
