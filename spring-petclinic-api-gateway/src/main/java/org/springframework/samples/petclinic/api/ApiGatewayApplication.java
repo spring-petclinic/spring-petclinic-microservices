@@ -49,6 +49,7 @@ public class ApiGatewayApplication {
         SpringApplication.run(ApiGatewayApplication.class, args);
     }
 
+
     @Bean
     @LoadBalanced
     RestTemplate loadBalancedRestTemplate() {
