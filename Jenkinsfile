@@ -2,8 +2,8 @@ pipeline {
     agent any
     
     tools {
-        maven 'M3' // Cần cấu hình Maven trong Global Tool Configuration
-        jdk 'jdk17' // Cần cấu hình JDK trong Global Tool Configuration
+        maven 'M3'
+        jdk 'jdk17'
     }
     
     stages {
@@ -11,125 +11,107 @@ pipeline {
             steps {
                 checkout scm
                 script {
-                    // Xác định service bị thay đổi
                     def changes = sh(script: "git diff --name-only HEAD~1", returnStdout: true).trim()
                     env.CHANGED_SERVICES = getChangedServices(changes)
                 }
             }
         }
         
-        stage('Build Changed Services') {
-            when {
-                expression { return env.CHANGED_SERVICES != 'all' && env.CHANGED_SERVICES != '' }
-            }
+        stage('Build & Test') {
             steps {
                 script {
-                    def services = env.CHANGED_SERVICES.split(',')
-                    services.each { service ->
-                        echo "Building ${service}"
-                        sh "./mvnw clean package -DskipTests -pl :${service} -am"
+                    if (env.CHANGED_SERVICES == 'all') {
+                        sh './mvnw clean verify'
+                    } else {
+                        def services = env.CHANGED_SERVICES.split(',')
+                        services.each { service ->
+                            sh "./mvnw clean verify -pl :${service} -am"
+                        }
                     }
                 }
             }
         }
         
-        stage('Build All') {
-            when {
-                expression { return env.CHANGED_SERVICES == 'all' }
-            }
-            steps {
-                sh './mvnw clean package -DskipTests'
-            }
-        }
-        
-        stage('Test Changed Services') {
-            when {
-                expression { return env.CHANGED_SERVICES != 'all' && env.CHANGED_SERVICES != '' }
-            }
+        stage('Coverage Analysis') {
             steps {
                 script {
-                    def services = env.CHANGED_SERVICES.split(',')
-                    services.each { service ->
-                        echo "Testing ${service}"
-                        sh "./mvnw test -pl :${service}"
-                        junit "**/${service}/target/surefire-reports/*.xml"
-                        jacoco execPattern: "**/${service}/target/jacoco.exec"
-                    }
+                    // Generate aggregated coverage report
+                    sh './mvnw jacoco:report-aggregate'
+                    
+                    // Define coverage pattern based on changed services
+                    def coveragePattern = (env.CHANGED_SERVICES == 'all') ? 
+                        '**/target/site/jacoco/jacoco.xml' : 
+                        env.CHANGED_SERVICES.split(',').collect { 
+                            "**/${it}/target/site/jacoco/jacoco.xml" 
+                        }.join(',')
+                    
+                    // Record coverage for multibranch view
+                    recordCoverage(
+                        tools: [[
+                            parser: 'JACOCO',
+                            pattern: coveragePattern
+                        ]],
+                        sourceFileResolver: [
+                            [projectDir: "$WORKSPACE"],
+                            [projectDir: "$WORKSPACE", subDir: "spring-petclinic-*"]
+                        ],
+                        // Optional: Set coverage thresholds
+                        healthyTarget: [
+                            instructionCoverage: 70,
+                            lineCoverage: 70,
+                            branchCoverage: 60
+                        ],
+                        unstableTarget: [
+                            instructionCoverage: 60,
+                            lineCoverage: 60,
+                            branchCoverage: 50
+                        ]
+                    )
+                    
+                    // Publish HTML report for detailed viewing
+                    publishHTML(
+                        target: [
+                            reportDir: 'target/site/jacoco-aggregate',
+                            reportFiles: 'index.html',
+                            reportName: 'JaCoCo Coverage Report',
+                            keepAll: true
+                        ]
+                    )
                 }
-            }
-        }
-        
-        stage('Test All') {
-            when {
-                expression { return env.CHANGED_SERVICES == 'all' }
-            }
-            steps {
-                sh './mvnw test'
-                junit '**/target/surefire-reports/*.xml'
-                jacoco execPattern: '**/target/jacoco.exec'
             }
         }
     }
     
     post {
         always {
-            // Process test results
+            // Publish test results
             junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true
-            
-            // Record coverage for multibranch view
-            script {
-                def coveragePattern = (env.CHANGED_SERVICES == 'all') ? 
-                    '**/target/site/jacoco/jacoco.xml' : 
-                    env.CHANGED_SERVICES.split(',').collect { 
-                        "**/${it}/target/site/jacoco/jacoco.xml" 
-                    }.join(',')
-                
-                recordCoverage(
-                    tools: [[
-                        parser: 'JACOCO',
-                        pattern: coveragePattern
-                    ]],
-                    sourceFileResolver: [
-                        [projectDir: "$WORKSPACE"],
-                        [projectDir: "$WORKSPACE", subDir: "spring-petclinic-*"]
-                    ]
-                )
-            }
-            
-            // Publish HTML report for detailed viewing
-            publishHTML(
-                target: [
-                    reportDir: 'target/site/jacoco-aggregate',
-                    reportFiles: 'index.html',
-                    reportName: 'JaCoCo Coverage Report',
-                    keepAll: true
-                ]
-            )
-            
             cleanWs()
         }
     }
 }
 
 def getChangedServices(String changes) {
-    if (changes.isEmpty()) {
+    if (changes.isEmpty() || changes.contains('pom.xml')) {
         return 'all'
     }
     
     def serviceMap = [
-        // 'spring-petclinic-api-gateway': 'api-gateway',
-        // 'spring-petclinic-customers-service': 'customers-service',
-        // 'spring-petclinic-vets-service': 'vets-service',
-        // 'spring-petclinic-visits-service': 'visits-service',
-        // 'spring-petclinic-config-server': 'config-server',
-        // 'spring-petclinic-discovery-server': 'discovery-server',
-        // 'spring-petclinic-admin-server': 'admin-server'
+        'spring-petclinic-api-gateway': 'api-gateway',
+        'spring-petclinic-customers-service': 'customers-service',
+        'spring-petclinic-vets-service': 'vets-service',
+        'spring-petclinic-visits-service': 'visits-service',
+        'spring-petclinic-config-server': 'config-server',
+        'spring-petclinic-discovery-server': 'discovery-server',
+        'spring-petclinic-admin-server': 'admin-server'
     ]
     
     def changedServices = []
-    serviceMap.each { dir, service ->
-        if (changes.contains(dir)) {
-            changedServices.add(service)
+    changes.split('\n').each { change ->
+        serviceMap.each { dir, service ->
+            if (change.contains(dir) && !changedServices.contains(service)) {
+                changedServices.add(service)
+            }
         }
     }
     
