@@ -191,6 +191,7 @@
                                         <exclude>**/exception/**</exclude>
                                         <exclude>**/utils/**</exclude>
                                         <exclude>**/generated/**</exclude>
+                                        <exclude>**/system/**</exclude>
                                     </excludes>
                                 </configuration>
                             </execution>
