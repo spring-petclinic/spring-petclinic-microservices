@@ -5,6 +5,7 @@ pipeline {
 
     environment {
         GIT_URL = 'https://github.com/ithnan17/spring-petclinic-microservices.git'
+        SKIP_PIPELINE = 'false'
     }
 
     stages {
@@ -35,10 +36,9 @@ pipeline {
 
                     if (changedServices.size() == 0) {
                         echo "No microservice directories changed. Skipping test and build stages."
-                        currentBuild.result = 'SUCCESS'
+                        env.SKIP_PIPELINE = 'true'
                         return
                     }
-
 
                     env.CHANGED_SERVICES = changedServices.join(',')
                     echo "Changed Services: ${env.CHANGED_SERVICES}"
@@ -47,13 +47,16 @@ pipeline {
         }
 
         stage('Test') {
+            when {
+                expression { return env.SKIP_PIPELINE != 'true' }
+            }
             steps {
                 script {
                     def services = env.CHANGED_SERVICES.split(',')
                     for (service in services) {
                         dir(service) {
                             echo "Running tests for ${service}"
-                            sh "mvn verify -P Jacoco"
+                            sh "mvn verify -P Jacoco -Deureka.client.enabled=false"
                         }
                     }
                 }
@@ -61,6 +64,9 @@ pipeline {
         }
 
         stage('Build') {
+            when {
+                expression { return env.SKIP_PIPELINE != 'true' }
+            }
             steps {
                 script {
                     def services = env.CHANGED_SERVICES.split(',')
@@ -75,6 +81,9 @@ pipeline {
         }
 
         stage('Check Coverage') {
+            when {
+                expression { return env.SKIP_PIPELINE != 'true' }
+            }
             steps {
                 script {
                     def services = env.CHANGED_SERVICES.split(',')
@@ -106,6 +115,9 @@ pipeline {
         }
 
         stage('Publish Test & Coverage Report') {
+            when {
+                expression { return env.SKIP_PIPELINE != 'true' }
+            }
             steps {
                 script {
                     def services = env.CHANGED_SERVICES.split(',')
