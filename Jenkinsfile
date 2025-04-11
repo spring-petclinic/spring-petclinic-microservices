@@ -3,41 +3,45 @@ pipeline {
 
     tools {
         maven 'M3'
-        jdk 'jdk17'
+        jdk 'jdk11'
     }
 
     environment {
-        COVERAGE_THRESHOLD = 70 // Strict 70% threshold
-    }
-
-    options {
-        buildDiscarder(logRotator(numToKeepStr: '10'))
-        timeout(time: 30, unit: 'MINUTES')
-        disableConcurrentBuilds()
+        COVERAGE_THRESHOLD = 70
     }
 
     stages {
-        stage('Checkout & Initialize') {
+        stage('Detect Changes') {
             steps {
-                checkout scm
-                sh 'mvn --version'
+                script {
+                    def changedFiles = getChangedFiles()
+                    env.CHANGED_SERVICES = changedFiles.collect { 
+                        findServiceDir(it) 
+                    }.findAll { it != null }.unique().join(',')
+                    
+                    if (!env.CHANGED_SERVICES) {
+                        env.CHANGED_SERVICES = getAllServices().join(',')
+                    }
+                }
             }
         }
 
         stage('Build & Test') {
             steps {
                 script {
-                    def changedServices = getChangedServices()
+                    def services = env.CHANGED_SERVICES.split(',') as List
+                    def parallelStages = [:]
                     
-                    if (changedServices.isEmpty()) {
-                        echo "Building all services"
-                        sh 'mvn clean package'
-                    } else {
-                        changedServices.each { service ->
-                            echo "Building and testing ${service}"
-                            sh "mvn -pl spring-petclinic-${service} clean package"
+                    services.each { service ->
+                        parallelStages[service] = {
+                            stage("Build ${service}") {
+                                dir(service) {
+                                    sh 'mvn clean verify -pl . -am'
+                                }
+                            }
                         }
                     }
+                    parallel parallelStages
                 }
             }
         }
@@ -45,47 +49,47 @@ pipeline {
         stage('Coverage Analysis') {
             steps {
                 script {
-                    def services = getChangedServices() ?: getAllServices()
+                    def services = env.CHANGED_SERVICES.split(',') as List
                     
-                    // Generate coverage reports first
-                    sh 'mvn jacoco:report'
+                    // Generate consolidated coverage report
+                    sh 'mvn jacoco:report-aggregate'
                     
-                    // Record coverage with proper configuration
+                    // Record coverage with strict thresholds
                     recordCoverage(
-                        tools: [
-                            [parser: 'JACOCO', pattern: services.collect { "**/$it/target/site/jacoco/jacoco.xml" }.join(',')]
-                        ],
+                        tools: [[
+                            parser: 'JACOCO',
+                            pattern: services.collect { "**/${it}/target/site/jacoco/jacoco.xml" }.join(',')
+                        ]],
                         sourceFileResolver: [
                             [projectDir: "$WORKSPACE"],
                             [projectDir: "$WORKSPACE", subDir: "spring-petclinic-*"]
                         ],
-                        failUnhealthy: true,
-                        failUnstable: true,
                         healthyTarget: [
-                            methodCoverage: 70,
-                            classCoverage: 70,
-                            lineCoverage: 70,
-                            instructionCoverage: 70,
-                            branchCoverage: 60
+                            instructionCoverage: env.COVERAGE_THRESHOLD,
+                            lineCoverage: env.COVERAGE_THRESHOLD,
+                            branchCoverage: env.COVERAGE_THRESHOLD - 10
                         ],
                         unstableTarget: [
-                            methodCoverage: 60,
-                            classCoverage: 60,
-                            lineCoverage: 60,
-                            instructionCoverage: 60,
-                            branchCoverage: 50
-                        ]
+                            instructionCoverage: env.COVERAGE_THRESHOLD - 5,
+                            lineCoverage: env.COVERAGE_THRESHOLD - 5,
+                            branchCoverage: env.COVERAGE_THRESHOLD - 15
+                        ],
+                        failUnhealthy: true,
+                        failUnstable: true
                     )
                     
-                    // Additional visualization
+                    // Generate visual report
                     publishHTML(
                         target: [
                             reportDir: 'target/site/jacoco-aggregate',
                             reportFiles: 'index.html',
-                            reportName: 'JaCoCo Coverage Report',
+                            reportName: 'Coverage Report',
                             keepAll: true
                         ]
                     )
+                    
+                    // Verify coverage programmatically
+                    verifyCoverageThresholds(services)
                 }
             }
         }
@@ -93,145 +97,79 @@ pipeline {
 
     post {
         always {
-            // Publish consolidated test results
-            junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true
-            
-            // Archive HTML reports with better visualization
-            publishHTML target: [
-                allowMissing: true,
-                alwaysLinkToLastBuild: true,
-                keepAll: true,
-                reportDir: 'target/site/jacoco-aggregate',
-                reportFiles: 'index.html',
-                reportName: 'JaCoCo Coverage Report'
-            ]
-            
-            // Publish coverage badges
-            archiveArtifacts artifacts: 'coverage-badges/*.svg', allowEmptyArchive: true
-        }
-        
-        success {
-            slackSend(color: 'good', 
-                     message: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}\n" +
-                     "Coverage: ${getCoverageSummary()}\n" +
-                     "Details: ${env.BUILD_URL}testReport/")
-        }
-        
-        unstable {
-            slackSend(color: 'warning',
-                     message: "UNSTABLE: ${env.JOB_NAME} #${env.BUILD_NUMBER}\n" +
-                     "Low Coverage: ${getCoverageSummary()}\n" +
-                     "Details: ${env.BUILD_URL}jacoco/")
+            cleanWs()
         }
     }
 }
 
-// ============= Enhanced Coverage Functions =============
+// Helper functions
+def findServiceDir(String filePath) {
+    def pathComponents = filePath.split('/')
+    for (int i = pathComponents.size() - 1; i >= 0; i--) {
+        def potentialPath = pathComponents[0..i].join('/')
+        if (fileExists("${potentialPath}/pom.xml")) {
+            return potentialPath
+        }
+    }
+    return null
+}
 
-def getChangedServices() {
-    def changes = []
+def getChangedFiles() {
+    def changedFiles = []
     if (env.CHANGE_ID) {
-        def changeLogSets = currentBuild.changeSets
-        changes = changeLogSets.collectMany { it.items.collectMany { it.affectedFiles.collect { it.path } } }
+        currentBuild.changeSets.each { changeSet ->
+            changeSet.items.each { commit ->
+                commit.affectedFiles.each { file ->
+                    changedFiles.add(file.path)
+                }
+            }
+        }
     } else {
-        changes = sh(script: 'git diff --name-only HEAD~1 HEAD', returnStdout: true).split('\n')
+        changedFiles = sh(
+            script: 'git diff --name-only HEAD~1 HEAD',
+            returnStdout: true
+        ).split('\n')
     }
-    
-    def serviceMap = [
-        'spring-petclinic-discovery-server': 'discovery-server',
-        'spring-petclinic-admin-server': 'admin-server',
-        // Add all other services...
-    ]
-    
-    def services = changes.collect { file ->
-        serviceMap.find { dir, _ -> file.startsWith(dir) }?.value
-    }.findAll().unique()
-    
-    return changes.any { it.contains('pom.xml') || it.contains('Jenkinsfile') } ? [] : services
+    return changedFiles
 }
 
-def verifyCoverage(service) {
-    def reportFile = "spring-petclinic-${service}/target/site/jacoco/jacoco.csv"
-    if (!fileExists(reportFile)) {
-        error "No coverage report found for ${service}"
+def getAllServices() {
+    return [
+        'spring-petclinic-discovery-server',
+        'spring-petclinic-admin-server',
+        'spring-petclinic-customers-service',
+        'spring-petclinic-vets-service',
+        'spring-petclinic-visits-service',
+        'spring-petclinic-api-gateway'
+    ]
+}
+
+def verifyCoverageThresholds(services) {
+    def failedServices = []
+    
+    services.each { service ->
+        def coverageFile = "${service}/target/site/jacoco/jacoco.csv"
+        if (fileExists(coverageFile)) {
+            def coverage = calculateCoverage(coverageFile)
+            if (coverage < env.COVERAGE_THRESHOLD.toInteger()) {
+                failedServices.add("${service} (${coverage}%)")
+            }
+        } else {
+            error "Coverage report missing for ${service}"
+        }
     }
     
-    def report = readFile(reportFile)
+    if (failedServices) {
+        error "Coverage below ${env.COVERAGE_THRESHOLD}% for: ${failedServices.join(', ')}"
+    }
+}
+
+def calculateCoverage(reportPath) {
+    def report = readFile(reportPath)
     def (missed, covered) = report.split('\n').tail().collect {
         def cols = it.split(',')
         [cols[3].toInteger(), cols[4].toInteger()]
     }.transpose().collect { it.sum() }
     
-    def coverage = (covered * 100) / (missed + covered)
-    coverage = coverage.round(2)
-    
-    if (coverage < env.COVERAGE_THRESHOLD.toInteger()) {
-        unstable("${service} coverage ${coverage}% < ${env.COVERAGE_THRESHOLD}% threshold")
-    }
-    
-    return coverage
-}
-
-def generateCoverageBadge(service, coverage) {
-    def color = coverage >= env.COVERAGE_THRESHOLD.toInteger() ? 'brightgreen' : 'red'
-    def badge = """
-    <svg xmlns="http://www.w3.org/2000/svg" width="120" height="20">
-        <linearGradient id="b" x2="0" y2="100%">
-            <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
-            <stop offset="1" stop-opacity=".1"/>
-        </linearGradient>
-        <mask id="a">
-            <rect width="120" height="20" rx="3" fill="#fff"/>
-        </mask>
-        <g mask="url(#a)">
-            <rect width="80" height="20" fill="#555"/>
-            <rect x="80" width="40" height="20" fill="#${color}"/>
-            <rect width="120" height="20" fill="url(#b)"/>
-        </g>
-        <text x="40" y="14" fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,sans-serif" font-size="11">${service}</text>
-        <text x="100" y="14" fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,sans-serif" font-size="11">${coverage}%</text>
-    </svg>
-    """
-    
-    sh "mkdir -p coverage-badges"
-    writeFile file: "coverage-badges/${service}-coverage.svg", text: badge
-}
-
-def generateAggregateReport(services) {
-    def totalMissed = 0
-    def totalCovered = 0
-    
-    services.each { service ->
-        def report = readFile("spring-petclinic-${service}/target/site/jacoco/jacoco.csv")
-        def (missed, covered) = report.split('\n').tail().collect {
-            def cols = it.split(',')
-            [cols[3].toInteger(), cols[4].toInteger()]
-        }.transpose().collect { it.sum() }
-        
-        totalMissed += missed
-        totalCovered += covered
-    }
-    
-    def aggregateCoverage = (totalCovered * 100) / (totalMissed + totalCovered)
-    generateCoverageBadge('aggregate', aggregateCoverage.round(2))
-}
-
-def getCoverageSummary() {
-    def badges = findFiles(glob: 'coverage-badges/*.svg')
-    return badges.collect { badge ->
-        def service = badge.name.replace('-coverage.svg', '')
-        def coverage = readFile(badge.path).split('>')[9].split('<')[0].replace('%', '')
-        "${service}: ${coverage}%"
-    }.join(', ')
-}
-
-def getAllServices() {
-    return [
-        'discovery-server',
-        'admin-server',
-        'customers-service',
-        'vets-service',
-        'visits-service',
-        'api-gateway'
-    ]
+    return (covered * 100 / (missed + covered)).round(2)
 }
