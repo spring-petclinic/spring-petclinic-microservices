@@ -118,7 +118,29 @@ pipeline {
                 }
             }
         }
-
+        stage('Coverage Check') {
+            when {
+                expression { globalServiceChanged && globalServiceChanged.size() > 0 }
+            }
+            steps {
+                script {
+                    globalServiceChanged.each { svc ->
+                        def coverageFile = "${svc}/target/site/jacoco/index.html"
+                        if (fileExists(coverageFile)) {
+                            // Dùng grep để lấy phần trăm đầu tiên có dạng "##%"
+                            def coverage = sh(script: "grep -oE '[0-9]+%' ${coverageFile} | head -1 | tr -d '%'", returnStdout: true).trim()
+                            if (coverage.isInteger() && coverage.toInteger() < 70) {
+                                error "${svc}: Coverage is ${coverage}%, below required threshold (70%)"
+                            } else {
+                                echo "${svc}: Coverage is ${coverage}% - OK!"
+                            }
+                        } else {
+                            echo "${svc}: Coverage report not found at ${coverageFile}"
+                        }
+                    }
+                }
+            }
+        }
     }
     post {
         always {
