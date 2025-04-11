@@ -31,7 +31,8 @@ pipeline {
                     def services = env.CHANGED_SERVICES.split(',')
                     services.each { service ->
                         echo "Building ${service}"
-                        sh "./mvnw clean package -DskipTests -pl :${service} -am"
+                        sh "./mvnw clean package -DskipTests -pl $service -am"
+                        // Remove the colon (:) before the service name
                     }
                 }
             }
@@ -117,17 +118,17 @@ pipeline {
 
 def getChangedServices(String changes) {
     if (changes.isEmpty()) {
-        return 'none'  // Changed from 'all' to 'none'
+        return 'none'
     }
     
     def serviceMap = [
-        'spring-petclinic-api-gateway': 'api-gateway',
-        'spring-petclinic-customers-service': 'customers-service',
-        'spring-petclinic-vets-service': 'vets-service',
-        'spring-petclinic-visits-service': 'visits-service',
-        'spring-petclinic-config-server': 'config-server',
-        'spring-petclinic-discovery-server': 'discovery-server',
-        'spring-petclinic-admin-server': 'admin-server'
+        'spring-petclinic-api-gateway': 'spring-petclinic-api-gateway',
+        'spring-petclinic-customers-service': 'spring-petclinic-customers-service',
+        'spring-petclinic-vets-service': 'spring-petclinic-vets-service',
+        'spring-petclinic-visits-service': 'spring-petclinic-visits-service',
+        'spring-petclinic-config-server': 'spring-petclinic-config-server',
+        'spring-petclinic-discovery-server': 'spring-petclinic-discovery-server',
+        'spring-petclinic-admin-server': 'spring-petclinic-admin-server'
     ]
     
     def changedServices = []
@@ -139,7 +140,6 @@ def getChangedServices(String changes) {
         }
     }
     
-    // Return 'all' if build config files changed
     if (changes.contains('pom.xml') || changes.contains('Jenkinsfile')) {
         return 'all'
     }
