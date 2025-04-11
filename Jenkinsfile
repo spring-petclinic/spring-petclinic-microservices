@@ -16,16 +16,36 @@ pipeline {
         stage('Build & Test') {
             steps {
                 script {
-                    // Always use clean verify to ensure JaCoCo reports are generated
-                    sh 'mvn clean verify'
+                    // Run with JaCoCo agent and generate reports
+                    sh 'mvn clean org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent verify'
                 }
             }
         }
         
-        stage('Coverage') {
+        stage('Coverage Verification') {
             steps {
                 script {
-                    // Record coverage with explicit paths
+                    // Parse coverage report and enforce 70% minimum
+                    def coverageFile = 'target/site/jacoco/jacoco.csv'
+                    
+                    if (!fileExists(coverageFile)) {
+                        error "JaCoCo coverage report not found at ${coverageFile}"
+                    }
+                    
+                    def coverage = calculateCoverage(coverageFile)
+                    echo "Current test coverage: ${coverage}%"
+                    
+                    if (coverage < 70) {
+                        error "Test coverage ${coverage}% is below required 70% threshold"
+                    }
+                }
+            }
+        }
+        
+        stage('Coverage Reporting') {
+            steps {
+                script {
+                    // Record coverage for Jenkins UI
                     recordCoverage(
                         tools: [[
                             parser: 'JACOCO',
@@ -46,7 +66,7 @@ pipeline {
                         ]
                     )
                     
-                    // Archive the coverage report files
+                    // Archive reports
                     archiveArtifacts artifacts: '**/target/site/jacoco/jacoco.xml,**/target/site/jacoco/index.html'
                 }
             }
@@ -58,32 +78,29 @@ pipeline {
             junit '**/target/surefire-reports/*.xml'
             cleanWs()
         }
+        failure {
+            emailext body: '${DEFAULT_CONTENT}',
+                     subject: 'Build Failed: ${JOB_NAME} #${BUILD_NUMBER}',
+                     to: 'dev-team@yourcompany.com'
+        }
     }
 }
 
-def getChangedServices(String changes) {
-    if (changes.isEmpty() || changes.contains('pom.xml')) {
-        return 'all'
+// Helper function to calculate coverage percentage
+def calculateCoverage(reportPath) {
+    def report = readFile(reportPath)
+    def lines = report.split('\n')
+    
+    // Skip header line
+    def instructionMissed = 0
+    def instructionCovered = 0
+    
+    for (int i = 1; i < lines.size(); i++) {
+        def cols = lines[i].split(',')
+        instructionMissed += cols[3].toInteger()  // INSTRUCTION_MISSED
+        instructionCovered += cols[4].toInteger() // INSTRUCTION_COVERED
     }
     
-    def serviceMap = [
-        'spring-petclinic-api-gateway': 'api-gateway',
-        'spring-petclinic-customers-service': 'customers-service',
-        'spring-petclinic-vets-service': 'vets-service',
-        'spring-petclinic-visits-service': 'visits-service',
-        'spring-petclinic-config-server': 'config-server',
-        'spring-petclinic-discovery-server': 'discovery-server',
-        'spring-petclinic-admin-server': 'admin-server'
-    ]
-    
-    def changedServices = []
-    changes.split('\n').each { change ->
-        serviceMap.each { dir, service ->
-            if (change.contains(dir) && !changedServices.contains(service)) {
-                changedServices.add(service)
-            }
-        }
-    }
-    
-    return changedServices.isEmpty() ? 'all' : changedServices.join(',')
+    def total = instructionMissed + instructionCovered
+    return total > 0 ? (instructionCovered * 100 / total).round(2) : 0
 }
