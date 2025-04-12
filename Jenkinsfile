@@ -289,16 +289,36 @@ pipeline {
                         kubectl get nodes
                     '''
 
+                    // Kiểm tra tất cả namespace hiện tại để debug
+                    sh "kubectl get namespaces"
+                    
                     // Kiểm tra và tạo namespace
-                    def namespaceExists = sh(script: "kubectl get namespace petclinic-dev --ignore-not-found", returnStatus: true) == 0
+                    echo "Kiểm tra namespace petclinic-dev..."
+                    def namespaceExists = sh(script: "kubectl get namespace petclinic-dev", returnStatus: true) == 0
+                    echo "Kết quả kiểm tra: namespace ${namespaceExists ? 'đã tồn tại' : 'chưa tồn tại'}"
+                    
                     if (!namespaceExists) {
-                        sh "kubectl create namespace petclinic-dev"
-                        echo "Namespace 'petclinic-dev' created."
-                        // Xác nhận namespace đã được tạo
-                        sh "kubectl get namespace petclinic-dev"
+                        echo "Đang tạo namespace petclinic-dev..."
+                        def createResult = sh(script: "kubectl create namespace petclinic-dev", returnStatus: true)
+                        
+                        if (createResult == 0) {
+                            echo "Namespace 'petclinic-dev' đã được tạo thành công."
+                            // Xác nhận namespace đã được tạo
+                            sh "kubectl get namespace petclinic-dev"
+                        } else {
+                            error "Không thể tạo namespace 'petclinic-dev'. Mã lỗi: ${createResult}"
+                        }
                     } else {
-                        echo "Namespace 'petclinic-dev' already exists."
+                        echo "Namespace 'petclinic-dev' đã tồn tại."
                     }
+                    
+                    // Kiểm tra lại cuối cùng để chắc chắn
+                    def finalCheck = sh(script: "kubectl get namespace petclinic-dev", returnStatus: true)
+                    if (finalCheck != 0) {
+                        error "Namespace 'petclinic-dev' vẫn không tồn tại sau khi thực hiện tạo. Pipeline không thể tiếp tục."
+                    }
+                    
+                    echo "Namespace 'petclinic-dev' sẵn sàng cho việc triển khai."
                 }
             }
         }
