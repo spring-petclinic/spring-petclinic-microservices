@@ -304,39 +304,39 @@ pipeline {
                                 apiVersion: apps/v1
                                 kind: Deployment
                                 metadata:
-                                    name: ${service.name}
-                                    namespace: petclinic-dev
+                                name: ${service.name}
+                                namespace: petclinic-dev
                                 spec:
-                                    replicas: 1
-                                    selector:
+                                replicas: 1
+                                selector:
                                     matchLabels:
-                                        app: ${service.name}
-                                    template:
+                                    app: ${service.name}
+                                template:
                                     metadata:
-                                        labels:
+                                    labels:
                                         app: ${service.name}
                                     spec:
-                                        containers:
-                                        - name: ${service.name}
+                                    containers:
+                                    - name: ${service.name}
                                         image: ${imageName}
                                         ports:
                                         - containerPort: 8080
                                         env:
                                         - name: SPRING_PROFILES_ACTIVE
-                                            value: docker
+                                        value: docker
                                 ---
                                 apiVersion: v1
                                 kind: Service
                                 metadata:
-                                    name: ${service.name}
-                                    namespace: petclinic-dev
+                                name: ${service.name}
+                                namespace: petclinic-dev
                                 spec:
-                                    type: NodePort
-                                    ports:
-                                    - port: 8080
+                                type: NodePort
+                                ports:
+                                - port: 8080
                                     targetPort: 8080
                                     nodePort: ${service.port}
-                                    selector:
+                                selector:
                                     app: ${service.name}
                                 EOF
                                 """
