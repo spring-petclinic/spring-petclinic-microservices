@@ -300,7 +300,7 @@ pipeline {
                                 
                                 // Create Kubernetes deployment and service
                                 sh """
-                                cat <<EOF | kubectl apply -f -
+                                cat <<EOF > kubernetes-deployment.yaml
                                 apiVersion: apps/v1
                                 kind: Deployment
                                 metadata:
@@ -339,6 +339,9 @@ pipeline {
                                 selector:
                                     app: ${service.name}
                                 EOF
+                                cat kubernetes-deployment.yaml
+                                kubectl apply --dry-run=client -f kubernetes-deployment.yaml
+                                kubectl apply -f kubernetes-deployment.yaml
                                 """
                             }
                        }
