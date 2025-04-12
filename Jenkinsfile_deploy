@@ -1,0 +1,181 @@
+pipeline {
+  agent any
+
+  parameters {
+        string(name: 'CUSTOMERS_BRANCH', defaultValue: 'main', description: 'Branch for customers-service')
+        string(name: 'GENAI_BRANCH', defaultValue: 'main', description: 'Branch for genai-service')
+        string(name: 'VETS_BRANCH', defaultValue: 'main', description: 'Branch for vets-service')
+        string(name: 'VISITS_BRANCH', defaultValue: 'main', description: 'Branch for visits-service')
+  }
+  stages {
+
+    stage('Checkout Code') {
+            steps {
+                script {
+                    def branchToCheckout = env.BRANCH_NAME ?: 'main'
+                    echo "Checkout branch: ${branchToCheckout}"
+                    git branch: branchToCheckout, 
+                        url: 'https://github.com/tranductung07012004/devOps_1_spring-petclinic-microservices.git'
+                }
+            }
+    }
+
+    stage('Setup Kubernetes Namespace') {
+      steps {
+        script {
+          // Kiểm tra kết nối kubectl và cụm Kubernetes
+          sh '''
+            kubectl version --client
+            kubectl cluster-info
+            kubectl get nodes
+          '''
+
+          // Kiểm tra tất cả namespace hiện tại để debug
+          sh "kubectl get namespaces"
+          
+          // Kiểm tra và tạo namespace
+          echo "Kiểm tra namespace petclinic-dev..."
+          def namespaceExists = sh(script: "kubectl get namespace petclinic-dev", returnStatus: true) == 0
+          echo "Kết quả kiểm tra: namespace ${namespaceExists ? 'đã tồn tại' : 'chưa tồn tại'}"
+          
+          if (!namespaceExists) {
+            echo "Đang tạo namespace petclinic-dev..."
+            def createResult = sh(script: "kubectl create namespace petclinic-dev", returnStatus: true)
+            
+            if (createResult == 0) {
+                echo "Namespace 'petclinic-dev' đã được tạo thành công."
+                // Xác nhận namespace đã được tạo
+                sh "kubectl get namespace petclinic-dev"
+            } else {
+                error "Không thể tạo namespace 'petclinic-dev'. Mã lỗi: ${createResult}"
+            }
+          } else {
+            echo "Namespace 'petclinic-dev' đã tồn tại."
+          }
+          
+          // Kiểm tra lại cuối cùng để chắc chắn
+          def finalCheck = sh(script: "kubectl get namespace petclinic-dev", returnStatus: true)
+          if (finalCheck != 0) {
+            error "Namespace 'petclinic-dev' vẫn không tồn tại sau khi thực hiện tạo. Pipeline không thể tiếp tục."
+          }
+          
+          echo "Namespace 'petclinic-dev' sẵn sàng cho việc triển khai."
+        }
+      }
+    }
+
+    stage('Deploy to Kubernetes') {
+      steps {
+        script {
+          // Get current commit ID for tagging
+          def commitId = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+          
+          // Define services with their branches
+          def services = [
+              ['name': 'customers-service', 'branch': params.CUSTOMERS_BRANCH, 'port': 8081],
+              ['name': 'genai-service', 'branch': params.GENAI_BRANCH, 'port': 8082],
+              ['name': 'vets-service', 'branch': params.VETS_BRANCH, 'port': 8083],
+              ['name': 'visits-service', 'branch': params.VISITS_BRANCH, 'port': 8084]
+          ]
+          
+          withCredentials([usernamePassword(credentialsId: 'docker_hub_PAT', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+              // Login to Docker Hub
+              sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+              
+              for (service in services) {
+                // Use commitId tag for non-main branches, 'latest' for main branch
+                def serviceTag = service.branch == 'main' ? 'latest' : commitId
+                
+                // Apply YAML files with substituted variables
+                sh """
+                # Create a temporary deployment file with the correct image tag and username
+                cat k8s/${service.name}.yaml | sed 's/\${IMAGE_TAG}/${serviceTag}/g' | sed 's/\${DOCKER_USERNAME}/${DOCKER_USERNAME}/g' > k8s/${service.name}-temp.yaml
+                
+                # Apply the configuration
+                kubectl apply -f k8s/${service.name}-temp.yaml
+                
+                # Clean up
+                rm k8s/${service.name}-temp.yaml
+                """
+                
+                // Wait for deployment to be available
+                sh """
+                kubectl wait --for=condition=available deployment/${service.name} -n petclinic-dev --timeout=60s || echo "Warning: Deployment ${service.name} not ready"
+                """
+              }
+            }
+            
+            // Apply Ingress configuration
+            sh "kubectl apply -f k8s/petclinic-ingress.yaml"
+            
+            // Display access information for developers
+            echo "======= ACCESS INFORMATION FOR SERVICES ======="
+            
+            // Get Ingress IP or hostname
+            sh "kubectl get ingress petclinic-ingress -n petclinic-dev"
+            def ingressIP = sh(script: "kubectl get ingress petclinic-ingress -n petclinic-dev -o jsonpath='{.status.loadBalancer.ingress[0].ip}'", returnStdout: true).trim()
+            
+            if (!ingressIP) {
+              ingressIP = "Minikube IP (run 'minikube ip' on your machine)"
+            }
+            
+            echo "Add the following to your hosts file (C:\\Windows\\System32\\drivers\\etc\\hosts):"
+            echo "${ingressIP} petclinic.local"
+            
+            echo "\nServices are accessible at:"
+            echo "- Customers Service: http://petclinic.local/customers"
+            echo "- GenAI Service: http://petclinic.local/genai"
+            echo "- Vets Service: http://petclinic.local/vets"
+            echo "- Visits Service: http://petclinic.local/visits"
+            echo "================================================"
+        }
+      }
+    }
+  }
+  
+  post {
+    success {
+      script {
+        def commitId = env.GIT_COMMIT
+        echo "Sending 'success' status to GitHub for commit: ${commitId}"
+        def response = httpRequest(
+            url: "https://api.github.com/repos/tranductung07012004/devOps_1_spring-petclinic-microservices/statuses/${commitId}",
+            httpMode: 'POST',
+            contentType: 'APPLICATION_JSON',
+            requestBody: """{
+                "state": "success",
+                "description": "Deploy passed",
+                "context": "cd/jenkins-deploy-k8s",
+                "target_url": "${env.BUILD_URL}"
+            }""",
+            authentication: 'github-token-fix'
+        )
+        echo "GitHub Response: ${response.status}"
+      }
+    }
+
+    failure {
+      script {
+        def commitId = env.GIT_COMMIT
+        echo "Sending 'failure' status to GitHub for commit: ${commitId}"
+        def response = httpRequest(
+            url: "https://api.github.com/repos/tranductung07012004/devOps_1_spring-petclinic-microservices/statuses/${commitId}",
+            httpMode: 'POST',
+            contentType: 'APPLICATION_JSON',
+            requestBody: """{
+                "state": "failure",
+                "description": "Deploy passed",
+                "context": "cd/jenkins-deploy-k8s",
+                "target_url": "${env.BUILD_URL}"
+            }""",
+            authentication: 'github-token-fix'
+        )
+        echo "GitHub Response: ${response.status}"
+      }
+    }
+
+    always {
+        echo "Pipeline finished."
+    }
+}
+}
