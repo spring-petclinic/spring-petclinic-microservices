@@ -345,10 +345,12 @@ pipeline {
                                 """
                             }
                        }
-                        def minikubeIp = sh(script: 'minikube ip', returnStdout: true).trim()
+                        // Lấy thông tin dịch vụ bằng kubectl thay vì minikube ip
                         echo "Services are accessible at:"
                         for (service in services) {
-                            echo "${service.name}: ${minikubeIp}:${service.port}"
+                            def nodePort = sh(script: "kubectl get service ${service.name} -n petclinic-dev -o jsonpath='{.spec.ports[0].nodePort}'", returnStdout: true).trim()
+                            echo "${service.name}: NodePort ${nodePort} (use 'minikube service ${service.name} -n petclinic-dev --url' to get full URL)"
+                        }
                     }
                 }
             }
