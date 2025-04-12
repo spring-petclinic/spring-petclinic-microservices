@@ -278,6 +278,21 @@ pipeline {
                 }
             }
         }
+
+           stage('Setup Kubernetes Namespace') {
+                steps {
+                    script {
+                        // Check if the namespace exists, if not, create it
+                        def namespaceExists = sh(script: "kubectl get namespace petclinic-dev --ignore-not-found", returnStatus: true) == 0
+                        if (!namespaceExists) {
+                            sh "kubectl create namespace petclinic-dev"
+                            echo "Namespace 'petclinic-dev' created."
+                        } else {
+                            echo "Namespace 'petclinic-dev' already exists."
+                        }
+                    }
+                }
+            }
         
         stage('Deploy to Kubernetes') {
             steps {
