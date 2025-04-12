@@ -10,15 +10,17 @@ pipeline {
   stages {
 
     stage('Checkout Code') {
-            steps {
-                script {
-                    def branchToCheckout = env.BRANCH_NAME ?: 'main'
-                    echo "Checkout branch: ${branchToCheckout}"
-                    git branch: branchToCheckout, 
-                        url: 'https://github.com/tranductung07012004/devOps_1_spring-petclinic-microservices.git'
-                }
-            }
+      steps {
+        script {
+          // Lấy 1 trong 4 branch (ví dụ customers-service) làm branch chính để checkout code repo
+          def branchToCheckout = params.CUSTOMERS_BRANCH ?: 'main'
+          echo "Checkout branch: ${branchToCheckout}"
+          git branch: branchToCheckout, 
+              url: 'https://github.com/tranductung07012004/devOps_1_spring-petclinic-microservices.git'
+        }
+      }
     }
+
 
     stage('Setup Kubernetes Namespace') {
       steps {
