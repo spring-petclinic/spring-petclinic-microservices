@@ -2,13 +2,11 @@ pipeline {
   agent any
   
   stages {
-    stage('Checkout Code') {
+    stage('Checkout Configuration') {
       steps {
         script {
-          // Lấy 1 trong 4 branch (ví dụ customers-service) làm branch chính để checkout code repo
-          def branchToCheckout = 'PR-4'  // Bạn có thể thay đổi giá trị mặc định ở đây
-          echo "Checkout branch: ${branchToCheckout}"
-          git branch: branchToCheckout, 
+          // Chỉ checkout main để lấy file cấu hình Kubernetes
+          git branch: 'PR-4', 
               url: 'https://github.com/tranductung07012004/devOps_1_spring-petclinic-microservices.git'
         }
       }
@@ -17,43 +15,10 @@ pipeline {
     stage('Setup Kubernetes Namespace') {
       steps {
         script {
-          // Kiểm tra kết nối kubectl và cụm Kubernetes
           sh '''
             kubectl version --client
-            kubectl cluster-info
-            kubectl get nodes
+            kubectl get namespace petclinic-dev || kubectl create namespace petclinic-dev
           '''
-
-          // Kiểm tra tất cả namespace hiện tại để debug
-          sh "kubectl get namespaces"
-          
-          // Kiểm tra và tạo namespace
-          echo "Kiểm tra namespace petclinic-dev..."
-          def namespaceExists = sh(script: "kubectl get namespace petclinic-dev", returnStatus: true) == 0
-          echo "Kết quả kiểm tra: namespace ${namespaceExists ? 'đã tồn tại' : 'chưa tồn tại'}"
-          
-          if (!namespaceExists) {
-            echo "Đang tạo namespace petclinic-dev..."
-            def createResult = sh(script: "kubectl create namespace petclinic-dev", returnStatus: true)
-            
-            if (createResult == 0) {
-                echo "Namespace 'petclinic-dev' đã được tạo thành công."
-                // Xác nhận namespace đã được tạo
-                sh "kubectl get namespace petclinic-dev"
-            } else {
-                error "Không thể tạo namespace 'petclinic-dev'. Mã lỗi: ${createResult}"
-            }
-          } else {
-            echo "Namespace 'petclinic-dev' đã tồn tại."
-          }
-          
-          // Kiểm tra lại cuối cùng để chắc chắn
-          def finalCheck = sh(script: "kubectl get namespace petclinic-dev", returnStatus: true)
-          if (finalCheck != 0) {
-            error "Namespace 'petclinic-dev' vẫn không tồn tại sau khi thực hiện tạo. Pipeline không thể tiếp tục."
-          }
-          
-          echo "Namespace 'petclinic-dev' sẵn sàng cho việc triển khai."
         }
       }
     }
@@ -61,112 +26,102 @@ pipeline {
     stage('Deploy to Kubernetes') {
       steps {
         script {
-           def services = [
-             'customers-service',
-             'genai-service', 
-             'vets-service', 
-             'visits-service', 
-           ]
+          def services = [
+              ['name': 'customers-service', 'paramName': 'customers-service'],
+              ['name': 'genai-service', 'paramName': 'genai-service'],
+              ['name': 'vets-service', 'paramName': 'vets-service'],
+              ['name': 'visits-service', 'paramName': 'visits-service']
+          ]
           
           withCredentials([usernamePassword(credentialsId: 'docker_hub_PAT', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-              // Login to Docker Hub
               sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
               
               for (service in services) {
-                def branchValue = params[service] ?: 'main'
-                // Use commitId tag for non-main branches, 'latest' for main branch
+                def branchValue = params[service.paramName] ?: 'main'
                 def serviceTag = 'latest'
                 
-                // Apply YAML files with substituted variables
+                // Nếu không phải branch main, lấy commitId mới nhất của branch đó
+                if (branchValue != 'main') {
+                  // Lấy commitId mới nhất của branch không cần checkout
+                  def commitOutput = sh(
+                    script: "git ls-remote https://github.com/tranductung07012004/devOps_1_spring-petclinic-microservices.git refs/heads/${branchValue}",
+                    returnStdout: true
+                  ).trim()
+                  
+                  // Nếu branch tồn tại
+                  if (commitOutput) {
+                    // Extract commitId (lấy 7 ký tự đầu của SHA)
+                    serviceTag = commitOutput.split()[0].substring(0, 7)
+                    echo "Using tag ${serviceTag} for ${service.name} from branch ${branchValue}"
+                  } else {
+                    echo "WARNING: Branch ${branchValue} not found. Using 'latest' tag for ${service.name}"
+                  }
+                }
+                
+                // Deploy with the determined tag
                 sh """
-                # Create a temporary deployment file with the correct image tag and username
                 cat k8s/${service.name}.yaml | sed 's/\${IMAGE_TAG}/${serviceTag}/g' | sed 's/\${DOCKER_USERNAME}/${DOCKER_USERNAME}/g' > k8s/${service.name}-temp.yaml
-                
-                # Apply the configuration
                 kubectl apply -f k8s/${service.name}-temp.yaml
-                
-                # Clean up
                 rm k8s/${service.name}-temp.yaml
                 """
                 
                 // Wait for deployment to be available
-                sh """
-                kubectl wait --for=condition=available deployment/${service.name} -n petclinic-dev --timeout=60s || echo "Warning: Deployment ${service.name} not ready"
-                """
+                sh "kubectl wait --for=condition=available deployment/${service.name} -n petclinic-dev --timeout=60s || echo 'Warning: Deployment may not be ready'"
               }
             }
             
             // Apply Ingress configuration
             sh "kubectl apply -f k8s/petclinic-ingress.yaml"
             
-            // Display access information for developers
-            echo "======= ACCESS INFORMATION FOR SERVICES ======="
-            
-            // Get Ingress IP or hostname
-            sh "kubectl get ingress petclinic-ingress -n petclinic-dev"
-            def ingressIP = sh(script: "kubectl get ingress petclinic-ingress -n petclinic-dev -o jsonpath='{.status.loadBalancer.ingress[0].ip}'", returnStdout: true).trim()
-            
-            if (!ingressIP) {
-              ingressIP = "Minikube IP (run 'minikube ip' on your machine)"
-            }
-            
-            echo "Add the following to your hosts file (C:\\Windows\\System32\\drivers\\etc\\hosts):"
-            echo "${ingressIP} petclinic.local"
-            
-            echo "\nServices are accessible at:"
-            echo "- Customers Service: http://petclinic.local/customers"
-            echo "- GenAI Service: http://petclinic.local/genai"
-            echo "- Vets Service: http://petclinic.local/vets"
-            echo "- Visits Service: http://petclinic.local/visits"
-            echo "================================================"
+            echo "Services deployed successfully to http://petclinic.local/"
         }
       }
     }
   }
   
   post {
-    success {
-      script {
-        def commitId = env.GIT_COMMIT
-        echo "Sending 'success' status to GitHub for commit: ${commitId}"
-        def response = httpRequest(
-            url: "https://api.github.com/repos/tranductung07012004/devOps_1_spring-petclinic-microservices/statuses/${commitId}",
-            httpMode: 'POST',
-            contentType: 'APPLICATION_JSON',
-            requestBody: """{
-                "state": "success",
-                "description": "Deploy passed",
-                "context": "cd/jenkins-deploy-k8s",
-                "target_url": "${env.BUILD_URL}"
-            }""",
-            authentication: 'github-token-fix'
-        )
-        echo "GitHub Response: ${response.status}"
-      }
-    }
+        success {
+            script {
+                def commitId = env.GIT_COMMIT
+                echo "Sending 'success' status to GitHub for commit: ${commitId}"
+                def response = httpRequest(
+                    url: "https://api.github.com/repos/tranductung07012004/devOps_1_spring-petclinic-microservices/statuses/${commitId}",
+                    httpMode: 'POST',
+                    contentType: 'APPLICATION_JSON',
+                    requestBody: """{
+                        "state": "success",
+                        "description": "Deploy passed",
+                        "context": "CD/jenkins_deploy-pipeline",
+                        "target_url": "${env.BUILD_URL}"
+                    }""",
+                    authentication: 'github-token-fix'
+                )
+                echo "GitHub Response: ${response.status}"
+            }
+        }
 
-    failure {
-      script {
-        def commitId = env.GIT_COMMIT
-        echo "Sending 'failure' status to GitHub for commit: ${commitId}"
-        def response = httpRequest(
-            url: "https://api.github.com/repos/tranductung07012004/devOps_1_spring-petclinic-microservices/statuses/${commitId}",
-            httpMode: 'POST',
-            contentType: 'APPLICATION_JSON',
-            requestBody: """{
-                "state": "failure",
-                "description": "Deploy passed",
-                "context": "cd/jenkins-deploy-k8s",
-                "target_url": "${env.BUILD_URL}"
-            }""",
-            authentication: 'github-token-fix'
-        )
-        echo "GitHub Response: ${response.status}"
-      }
-    }
+        failure {
+            script {
+                def commitId = env.GIT_COMMIT
+                echo "Sending 'failure' status to GitHub for commit: ${commitId}"
+                def response = httpRequest(
+                    url: "https://api.github.com/repos/tranductung07012004/devOps_1_spring-petclinic-microservices/statuses/${commitId}",
+                    httpMode: 'POST',
+                    contentType: 'APPLICATION_JSON',
+                    requestBody: """{
+                        "state": "failure",
+                        "description": "Deploy failed",
+                        "context": "cd/jenkins_deploy-pipeline",
+                        "target_url": "${env.BUILD_URL}"
+                    }""",
+                    authentication: 'github-token-fix'
+                )
+                echo "GitHub Response: ${response.status}"
+            }
+        }
 
-    always {
-        echo "Pipeline finished."
+        always {
+            echo "Pipeline finished."
+        }
     }
-}
 }
