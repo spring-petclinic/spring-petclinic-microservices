@@ -354,39 +354,39 @@ pipeline {
                             apiVersion: apps/v1
                             kind: Deployment
                             metadata:
-                            name: ${service.name}
-                            namespace: petclinic-dev
+                              name: ${service.name}
+                              namespace: petclinic-dev
                             spec:
-                            replicas: 1
-                            selector:
-                                matchLabels:
-                                app: ${service.name}
-                            template:
-                                metadata:
-                                labels:
-                                    app: ${service.name}
-                                spec:
-                                containers:
-                                - name: ${service.name}
-                                    image: ${imageName}
-                                    ports:
-                                    - containerPort: 8080
-                                    env:
-                                    - name: SPRING_PROFILES_ACTIVE
-                                    value: docker
+															replicas: 1
+															selector:
+																matchLabels:
+																	app: ${service.name}
+															template:
+																metadata:
+																	labels:
+																		app: ${service.name}
+																spec:
+																	containers:
+																		- name: ${service.name}
+																			image: ${imageName}
+																			ports:
+																				- containerPort: 8080
+																			env:
+																				- name: SPRING_PROFILES_ACTIVE
+																				value: docker
                             ---
                             apiVersion: v1
                             kind: Service
                             metadata:
-                            name: ${service.name}
-                            namespace: petclinic-dev
+                              name: ${service.name}
+                              namespace: petclinic-dev
                             spec:
-                            type: NodePort
-                            ports:
-                            - port: 8080
-                                targetPort: 8080
-                                nodePort: ${service.port}
-                            selector:
+                              type: NodePort
+                              ports:
+                                - port: 8080
+                                  targetPort: 8080
+                                  nodePort: ${service.port}
+                              selector:
                                 app: ${service.name}
                             EOF
                             cat kubernetes-${service.name}.yaml
@@ -410,7 +410,7 @@ pipeline {
                     echo "Services are accessible at:"
                     for (service in services) {
                         // Kiểm tra xem dịch vụ có tồn tại không trước khi lấy nodePort
-                        def serviceExists = sh(script: "kubectl get service ${service.name} -n petclinic-dev --ignore-not-found", returnStatus: true) == 0
+                        def serviceExists = sh(script: "kubectl get service ${service.name} -n petclinic-dev", returnStatus: true) == 0
                         if (serviceExists) {
                             def nodePort = sh(script: "kubectl get service ${service.name} -n petclinic-dev -o jsonpath='{.spec.ports[0].nodePort}'", returnStdout: true).trim()
                             echo "${service.name}: NodePort ${nodePort} (use 'minikube service ${service.name} -n petclinic-dev --url' to get full URL)"
