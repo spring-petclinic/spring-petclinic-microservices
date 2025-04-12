@@ -279,96 +279,127 @@ pipeline {
             }
         }
 
-           stage('Setup Kubernetes Namespace') {
-                steps {
-                    script {
-                        // Check if the namespace exists, if not, create it
-                        def namespaceExists = sh(script: "kubectl get namespace petclinic-dev --ignore-not-found", returnStatus: true) == 0
-                        if (!namespaceExists) {
-                            sh "kubectl create namespace petclinic-dev"
-                            echo "Namespace 'petclinic-dev' created."
+        stage('Setup Kubernetes Namespace') {
+            steps {
+                script {
+                    // Kiểm tra kết nối kubectl và cụm Kubernetes
+                    sh '''
+                        kubectl version --client
+                        kubectl cluster-info
+                        kubectl get nodes
+                    '''
+
+                    // Kiểm tra và tạo namespace
+                    def namespaceExists = sh(script: "kubectl get namespace petclinic-dev --ignore-not-found", returnStatus: true) == 0
+                    if (!namespaceExists) {
+                        sh "kubectl create namespace petclinic-dev"
+                        echo "Namespace 'petclinic-dev' created."
+                        // Xác nhận namespace đã được tạo
+                        sh "kubectl get namespace petclinic-dev"
+                    } else {
+                        echo "Namespace 'petclinic-dev' already exists."
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    // Debug: Kiểm tra namespace trước khi triển khai
+                    sh '''
+                        kubectl get namespaces
+                        kubectl get namespace petclinic-dev || echo "Namespace petclinic-dev not found"
+                    '''
+
+                    def commitId = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    def services = [
+                        ['name': 'customers-service', 'branch': params.CUSTOMERS_BRANCH, 'port': 8081],
+                        ['name': 'genai-service', 'branch': params.GENAI_BRANCH, 'port': 8082],
+                        ['name': 'vets-service', 'branch': params.VETS_BRANCH, 'port': 8083],
+                        ['name': 'visits-service', 'branch': params.VISITS_BRANCH, 'port': 8084]
+                    ]
+
+                    withCredentials([usernamePassword(credentialsId: 'docker_hub_PAT', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        // Login to Docker Hub
+                        sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+
+                        for (service in services) {
+                            def serviceTag = service.branch == 'main' ? 'latest' : commitId
+                            def imageName = "${DOCKER_USERNAME}/spring-petclinic-${service.name}:${serviceTag}"
+
+                            // Create Kubernetes deployment and service
+                            sh """
+                            cat <<EOF > kubernetes-${service.name}.yaml
+                            apiVersion: apps/v1
+                            kind: Deployment
+                            metadata:
+                            name: ${service.name}
+                            namespace: petclinic-dev
+                            spec:
+                            replicas: 1
+                            selector:
+                                matchLabels:
+                                app: ${service.name}
+                            template:
+                                metadata:
+                                labels:
+                                    app: ${service.name}
+                                spec:
+                                containers:
+                                - name: ${service.name}
+                                    image: ${imageName}
+                                    ports:
+                                    - containerPort: 8080
+                                    env:
+                                    - name: SPRING_PROFILES_ACTIVE
+                                    value: docker
+                            ---
+                            apiVersion: v1
+                            kind: Service
+                            metadata:
+                            name: ${service.name}
+                            namespace: petclinic-dev
+                            spec:
+                            type: NodePort
+                            ports:
+                            - port: 8080
+                                targetPort: 8080
+                                nodePort: ${service.port}
+                            selector:
+                                app: ${service.name}
+                            EOF
+                            cat kubernetes-${service.name}.yaml
+                            kubectl apply --dry-run=client -f kubernetes-${service.name}.yaml
+                            kubectl apply -f kubernetes-${service.name}.yaml
+                            """
+
+                            // Chờ Deployment sẵn sàng
+                            sh """
+                            kubectl wait --for=condition=available deployment/${service.name} -n petclinic-dev --timeout=60s || echo "Warning: Deployment ${service.name} not ready"
+                            """
+
+                            // Kiểm tra dịch vụ
+                            sh """
+                            kubectl get service ${service.name} -n petclinic-dev || echo "Service ${service.name} not found"
+                            """
+                        }
+                    }
+
+                    // Lấy thông tin dịch vụ
+                    echo "Services are accessible at:"
+                    for (service in services) {
+                        // Kiểm tra xem dịch vụ có tồn tại không trước khi lấy nodePort
+                        def serviceExists = sh(script: "kubectl get service ${service.name} -n petclinic-dev --ignore-not-found", returnStatus: true) == 0
+                        if (serviceExists) {
+                            def nodePort = sh(script: "kubectl get service ${service.name} -n petclinic-dev -o jsonpath='{.spec.ports[0].nodePort}'", returnStdout: true).trim()
+                            echo "${service.name}: NodePort ${nodePort} (use 'minikube service ${service.name} -n petclinic-dev --url' to get full URL)"
                         } else {
-                            echo "Namespace 'petclinic-dev' already exists."
+                            echo "Service ${service.name} not found in namespace petclinic-dev"
                         }
                     }
                 }
             }
-        
-        stage('Deploy to Kubernetes') {
-            steps {
-                script {
-                    def commitId = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                    def services = [
-                        ['name': 'customers-service', 'branch': params.CUSTOMERS_BRANCH, 'port': 8081], 
-                        ['name': 'genai-service', 'branch': params.GENAI_BRANCH, 'port': 8082], 
-                        ['name': 'vets-service', 'branch': params.VETS_BRANCH, 'port': 8083], 
-                        ['name': 'visits-service', 'branch': params.VISITS_BRANCH, 'port': 8084]
-                    ]
-                    
-                       withCredentials([usernamePassword(credentialsId: 'docker_hub_PAT', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                            // Login to Docker Hub
-                            sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
-
-                            for (service in services) {
-                                def serviceTag = service.branch == 'main' ? 'latest' : commitId
-                                def imageName = "${DOCKER_USERNAME}/spring-petclinic-${service.name}:${serviceTag}"
-                                
-                                // Create Kubernetes deployment and service
-                                sh """
-                                cat <<EOF > kubernetes-deployment.yaml
-                                apiVersion: apps/v1
-                                kind: Deployment
-                                metadata:
-                                name: ${service.name}
-                                namespace: petclinic-dev
-                                spec:
-                                replicas: 1
-                                selector:
-                                    matchLabels:
-                                    app: ${service.name}
-                                template:
-                                    metadata:
-                                    labels:
-                                        app: ${service.name}
-                                    spec:
-                                    containers:
-                                    - name: ${service.name}
-                                        image: ${imageName}
-                                        ports:
-                                        - containerPort: 8080
-                                        env:
-                                        - name: SPRING_PROFILES_ACTIVE
-                                        value: docker
-                                ---
-                                apiVersion: v1
-                                kind: Service
-                                metadata:
-                                name: ${service.name}
-                                namespace: petclinic-dev
-                                spec:
-                                type: NodePort
-                                ports:
-                                - port: 8080
-                                    targetPort: 8080
-                                    nodePort: ${service.port}
-                                selector:
-                                    app: ${service.name}
-                                EOF
-                                cat kubernetes-deployment.yaml
-                                kubectl apply --dry-run=client -f kubernetes-deployment.yaml
-                                kubectl apply -f kubernetes-deployment.yaml
-                                """
-                            }
-                       }
-                        // Lấy thông tin dịch vụ bằng kubectl thay vì minikube ip
-                        echo "Services are accessible at:"
-                        for (service in services) {
-                            def nodePort = sh(script: "kubectl get service ${service.name} -n petclinic-dev -o jsonpath='{.spec.ports[0].nodePort}'", returnStdout: true).trim()
-                            echo "${service.name}: NodePort ${nodePort} (use 'minikube service ${service.name} -n petclinic-dev --url' to get full URL)"
-                        }
-                    }
-                }
-            
         }
     }
 
