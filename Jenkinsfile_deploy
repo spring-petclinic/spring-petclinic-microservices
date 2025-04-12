@@ -1,26 +1,18 @@
 pipeline {
   agent any
-
-  parameters {
-        string(name: 'CUSTOMERS_BRANCH', defaultValue: 'main', description: 'Branch for customers-service')
-        string(name: 'GENAI_BRANCH', defaultValue: 'main', description: 'Branch for genai-service')
-        string(name: 'VETS_BRANCH', defaultValue: 'main', description: 'Branch for vets-service')
-        string(name: 'VISITS_BRANCH', defaultValue: 'main', description: 'Branch for visits-service')
-  }
+  
   stages {
-
     stage('Checkout Code') {
       steps {
         script {
           // Lấy 1 trong 4 branch (ví dụ customers-service) làm branch chính để checkout code repo
-          def branchToCheckout = params.CUSTOMERS_BRANCH ?: 'main'
+          def branchToCheckout = 'PR-4'  // Bạn có thể thay đổi giá trị mặc định ở đây
           echo "Checkout branch: ${branchToCheckout}"
           git branch: branchToCheckout, 
               url: 'https://github.com/tranductung07012004/devOps_1_spring-petclinic-microservices.git'
         }
       }
     }
-
 
     stage('Setup Kubernetes Namespace') {
       steps {
@@ -69,24 +61,21 @@ pipeline {
     stage('Deploy to Kubernetes') {
       steps {
         script {
-          // Get current commit ID for tagging
-          def commitId = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-          
-          // Define services with their branches
-          def services = [
-              ['name': 'customers-service', 'branch': params.CUSTOMERS_BRANCH, 'port': 8081],
-              ['name': 'genai-service', 'branch': params.GENAI_BRANCH, 'port': 8082],
-              ['name': 'vets-service', 'branch': params.VETS_BRANCH, 'port': 8083],
-              ['name': 'visits-service', 'branch': params.VISITS_BRANCH, 'port': 8084]
-          ]
+           def services = [
+             'customers-service',
+             'genai-service', 
+             'vets-service', 
+             'visits-service', 
+           ]
           
           withCredentials([usernamePassword(credentialsId: 'docker_hub_PAT', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
               // Login to Docker Hub
               sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
               
               for (service in services) {
+                def branchValue = params[service] ?: 'main'
                 // Use commitId tag for non-main branches, 'latest' for main branch
-                def serviceTag = service.branch == 'main' ? 'latest' : commitId
+                def serviceTag = 'latest'
                 
                 // Apply YAML files with substituted variables
                 sh """

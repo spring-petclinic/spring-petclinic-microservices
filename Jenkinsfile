@@ -1,12 +1,5 @@
 pipeline {
     agent any
-    
-    parameters {
-        string(name: 'CUSTOMERS_BRANCH', defaultValue: 'main', description: 'Branch for customers-service')
-        string(name: 'GENAI_BRANCH', defaultValue: 'main', description: 'Branch for genai-service')
-        string(name: 'VETS_BRANCH', defaultValue: 'main', description: 'Branch for vets-service')
-        string(name: 'VISITS_BRANCH', defaultValue: 'main', description: 'Branch for visits-service')
-    }
 
     stages {
         
