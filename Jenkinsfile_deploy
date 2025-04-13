@@ -1,6 +1,10 @@
 pipeline {
   agent any
-  
+  parameters {
+        string(name: 'CONFIG_SERVER_BRANCH', defaultValue: 'main', description: '')
+        string(name: 'DISCOVERY_SERVER_BRANCH', defaultValue: 'main', description: '')
+        string(name: 'API_GATEWAY_BRANCH', defaultValue: 'main', description: '')
+  }
   stages {
     stage('Checkout Configuration') {
       steps {
@@ -23,57 +27,106 @@ pipeline {
       }
     }
 
+
     stage('Deploy to Kubernetes') {
       steps {
         script {
-          def services = [
-              ['name': 'customers-service', 'paramName': 'customers-service'],
-              ['name': 'genai-service', 'paramName': 'genai-service'],
-              ['name': 'vets-service', 'paramName': 'vets-service'],
-              ['name': 'visits-service', 'paramName': 'visits-service']
+          // Xác định danh sách services theo đúng thứ tự triển khai
+          def infraServices = [
+            ['name': 'config-server', 'paramName': 'CONFIG_SERVER_BRANCH'],
+            ['name': 'discovery-server', 'paramName': 'DISCOVERY_SERVER_BRANCH']
+          ]
+          
+          def appServices = [
+            ['name': 'customers-service', 'paramName': 'CUSTOMERS_BRANCH'],
+            ['name': 'vets-service', 'paramName': 'VETS_BRANCH'],
+            ['name': 'visits-service', 'paramName': 'VISITS_BRANCH'],
+            ['name': 'genai-service', 'paramName': 'GENAI_BRANCH'],
+            ['name': 'api-gateway', 'paramName': 'API_GATEWAY_BRANCH']
           ]
           
           withCredentials([usernamePassword(credentialsId: 'docker_hub_PAT', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-              sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+            sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+            
+            // 1. Deploy infrastructure services
+            echo "Deploying infrastructure services..."
+            for (service in infraServices) {
+              def branchValue = params[service.paramName] ?: 'main'
+              def serviceTag = 'latest'
               
-              for (service in services) {
-                def branchValue = params[service.paramName] ?: 'main'
-                def serviceTag = 'latest'
+              if (branchValue != 'main') {
+                def commitOutput = sh(
+                  script: "git ls-remote https://github.com/tranductung07012004/devOps_1_spring-petclinic-microservices.git refs/heads/${branchValue}",
+                  returnStdout: true
+                ).trim()
                 
-                // Nếu không phải branch main, lấy commitId mới nhất của branch đó
-                if (branchValue != 'main') {
-                  // Lấy commitId mới nhất của branch không cần checkout
-                  def commitOutput = sh(
-                    script: "git ls-remote https://github.com/tranductung07012004/devOps_1_spring-petclinic-microservices.git refs/heads/${branchValue}",
-                    returnStdout: true
-                  ).trim()
-                  
-                  // Nếu branch tồn tại
-                  if (commitOutput) {
-                    // Extract commitId (lấy 7 ký tự đầu của SHA)
-                    serviceTag = commitOutput.split()[0].substring(0, 7)
-                    echo "Using tag ${serviceTag} for ${service.name} from branch ${branchValue}"
-                  } else {
-                    echo "WARNING: Branch ${branchValue} not found. Using 'latest' tag for ${service.name}"
-                  }
+                if (commitOutput) {
+                  serviceTag = commitOutput.split()[0].substring(0, 7)
+                  echo "Using tag ${serviceTag} for ${service.name} from branch ${branchValue}"
                 }
-                
-                // Deploy with the determined tag
-                sh """
-                cat k8s/${service.name}.yaml | sed 's/\${IMAGE_TAG}/${serviceTag}/g' | sed 's/\${DOCKER_USERNAME}/${DOCKER_USERNAME}/g' > k8s/${service.name}-temp.yaml
-                kubectl apply -f k8s/${service.name}-temp.yaml
-                rm k8s/${service.name}-temp.yaml
-                """
-                
-                // Wait for deployment to be available
-                sh "kubectl wait --for=condition=available deployment/${service.name} -n petclinic-dev --timeout=60s || echo 'Warning: Deployment may not be ready'"
               }
+              
+              sh """
+              cat k8s/${service.name}.yaml | sed 's/\${IMAGE_TAG}/${serviceTag}/g' | sed 's/\${DOCKER_USERNAME}/${DOCKER_USERNAME}/g' > k8s/${service.name}-temp.yaml
+              kubectl apply -f k8s/${service.name}-temp.yaml
+              rm k8s/${service.name}-temp.yaml
+              """
+            }
+            
+            // Đợi infrastructure services sẵn sàng
+            echo "Waiting for infrastructure services to be ready..."
+            sh """
+            kubectl wait --for=condition=available deployment/config-server -n petclinic-dev --timeout=120s || echo 'Warning: Config Server may not be ready'
+            kubectl wait --for=condition=available deployment/discovery-server -n petclinic-dev --timeout=120s || echo 'Warning: Discovery Server may not be ready'
+            """
+            
+            // 2. Deploy application services
+            echo "Deploying application services..."
+            for (service in appServices) {
+              def branchValue = params[service.paramName] ?: 'main'
+              def serviceTag = 'latest'
+              
+              if (branchValue != 'main') {
+                def commitOutput = sh(
+                  script: "git ls-remote https://github.com/tranductung07012004/devOps_1_spring-petclinic-microservices.git refs/heads/${branchValue}",
+                  returnStdout: true
+                ).trim()
+                
+                if (commitOutput) {
+                  serviceTag = commitOutput.split()[0].substring(0, 7)
+                  echo "Using tag ${serviceTag} for ${service.name} from branch ${branchValue}"
+                }
+              }
+              
+              sh """
+              cat k8s/${service.name}.yaml | sed 's/\${IMAGE_TAG}/${serviceTag}/g' | sed 's/\${DOCKER_USERNAME}/${DOCKER_USERNAME}/g' > k8s/${service.name}-temp.yaml
+              kubectl apply -f k8s/${service.name}-temp.yaml
+              rm k8s/${service.name}-temp.yaml
+              """
             }
             
             // Apply Ingress configuration
             sh "kubectl apply -f k8s/petclinic-ingress.yaml"
-            
-            echo "Services deployed successfully to http://petclinic.local/"
+          }
+        }
+      }
+    }
+
+    stage('Verify Deployment') {
+      steps {
+        script {
+          def allServices = ['config-server', 'discovery-server', 'customers-service', 'vets-service', 'visits-service', 'genai-service', 'api-gateway']
+          
+          echo "Verifying deployments..."
+          sh "kubectl get pods -n petclinic-dev -o wide"
+          
+          echo "Waiting for all services to be ready..."
+          for (service in allServices) {
+            sh "kubectl wait --for=condition=available deployment/${service} -n petclinic-dev --timeout=180s || echo 'Warning: ${service} may not be ready'"
+          }
+          
+          echo "Checking endpoints..."
+          sh "kubectl get endpoints -n petclinic-dev"
         }
       }
     }
