@@ -36,4 +36,5 @@ spec:
   ports:
   - port: 8888
     targetPort: 8888
-  type: ClusterIP
+    nodePort: 30888
+  type: NodePort

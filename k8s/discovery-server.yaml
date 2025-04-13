@@ -17,9 +17,6 @@ spec:
         image: ${DOCKER_USERNAME}/spring-petclinic-discovery-server:${IMAGE_TAG}
         ports:
         - containerPort: 8761
-        env:
-        - name: SPRING_PROFILES_ACTIVE
-          value: "k8s"
         resources:
           limits:
             memory: 512Mi
@@ -27,6 +24,9 @@ spec:
           requests:
             memory: 256Mi
             cpu: "0.2"
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: docker
 ---
 apiVersion: v1
 kind: Service
@@ -39,4 +39,5 @@ spec:
   ports:
   - port: 8761
     targetPort: 8761
-  type: ClusterIP
+    nodePort: 30761
+  type: NodePort

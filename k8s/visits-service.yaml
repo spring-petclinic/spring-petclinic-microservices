@@ -28,9 +28,10 @@ metadata:
   name: visits-service
   namespace: petclinic-dev
 spec:
-  type: ClusterIP
+  type: NodePort
   ports:
-    - port: 8080
+    - port: 8083
       targetPort: 8080
+      nodePort: 30083
   selector:
     app: visits-service

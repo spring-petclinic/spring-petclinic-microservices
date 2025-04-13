@@ -28,9 +28,10 @@ metadata:
   name: vets-service
   namespace: petclinic-dev
 spec:
-  type: ClusterIP
+  type: NodePort
   ports:
-    - port: 8080
+    - port: 8082
       targetPort: 8080
+      nodePort: 30082
   selector:
     app: vets-service

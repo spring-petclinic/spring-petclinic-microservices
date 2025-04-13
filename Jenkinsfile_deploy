@@ -105,8 +105,28 @@ pipeline {
               """
             }
             
-            // Apply Ingress configuration
-            sh "kubectl apply -f k8s/petclinic-ingress.yaml"
+            // Print service access information for developers
+            echo "Services have been deployed with NodePort configuration. Developers should add these entries to their hosts file:"
+            sh """
+            echo "# Get worker node IP"
+            WORKER_IP=\$(kubectl get nodes -o wide | grep -v master | awk '{print \$6}' | head -1)
+            echo "\\nTo access the services, add these entries to your hosts file:"
+            echo "\$WORKER_IP  customers.petclinic.local"
+            echo "\$WORKER_IP  vets.petclinic.local"
+            echo "\$WORKER_IP  visits.petclinic.local"
+            echo "\$WORKER_IP  genai.petclinic.local"
+            echo "\$WORKER_IP  api-gateway.petclinic.local"
+            echo "\$WORKER_IP  discovery.petclinic.local"
+            echo "\$WORKER_IP  config.petclinic.local"
+            echo "\\nService endpoints:"
+            echo "api-gateway: http://api-gateway.petclinic.local:30080"
+            echo "customers-service: http://customers.petclinic.local:30081"
+            echo "vets-service: http://vets.petclinic.local:30082"
+            echo "visits-service: http://visits.petclinic.local:30083"
+            echo "genai-service: http://genai.petclinic.local:30084"
+            echo "discovery-server: http://discovery.petclinic.local:30761"
+            echo "config-server: http://config.petclinic.local:30888"
+            """
           }
         }
       }
