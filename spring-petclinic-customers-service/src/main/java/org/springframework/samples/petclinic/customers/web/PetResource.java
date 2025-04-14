@@ -15,7 +15,6 @@
  */
 package org.springframework.samples.petclinic.customers.web;
 
-import io.micrometer.core.annotation.Timed;
 import jakarta.validation.constraints.Min;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +32,6 @@ import java.util.List;
  * @author Ramazan Sakin
  */
 @RestController
-@Timed("petclinic.pet")
 class PetResource {
 
     private static final Logger log = LoggerFactory.getLogger(PetResource.class);

@@ -74,7 +74,8 @@ services:
     ports:
      - 8082:8082
     environment:   
-      - SPRING_PROFILES_ACTIVE=docker,mysql
+      - SPRING_PROFILES_ACTIVE=hybrid,mysql
+      - CONFIG_SERVER_URL=http://config-server:8888
 
   vets-service:
     image: astoklas177/spring-petclinic-vets-service

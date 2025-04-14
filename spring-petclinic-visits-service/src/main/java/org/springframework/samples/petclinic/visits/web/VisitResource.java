@@ -18,8 +18,7 @@ package org.springframework.samples.petclinic.visits.web;
 import java.util.List;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
-
-import io.micrometer.core.annotation.Timed;
+import reactor.core.publisher.Mono;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -32,6 +31,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 /**
  * @author Juergen Hoeller
@@ -42,23 +46,43 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Ramazan Sakin
  */
 @RestController
-@Timed("petclinic.visit")
 class VisitResource {
 
     private static final Logger log = LoggerFactory.getLogger(VisitResource.class);
 
     private final VisitRepository visitRepository;
+    private final WebClient client;
 
     VisitResource(VisitRepository visitRepository) {
         this.visitRepository = visitRepository;
+        this.client = WebClient.create();
     }
 
-    @PostMapping("owners/*/pets/{petId}/visits")
+    @PostMapping("owners/{ownerId}/pets/{petId}/visits")
     @ResponseStatus(HttpStatus.CREATED)
     public Visit create(
         @Valid @RequestBody Visit visit,
+        @PathVariable("ownerId") @Min(1) int ownerId,
         @PathVariable("petId") @Min(1) int petId) {
 
+        // lets add a call to an sms service right in here
+        // Ideally: look up the owner by ID and get the phone number
+        // lookup the pet by ID and get the pet Name
+        // create a call to a notification service POST with the payload
+        // { "phone": "111111", "pet": "name", "comments":"comments"}
+
+
+        // is there a way to lookup the service dynamically (url and port)?
+
+        Mono<String> customerInfo = client.get()
+		                .uri("http://customers-service:8081/owners/" + ownerId)
+		                .retrieve()
+		                .bodyToMono(String.class);
+		Mono<String> petInfo = client.get()
+		                .uri("http://customers-service:8081/owners/"+ ownerId + "/pets/" + petId)
+		                .retrieve()
+		                .bodyToMono(String.class);
+        log.info("Creating visit for {} with {}",logPrettyJson(customerInfo),logPrettyJson(petInfo));
         visit.setPetId(petId);
         log.info("Saving visit {}", visit);
         return visitRepository.save(visit);
@@ -66,6 +90,7 @@ class VisitResource {
 
     @GetMapping("owners/*/pets/{petId}/visits")
     public List<Visit> read(@PathVariable("petId") @Min(1) int petId) {
+
         return visitRepository.findByPetId(petId);
     }
 
@@ -73,6 +98,29 @@ class VisitResource {
     public Visits read(@RequestParam("petId") List<Integer> petIds) {
         final List<Visit> byPetIdIn = visitRepository.findByPetIdIn(petIds);
         return new Visits(byPetIdIn);
+    }
+
+    private String logPrettyJson(Object response) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.enable(SerializationFeature.INDENT_OUTPUT); // Enable pretty-printing
+
+        try {
+            String prettyJson = objectMapper.writeValueAsString(response);
+            return prettyJson;
+        } catch (JsonProcessingException e) {
+            log.error("Error converting response to JSON", e);
+            return "{}";
+        }
+    }
+
+    @GetMapping("pets/visits/callback")
+    public Mono<Object> callback() {
+        Mono<Object> response = client.get()
+        .uri("http://httpbin.org/headers")
+        .retrieve()
+        .bodyToMono(Object.class);
+        log.info("External API call {}", logPrettyJson(response));
+        return response;
     }
 
     record Visits(
