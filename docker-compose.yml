@@ -1,6 +1,6 @@
 services:
   config-server:
-    image: springcommunity/spring-petclinic-config-server
+    image: astoklas177/spring-petclinic-config-server
     container_name: config-server
     deploy:
       resources:
@@ -23,7 +23,7 @@ services:
         target: /projects/spring-petclinic-microservices-config/
 
   discovery-server:
-    image: springcommunity/spring-petclinic-discovery-server
+    image: astoklas177/spring-petclinic-discovery-server
     container_name: discovery-server
     deploy:
       resources:
@@ -43,7 +43,7 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
 
   customers-service: 
-    image: springcommunity/spring-petclinic-customers-service
+    image: astoklas177/spring-petclinic-customers-service
     container_name: customers-service
     deploy:
       resources:
@@ -60,7 +60,7 @@ services:
       - SPRING_PROFILES_ACTIVE=docker,mysql
 
   visits-service:
-    image: springcommunity/spring-petclinic-visits-service
+    image: astoklas177/spring-petclinic-visits-service
     container_name: visits-service
     deploy:
       resources:
@@ -77,7 +77,7 @@ services:
       - SPRING_PROFILES_ACTIVE=docker,mysql
 
   vets-service:
-    image: springcommunity/spring-petclinic-vets-service
+    image: astoklas177/spring-petclinic-vets-service
     container_name: vets-service
     deploy:
       resources:
@@ -115,7 +115,7 @@ services:
 
 
   api-gateway:
-    image: springcommunity/spring-petclinic-api-gateway
+    image: astoklas177/spring-petclinic-api-gateway
     container_name: api-gateway
     deploy:
       resources:
@@ -128,22 +128,8 @@ services:
         condition: service_healthy
     ports:
      - 8080:8080
-
-#  tracing-server:
-#    image: openzipkin/zipkin
-#    container_name: tracing-server
-#    deploy:
-#      resources:
-#        limits:
-#          memory: 512M
-#    environment:
-#    # Waiting for https://github.com/openzipkin/zipkin/issues/3786
-#    - JAVA_OPTS=-XX:UseSVE=0
-#    ports:
-#     - 9411:9411
-
   admin-server:
-    image: springcommunity/spring-petclinic-admin-server
+    image: astoklas177/spring-petclinic-admin-server
     container_name: admin-server
     deploy:
       resources:
@@ -156,28 +142,6 @@ services:
         condition: service_healthy
     ports:
      - 9090:9090
-
-  ## Grafana / Prometheus
-
-#  grafana-server:
-#    build: ./docker/grafana
-#    container_name: grafana-server
-#    deploy:
-#      resources:
-#        limits:
-#          memory: 256M
-#    ports:
-#    - 3030:3030
-
-#  prometheus-server:
-#    build: ./docker/prometheus
-#    container_name: prometheus-server
-#    deploy:
-#      resources:
-#        limits:
-#          memory: 256M
-#    ports:
-#    - 9091:9090
 
   petclinic-db:
     image: biarms/mysql:5.7
