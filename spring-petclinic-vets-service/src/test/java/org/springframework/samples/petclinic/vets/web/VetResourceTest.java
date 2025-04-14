@@ -15,6 +15,7 @@
  */
 package org.springframework.samples.petclinic.vets.web;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,7 @@ class VetResourceTest {
 
     @MockBean
     VetRepository vetRepository;
-
+  
     @Test
     void shouldGetAListOfVets() throws Exception {
 

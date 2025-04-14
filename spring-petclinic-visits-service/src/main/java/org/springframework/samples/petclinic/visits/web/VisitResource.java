@@ -21,6 +21,8 @@ import jakarta.validation.constraints.Min;
 import reactor.core.publisher.Mono;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.http.HttpStatus;
 import org.springframework.samples.petclinic.visits.model.Visit;
 import org.springframework.samples.petclinic.visits.model.VisitRepository;
@@ -32,10 +34,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.client.ServiceInstance;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Juergen Hoeller
@@ -51,12 +58,17 @@ class VisitResource {
     private static final Logger log = LoggerFactory.getLogger(VisitResource.class);
 
     private final VisitRepository visitRepository;
+//    @Autowired
+//    private DiscoveryClient discoveryClient;
     private final WebClient client;
 
     VisitResource(VisitRepository visitRepository) {
         this.visitRepository = visitRepository;
         this.client = WebClient.create();
     }
+
+    @Value("${customers-service.endpoint.baseUrl}")
+    private String baseUrl;
 
     @PostMapping("owners/{ownerId}/pets/{petId}/visits")
     @ResponseStatus(HttpStatus.CREATED)
@@ -74,14 +86,25 @@ class VisitResource {
 
         // is there a way to lookup the service dynamically (url and port)?
 
-        Mono<String> customerInfo = client.get()
-		                .uri("http://customers-service:8081/owners/" + ownerId)
+/*         ServiceInstance serviceInstance = discoveryClient.getInstances("customers-service")
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("No instances of customers-service found"));
+        String baseUrl = serviceInstance.getUri().toString(); */
+
+        log.info("Connecting to 'customers-service' with url: {}", baseUrl);
+        String customerInfo = client.get()
+		                .uri(baseUrl + "/owners/" + ownerId)
 		                .retrieve()
-		                .bodyToMono(String.class);
-		Mono<String> petInfo = client.get()
-		                .uri("http://customers-service:8081/owners/"+ ownerId + "/pets/" + petId)
+		                .bodyToMono(String.class)
+                        .block();
+        log.info("Calling: " + baseUrl + "/owners/" + ownerId);
+		String petInfo = client.get()
+		                .uri(baseUrl + "/owners/"+ ownerId + "/pets/" + petId)
 		                .retrieve()
-		                .bodyToMono(String.class);
+		                .bodyToMono(String.class)
+                        .block();
+        log.info("Calling: " + baseUrl + "/owners/"+ ownerId + "/pets/" + petId);
         log.info("Creating visit for {} with {}",logPrettyJson(customerInfo),logPrettyJson(petInfo));
         visit.setPetId(petId);
         log.info("Saving visit {}", visit);

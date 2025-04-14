@@ -3,7 +3,10 @@ spring:
     name: visits-service
   config:
     import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
-
+  eureka:
+    instance:
+      # enable to register multiple app instances with a random server port
+      instance-id: ${spring.application.name}:${random.uuid}
 
 ---
 spring:

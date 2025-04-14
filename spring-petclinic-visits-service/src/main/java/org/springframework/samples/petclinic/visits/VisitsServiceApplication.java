@@ -18,6 +18,17 @@ package org.springframework.samples.petclinic.visits;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.env.MutablePropertySources;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.env.MutablePropertySources;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * @author Maciej Szarlinski
@@ -26,7 +37,29 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 @SpringBootApplication
 public class VisitsServiceApplication {
 
+    private static final Logger log = LoggerFactory.getLogger(VisitsServiceApplication.class);
+
     public static void main(String[] args) {
-        SpringApplication.run(VisitsServiceApplication.class, args);
+        ApplicationContext context = SpringApplication.run(VisitsServiceApplication.class, args);
+        printAllProperties(context.getEnvironment());
     }
+
+    private static void printAllProperties(Environment environment) {
+        MutablePropertySources propertySources = ((org.springframework.core.env.AbstractEnvironment) environment).getPropertySources();
+        
+        log.info("Configuration Properties:");
+
+        Iterator<org.springframework.core.env.PropertySource<?>> iterator = propertySources.iterator();
+        while (iterator.hasNext()) {
+            org.springframework.core.env.PropertySource<?> propertySource = iterator.next();
+            if (propertySource instanceof MapPropertySource) {
+                Map<String, Object> properties = ((MapPropertySource) propertySource).getSource();
+                for (String key : properties.keySet()) {
+                    log.info("    " + key + "=" + properties.get(key));
+                }
+            }
+        }
+    }
+
+
 }

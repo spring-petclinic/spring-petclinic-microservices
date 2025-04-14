@@ -1,0 +1,91 @@
+# COMMON APPLICATION PROPERTIES
+
+server:
+  # start services on random port by default
+  port: 0
+  # The stop processing uses a timeout which provides a grace period during which existing requests will be allowed to complete but no new requests will be permitted
+  shutdown: graceful
+
+# embedded database init, supports mysql too trough the 'mysql' spring profile
+spring:
+  sql:
+    init:
+      schema-locations: classpath*:db/hsqldb/schema.sql
+      data-locations: classpath*:db/hsqldb/data.sql
+  sleuth:
+    sampler:
+      probability: 1.0
+  cloud:
+    config:
+      # Allow the microservices to override the remote properties with their own System properties or config file
+      allow-override: true
+      # Override configuration with any local property source
+      override-none: true
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+
+# Spring Boot 1.5 makes actuator secure by default
+management.security.enabled: false
+# Enable all Actuators and not only the two available by default /health and /info starting Spring Boot 2.0
+management.endpoints.web.exposure.include: "*"
+
+# Temporary hack required by the Spring Boot 2 / Spring Cloud Finchley branch
+# Waiting issue https://github.com/spring-projects/spring-boot/issues/13042
+spring.cloud.refresh.refreshable: false
+
+
+# Logging
+logging.level.org.springframework: INFO
+
+# Metrics
+#management:
+#  endpoint:
+#      enabled: false
+#    metrics:
+#    prometheus:
+#      enabled: false
+#  endpoints:
+#    web:
+#      exposure:
+#        include: '*'
+#  metrics:
+#    export:
+#      prometheus:
+#        enabled: false
+#  tracing:
+#    sampling:
+#      probability: 1
+
+# Chaos Engineering
+---
+spring:
+  config:
+    activate:
+      on-profile: chaos-monkey      
+management.endpoint.chaosmonkey.enabled: true
+chaos:
+  monkey:
+    enabled: false
+    watcher:
+      component: false
+      controller: false
+      repository: false
+      rest-controller: false
+      service: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile: mysql
+  datasource:
+    url: jdbc:mysql://petclinic-db:3306/petclinic?useSSL=false
+    username: root
+    password: petclinic
+  sql:
+    init:
+      schema-locations: classpath*:db/mysql/schema.sql
+      data-locations: classpath*:db/mysql/data.sql
+      mode: ALWAYS
