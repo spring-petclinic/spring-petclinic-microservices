@@ -31,8 +31,6 @@ pipeline {
 
         // === Internal Flags & Variables ===
         TESTS_FAILED_FLAG = "false"
-        // Store successfully built services from the Build stage to know what to image
-        BUILT_SERVICES = ""
     }
 
     // Stages: Define the main workflow phases
@@ -231,13 +229,9 @@ pipeline {
                     } // End for loop
 
                     // Store the list of successfully built services for the next stage
-                    def builtServicesStr = successfullyBuilt.join(" ")
-                    env.BUILT_SERVICES = "${builtServicesStr}"
-                    echo "[DEBUG] Value of successfullyBuilt: '${successfullyBuilt}'"
-                    echo "[DEBUG] Value of builtServicesStr: '${builtServicesStr}'"
-                    echo "[DEBUG] Value of env.BUILT_SERVICES: '${env.BUILT_SERVICES}'"
+                    env.BUILT_SERVICES = successfullyBuilt.join(" ")
+                    echo "[DEBUG] Value of env.BUILT_SERVICES before ending stage: '${env.BUILT_SERVICES}'"
 
-                    
                     if (buildFailed) {
                         echo "Setting build status to UNSTABLE due to build failures in this stage."
                         currentBuild.result = 'UNSTABLE'
