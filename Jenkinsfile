@@ -165,10 +165,9 @@ pipeline {
 
 
         // ============================================================
-        // Stage 3: Build, Package & Push Docker Images (MERGED + Correct Context)
+        // Stage 3: Build, Package & Push Docker Images (Correct Build Arg Name)
         // ============================================================
         stage('Build, Package & Push Docker Images') {
-            // Run if services changed and build didn't fail before this stage
             when {
                 expression { return env.CHANGED_SERVICES?.trim() && currentBuild.currentResult != 'FAILURE' }
             }
@@ -220,21 +219,19 @@ pipeline {
                                     if (currentBuild.currentResult != 'FAILURE') {
                                         currentBuild.result = 'UNSTABLE'
                                     }
-                                    // Skip Docker steps for this service if package failed
-                                    continue // Go to the next service in the loop
+                                    continue // Skip Docker steps for this service if package failed
                                 }
                             } // End dir(service)
 
                             // 2. Build and Push Docker Image (from workspace root)
-                            // Run Docker commands only if Maven package succeeded
                             if (jarFileRelativePath) {
                                 try {
                                     def imageName = "${env.DOCKERHUB_USERNAME}/${service}"
                                     def imageTag = commitId
                                     echo "Building Docker image: ${imageName}:${imageTag} using ${env.DOCKERFILE_PATH}"
 
-                                    // Run docker build from workspace root (.), use common Dockerfile (-f), pass JAR path relative to root
-                                    def dockerImage = docker.build("${imageName}:${imageTag}", "-f ${env.DOCKERFILE_PATH} --build-arg JAR_FILE=${jarFileRelativePath} .")
+                                    // *** CORRECTED BUILD ARG NAME: ARTIFACT_NAME ***
+                                    def dockerImage = docker.build("${imageName}:${imageTag}", "-f ${env.DOCKERFILE_PATH} --build-arg ARTIFACT_NAME=${jarFileRelativePath} .")
 
                                     echo "Pushing Docker image: ${imageName}:${imageTag}"
                                     dockerImage.push()
@@ -264,10 +261,9 @@ pipeline {
                     // Final check for this stage
                     if (buildFailed) {
                         echo "One or more services failed during package or docker build/push."
-                        // Ensure build is marked unstable if any step failed
-                         if (currentBuild.currentResult != 'FAILURE') {
-                            currentBuild.result = 'UNSTABLE'
-                         }
+                        if (currentBuild.currentResult != 'FAILURE') {
+                           currentBuild.result = 'UNSTABLE'
+                        }
                     } else {
                         echo "All processed services completed package and docker build/push successfully."
                     }
@@ -287,7 +283,6 @@ pipeline {
             cleanWs()
         }
         success {
-            // This block might not run if any build/push fails and sets status to UNSTABLE
             echo "Build finished with status SUCCESS."
         }
         unstable {
