@@ -19,3 +19,9 @@ spring:
       on-profile: docker
     import: configserver:http://config-server:8888
 
+---
+spring:
+  config:
+    activate:
+      on-profile: k8s
+    import: configserver:http://config-server:8888
