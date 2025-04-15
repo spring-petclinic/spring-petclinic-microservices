@@ -232,6 +232,7 @@ pipeline {
 
                     // Store the list of successfully built services for the next stage
                     env.BUILT_SERVICES = successfullyBuilt.join(" ")
+                    echo "[DEBUG] Value of env.BUILT_SERVICES set in Stage 3: '${env.BUILT_SERVICES}'"
 
                     if (buildFailed) {
                         echo "Setting build status to UNSTABLE due to build failures in this stage."
