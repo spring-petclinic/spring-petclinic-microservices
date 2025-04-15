@@ -209,8 +209,7 @@ pipeline {
                     // Define Docker Hub credentials
                     withCredentials([usernamePassword(credentialsId: 'docker_hub_PAT', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                         // Login to Docker Hub
-                        sh "export PATH=$PATH:/usr/local/bin"
-                        sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+                        sh "/usr/local/bin/docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}"
                         
                         // Get the list of changed files in the current commit
                         def changedFiles = sh(script: 'git diff --name-only HEAD~1 HEAD', returnStdout: true).trim().split('\n')
