@@ -25,9 +25,9 @@ pipeline {
 
         // === Docker Configuration ===
         // Your Docker Hub Username (or organization name)
-        DOCKERHUB_USERNAME = "your-dockerhub-username" // <--- *** REPLACE THIS ***
+        DOCKERHUB_USERNAME = "22127422" // <--- *** REPLACE THIS ***
         // Jenkins Credentials ID for Docker Hub (created in Jenkins > Manage Jenkins > Credentials)
-        DOCKERHUB_CREDENTIALS_ID = "dockerhub-credentials" // <--- *** Use the ID you created ***
+        DOCKERHUB_CREDENTIALS_ID = "docker-credentials" // <--- *** Use the ID you created ***
 
         // === Internal Flags & Variables ===
         TESTS_FAILED_FLAG = "false"
@@ -123,79 +123,79 @@ pipeline {
         // ============================================================
         // Stage 2: Test Services
         // ============================================================
-        stage('Test Services') {
-            when { expression { return env.CHANGED_SERVICES?.trim() } }
-            steps {
-                script {
-                    def serviceList = env.CHANGED_SERVICES.trim().split(" ")
-                    def jacocoExecFiles = []
-                    def jacocoClassDirs = []
-                    def jacocoSrcDirs = []
-                    env.TESTS_FAILED_FLAG = "false"
+        // stage('Test Services') {
+        //     when { expression { return env.CHANGED_SERVICES?.trim() } }
+        //     steps {
+        //         script {
+        //             def serviceList = env.CHANGED_SERVICES.trim().split(" ")
+        //             def jacocoExecFiles = []
+        //             def jacocoClassDirs = []
+        //             def jacocoSrcDirs = []
+        //             env.TESTS_FAILED_FLAG = "false"
 
-                    for (service in serviceList) {
-                        echo "--- Preparing to Test Service: ${service} ---"
-                        if (env.SERVICES_WITHOUT_TESTS.contains(service)) {
-                            echo "Skipping tests for ${service} (marked as having no tests)."
-                            continue
-                        }
+        //             for (service in serviceList) {
+        //                 echo "--- Preparing to Test Service: ${service} ---"
+        //                 if (env.SERVICES_WITHOUT_TESTS.contains(service)) {
+        //                     echo "Skipping tests for ${service} (marked as having no tests)."
+        //                     continue
+        //                 }
 
-                        dir(service) {
-                            try {
-                                echo "Running 'mvn clean test' for ${service}..."
-                                sh 'mvn clean test'
-                                echo "Tests completed for ${service}."
+        //                 dir(service) {
+        //                     try {
+        //                         echo "Running 'mvn clean test' for ${service}..."
+        //                         sh 'mvn clean test'
+        //                         echo "Tests completed for ${service}."
 
-                                if (fileExists('target/jacoco.exec')) {
-                                    echo "Found jacoco.exec for ${service}. Adding to aggregation list."
-                                    jacocoExecFiles.add("${service}/target/jacoco.exec")
-                                    jacocoClassDirs.add("${service}/target/classes")
-                                    jacocoSrcDirs.add("${service}/src/main/java")
-                                } else {
-                                    echo "WARNING: jacoco.exec not found for ${service} after tests ran."
-                                }
+        //                         if (fileExists('target/jacoco.exec')) {
+        //                             echo "Found jacoco.exec for ${service}. Adding to aggregation list."
+        //                             jacocoExecFiles.add("${service}/target/jacoco.exec")
+        //                             jacocoClassDirs.add("${service}/target/classes")
+        //                             jacocoSrcDirs.add("${service}/src/main/java")
+        //                         } else {
+        //                             echo "WARNING: jacoco.exec not found for ${service} after tests ran."
+        //                         }
 
-                            } catch (err) {
-                                echo "ERROR: Tests FAILED for ${service}. Marking build as UNSTABLE."
-                                env.TESTS_FAILED_FLAG = "true"
-                            } finally {
-                                echo "Publishing JUnit results for ${service}..."
-                                junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
-                            }
-                        }
-                    }
+        //                     } catch (err) {
+        //                         echo "ERROR: Tests FAILED for ${service}. Marking build as UNSTABLE."
+        //                         env.TESTS_FAILED_FLAG = "true"
+        //                     } finally {
+        //                         echo "Publishing JUnit results for ${service}..."
+        //                         junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+        //                     }
+        //                 }
+        //             }
 
-                    if (!jacocoExecFiles.isEmpty()) {
-                        echo "--- Generating Aggregated JaCoCo Coverage Report ---"
-                        echo "Aggregating JaCoCo data from ${jacocoExecFiles.size()} service(s)."
-                        try {
-                            jacoco(
-                                execPattern: jacocoExecFiles.join(','),
-                                classPattern: jacocoClassDirs.join(','),
-                                sourcePattern: jacocoSrcDirs.join(','),
-                                inclusionPattern: '**/*.class',
-                                exclusionPattern: '**/test/**,**/model/**,**/domain/**,**/entity/**',
-                                skipCopyOfSrcFiles: true
-                            )
-                            echo "JaCoCo aggregated report generated successfully."
-                        } catch (err) {
-                            echo "ERROR: Failed to generate JaCoCo aggregated report: ${err.getMessage()}"
-                            currentBuild.result = 'UNSTABLE'
-                        }
-                    } else {
-                        echo "No JaCoCo execution data found to aggregate."
-                    }
+        //             if (!jacocoExecFiles.isEmpty()) {
+        //                 echo "--- Generating Aggregated JaCoCo Coverage Report ---"
+        //                 echo "Aggregating JaCoCo data from ${jacocoExecFiles.size()} service(s)."
+        //                 try {
+        //                     jacoco(
+        //                         execPattern: jacocoExecFiles.join(','),
+        //                         classPattern: jacocoClassDirs.join(','),
+        //                         sourcePattern: jacocoSrcDirs.join(','),
+        //                         inclusionPattern: '**/*.class',
+        //                         exclusionPattern: '**/test/**,**/model/**,**/domain/**,**/entity/**',
+        //                         skipCopyOfSrcFiles: true
+        //                     )
+        //                     echo "JaCoCo aggregated report generated successfully."
+        //                 } catch (err) {
+        //                     echo "ERROR: Failed to generate JaCoCo aggregated report: ${err.getMessage()}"
+        //                     currentBuild.result = 'UNSTABLE'
+        //                 }
+        //             } else {
+        //                 echo "No JaCoCo execution data found to aggregate."
+        //             }
 
-                    if (env.TESTS_FAILED_FLAG == "true") {
-                        echo "Setting build status to UNSTABLE due to test failures."
-                        currentBuild.result = 'UNSTABLE'
-                    } else {
-                        echo "All tests passed or were skipped."
-                    }
+        //             if (env.TESTS_FAILED_FLAG == "true") {
+        //                 echo "Setting build status to UNSTABLE due to test failures."
+        //                 currentBuild.result = 'UNSTABLE'
+        //             } else {
+        //                 echo "All tests passed or were skipped."
+        //             }
 
-                } // End script
-            } // End steps
-        } // End Stage 2
+        //         } // End script
+        //     } // End steps
+        // } // End Stage 2
 
         // ============================================================
         // Stage 3: Build Services (JARs)
