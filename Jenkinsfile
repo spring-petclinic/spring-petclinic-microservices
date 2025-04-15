@@ -233,6 +233,8 @@ pipeline {
                     // Store the list of successfully built services for the next stage
                     def builtServicesStr = successfullyBuilt.join(" ")
                     env.BUILT_SERVICES = builtServicesStr
+                    echo "[DEBUG] Value of successfullyBuilt: '${successfullyBuilt}'"
+                    echo "[DEBUG] Value of builtServicesStr: '${builtServicesStr}'"
                     echo "[DEBUG] Value of env.BUILT_SERVICES: '${env.BUILT_SERVICES}'"
 
                     
