@@ -9,8 +9,8 @@ pipeline {
     environment {
         ALL_SERVICES = "spring-petclinic-admin-server spring-petclinic-api-gateway spring-petclinic-config-server spring-petclinic-customers-service spring-petclinic-discovery-server spring-petclinic-genai-service spring-petclinic-vets-service spring-petclinic-visits-service"
         SERVICES_WITHOUT_TESTS = "spring-petclinic-admin-server spring-petclinic-genai-service"
-        DOCKERHUB_USERNAME = "22127422" // <--- *** REPLACE THIS ***
-        DOCKERHUB_CREDENTIALS_ID = "docker-credentials" // <--- *** Use the ID you created ***
+        DOCKERHUB_USERNAME = "your-dockerhub-username" // <--- *** REPLACE THIS ***
+        DOCKERHUB_CREDENTIALS_ID = "dockerhub-credentials" // <--- *** Use the ID you created ***
         TESTS_FAILED_FLAG = "false"
         // Common Dockerfile path relative to workspace root
         DOCKERFILE_PATH = "docker/Dockerfile"
@@ -165,7 +165,7 @@ pipeline {
 
 
         // ============================================================
-        // Stage 3: Build, Package & Push Docker Images (Correct Build Arg Name)
+        // Stage 3: Build, Package & Push Docker Images (Correct Build Arg Value)
         // ============================================================
         stage('Build, Package & Push Docker Images') {
             when {
@@ -195,8 +195,7 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: env.DOCKERHUB_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         for (service in serviceList) {
                             echo "--- Processing Service: ${service} ---"
-                            def jarFileRelativePath = "" // Will hold the path relative to workspace root
-                            def jarFilename = ""
+                            def artifactNameArgValue = "" // Will hold the path *without* .jar suffix
 
                             // 1. Package the service JAR (inside service directory)
                             dir(service) {
@@ -205,13 +204,21 @@ pipeline {
                                     sh 'mvn clean package -DskipTests'
                                     echo "Maven package successful for ${service}."
 
-                                    // Find the JAR filename
-                                    jarFilename = sh(script: 'find target -maxdepth 1 -name "*.jar" -printf "%f" -quit', returnStdout: true).trim()
-                                    if (!jarFilename) {
-                                        error "Could not find JAR filename in target/ for ${service}."
+                                    // Find the JAR relative path
+                                    def jarFileFullPath = sh(script: 'find target -maxdepth 1 -name "*.jar" -print -quit', returnStdout: true).trim()
+                                    if (!jarFileFullPath) {
+                                        error "Could not find JAR file in target/ for ${service}."
                                     }
-                                    jarFileRelativePath = "${service}/target/${jarFilename}" // Path relative to workspace root
-                                    echo "Found JAR: ${jarFileRelativePath}"
+                                    // Construct path relative to workspace and remove suffix for the build arg
+                                    def jarFileRelativePath = "${service}/${jarFileFullPath}"
+                                    if (jarFileRelativePath.endsWith('.jar')) {
+                                      artifactNameArgValue = jarFileRelativePath.substring(0, jarFileRelativePath.length() - 4)
+                                    } else {
+                                      // Should not happen if find command works, but handle defensively
+                                      error("Could not remove .jar suffix from ${jarFileRelativePath}")
+                                    }
+                                    echo "JAR path relative to root: ${jarFileRelativePath}"
+                                    echo "ARTIFACT_NAME build-arg value: ${artifactNameArgValue}"
 
                                 } catch (err) {
                                     echo "ERROR: Maven package FAILED for ${service}: ${err.getMessage()}"
@@ -224,14 +231,14 @@ pipeline {
                             } // End dir(service)
 
                             // 2. Build and Push Docker Image (from workspace root)
-                            if (jarFileRelativePath) {
+                            if (artifactNameArgValue) { // Check if artifact path (without suffix) was set
                                 try {
                                     def imageName = "${env.DOCKERHUB_USERNAME}/${service}"
                                     def imageTag = commitId
                                     echo "Building Docker image: ${imageName}:${imageTag} using ${env.DOCKERFILE_PATH}"
 
-                                    // *** CORRECTED BUILD ARG NAME: ARTIFACT_NAME ***
-                                    def dockerImage = docker.build("${imageName}:${imageTag}", "-f ${env.DOCKERFILE_PATH} --build-arg ARTIFACT_NAME=${jarFileRelativePath} .")
+                                    // Pass the path WITHOUT .jar as ARTIFACT_NAME
+                                    def dockerImage = docker.build("${imageName}:${imageTag}", "-f ${env.DOCKERFILE_PATH} --build-arg ARTIFACT_NAME=${artifactNameArgValue} .")
 
                                     echo "Pushing Docker image: ${imageName}:${imageTag}"
                                     dockerImage.push()
@@ -254,7 +261,7 @@ pipeline {
                                         currentBuild.result = 'UNSTABLE'
                                     }
                                 }
-                            } // End if (jarFileRelativePath)
+                            } // End if (artifactNameArgValue)
                         } // End for loop
                     } // End withCredentials
 
