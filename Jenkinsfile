@@ -1,225 +1,326 @@
+// Jenkinsfile
 pipeline {
     agent any
+    tools { jdk 'jdk-17' }
     options {
         buildDiscarder(logRotator(numToKeepStr: '5'))
+        timestamps()
     }
     environment {
-        WORKSPACE = "${env.WORKSPACE}"
-        // List of services without test folders       
-        SERVICES_WITHOUT_TESTS = "spring-petclinic-admin-server spring-petclinic-genai-service"
-        // Full list of services
         ALL_SERVICES = "spring-petclinic-admin-server spring-petclinic-api-gateway spring-petclinic-config-server spring-petclinic-customers-service spring-petclinic-discovery-server spring-petclinic-genai-service spring-petclinic-vets-service spring-petclinic-visits-service"
-        // Docker Hub credentials
-        DOCKER_HUB_CREDS = credentials('docker-credentials')
+        SERVICES_WITHOUT_TESTS = "spring-petclinic-admin-server spring-petclinic-genai-service"
+        DOCKERHUB_USERNAME = "22127422" // <--- *** REPLACE THIS ***
+        DOCKERHUB_CREDENTIALS_ID = "docker-credentials" // <--- *** Use the ID you created ***
+        TESTS_FAILED_FLAG = "false"
+        // Initialize BUILT_SERVICES - will be set based on success of Stage 3 builds
+        BUILT_SERVICES = ""
     }
+
     stages {
+
+        // ============================================================
+        // Stage 1: Detect Branch and Changes
+        // ============================================================
         stage('Detect Branch and Changes') {
             steps {
                 script {
-                    echo "Running pipeline for Branch: ${env.BRANCH_NAME}"
-                    
-                    // Check if this is the main branch
+                    echo "Pipeline started for Branch: ${env.BRANCH_NAME}"
+                    env.CHANGED_SERVICES = "" // Initialize list of services to process
+
                     if (env.BRANCH_NAME == 'main') {
-                        echo "This is the main branch - will build all services"
+                        echo "Running on 'main' branch. Processing ALL services."
                         env.CHANGED_SERVICES = env.ALL_SERVICES
                     } else {
-                        // For non-main branches, detect changes
-                        // Get changed files between current and previous commit
-                        def changedFiles = sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim()
-                        
-                        // Define service directories to monitor
+                        echo "Running on feature branch '${env.BRANCH_NAME}'. Detecting changes..."
+                        def changedFilesOutput = ''
+                        try {
+                           sh 'git fetch origin main:refs/remotes/origin/main'
+                           changedFilesOutput = sh(script: "git diff --name-only origin/main...HEAD || git diff --name-only HEAD~1 HEAD || exit 0", returnStdout: true).trim()
+                        } catch (e) {
+                           echo "Warning: Could not compare against origin/main, falling back to HEAD~1 comparison. Error: ${e.message}"
+                           changedFilesOutput = sh(script: "git diff --name-only HEAD~1 HEAD || exit 0", returnStdout: true).trim()
+                        }
+
+                        if (changedFilesOutput.isEmpty()) {
+                            echo "No files found changed compared to origin/main or HEAD~1."
+                        } else {
+                           echo "Changed files detected:\n${changedFilesOutput}"
+                        }
+                        def changedFilesList = changedFilesOutput.split('\n').findAll { it }
+
                         def services = env.ALL_SERVICES.split(" ")
-                        
-                        // Identify which services have changes
-                        env.CHANGED_SERVICES = ""
+                        def detectedServiceChanges = []
+
                         for (service in services) {
-                            if (changedFiles.contains(service)) {
-                                env.CHANGED_SERVICES = env.CHANGED_SERVICES + " " + service
+                            if (changedFilesList.any { file -> file.startsWith(service + "/") }) {
+                                detectedServiceChanges.add(service)
                             }
                         }
-                        // If no specific service changes detected, check for common changes
-                        if (env.CHANGED_SERVICES == "") {
-                            if (changedFiles.contains("pom.xml") || 
-                                changedFiles.contains(".github") || 
-                                changedFiles.contains("docker-compose") ||
-                                changedFiles.contains("Jenkinsfile")) {
-                                echo "Common files changed, will build all services"
-                                env.CHANGED_SERVICES = env.ALL_SERVICES
-                            } else {
-                                echo "No relevant changes detected"
-                            }
+
+                        def commonFilesChanged = changedFilesList.any { file ->
+                            file == 'pom.xml' || file == 'Jenkinsfile' || file == 'docker-compose' ||
+                            file.startsWith('.mvn/') || file.startsWith('.github/') ||
+                            file == 'mvnw' || file == 'mvnw.cmd'
                         }
-                        
-                        // Store changed files for detailed reporting
-                        env.CHANGED_FILES = changedFiles
+
+                        if (commonFilesChanged) {
+                            echo "Common file(s) changed. Processing ALL services."
+                            env.CHANGED_SERVICES = env.ALL_SERVICES
+                        } else if (!detectedServiceChanges.isEmpty()) {
+                            echo "Changes detected in specific services."
+                            env.CHANGED_SERVICES = detectedServiceChanges.join(" ")
+                        } else {
+                            echo "No relevant service or common file changes detected."
+                            env.CHANGED_SERVICES = ""
+                        }
+                    } // End script
+
+                    script { // Separate script block just for logging
+                        if (env.CHANGED_SERVICES?.trim()) {
+                            echo "Services to process in subsequent stages: ${env.CHANGED_SERVICES}"
+                        } else {
+                            echo "No services require processing. Subsequent stages will be skipped."
+                        }
                     }
-                    
-                    echo "Services to build: ${env.CHANGED_SERVICES}"
-                    
-                    // Get the latest commit ID for tagging Docker images
-                    env.COMMIT_ID = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                    echo "Commit ID for Docker tags: ${env.COMMIT_ID}"
-                }
-                
-                publishChecks name: 'Detect Changes', status: 'COMPLETED', conclusion: 'SUCCESS', 
-                    summary: env.BRANCH_NAME == 'main' ? "Building all services on main branch" : "Changed files detected: ${env.CHANGED_FILES?.split('\n')?.size() ?: 0}",
-                    text: env.BRANCH_NAME == 'main' ? 
-                        """## Main Branch Build
-                        Building all services because this is the main branch.""" :
-                        """## Changed Files
-                        ```
-                        ${env.CHANGED_FILES ?: 'No changes detected'}
-                        ```
-                        
-                        ## Services to Build
-                        ```
-                        ${env.CHANGED_SERVICES ?: 'No services to build'}
-                        ```"""
-            }
-            post {
-                failure {
-                    publishChecks name: 'Detect Changes', status: 'COMPLETED', conclusion: 'FAILURE', 
-                        summary: 'Failed to detect changes'
                 }
             }
-        }
-        
+        } // End Stage 1
+
+        // ============================================================
+        // Stage 2: Test Services
+        // ============================================================
         stage('Test Services') {
-            when {
-                expression { return env.CHANGED_SERVICES != "" }
-            }
+             when { expression { return env.CHANGED_SERVICES?.trim() } }
             steps {
-                publishChecks name: 'Test Services', status: 'IN_PROGRESS', 
-                    summary: 'Running tests for changed services'
                 script {
                     def serviceList = env.CHANGED_SERVICES.trim().split(" ")
-                    def testDetails = [:]
-                    def testFailures = 0
-                    def testPasses = 0
-                    
+                    def jacocoExecFiles = []
+                    def jacocoClassDirs = []
+                    def jacocoSrcDirs = []
+                    env.TESTS_FAILED_FLAG = "false"
 
                     for (service in serviceList) {
-                        echo "Running tests for service: ${service}"
-                        echo "Testing service: ${service}"
-                        // Check if the service has tests
-                        if (!env.SERVICES_WITHOUT_TESTS.contains(service)) {
+                        echo "--- Preparing to Test Service: ${service} ---"
+                        if (env.SERVICES_WITHOUT_TESTS.contains(service)) {
+                            echo "Skipping tests for ${service} (marked as having no tests)."
+                            continue
+                        }
+
+                        dir(service) {
                             try {
-                                def testOutput = sh(script: "./mvnw clean verify -pl ${service}", returnStdout: true)
+                                echo "Running 'mvn clean test' for ${service}..."
+                                sh 'mvn clean test'
+                                echo "Tests completed for ${service}."
 
-                                // def testOutput = sh(script: 'mvn clean test -Djdk.attach.allowAttachSelf=true', returnStdout: true)
+                                if (fileExists('target/jacoco.exec')) {
+                                    echo "Found jacoco.exec for ${service}. Adding to aggregation list."
+                                    jacocoExecFiles.add("${service}/target/jacoco.exec")
+                                    jacocoClassDirs.add("${service}/target/classes")
+                                    jacocoSrcDirs.add("${service}/src/main/java")
+                                } else {
+                                    echo "WARNING: jacoco.exec not found for ${service} after tests ran."
+                                }
 
-                                testDetails[service] = [
-                                    status: 'SUCCESS',
-                                    output: testOutput
-                                ]
-                                testPasses++
-                            } catch (Exception e) {
-                                echo "Warning: Tests failed for ${service}, but continuing pipeline"
-                                testDetails[service] = [
-                                    status: 'FAILURE',
-                                    error: e.getMessage()
-                                ]
-                                testFailures++
-                                currentBuild.result = 'UNSTABLE'
+                            } catch (err) {
+                                echo "ERROR: Tests FAILED for ${service}. Marking build as UNSTABLE."
+                                env.TESTS_FAILED_FLAG = "true"
                             } finally {
-                                // Publish test results regardless of test success/failure
+                                echo "Publishing JUnit results for ${service}..."
                                 junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
                             }
-                        } else {
-                            echo "Skipping tests for ${service} as it does not have test folders"
-                            testDetails[service] = [
-                                status: 'SKIPPED',
-                                reason: 'No test folders'
-                            ]
                         }
                     }
-                    if (testPasses == 0) {
-                        currentBuild.result = 'FAILURE'
-                    } else if (testFailures > 0) {
+
+                    if (!jacocoExecFiles.isEmpty()) {
+                        echo "--- Generating Aggregated JaCoCo Coverage Report ---"
+                        echo "Aggregating JaCoCo data from ${jacocoExecFiles.size()} service(s)."
+                        try {
+                            jacoco(
+                                execPattern: jacocoExecFiles.join(','),
+                                classPattern: jacocoClassDirs.join(','),
+                                sourcePattern: jacocoSrcDirs.join(','),
+                                inclusionPattern: '**/*.class',
+                                exclusionPattern: '**/test/**,**/model/**,**/domain/**,**/entity/**',
+                                skipCopyOfSrcFiles: true
+                            )
+                            echo "JaCoCo aggregated report generated successfully."
+                        } catch (err) {
+                            echo "ERROR: Failed to generate JaCoCo aggregated report: ${err.getMessage()}"
+                            currentBuild.result = 'UNSTABLE'
+                        }
+                    } else {
+                        echo "No JaCoCo execution data found to aggregate."
+                    }
+
+                    if (env.TESTS_FAILED_FLAG == "true") {
+                        echo "Setting build status to UNSTABLE due to test failures."
                         currentBuild.result = 'UNSTABLE'
                     } else {
-                        currentBuild.result = 'SUCCESS'
-                    } 
-                    echo "currentBuild.result: ${currentBuild.result}"
-                    echo "changeService: ${CHANGED_SERVICES}"
-                    
-                    // Store test details for report
-                    env.TEST_SUMMARY = "Tests passed: ${testPasses}, failed: ${testFailures}, skipped: ${serviceList.size() - testPasses - testFailures}"
-                    // Create detailed test report text
-                    def testReportText = "# Test Results Summary\n\n"
-                    testReportText += "| Service | Status | Details |\n"
-                    testReportText += "|---------|--------|--------|\n"
-                    
-                    for (service in serviceList) {
-                        def details = testDetails[service]
-                        def statusEmoji = details.status == 'SUCCESS' ? '✅' : details.status == 'SKIPPED' ? '⏭️' : '❌' 
-                        def detailText = details.status == 'SUCCESS' ? 'Tests passed' : 
-                                        details.status == 'SKIPPED' ? details.reason : 'Tests failed'
-                        testReportText += "| ${service} | ${statusEmoji} ${details.status} | ${detailText} |\n"
+                        echo "All tests passed or were skipped."
                     }
-                    
-                    testReportText += "\n\n## JUnit Results\nSee Jenkins test results for detailed JUnit information.\n\n"
-                    testReportText += "## JaCoCo Coverage\nSee Jenkins coverage reports for aggregated code coverage information."
-                    
-                    env.TEST_REPORT = testReportText
-                }
-                publishChecks name: 'Test Services', status: 'COMPLETED', 
-                    conclusion: currentBuild.result,
-                    summary: env.TEST_SUMMARY,
-                    text: env.TEST_REPORT
-            }
-            post {
-                failure {
-                    publishChecks name: 'Test Services', status: 'COMPLETED', conclusion: 'FAILURE', 
-                        summary: 'Test execution failed'
-                }
-            }
-        }
+
+                } // End script
+            } // End steps
+        } // End Stage 2
+
+        // ============================================================
+        // Stage 3: Build Services (JARs) - Simplified Logic
+        // ============================================================
+        stage('Build Services') {
+            when { expression { return env.CHANGED_SERVICES?.trim() } }
+            steps {
+                script {
+                    def serviceList = env.CHANGED_SERVICES.trim().split(" ")
+                    // Remove successfullyBuilt list
+                    def buildFailed = false // Track if any build in this stage fails
+                    env.BUILT_SERVICES = "" // Ensure BUILT_SERVICES is reset/empty initially
+
+                    for (service in serviceList) {
+                        echo "--- Preparing to Build Service: ${service} ---"
+                        dir(service) {
+                            try {
+                                echo "Running 'mvn clean package -DskipTests' for ${service}..."
+                                sh 'mvn clean package -DskipTests'
+                                echo "Build successful for ${service}."
+                                // Removed: successfullyBuilt.add(service)
+
+                                def artifactPath = sh(script: 'find target -maxdepth 1 -name "*.jar" -print -quit', returnStdout: true).trim()
+                                if (artifactPath) {
+                                    echo "Archiving artifact: ${artifactPath}"
+                                    archiveArtifacts artifacts: artifactPath, fingerprint: true
+                                } else {
+                                    echo "WARNING: Could not find JAR artifact for ${service} in target/ directory after build."
+                                }
+                            } catch (err) {
+                                echo "ERROR: Build FAILED for ${service}."
+                                buildFailed = true
+                                // Optional: break the loop if one build fails? For now, let it continue.
+                                // break
+                            }
+                        } // End dir(service)
+                    } // End for loop
+
+                    // *** MODIFIED: Assign BUILT_SERVICES based on buildFailed flag ***
+                    if (buildFailed) {
+                        env.BUILT_SERVICES = "" // Ensure it's empty if any build failed
+                        echo "Setting build status to UNSTABLE due to build failures in this stage."
+                        currentBuild.result = 'UNSTABLE'
+                    } else {
+                        // If no build failed, assume all CHANGED_SERVICES were successfully built
+                        env.BUILT_SERVICES = env.CHANGED_SERVICES
+                        echo "All selected services built successfully."
+                        // Keep UNSTABLE if tests failed earlier
+                        if (env.TESTS_FAILED_FLAG == "true") {
+                           echo "Marking UNSTABLE due to earlier test failures."
+                           currentBuild.result = 'UNSTABLE'
+                        }
+                    }
+                    // *** END MODIFICATION ***
+
+                    // *** Keep DEBUG LOGGING to verify ***
+                    echo "[DEBUG] Value assigned to env.BUILT_SERVICES at end of Stage 3: '${env.BUILT_SERVICES}'"
+
+                    // Simplified final status message based purely on the env var
+                    if (env.BUILT_SERVICES?.trim()) {
+                        echo "BUILT_SERVICES populated."
+                    } else {
+                        echo "BUILT_SERVICES is empty (either no services changed or build(s) failed)."
+                         // If CHANGED_SERVICES was not empty but BUILT_SERVICES is, mark as unstable
+                         if (env.CHANGED_SERVICES?.trim() && !buildFailed) { // Only mark unstable if builds didn't explicitly fail but var still empty
+                            echo "WARNING: BUILT_SERVICES is empty despite no build failures reported."
+                            currentBuild.result = 'UNSTABLE'
+                         }
+                    }
+
+                } // End script
+            } // End steps
+        } // End Stage 3
 
 
-        stage('Build and Push Docker Images') {
+        // ============================================================
+        // Stage 4: Build & Push Docker Images
+        // ============================================================
+        stage('Build & Push Docker Images') {
             when {
-                expression { return env.CHANGED_SERVICES?.trim() }
+                expression { return env.BUILT_SERVICES?.trim() && currentBuild.currentResult != 'FAILURE' }
             }
             steps {
                 script {
-                    // Login to Docker Hub using withCredentials for proper secret handling
-                    withCredentials([usernamePassword(credentialsId: 'docker-credentials', 
-                                                    usernameVariable: 'DOCKER_USERNAME', 
-                                                    passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh "echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USERNAME --password-stdin"
-                        
-                        // Build each changed service
-                        def services = env.CHANGED_SERVICES.trim().split(" ")
-                        for (service in services) {
-                            echo "Building Docker image for ${service}"
-                            
-                            // Build the service and its Docker image
-                            sh "./mvnw clean install -PbuildDocker -pl ${service}"
-                            
-                            // Get image info (assuming the image is named the same as the service directory)
-                            def baseImageName = "\$DOCKER_USERNAME/${service}"
-                            
-                            // Tag the image with commit ID
-                            sh "docker tag ${baseImageName}:latest ${baseImageName}:${env.COMMIT_ID}"
-                            
-                            // Push both tags to Docker Hub
-                            echo "Pushing ${baseImageName}:latest and ${baseImageName}:${env.COMMIT_ID} to Docker Hub"
-                            // sh "docker push ${baseImageName}:latest"
-                            sh "docker push ${baseImageName}:${env.COMMIT_ID}"
-                        }
+                    if (!env.DOCKERHUB_USERNAME || env.DOCKERHUB_USERNAME == 'your-dockerhub-username') {
+                        error "FATAL: DOCKERHUB_USERNAME environment variable is not set or not replaced in Jenkinsfile."
                     }
-                }
-            }
-            // ...post actions remain the same
-        }
-        stage('Clean') {
-            steps {
-                echo 'Cleaning workspace and build artifacts...'
-                deleteDir() 
-            }
-        }
-    }
-}
+                    if (!env.DOCKERHUB_CREDENTIALS_ID || env.DOCKERHUB_CREDENTIALS_ID == 'dockerhub-credentials') {
+                        error "FATAL: DOCKERHUB_CREDENTIALS_ID environment variable is not set or not replaced in Jenkinsfile."
+                    }
 
+                    def serviceList = env.BUILT_SERVICES.trim().split(" ")
+                    def commitId = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    if (!commitId) {
+                        error "FATAL: Could not retrieve Git commit ID."
+                    }
+                    echo "Using Commit ID for tagging: ${commitId}"
 
+                    withCredentials([usernamePassword(credentialsId: env.DOCKERHUB_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        for (service in serviceList) {
+                            echo "--- Preparing Docker Image for Service: ${service} ---"
+                            def imageName = "${env.DOCKERHUB_USERNAME}/${service}"
+                            def imageTag = commitId
+
+                            dir(service) {
+                                try {
+                                    echo "Building Docker image: ${imageName}:${imageTag}"
+                                    def jarFile = sh(script: 'find target -maxdepth 1 -name "*.jar" -print -quit', returnStdout: true).trim()
+                                    if (!jarFile) {
+                                        error "Could not find JAR file in target/ for ${service}. Cannot build Docker image."
+                                    }
+                                    def dockerImage = docker.build("${imageName}:${imageTag}", "--build-arg JAR_FILE=${jarFile} .")
+
+                                    echo "Pushing Docker image: ${imageName}:${imageTag}"
+                                    dockerImage.push()
+
+                                    if (env.BRANCH_NAME == 'main') {
+                                        echo "Pushing additional tag 'latest' for main branch build: ${imageName}:latest"
+                                        dockerImage.push('latest')
+                                    } else if (env.BRANCH_NAME) {
+                                        def branchTag = env.BRANCH_NAME.replaceAll('/','-')
+                                        echo "Pushing additional tag for branch name: ${imageName}:${branchTag}"
+                                        dockerImage.push("${branchTag}")
+                                    }
+
+                                    echo "Docker build and push successful for ${service}."
+
+                                } catch (err) {
+                                    echo "ERROR: Docker build or push FAILED for ${service}: ${err.getMessage()}"
+                                    if (currentBuild.currentResult != 'FAILURE') {
+                                        currentBuild.result = 'UNSTABLE'
+                                    }
+                                }
+                            } // End dir(service)
+                        } // End for loop
+                    } // End withCredentials
+                } // End script
+            } // End steps
+        } // End Stage 4
+
+    } // End stages
+
+    // ============================================================
+    // Post Actions
+    // ============================================================
+    post {
+        always {
+            echo "Pipeline finished with final status: ${currentBuild.currentResult}"
+            cleanWs()
+        }
+        success {
+            echo "Build was successful!"
+        }
+        unstable {
+            echo "Build is UNSTABLE. Check logs for test failures, build issues, or Docker push problems."
+        }
+        failure {
+            echo "Build FAILED. Check logs for critical errors."
+        }
+    } // End post
+
+} // End pipeline
