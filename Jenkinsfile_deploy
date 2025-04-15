@@ -20,8 +20,8 @@ pipeline {
       steps {
         script {
           sh '''
-            kubectl version --client
-            kubectl get namespace petclinic-dev || kubectl create namespace petclinic-dev
+            /opt/homebrew/bin/kubectl version --client
+            /opt/homebrew/bin/kubectl get namespace petclinic-dev || /opt/homebrew/bin/kubectl create namespace petclinic-dev
           '''
         }
       }
@@ -46,7 +46,7 @@ pipeline {
           ]
           
           withCredentials([usernamePassword(credentialsId: 'docker_hub_PAT', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-            sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+            sh "/usr/local/bin/docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
             
             // 1. Deploy infrastructure services
             echo "Deploying infrastructure services..."
@@ -68,7 +68,7 @@ pipeline {
               
               sh """
               cat k8s/${service.name}.yaml | sed 's/\${IMAGE_TAG}/${serviceTag}/g' | sed 's/\${DOCKER_USERNAME}/${DOCKER_USERNAME}/g' > k8s/${service.name}-temp.yaml
-              kubectl apply -f k8s/${service.name}-temp.yaml
+              /opt/homebrew/bin/kubectl apply -f k8s/${service.name}-temp.yaml
               rm k8s/${service.name}-temp.yaml
               """
             }
@@ -76,8 +76,8 @@ pipeline {
             // Đợi infrastructure services sẵn sàng
             echo "Waiting for infrastructure services to be ready..."
             sh """
-            kubectl wait --for=condition=available deployment/config-server -n petclinic-dev --timeout=120s || echo 'Warning: Config Server may not be ready'
-            kubectl wait --for=condition=available deployment/discovery-server -n petclinic-dev --timeout=120s || echo 'Warning: Discovery Server may not be ready'
+            /opt/homebrew/bin/kubectl wait --for=condition=available deployment/config-server -n petclinic-dev --timeout=120s || echo 'Warning: Config Server may not be ready'
+            /opt/homebrew/bin/kubectl wait --for=condition=available deployment/discovery-server -n petclinic-dev --timeout=120s || echo 'Warning: Discovery Server may not be ready'
             """
             
             // 2. Deploy application services
@@ -100,7 +100,7 @@ pipeline {
               
               sh """
               cat k8s/${service.name}.yaml | sed 's/\${IMAGE_TAG}/${serviceTag}/g' | sed 's/\${DOCKER_USERNAME}/${DOCKER_USERNAME}/g' > k8s/${service.name}-temp.yaml
-              kubectl apply -f k8s/${service.name}-temp.yaml
+              /opt/homebrew/bin/kubectl apply -f k8s/${service.name}-temp.yaml
               rm k8s/${service.name}-temp.yaml
               """
             }
@@ -109,7 +109,7 @@ pipeline {
             echo "Services have been deployed with NodePort configuration. Developers should add these entries to their hosts file:"
             sh """
             echo "# Get worker node IP"
-            WORKER_IP=\$(kubectl get nodes -o wide | grep -v master | awk '{print \$6}' | head -1)
+            WORKER_IP=\$(/opt/homebrew/bin/kubectl get nodes -o wide | grep -v master | awk '{print \$6}' | head -1)
             echo "\\nTo access the services, add these entries to your hosts file:"
             echo "\$WORKER_IP  customers.petclinic.local"
             echo "\$WORKER_IP  vets.petclinic.local"
@@ -138,15 +138,15 @@ pipeline {
           def allServices = ['config-server', 'discovery-server', 'customers-service', 'vets-service', 'visits-service', 'genai-service', 'api-gateway']
           
           echo "Verifying deployments..."
-          sh "kubectl get pods -n petclinic-dev -o wide"
+          sh "/opt/homebrew/bin/kubectl get pods -n petclinic-dev -o wide"
           
           echo "Waiting for all services to be ready..."
           for (service in allServices) {
-            sh "kubectl wait --for=condition=available deployment/${service} -n petclinic-dev --timeout=180s || echo 'Warning: ${service} may not be ready'"
+            sh "/opt/homebrew/bin/kubectl wait --for=condition=available deployment/${service} -n petclinic-dev --timeout=180s || echo 'Warning: ${service} may not be ready'"
           }
           
           echo "Checking endpoints..."
-          sh "kubectl get endpoints -n petclinic-dev"
+          sh "/opt/homebrew/bin/kubectl get endpoints -n petclinic-dev"
         }
       }
     }
