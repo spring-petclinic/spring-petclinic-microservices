@@ -108,7 +108,6 @@ pipeline {
             // Print service access information for developers
             echo "Services have been deployed with NodePort configuration. Developers should add these entries to their hosts file:"
             sh """
-            /opt/homebrew/bin/kubectl port-forward --namespace ingress-nginx service/ingress-nginx-controller 8888:80
             /opt/homebrew/bin/kubectl apply -f k8s/petclinic-ingress.yaml
             """
           }
