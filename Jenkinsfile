@@ -252,9 +252,9 @@ pipeline {
                             sh """
                             cp ${serviceDir}/target/*.jar docker/${service}.jar
                             cd docker
-                            docker build --build-arg ARTIFACT_NAME=${service} --build-arg EXPOSED_PORT=8080 -t ${imageName}:${commitId} .
+                            /usr/local/bin/docker build --build-arg ARTIFACT_NAME=${service} --build-arg EXPOSED_PORT=8080 -t ${imageName}:${commitId} .
 
-                            docker push ${imageName}:${commitId}
+                            /usr/local/bin/docker push ${imageName}:${commitId}
 
                             rm ${service}.jar
                             cd ..
