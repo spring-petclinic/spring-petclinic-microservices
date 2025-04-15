@@ -265,8 +265,7 @@ pipeline {
                     if (!env.DOCKERHUB_CREDENTIALS_ID || env.DOCKERHUB_CREDENTIALS_ID == 'dockerhub-credentials-id') {
                         error "FATAL: DOCKERHUB_CREDENTIALS_ID environment variable is not set or not replaced in Jenkinsfile."
                     }
-
-
+        
                     def serviceList = env.BUILT_SERVICES.trim().split(" ")
                     // Get the short commit ID for tagging (requirement: latest commit ID)
                     // Ensure git tool is available or git commands work in the agent environment
@@ -275,72 +274,63 @@ pipeline {
                         error "FATAL: Could not retrieve Git commit ID."
                     }
                     echo "Using Commit ID for tagging: ${commitId}"
-
+        
                     // Use Docker Hub credentials
                     withCredentials([usernamePassword(credentialsId: env.DOCKERHUB_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         // Login to Docker Hub (optional but recommended for reliability, esp. if using docker sh steps)
                         // sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
-
+        
                         for (service in serviceList) {
                             echo "--- Preparing Docker Image for Service: ${service} ---"
                             // Construct the full image name and tag
-                            // Replace 'spring-petclinic-' prefix for shorter image name if desired, e.g. 'api-gateway' instead of 'spring-petclinic-api-gateway'
-                            // Let's keep the full name for clarity based on directory structure
                             def imageName = "${env.DOCKERHUB_USERNAME}/${service}"
                             def imageTag = commitId // Tag with the short commit ID
-
-                            // Navigate to the service directory containing the Dockerfile
+        
+                            // Navigate to the root of the repo or directory where the common Dockerfile is located
                             dir(service) {
                                 try {
                                     echo "Building Docker image: ${imageName}:${imageTag}"
-                                    // Build the image using the Dockerfile in the current directory (.)
-                                    // The '--build-arg' passes the JAR filename to the Dockerfile. Check your Dockerfiles
-                                    // to ensure they expect a JAR_FILE argument (e.g., ARG JAR_FILE=target/*.jar)
-                                    // If Dockerfiles just copy 'target/*.jar', this build-arg might be optional,
-                                    // but it's safer to be explicit.
+        
+                                    // Use the common Dockerfile located at the root or in a specific directory
+                                    def dockerfilePath = "../docker/Dockerfile"  // Adjust path if the Dockerfile is in a different location
+                                    
+                                    // Build the image using the shared Dockerfile
                                     def jarFile = sh(script: 'find target -maxdepth 1 -name "*.jar" -print -quit', returnStdout: true).trim()
                                     if (!jarFile) {
                                         error "Could not find JAR file in target/ for ${service}. Cannot build Docker image."
                                     }
+        
                                     // Use Docker Pipeline plugin's build command
-                                    def dockerImage = docker.build("${imageName}:${imageTag}", "--build-arg JAR_FILE=${jarFile} .")
-
+                                    def dockerImage = docker.build("${imageName}:${imageTag}", "-f ${dockerfilePath} --build-arg JAR_FILE=${jarFile} .")
+        
                                     echo "Pushing Docker image: ${imageName}:${imageTag}"
-                                    // Use Docker Pipeline plugin's push command (implicitly uses credentials bound by withCredentials)
                                     dockerImage.push()
-                                    // Alternative push with specific tag if needed: dockerImage.push("${imageTag}")
-
-                                    // Also push a 'latest' tag if building from the 'main' branch
+        
+                                    // Optionally push 'latest' tag for the main branch
                                     if (env.BRANCH_NAME == 'main') {
                                         echo "Pushing additional tag 'latest' for main branch build: ${imageName}:latest"
                                         dockerImage.push('latest')
-                                    }
-                                     // Also push a 'BRANCH_NAME' tag for non-main branch build
-                                    else if (env.BRANCH_NAME) {
+                                    } else if (env.BRANCH_NAME) {
                                         // Sanitize branch name for Docker tag (replace / with -)
                                         def branchTag = env.BRANCH_NAME.replaceAll('/','-')
                                         echo "Pushing additional tag for branch name: ${imageName}:${branchTag}"
                                         dockerImage.push("${branchTag}")
                                     }
-
-
+        
                                     echo "Docker build and push successful for ${service}."
-
+        
                                 } catch (err) {
                                     echo "ERROR: Docker build or push FAILED for ${service}: ${err.getMessage()}"
-                                    // Mark build as unstable if not already failed
                                     if (currentBuild.currentResult != 'FAILURE') {
                                         currentBuild.result = 'UNSTABLE'
                                     }
-                                    // Decide if you want to stop the whole process on a single docker failure
-                                    // error "Stopping build due to Docker failure for ${service}"
                                 }
-                            } // End dir(service)
-                        } // End for loop
-                    } // End withCredentials
-                } // End script
-            } // End steps
-        } // End Stage 4
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
     } // End stages
 
