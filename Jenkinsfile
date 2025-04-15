@@ -12,8 +12,7 @@ pipeline {
         DOCKERHUB_USERNAME = "22127422" // <--- *** REPLACE THIS ***
         DOCKERHUB_CREDENTIALS_ID = "docker-credentials" // <--- *** Use the ID you created ***
         TESTS_FAILED_FLAG = "false"
-        // BUILT_SERVICES will be populated directly in Stage 3 now
-        BUILT_SERVICES = ""
+        BUILT_SERVICES = "" // Will be set in Stage 3
     }
 
     stages {
@@ -164,16 +163,16 @@ pipeline {
         } // End Stage 2
 
         // ============================================================
-        // Stage 3: Build Services (JARs) - REVISED LOGIC
+        // Stage 3: Build Services (JARs) - REVERTED LOGIC + DEBUG
         // ============================================================
         stage('Build Services') {
             when { expression { return env.CHANGED_SERVICES?.trim() } }
             steps {
                 script {
                     def serviceList = env.CHANGED_SERVICES.trim().split(" ")
-                    // Initialize BUILT_SERVICES as empty string at the start of the stage
-                    env.BUILT_SERVICES = ""
-                    def buildFailed = false // Track if any build in this stage fails
+                    // Use a local list again
+                    def successfullyBuilt = []
+                    def buildFailed = false
 
                     for (service in serviceList) {
                         echo "--- Preparing to Build Service: ${service} ---"
@@ -182,16 +181,8 @@ pipeline {
                                 echo "Running 'mvn clean package -DskipTests' for ${service}..."
                                 sh 'mvn clean package -DskipTests'
                                 echo "Build successful for ${service}."
-
-                                // *** MODIFIED: Append directly to env var string on success ***
-                                if (env.BUILT_SERVICES == "") {
-                                    // First successful build
-                                    env.BUILT_SERVICES = service
-                                } else {
-                                    // Subsequent successful builds, add with a space separator
-                                    env.BUILT_SERVICES = "${env.BUILT_SERVICES} ${service}"
-                                }
-                                // *** END MODIFICATION ***
+                                // Add to the local list
+                                successfullyBuilt.add(service)
 
                                 def artifactPath = sh(script: 'find target -maxdepth 1 -name "*.jar" -print -quit', returnStdout: true).trim()
                                 if (artifactPath) {
@@ -207,8 +198,10 @@ pipeline {
                         } // End dir(service)
                     } // End for loop
 
-                    // *** Keep DEBUG LOGGING to verify the final string ***
-                    echo "[DEBUG] Value of env.BUILT_SERVICES at end of Stage 3: '${env.BUILT_SERVICES}'"
+                    // *** Assign to env var ONCE after the loop ***
+                    env.BUILT_SERVICES = successfullyBuilt.join(" ")
+                    // *** Keep DEBUG LOGGING ***
+                    echo "[DEBUG] Value assigned to env.BUILT_SERVICES at end of Stage 3: '${env.BUILT_SERVICES}'"
 
                     if (buildFailed) {
                         echo "Setting build status to UNSTABLE due to build failures in this stage."
@@ -216,13 +209,14 @@ pipeline {
                     } else if (env.TESTS_FAILED_FLAG == "true") {
                          echo "Builds successful, but marking UNSTABLE due to earlier test failures."
                          currentBuild.result = 'UNSTABLE'
-                    } else if (env.BUILT_SERVICES?.trim()) { // Check if *any* service was built successfully
-                         echo "Some or all selected services built successfully."
+                    } else if (env.BUILT_SERVICES?.trim()) { // Check if the env var got set
+                         echo "Some or all selected services built successfully. BUILT_SERVICES populated."
                     } else {
-                         // This case should now only happen if CHANGED_SERVICES was not empty, but *all* builds failed.
-                         echo "No services were built successfully in this stage."
-                         // Optional: Mark as unstable if no services built, even if no explicit error was caught above?
-                         // currentBuild.result = 'UNSTABLE'
+                         echo "No services were successfully added to BUILT_SERVICES string."
+                         // If CHANGED_SERVICES was not empty but BUILT_SERVICES is, mark as unstable
+                         if (env.CHANGED_SERVICES?.trim()) {
+                            currentBuild.result = 'UNSTABLE'
+                         }
                     }
                 } // End script
             } // End steps
@@ -232,7 +226,6 @@ pipeline {
         // Stage 4: Build & Push Docker Images
         // ============================================================
         stage('Build & Push Docker Images') {
-            // Condition remains the same: Run if BUILT_SERVICES is not empty AND build didn't hard fail
             when {
                 expression { return env.BUILT_SERVICES?.trim() && currentBuild.currentResult != 'FAILURE' }
             }
@@ -245,7 +238,6 @@ pipeline {
                         error "FATAL: DOCKERHUB_CREDENTIALS_ID environment variable is not set or not replaced in Jenkinsfile."
                     }
 
-                    // Now BUILT_SERVICES should be a space-separated string
                     def serviceList = env.BUILT_SERVICES.trim().split(" ")
                     def commitId = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                     if (!commitId) {
