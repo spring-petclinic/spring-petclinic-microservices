@@ -31,7 +31,7 @@ pipeline {
         ALL_SERVICES = "spring-petclinic-admin-server spring-petclinic-api-gateway spring-petclinic-config-server spring-petclinic-customers-service spring-petclinic-discovery-server spring-petclinic-genai-service spring-petclinic-vets-service spring-petclinic-visits-service"
         SERVICES_WITHOUT_TESTS = "spring-petclinic-admin-server spring-petclinic-genai-service"
         // Ensure Docker Hub username and credentials ID are correct
-        DOCKERHUB_USERNAME = "YOUR_DOCKERHUB_USERNAME_HERE" // <--- *** REPLACE THIS ***
+        DOCKERHUB_USERNAME = "22127422" // <--- *** REPLACE THIS ***
         DOCKERHUB_CREDENTIALS_ID = "docker-credentials"     // <--- *** REPLACE THIS if you used a different ID ***
         TESTS_FAILED_FLAG = "false"
         DOCKERFILE_PATH = "docker/Dockerfile"
