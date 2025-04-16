@@ -54,9 +54,9 @@ probes:
 
 # Environment variables specific to this service (if any)
 env:
-  # Override config server URI using the full Kubernetes Service FQDN
-  - name: SPRING_CLOUD_CONFIG_URI
-    value: "http://{{ .Release.Name }}-config-server.{{ .Release.Namespace }}.svc.cluster.local:8888"
+  # Attempt to disable the config client entirely during bootstrap
+  - name: SPRING_CLOUD_CONFIG_ENABLED
+    value: "false"
 
 nodeSelector: {}
 tolerations: []
