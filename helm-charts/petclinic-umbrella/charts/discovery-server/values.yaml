@@ -48,21 +48,9 @@ autoscaling:
 # Eureka might take a bit longer to be ready.
 probes:
   liveness:
-    enabled: true
-    path: "/actuator/health/liveness"
-    initialDelaySeconds: 45 # Longer delay for discovery server?
-    periodSeconds: 15
-    timeoutSeconds: 5
-    failureThreshold: 3
-    successThreshold: 1
+    enabled: false
   readiness:
-    enabled: true
-    path: "/actuator/health/readiness"
-    initialDelaySeconds: 25 # Longer delay for discovery server?
-    periodSeconds: 10
-    timeoutSeconds: 5
-    failureThreshold: 3
-    successThreshold: 1
+    enabled: false
 
 # Environment variables specific to this service (if any)
 env:
