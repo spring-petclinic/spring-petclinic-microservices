@@ -49,25 +49,9 @@ autoscaling:
 # but actuator/health should become available once it reads config. Adjust if needed.
 probes:
   liveness:
-    enabled: true
-    # Check if the process is listening on the 'http' port
-    tcpSocket:
-      port: http # This name refers to the containerPort name in deployment.yaml
-    initialDelaySeconds: 45 # Keep slightly longer delay
-    periodSeconds: 15
-    timeoutSeconds: 5
-    failureThreshold: 3
-    successThreshold: 1
+    enabled: false
   readiness:
-    enabled: true
-    # Check if the process is listening on the 'http' port
-    tcpSocket:
-      port: http # This name refers to the containerPort name in deployment.yaml
-    initialDelaySeconds: 25 # Keep slightly longer delay
-    periodSeconds: 10
-    timeoutSeconds: 5
-    failureThreshold: 3
-    successThreshold: 1
+    enabled: false
 
 # Environment variables specific to this service (if any)
 env: []

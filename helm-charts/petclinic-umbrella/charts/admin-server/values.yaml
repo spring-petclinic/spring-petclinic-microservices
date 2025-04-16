@@ -48,21 +48,9 @@ autoscaling:
 # Liveness and Readiness Probes using Spring Boot Actuator
 probes:
   liveness:
-    enabled: true
-    path: "/actuator/health/liveness"
-    initialDelaySeconds: 30
-    periodSeconds: 10
-    timeoutSeconds: 5
-    failureThreshold: 3
-    successThreshold: 1
+    enabled: false
   readiness:
-    enabled: true
-    path: "/actuator/health/readiness"
-    initialDelaySeconds: 15
-    periodSeconds: 10
-    timeoutSeconds: 5
-    failureThreshold: 3
-    successThreshold: 1
+    enabled: false
 
 # Environment variables specific to this service (if any)
 env: []
