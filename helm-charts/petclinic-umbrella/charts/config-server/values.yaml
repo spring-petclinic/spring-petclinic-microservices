@@ -50,17 +50,20 @@ autoscaling:
 probes:
   liveness:
     enabled: true
-    # Config server might take longer to become live if reading complex config repo
-    path: "/actuator/health/liveness"
-    initialDelaySeconds: 45 # Slightly longer delay?
+    # Check if the process is listening on the 'http' port
+    tcpSocket:
+      port: http # This name refers to the containerPort name in deployment.yaml
+    initialDelaySeconds: 45 # Keep slightly longer delay
     periodSeconds: 15
     timeoutSeconds: 5
     failureThreshold: 3
     successThreshold: 1
   readiness:
     enabled: true
-    path: "/actuator/health/readiness"
-    initialDelaySeconds: 20 # Readiness might be faster
+    # Check if the process is listening on the 'http' port
+    tcpSocket:
+      port: http # This name refers to the containerPort name in deployment.yaml
+    initialDelaySeconds: 25 # Keep slightly longer delay
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 3
