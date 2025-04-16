@@ -359,9 +359,9 @@ pipeline {
                     def helmSetString = imageTagSetArgs.join(" ")
                     echo "Helm --set arguments for image tags: ${helmSetString}"
 
-                    // 3. Execute Helm Deployment inside withKubeconfig block
+                    // 3. Execute Helm Deployment inside withKubeConfig block
                     // This ensures helm uses the correct context and insecure skip setting
-                    withKubeconfig(credentialsId: '', configFile: env.KUBECONFIG_PATH) { // Use file, no credentialsId needed if config has user auth
+                    withKubeConfig(credentialsId: '', configFile: env.KUBECONFIG_PATH) { // Use file, no credentialsId needed if config has user auth
                         try {
                             echo "Updating Helm dependencies for chart at ${env.HELM_CHART_PATH}..."
                             // Run update inside the chart directory
@@ -397,7 +397,7 @@ pipeline {
                             echo "ERROR: Helm deployment FAILED for Release: ${params.HELM_RELEASE_NAME}"
                             error "Helm deployment failed: ${err.getMessage()}" // Marks build as FAILED
                         }
-                    } // End withKubeconfig
+                    } // End withKubeConfig
                 } // End script
             } // End steps
         } // End Stage 4 (Deploy)
@@ -427,7 +427,7 @@ pipeline {
             // Example (Use with caution):
             // script {
             //     try {
-            //         withKubeconfig(credentialsId: '', configFile: env.KUBECONFIG_PATH) {
+            //         withKubeConfig(credentialsId: '', configFile: env.KUBECONFIG_PATH) {
             //             echo "Attempting cleanup of failed Helm release: ${params.HELM_RELEASE_NAME}"
             //             sh "helm uninstall ${params.HELM_RELEASE_NAME} -n ${params.DEPLOY_NAMESPACE} --wait"
             //         }
