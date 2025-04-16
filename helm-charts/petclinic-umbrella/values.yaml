@@ -1,0 +1,101 @@
+# Global values accessible in all sub-charts via {{ .Values.global.* }}
+global:
+  dockerHubUser: "22127422" # !!! REPLACE THIS !!!
+  # Default resource settings (can be overridden per service)
+  resources:
+    limits:
+      memory: "512Mi"
+    requests:
+      memory: "256Mi"
+      cpu: "100m" # Example default CPU request
+
+# Default settings and overrides for sub-charts. Key names MUST match dependency names.
+
+config-server:
+  enabled: true
+  image:
+    tag: "latest" # Default tag, overridden by Jenkins
+  replicaCount: 1
+  service:
+    type: ClusterIP # Internal service
+    port: 8888
+  resources: {} # Use global defaults unless overridden here
+
+discovery-server:
+  enabled: true
+  image:
+    tag: "latest"
+  replicaCount: 1
+  service:
+    type: ClusterIP # Internal service
+    port: 8761
+  resources: {}
+
+customers-service:
+  enabled: true
+  image:
+    tag: "latest"
+  replicaCount: 1
+  service:
+    type: NodePort # Expose for direct access/testing if needed, or change to ClusterIP if only via gateway
+    port: 8081
+  resources: {}
+
+visits-service:
+  enabled: true
+  image:
+    tag: "latest"
+  replicaCount: 1
+  service:
+    type: NodePort # Expose for direct access/testing if needed, or change to ClusterIP if only via gateway
+    port: 8082
+  resources: {}
+
+vets-service:
+  enabled: true
+  image:
+    tag: "latest"
+  replicaCount: 1
+  service:
+    type: NodePort # Expose for direct access/testing if needed, or change to ClusterIP if only via gateway
+    port: 8083
+  resources: {}
+
+genai-service:
+  enabled: true
+  image:
+    tag: "latest"
+  replicaCount: 1
+  service:
+    type: ClusterIP # Likely internal only
+    port: 8084
+  resources: {}
+  # Define env vars needed by genai-service, leave values empty by default
+  # These could be populated from K8s secrets or direct --set values if needed
+  env:
+    - name: OPENAI_API_KEY
+      value: ""
+    - name: AZURE_OPENAI_KEY
+      value: ""
+    - name: AZURE_OPENAI_ENDPOINT
+      value: ""
+
+api-gateway:
+  enabled: true
+  image:
+    tag: "latest"
+  replicaCount: 1
+  service:
+    type: NodePort # Definitely needs exposure for UI access
+    port: 8080
+  resources: {}
+
+admin-server:
+  enabled: true
+  image:
+    tag: "latest"
+  replicaCount: 1
+  service:
+    type: NodePort # Expose for UI access
+    port: 9090
+  resources: {} # Uses less memory in compose, maybe override: { limits: { memory: 256Mi }, requests: { memory: 128Mi } }

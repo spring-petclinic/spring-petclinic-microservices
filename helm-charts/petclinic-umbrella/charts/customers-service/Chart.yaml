@@ -1,0 +1,8 @@
+apiVersion: v2
+name: customers-service
+description: Helm chart for the PetClinic Customers Service
+type: application
+# This is the chart version.
+version: 0.1.0
+# This is the application version. It's optional and can be overridden by values.
+# appVersion: "1.0"

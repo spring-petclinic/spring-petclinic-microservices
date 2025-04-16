@@ -1,0 +1,72 @@
+# Default values for admin-server.
+# Overridden by the parent chart (petclinic-umbrella) or --set flags.
+
+replicaCount: 1
+
+image:
+  repository: "" # Template constructs this: <global.dockerHubUser>/spring-petclinic-admin-server
+  pullPolicy: IfNotPresent
+  tag: "" # Default tag managed by the parent chart/deployment command
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP # Default, override to NodePort in umbrella values if direct access needed
+  # --- Set correct default port ---
+  port: 9090 # Default port for admin-server
+  # nodePort: # Only specify if type is NodePort and you need a fixed port
+
+ingress:
+  enabled: false
+
+# Default resource requests and limits for admin-server
+# Overriding global defaults as admin-server might use less memory
+resources:
+  limits:
+    memory: "256Mi" # Lower limit based on docker-compose
+  requests:
+    memory: "128Mi" # Example request
+    cpu: "50m"    # Example request
+
+autoscaling:
+  enabled: false
+
+# Liveness and Readiness Probes using Spring Boot Actuator
+probes:
+  liveness:
+    enabled: true
+    path: "/actuator/health/liveness"
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  readiness:
+    enabled: true
+    path: "/actuator/health/readiness"
+    initialDelaySeconds: 15
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+
+# Environment variables specific to this service (if any)
+env: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

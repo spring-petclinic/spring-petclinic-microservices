@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "config-server.fullname" . }} # Uses helper
+  labels:
+    {{- include "config-server.labels" . | nindent 4 }} # Uses helper
+spec:
+  type: {{ .Values.service.type }} # Uses type from values (ClusterIP)
+  ports:
+    - port: {{ .Values.service.port }} # Uses port from values (8888)
+      targetPort: http
+      protocol: TCP
+      name: http
+      {{- if (and (eq .Values.service.type "NodePort") .Values.service.nodePort) }}
+      nodePort: {{ .Values.service.nodePort }}
+      {{- end }}
+  selector:
+    {{- include "config-server.selectorLabels" . | nindent 4 }} # Uses helper

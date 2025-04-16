@@ -1,0 +1,32 @@
+apiVersion: v2
+name: petclinic-umbrella
+description: Umbrella Helm chart for Spring PetClinic Microservices (Core Services Only)
+type: application
+version: 0.1.0
+
+# Dependencies section: List core sub-charts here
+dependencies:
+  - name: config-server
+    version: "0.1.0"
+    repository: "file://./charts/config-server"
+  - name: discovery-server
+    version: "0.1.0"
+    repository: "file://./charts/discovery-server"
+  - name: customers-service
+    version: "0.1.0"
+    repository: "file://./charts/customers-service"
+  - name: visits-service
+    version: "0.1.0"
+    repository: "file://./charts/visits-service"
+  - name: vets-service
+    version: "0.1.0"
+    repository: "file://./charts/vets-service"
+  - name: genai-service
+    version: "0.1.0"
+    repository: "file://./charts/genai-service"
+  - name: api-gateway
+    version: "0.1.0"
+    repository: "file://./charts/api-gateway"
+  - name: admin-server
+    version: "0.1.0"
+    repository: "file://./charts/admin-server"

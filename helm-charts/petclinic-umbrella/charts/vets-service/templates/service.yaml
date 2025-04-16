@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "vets-service.fullname" . }} # Uses helper
+  labels:
+    {{- include "vets-service.labels" . | nindent 4 }} # Uses helper
+spec:
+  type: {{ .Values.service.type }} # Uses type from values (ClusterIP default)
+  ports:
+    - port: {{ .Values.service.port }} # Uses port from values (8083)
+      targetPort: http
+      protocol: TCP
+      name: http
+      {{- if (and (eq .Values.service.type "NodePort") .Values.service.nodePort) }}
+      nodePort: {{ .Values.service.nodePort }}
+      {{- end }}
+  selector:
+    {{- include "vets-service.selectorLabels" . | nindent 4 }} # Uses helper

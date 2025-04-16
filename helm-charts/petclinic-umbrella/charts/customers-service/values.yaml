@@ -1,0 +1,84 @@
+# Default values for customers-service.
+# Overridden by the parent chart (petclinic-umbrella) or --set flags.
+
+replicaCount: 1
+
+image:
+  repository: "" # Template constructs this: <global.dockerHubUser>/spring-petclinic-customers-service
+  pullPolicy: IfNotPresent
+  tag: "" # Default tag managed by the parent chart/deployment command
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  # Default service type for this specific service. Parent chart often overrides this.
+  type: ClusterIP
+  # --- IMPORTANT: Set correct default port for this service ---
+  port: 8081 # Default port for customers-service
+  # nodePort: # Only specify if type is NodePort and you need a fixed port
+
+ingress:
+  enabled: false
+
+# Default resource requests and limits for this service.
+# Uses global values from umbrella chart if not specified here,
+# but can be explicitly set/overridden here or in the umbrella values.
+resources: {}
+  # limits:
+  #   cpu: 500m
+  #   memory: 512Mi # Default from docker-compose
+  # requests:
+  #   cpu: 100m
+  #   memory: 256Mi # Example request
+
+autoscaling:
+  enabled: false
+
+# Liveness and Readiness Probes using Spring Boot Actuator
+probes:
+  liveness:
+    enabled: true
+    path: "/actuator/health/liveness"
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  readiness:
+    enabled: true
+    path: "/actuator/health/readiness"
+    initialDelaySeconds: 15
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+
+# Environment variables specific to this service (if any)
+# env:
+#   - name: EXAMPLE_VAR
+#     value: "example_value"
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

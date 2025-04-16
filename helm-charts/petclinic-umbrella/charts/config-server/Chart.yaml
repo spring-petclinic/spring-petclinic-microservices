@@ -1,0 +1,6 @@
+apiVersion: v2
+name: config-server
+description: Helm chart for the PetClinic Config Server
+type: application
+version: 0.1.0
+# appVersion: "1.0" # Optional application version

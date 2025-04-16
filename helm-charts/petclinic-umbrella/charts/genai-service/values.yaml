@@ -1,0 +1,78 @@
+# Default values for genai-service.
+# Overridden by the parent chart (petclinic-umbrella) or --set flags.
+
+replicaCount: 1
+
+image:
+  repository: "" # Template constructs this: <global.dockerHubUser>/spring-petclinic-genai-service
+  pullPolicy: IfNotPresent
+  tag: "" # Default tag managed by the parent chart/deployment command
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  # --- Set correct default service type and port ---
+  type: ClusterIP # Internal service
+  port: 8084     # Default port for genai-service
+
+ingress:
+  enabled: false
+
+# Default resource requests and limits for this service.
+# {} uses global values from umbrella chart by default.
+resources: {}
+  # limits:
+  #   memory: 512Mi
+  # requests:
+  #   memory: 256Mi
+  #   cpu: 100m
+
+autoscaling:
+  enabled: false
+
+# Liveness and Readiness Probes using Spring Boot Actuator
+probes:
+  liveness:
+    enabled: true
+    path: "/actuator/health/liveness"
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  readiness:
+    enabled: true
+    path: "/actuator/health/readiness"
+    initialDelaySeconds: 15
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+
+# --- Add environment variables required by genai-service ---
+# Values should be provided via umbrella chart values, --set, or K8s Secrets
+env:
+  - name: OPENAI_API_KEY
+    value: "" # Default to empty, provide actual value via higher level values/secrets
+  - name: AZURE_OPENAI_KEY
+    value: "" # Default to empty
+  - name: AZURE_OPENAI_ENDPOINT
+    value: "" # Default to empty
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
