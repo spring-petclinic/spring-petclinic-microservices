@@ -30,10 +30,6 @@ spec:
       serviceAccountName: {{ include "genai-service.serviceAccountName" . }} # Uses helper
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      hostAliases:
-      - ip: {{ printf "%s-config-server.%s.svc.cluster.local" .Release.Name .Release.Namespace }} # Target FQDN of the real config server service
-        hostnames:
-        - "config-server" # The short name the application is looking for
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
