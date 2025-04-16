@@ -360,42 +360,46 @@ pipeline {
                     echo "Helm --set arguments for image tags: ${helmSetString}"
 
                     // 3. Execute Helm Deployment inside withKubeConfig block
-                    // This ensures helm uses the correct context and insecure skip setting
-                    withKubeConfig(credentialsId: '', configFile: env.KUBECONFIG_PATH) { // Use file, no credentialsId needed if config has user auth
+                    withKubeConfig(credentialsId: '', configFile: env.KUBECONFIG_PATH) {
                         try {
                             echo "Updating Helm dependencies for chart at ${env.HELM_CHART_PATH}..."
                             // Run update inside the chart directory
                             dir(env.HELM_CHART_PATH) {
-                                sh "helm dependency update"
+                                // *** Add --kubeconfig flag ***
+                                sh "helm dependency update --kubeconfig ${env.KUBECONFIG_PATH}"
                             }
 
                             echo "Running Helm upgrade --install..."
-                            // Use sh step for better control over the command string
+                            // *** Add --kubeconfig flag ***
                             sh """
                                 helm upgrade --install ${params.HELM_RELEASE_NAME} \\
                                     ${env.HELM_CHART_PATH} \\
                                     --namespace ${params.DEPLOY_NAMESPACE} \\
                                     --create-namespace \\
+                                    --kubeconfig ${env.KUBECONFIG_PATH} \\
                                     --set global.dockerHubUser=${env.DOCKERHUB_USERNAME} \\
                                     ${helmSetString} \\
                                     --timeout 10m \\
                                     --wait
                             """
-                            // --wait flag waits for resources to become ready (respecting probes)
-                            // --timeout prevents waiting forever if something goes wrong
-
                             echo "Helm deployment successful for Release: ${params.HELM_RELEASE_NAME}"
-                            currentBuild.result = 'SUCCESS' // Explicitly mark success if helm succeeds
+                            currentBuild.result = 'SUCCESS'
 
-                            // Provide access info (NodePort details are dynamic)
                             echo "Deployment complete. Access services via NodePorts assigned by Kubernetes."
-                            echo "Run 'kubectl get svc -n ${params.DEPLOY_NAMESPACE}' to find the NodePorts."
+                            echo "Run 'kubectl get svc -n ${params.DEPLOY_NAMESPACE} --kubeconfig ${env.KUBECONFIG_PATH}' to find the NodePorts." // Also add flag here for clarity
                             echo "Access URL will be http://<WorkerNodeIP>:<NodePort>"
                             echo "Remember to potentially add '<WorkerNodeIP> <some-domain-name>' to your local hosts file."
 
                         } catch (err) {
                             echo "ERROR: Helm deployment FAILED for Release: ${params.HELM_RELEASE_NAME}"
-                            error "Helm deployment failed: ${err.getMessage()}" // Marks build as FAILED
+                            // Optionally attempt cleanup on failure (use with caution)
+                            // try {
+                            //    echo "Attempting cleanup of failed Helm release: ${params.HELM_RELEASE_NAME}"
+                            //    sh "helm uninstall ${params.HELM_RELEASE_NAME} -n ${params.DEPLOY_NAMESPACE} --kubeconfig ${env.KUBECONFIG_PATH} --wait"
+                            // } catch (cleanupErr) {
+                            //    echo "Helm cleanup failed: ${cleanupErr.getMessage()}"
+                            // }
+                            error "Helm deployment failed: ${err.getMessage()}" // Mark build as FAILED
                         }
                     } // End withKubeConfig
                 } // End script
