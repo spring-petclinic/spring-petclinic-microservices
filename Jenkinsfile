@@ -377,7 +377,8 @@ pipeline {
                                     --namespace ${params.DEPLOY_NAMESPACE} \\
                                     --create-namespace \\
                                     --kubeconfig ${env.KUBECONFIG_PATH} \\
-                                    --set global.dockerHubUser=${env.DOCKERHUB_USERNAME} \\
+                                    # *** Use --set-string for the username ***
+                                    --set-string global.dockerHubUser=${env.DOCKERHUB_USERNAME} \\
                                     ${helmSetString} \\
                                     --timeout 10m \\
                                     --wait
