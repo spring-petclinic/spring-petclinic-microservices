@@ -65,7 +65,11 @@ probes:
     successThreshold: 1
 
 # Environment variables specific to this service (if any)
-env: []
+env:
+  # Try overriding the config server URI using SPRING_CLOUD_CONFIG_URI
+  # This uses the Helm release name to construct the full K8s service name.
+  - name: SPRING_CLOUD_CONFIG_URI # <--- Use this variable name
+    value: "http://{{ .Release.Name }}-config-server:8888"
 
 nodeSelector: {}
 tolerations: []
