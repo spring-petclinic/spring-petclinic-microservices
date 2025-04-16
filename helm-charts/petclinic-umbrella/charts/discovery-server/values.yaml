@@ -65,7 +65,12 @@ probes:
     successThreshold: 1
 
 # Environment variables specific to this service (if any)
-env: []
+env:
+  - name: SPRING_CONFIG_URI
+    # Value uses Helm templating to build the correct K8s service name
+    # Note: This assumes the config server chart is named 'config-server'
+    #       and deployed with the same Helm release name.
+    value: "http://{{ .Release.Name }}-config-server:8888"
 
 nodeSelector: {}
 tolerations: []
