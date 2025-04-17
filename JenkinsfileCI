@@ -1,6 +1,8 @@
 pipeline {
     agent any
-
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials-id')
+    }
     stages {
         stage('Checkout Code') {
             steps {
@@ -11,7 +13,6 @@ pipeline {
                 }
             }
         }
-
         stage('Build JAR') {
             steps {
                 script {
@@ -20,11 +21,11 @@ pipeline {
                 }
             }
         }
-
         stage('Build and Push Docker Images') {
             steps {
                 script {
                     def commitId = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    def changedFiles = sh(script: "git diff --name-only HEAD^ HEAD || true", returnStdout: true).trim().split('\n')
                     def serviceConfigs = [
                         [name: 'admin-server', dir: 'spring-petclinic-admin-server', port: 9090],
                         [name: 'api-gateway', dir: 'spring-petclinic-api-gateway', port: 8080],
@@ -36,21 +37,34 @@ pipeline {
                         [name: 'visits-service', dir: 'spring-petclinic-visits-service', port: 8082]
                     ]
 
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+                    def servicesToBuild = serviceConfigs.findAll { config ->
+                        changedFiles.any { it.startsWith(config.dir + '/') }
+                    }
+                    if (servicesToBuild.isEmpty()) {
+                        echo "No services changed. Building all services as fallback."
+                        servicesToBuild = serviceConfigs
+                    }
 
-                        for (def service in serviceConfigs) {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials-id', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+                        
+                        for (def service in servicesToBuild) {
                             def serviceDir = service.dir
                             def serviceName = service.name
                             def exposedPort = service.port
                             def imageName = "${DOCKER_USERNAME}/spring-petclinic-${serviceName}:${commitId}"
                             def jarFile = sh(script: "ls ${serviceDir}/target/*.jar | head -1", returnStdout: true).trim()
 
+                            if (!jarFile) {
+                                error "No JAR file found for ${serviceName} in ${serviceDir}/target/"
+                            }
+
                             echo "Building Docker image for ${serviceName}..."
                             sh """
+                                mkdir -p docker
                                 cp ${jarFile} docker/${serviceName}.jar
                                 cd docker
-                                docker build --build-arg ARTIFACT_NAME=${serviceName}.jar --build-arg EXPOSED_PORT=${exposedPort} -t ${imageName} .
+                                docker build --build-arg ARTIFACT_NAME=${serviceName} --build-arg EXPOSED_PORT=${exposedPort} -t ${imageName} .
                                 docker push ${imageName}
                                 rm ${serviceName}.jar
                                 cd ..
@@ -66,6 +80,18 @@ pipeline {
                     }
                 }
             }
+        }
+    }
+    post {
+        always {
+            echo "Cleaning up workspace..."
+            cleanWs()
+        }
+        success {
+            echo "Pipeline completed successfully!"
+        }
+        failure {
+            echo "Pipeline failed. Check logs for details."
         }
     }
 }
