@@ -1,18 +1,20 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "api-gateway.fullname" . }} # Uses helper
+  # Explicitly set the name for clarity, though not strictly required for internal DNS here
+  name: api-gateway
   labels:
-    {{- include "api-gateway.labels" . | nindent 4 }} # Uses helper
+    {{- include "api-gateway.labels" . | nindent 4 }} # Use labels helper
 spec:
-  type: {{ .Values.service.type }} # Uses type from values (ClusterIP default, overridden by parent)
+  type: {{ .Values.service.type }} # Should be NodePort
   ports:
-    - port: {{ .Values.service.port }} # Uses port from values (8080)
-      targetPort: http
+    - port: {{ .Values.service.port }} # Should be 8080
+      targetPort: http # Reference the named port 'http' from the deployment
       protocol: TCP
-      name: http
-      {{- if (and (eq .Values.service.type "NodePort") .Values.service.nodePort) }}
+      name: http # Name the service port
+      # Only include nodePort if a value is provided in values.yaml
+      {{- if .Values.service.nodePort }}
       nodePort: {{ .Values.service.nodePort }}
       {{- end }}
   selector:
-    {{- include "api-gateway.selectorLabels" . | nindent 4 }} # Uses helper
+    {{- include "api-gateway.selectorLabels" . | nindent 4 }} # Use selector labels helper

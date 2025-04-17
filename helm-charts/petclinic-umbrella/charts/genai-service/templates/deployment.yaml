@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "genai-service.fullname" . }} # Uses helper
+  name: {{ include "genai-service.fullname" . }}
   labels:
-    {{- include "genai-service.labels" . | nindent 4 }} # Uses helper
+    {{- include "genai-service.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "genai-service.selectorLabels" . | nindent 6 }} # Uses helper
+      {{- include "genai-service.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,7 +18,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "genai-service.labels" . | nindent 8 }} # Uses helper
+        {{- include "genai-service.labels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -27,51 +27,43 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "genai-service.serviceAccountName" . }} # Uses helper
+      serviceAccountName: {{ include "genai-service.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
+          {{- with .Values.securityContext }}
           securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          # Uses global user and chart name prefix
-          image: "{{ coalesce .Values.image.repository (printf "%s/spring-petclinic-%s" .Values.global.dockerHubUser .Chart.Name) }}:{{ .Values.image.tag | default .Chart.AppVersion | default "latest" }}"
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: {{ .Values.service.port }} # Uses port from values
+              containerPort: {{ .Values.service.port }}
               protocol: TCP
-          {{- if .Values.probes.liveness.enabled }}
+          {{- with .Values.livenessProbe }}
           livenessProbe:
-            httpGet:
-              path: {{ .Values.probes.liveness.path }}
-              port: http
-            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
-            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
-            timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
-            failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
-            successThreshold: {{ .Values.probes.liveness.successThreshold }}
-          {{- end }}
-          {{- if .Values.probes.readiness.enabled }}
-          readinessProbe:
-            httpGet:
-              path: {{ .Values.probes.readiness.path }}
-              port: http
-            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
-            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
-            timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
-            failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
-            successThreshold: {{ .Values.probes.readiness.successThreshold }}
-          {{- end }}
-          # Uses resources defined in values (falling back to global)
-          resources:
-            {{- $resources := coalesce .Values.resources .Values.global.resources dict }}
-            {{- toYaml $resources | nindent 12 }}
-          # --- Add environment variables defined in values.yaml ---
-          {{- with .Values.env }}
-          env:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

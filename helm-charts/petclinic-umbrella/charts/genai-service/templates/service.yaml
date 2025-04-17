@@ -1,18 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "genai-service.fullname" . }} # Uses helper
+  name: {{ include "genai-service.fullname" . }}
   labels:
-    {{- include "genai-service.labels" . | nindent 4 }} # Uses helper
+    {{- include "genai-service.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.service.type }} # Uses type from values (ClusterIP)
+  type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }} # Uses port from values (8084)
+    - port: {{ .Values.service.port }}
       targetPort: http
       protocol: TCP
       name: http
-      {{- if (and (eq .Values.service.type "NodePort") .Values.service.nodePort) }}
-      nodePort: {{ .Values.service.nodePort }}
-      {{- end }}
   selector:
-    {{- include "genai-service.selectorLabels" . | nindent 4 }} # Uses helper
+    {{- include "genai-service.selectorLabels" . | nindent 4 }}

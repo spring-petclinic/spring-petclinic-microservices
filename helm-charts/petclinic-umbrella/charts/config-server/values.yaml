@@ -1,61 +1,75 @@
-# Default values for config-server.
-# Overridden by the parent chart (petclinic-umbrella) or --set flags.
-
+# Default values for config-server chart.
 replicaCount: 1
 
 image:
-  repository: "" # Template constructs this: <global.dockerHubUser>/spring-petclinic-config-server
+  repository: 22127422/spring-petclinic-config-server # Confirm '22127422' is your Docker Hub username
   pullPolicy: IfNotPresent
-  tag: "" # Default tag managed by the parent chart/deployment command
+  tag: "latest"
 
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
+# Override names for predictable resource naming
+nameOverride: "config-server"
+fullnameOverride: "config-server"
 
 serviceAccount:
   create: true
   annotations: {}
-  name: ""
+  # name: ""
 
 podAnnotations: {}
-podLabels: {}
-
 podSecurityContext: {}
-
 securityContext: {}
 
 service:
-  # --- Set correct default service type and port ---
-  type: ClusterIP # Internal service, not usually exposed directly
-  port: 8888     # Default port for config-server
+  type: ClusterIP # Internal service
+  port: 8888 # Standard Spring Cloud Config port
 
+# Ingress disabled
 ingress:
   enabled: false
 
-# Default resource requests and limits for this service.
-# {} uses global values from umbrella chart by default.
-resources: {}
-  # limits:
-  #   memory: 512Mi
-  # requests:
-  #   memory: 256Mi
-  #   cpu: 100m
+# Resource requests and limits
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 200m
+    memory: 256Mi
 
 autoscaling:
   enabled: false
 
-# Liveness and Readiness Probes using Spring Boot Actuator
-# Note: Config server might have a different health endpoint structure initially,
-# but actuator/health should become available once it reads config. Adjust if needed.
-probes:
-  liveness:
-    enabled: false
-  readiness:
-    enabled: false
-
-# Environment variables specific to this service (if any)
-env: []
-
 nodeSelector: {}
 tolerations: []
 affinity: {}
+
+# Custom deployment specific values
+deployment:
+  containerPort: 8888
+  # Environment variables
+  env:
+    # Point the config server to the Git repository holding the configuration files
+    SPRING_CLOUD_CONFIG_SERVER_GIT_URI: https://github.com/spring-petclinic/spring-petclinic-microservices-config
+    # Activate the 'git' profile (optional, often default, but explicit is good)
+    SPRING_PROFILES_ACTIVE: git
+    # Disable Eureka client registration for the config server itself
+    EUREKA_CLIENT_ENABLED: "false"
+
+  # Liveness and Readiness Probes
+  probes:
+    liveness:
+      enabled: true
+      path: "/actuator/health/liveness"
+      initialDelaySeconds: 45 # Config server might take longer to start as it clones git repo
+      periodSeconds: 15
+      timeoutSeconds: 5
+      failureThreshold: 6
+      successThreshold: 1
+    readiness:
+      enabled: true
+      path: "/actuator/health/readiness"
+      initialDelaySeconds: 45 # Config server might take longer to start
+      periodSeconds: 15
+      timeoutSeconds: 5
+      failureThreshold: 3
+      successThreshold: 1

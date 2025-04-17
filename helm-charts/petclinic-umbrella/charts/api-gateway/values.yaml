@@ -1,59 +1,81 @@
-# Default values for api-gateway.
-# Overridden by the parent chart (petclinic-umbrella) or --set flags.
-
+# Default values for api-gateway chart.
 replicaCount: 1
 
 image:
-  repository: "" # Template constructs this: <global.dockerHubUser>/spring-petclinic-api-gateway
+  repository: 22127422/spring-petclinic-api-gateway # Confirm '22127422' is your Docker Hub username
   pullPolicy: IfNotPresent
-  tag: "" # Default tag managed by the parent chart/deployment command
+  tag: "latest"
 
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
+# Override names for predictable resource naming
+nameOverride: "api-gateway"
+fullnameOverride: "api-gateway"
 
 serviceAccount:
   create: true
   annotations: {}
-  name: ""
+  # name: ""
 
 podAnnotations: {}
-podLabels: {}
-
 podSecurityContext: {}
-
 securityContext: {}
 
 service:
-  # --- Set correct default service type and port ---
-  type: ClusterIP # Sub-chart default, overridden by parent (to NodePort)
-  port: 8080     # Default port for api-gateway
+  # CRITICAL: Use NodePort to expose the gateway externally on Minikube
+  type: NodePort
+  # Port the service exposes internally and for NodePort mapping
+  port: 8080
+  # Optional: Specify a fixed NodePort (e.g., 30080).
+  # If left blank or null, Kubernetes will assign a random port in the NodePort range (usually 30000-32767).
+  nodePort: "" # Leave blank for auto-assignment
 
+# Ingress disabled
 ingress:
   enabled: false
 
-# Default resource requests and limits for this service.
-# {} uses global values from umbrella chart by default.
-resources: {}
-  # limits:
-  #   memory: 512Mi
-  # requests:
-  #   memory: 256Mi
-  #   cpu: 100m
+# Resource requests and limits
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 200m
+    memory: 256Mi
 
 autoscaling:
   enabled: false
 
-# Liveness and Readiness Probes using Spring Boot Actuator
-probes:
-  liveness:
-    enabled: false
-  readiness:
-    enabled: false
-
-# Environment variables specific to this service (if any)
-env: []
-
 nodeSelector: {}
 tolerations: []
 affinity: {}
+
+# Custom deployment specific values
+deployment:
+  containerPort: 8080
+  # Environment variables needed by the API Gateway
+  env:
+    # Activate docker profile to use DNS service discovery etc.
+    SPRING_PROFILES_ACTIVE: docker
+    # URL for Spring Cloud Config Server (using Kubernetes service DNS)
+    # Alternatively use SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
+    CONFIG_SERVER_URL: http://config-server:8888
+    # URL for Eureka Discovery Server (using Kubernetes service DNS)
+    EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+
+  # Liveness and Readiness Probes
+  probes:
+    liveness:
+      enabled: true
+      path: "/actuator/health/liveness"
+      initialDelaySeconds: 45 # Gateway might take a bit longer to connect to config/discovery
+      periodSeconds: 15
+      timeoutSeconds: 5
+      failureThreshold: 6
+      successThreshold: 1
+    readiness:
+      enabled: true
+      path: "/actuator/health/readiness"
+      initialDelaySeconds: 45 # Allow time for service registration/route loading
+      periodSeconds: 15
+      timeoutSeconds: 5
+      failureThreshold: 3
+      successThreshold: 1

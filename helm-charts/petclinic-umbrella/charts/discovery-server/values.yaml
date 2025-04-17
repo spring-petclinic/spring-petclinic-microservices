@@ -1,63 +1,100 @@
-# Default values for discovery-server.
-# Overridden by the parent chart (petclinic-umbrella) or --set flags.
+# Default values for discovery-server chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
 
 replicaCount: 1
 
 image:
-  repository: "" # Template constructs this: <global.dockerHubUser>/spring-petclinic-discovery-server
+  # Using your Docker Hub username and the standard prefix
+  repository: 22127422/spring-petclinic-discovery-server # Make sure '22127422' is your correct Docker Hub username
   pullPolicy: IfNotPresent
-  tag: "" # Default tag managed by the parent chart/deployment command
+  # Default tag. This will be overridden by Jenkins parameters for specific builds.
+  tag: "latest"
 
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
+# We are explicitely managing the service name in the service.yaml template,
+# so these overrides aren't strictly necessary here but good practice.
+nameOverride: "discovery-server"
+fullnameOverride: "discovery-server"
 
 serviceAccount:
+  # Specifies whether a service account should be created
   create: true
+  # Annotations to add to the service account
   annotations: {}
-  name: ""
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  # name: ""
 
 podAnnotations: {}
-podLabels: {}
 
 podSecurityContext: {}
+  # fsGroup: 2000
 
 securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
 
 service:
-  # --- Set correct default service type and port ---
-  type: ClusterIP # Internal service
-  port: 8761     # Default port for discovery-server (Eureka)
+  type: ClusterIP # Internal service, only needs to be reachable within the cluster
+  port: 8761 # Standard Eureka port
 
+# Ingress is disabled as we removed the template. Access via API Gateway (NodePort) later.
 ingress:
   enabled: false
 
-# Default resource requests and limits for this service.
-# {} uses global values from umbrella chart by default.
-resources: {}
-  # limits:
-  #   memory: 512Mi
-  # requests:
-  #   memory: 256Mi
-  #   cpu: 100m
+# Resource requests and limits
+# Adjust these based on observed usage in Minikube
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  limits:
+    cpu: 500m # Example limit: 0.5 CPU core
+    memory: 512Mi # Example limit: 512 MB RAM
+  requests:
+    cpu: 200m # Example request: 0.2 CPU core
+    memory: 256Mi # Example request: 256 MB RAM
 
 autoscaling:
-  enabled: false
-
-# Liveness and Readiness Probes using Spring Boot Actuator
-# Eureka might take a bit longer to be ready.
-probes:
-  liveness:
-    enabled: false
-  readiness:
-    enabled: false
-
-# Environment variables specific to this service (if any)
-env:
-  # Attempt to disable the config client entirely during bootstrap
-  - name: SPRING_CLOUD_CONFIG_ENABLED
-    value: "false"
+  enabled: false # HPA template removed, keeping this false
 
 nodeSelector: {}
+
 tolerations: []
+
 affinity: {}
+
+# Custom deployment specific values
+deployment:
+  # The port the container listens on
+  containerPort: 8761
+  # Environment variables to set in the container
+  # Discovery server might not need these itself, but good to have the structure
+  env: {}
+    # Example:
+    # SPRING_PROFILES_ACTIVE: docker
+    # JAVA_OPTS: "-Xms128m -Xmx256m"
+
+  # Liveness and Readiness Probes using Actuator endpoints
+  probes:
+    liveness:
+      enabled: true
+      path: "/actuator/health/liveness" # Standard Spring Boot liveness endpoint
+      initialDelaySeconds: 30 # Time to wait before first probe
+      periodSeconds: 10     # How often to probe
+      timeoutSeconds: 5      # When to time out
+      failureThreshold: 6    # How many failures before restarting
+      successThreshold: 1
+    readiness:
+      enabled: true
+      path: "/actuator/health/readiness" # Standard Spring Boot readiness endpoint
+      initialDelaySeconds: 30 # Time to wait before first probe
+      periodSeconds: 10     # How often to probe
+      timeoutSeconds: 5      # When to time out
+      failureThreshold: 3    # How many failures before marking Unready
+      successThreshold: 1
