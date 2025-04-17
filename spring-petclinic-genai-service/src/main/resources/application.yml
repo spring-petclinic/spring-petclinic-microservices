@@ -6,7 +6,7 @@ spring:
   profiles:
     active: production
   config:
-    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/},optional:classpath:/creds.yaml
+    import: optional:configserver:${CONFIG_SERVER_URL:http://config-server:8888/},optional:classpath:/creds.yaml
   ai:
     chat:
       client:
