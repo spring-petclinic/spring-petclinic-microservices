@@ -193,6 +193,14 @@ pipeline {
                     def buildFailed = false // Track build/push failures in this stage
 
                     withCredentials([usernamePassword(credentialsId: env.DOCKERHUB_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        try {
+                            echo "Attempting explicit Docker login..."
+                            sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                            echo "Explicit Docker login successful."
+                        } catch (e) {
+                            error "FATAL: Explicit Docker login failed. Check credentials and permissions. Error: ${e.message}"
+                        }
+                        
                         for (service in serviceList) {
                             echo "--- Processing Service: ${service} ---"
                             def artifactNameArgValue = "" // Will hold the path *without* .jar suffix
