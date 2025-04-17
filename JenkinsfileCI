@@ -1,0 +1,71 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                script {
+                    def branchToCheckout = env.BRANCH_NAME ?: 'main'
+                    echo "Checking out branch: ${branchToCheckout}"
+                    git branch: branchToCheckout, url: 'https://github.com/phucvu0210/spring-petclinic-microservices.git'
+                }
+            }
+        }
+
+        stage('Build JAR') {
+            steps {
+                script {
+                    echo "Building JAR for all services..."
+                    sh './mvnw clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('Build and Push Docker Images') {
+            steps {
+                script {
+                    def commitId = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    def serviceConfigs = [
+                        [name: 'admin-server', dir: 'spring-petclinic-admin-server', port: 9090],
+                        [name: 'api-gateway', dir: 'spring-petclinic-api-gateway', port: 8080],
+                        [name: 'config-server', dir: 'spring-petclinic-config-server', port: 8888],
+                        [name: 'customers-service', dir: 'spring-petclinic-customers-service', port: 8081],
+                        [name: 'discovery-server', dir: 'spring-petclinic-discovery-server', port: 8761],
+                        [name: 'genai-service', dir: 'spring-petclinic-genai-service', port: 8084],
+                        [name: 'vets-service', dir: 'spring-petclinic-vets-service', port: 8083],
+                        [name: 'visits-service', dir: 'spring-petclinic-visits-service', port: 8082]
+                    ]
+
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+
+                        for (def service in serviceConfigs) {
+                            def serviceDir = service.dir
+                            def serviceName = service.name
+                            def exposedPort = service.port
+                            def imageName = "${DOCKER_USERNAME}/spring-petclinic-${serviceName}:${commitId}"
+                            def jarFile = sh(script: "ls ${serviceDir}/target/*.jar | head -1", returnStdout: true).trim()
+
+                            echo "Building Docker image for ${serviceName}..."
+                            sh """
+                                cp ${jarFile} docker/${serviceName}.jar
+                                cd docker
+                                docker build --build-arg ARTIFACT_NAME=${serviceName}.jar --build-arg EXPOSED_PORT=${exposedPort} -t ${imageName} .
+                                docker push ${imageName}
+                                rm ${serviceName}.jar
+                                cd ..
+                            """
+
+                            if (env.BRANCH_NAME == 'main') {
+                                sh """
+                                    docker tag ${imageName} ${DOCKER_USERNAME}/spring-petclinic-${serviceName}:latest
+                                    docker push ${DOCKER_USERNAME}/spring-petclinic-${serviceName}:latest
+                                """
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
