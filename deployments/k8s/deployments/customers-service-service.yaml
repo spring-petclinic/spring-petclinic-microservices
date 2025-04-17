@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose -f docker-compose.yml convert
+    kompose.version: 1.35.0 (HEAD)
+  labels:
+    io.kompose.service: customers-service
+  name: customers-service
+spec:
+  ports:
+    - name: "8081"
+      port: 8081
+      targetPort: 8081
+  type: ClusterIP
+  selector:
+    io.kompose.service: customers-service

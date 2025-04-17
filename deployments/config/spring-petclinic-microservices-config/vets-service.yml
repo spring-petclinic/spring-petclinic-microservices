@@ -1,0 +1,43 @@
+vets:
+  cache:
+    ttl: 60
+    heap-size: 100
+
+---
+spring:
+  config:
+    activate:
+      on-profile: default
+eureka:
+  instance:
+    # enable to register multiple app instances with a random server port
+    instance-id: ${spring.application.name}:${random.uuid}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+server:
+  port: 8083
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://discovery-server:8761/eureka/
+---
+spring:
+  config:
+    activate:
+      on-profile: k8s
+server:
+  port: 8083
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://discovery-server:8761/eureka/
+  instance:
+    hostname: vets-service
+    # fixing the hostname to the name of the service in k8s, no real need for service discovery as it's built in
+    preferIpAddress: false
+    nonSecurePort: 8083
+    instanceId: ${spring.application.name}:${spring.application.instance_id:${random.value}}

@@ -1,0 +1,21 @@
+server:
+  port: 9090
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://discovery-server:8761/eureka/
+---
+spring:
+  config:
+    activate:
+      on-profile: k8s
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://discovery-server:8761/eureka/

@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose -f docker-compose.yaml convert
+    kompose.version: 1.35.0 (HEAD)
+  labels:
+    io.kompose.service: config-server
+  name: config-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: config-server
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose -f docker-compose.yaml convert
+        kompose.version: 1.35.0 (HEAD)
+      labels:
+        io.kompose.service: config-server
+    spec:
+      containers:
+        - env:
+            - name: GIT_REPO
+              value: /projects/spring-petclinic-microservices-config
+            - name: SPRING_PROFILES_ACTIVE
+              value: native
+          image: astoklas177/spring-petclinic-config-server
+          livenessProbe:
+            exec:
+              command:
+                - curl
+                - -I
+                - http://config-server:8888
+            failureThreshold: 10
+            periodSeconds: 10
+            timeoutSeconds: 15
+          name: config-server
+          ports:
+            - containerPort: 8888
+              protocol: TCP
+          resources:
+            limits:
+              memory: "536870912"
+          volumeMounts:
+            - name: petclinic-repo
+              mountPath: /projects/spring-petclinic-microservices-config
+              readOnly: true
+      restartPolicy: Always
+      volumes:
+          - name: petclinic-repo
+            configMap:
+              name: petclinic-repo

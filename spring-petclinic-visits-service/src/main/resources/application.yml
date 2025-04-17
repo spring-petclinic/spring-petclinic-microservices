@@ -13,10 +13,12 @@ spring:
   config:
     activate:
       on-profile: docker
-    import: configserver:http://config-server:8888
+    #import: configserver:http://config-server:8888
+    import: optional:configserver:${CONFIG_SERVER_URL:http://config-server:8888/}
 ---
 spring:
   config:
     activate:
       on-profile: k8s
-    import: configserver:http://config-server:8888
+    #import: configserver:http://config-server:8888
+    import: optional:configserver:${CONFIG_SERVER_URL:http://config-server:8888/}

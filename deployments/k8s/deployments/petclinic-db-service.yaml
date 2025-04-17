@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose -f docker-compose.yml convert
+    kompose.version: 1.35.0 (HEAD)
+  labels:
+    io.kompose.service: petclinic-db
+  name: petclinic-db
+spec:
+  ports:
+    - name: "3306"
+      port: 3306
+      targetPort: 3306
+  type: ClusterIP
+  selector:
+    io.kompose.service: petclinic-db

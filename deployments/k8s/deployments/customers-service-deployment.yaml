@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose -f docker-compose.yml convert
+    kompose.version: 1.35.0 (HEAD)
+  labels:
+    io.kompose.service: customers-service
+  name: customers-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: customers-service
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose -f docker-compose.yml convert
+        kompose.version: 1.35.0 (HEAD)
+      labels:
+        io.kompose.service: customers-service
+    spec:
+      containers:
+        - env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: k8s,mysql
+          command:
+            - /entrypoint.sh
+          image: astoklas177/spring-petclinic-customers-service:latest
+          livenessProbe:
+            exec:
+              command:
+                - curl
+                - -I
+                - http://localhost:8081
+            failureThreshold: 10
+            periodSeconds: 10
+            timeoutSeconds: 15
+          name: customers-service
+          ports:
+            - containerPort: 8081
+              protocol: TCP
+          resources:
+            limits:
+              memory: "536870912"
+      restartPolicy: Always
