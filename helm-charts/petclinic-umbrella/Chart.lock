@@ -1,0 +1,15 @@
+dependencies:
+- name: config-server
+  repository: file://./charts/config-server
+  version: 0.1.0
+- name: discovery-server
+  repository: file://./charts/discovery-server
+  version: 0.1.0
+- name: customers-service
+  repository: file://./charts/customers-service
+  version: 0.1.0
+- name: api-gateway
+  repository: file://./charts/api-gateway
+  version: 0.1.0
+digest: sha256:cdd19fc1d065b81b8c5e4c219cfc50bba8d19b95f58a68c243ab8d6e25e94318
+generated: "2025-04-17T22:47:13.899592+07:00"

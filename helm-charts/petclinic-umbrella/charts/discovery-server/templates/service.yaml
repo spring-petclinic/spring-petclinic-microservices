@@ -1,17 +1,16 @@
+# helm-charts/petclinic-umbrella/charts/discovery-server/templates/service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  # CRITICAL: Explicitly set the name for DNS discovery
-  name: discovery-server
+  name: {{ include "discovery-server.fullname" . }}
   labels:
-    {{- include "discovery-server.labels" . | nindent 4 }} # Use labels helper
+    {{- include "discovery-server.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      # Reference the named port 'http' from the deployment template
-      targetPort: http
+      targetPort: {{ .Values.service.port }} # Target Eureka port
       protocol: TCP
-      name: http # Name the service port
+      name: http-eureka
   selector:
-    {{- include "discovery-server.selectorLabels" . | nindent 4 }} # Use selector labels helper
+    {{- include "discovery-server.selectorLabels" . | nindent 4 }}

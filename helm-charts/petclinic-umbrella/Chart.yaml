@@ -1,41 +1,25 @@
+# helm-charts/petclinic-umbrella/Chart.yaml
 apiVersion: v2
 name: petclinic-umbrella
-description: An umbrella Helm chart for the Spring PetClinic microservices application.
-# A chart type of 'application' charts is informational, it does not affect chart operations.
-type: application
+description: Umbrella chart for Spring PetClinic Microservices
 
-# This is the chart version. This version number should be incremented each time you make changes
-# to the chart and its templates, including dependencies.
+# Application charts require a version field.
 version: 0.1.0
 
-# This is the version number of the application being deployed. This version number should be
-# incremented each time you make changes to the application.
-appVersion: "1.0.0" # You can adjust this based on your application's versioning
+# The appVersion field is recommended, specify the overall app version if applicable
+appVersion: "3.4.1" # Example
 
-# Dependencies section lists the sub-charts managed by this umbrella chart.
-# Helm uses this to find and manage the sub-charts located in the './charts/' directory.
+# Add dependencies section for the sub-charts
 dependencies:
-  - name: admin-server
-    version: "0.1.0" # Matches the default version in the sub-chart's Chart.yaml
-    repository: "file://./charts/admin-server" # Specifies local chart dependency
-  - name: api-gateway
-    version: "0.1.0"
-    repository: "file://./charts/api-gateway"
   - name: config-server
-    version: "0.1.0"
-    repository: "file://./charts/config-server"
-  - name: customers-service
-    version: "0.1.0"
-    repository: "file://./charts/customers-service"
+    version: "0.1.0" # Match the version in charts/config-server/Chart.yaml
+    repository: "file://./charts/config-server" # Path to the local sub-chart
   - name: discovery-server
-    version: "0.1.0"
+    version: "0.1.0" # Match the version in charts/discovery-server/Chart.yaml
     repository: "file://./charts/discovery-server"
-  - name: genai-service
-    version: "0.1.0"
-    repository: "file://./charts/genai-service"
-  - name: vets-service
-    version: "0.1.0"
-    repository: "file://./charts/vets-service"
-  - name: visits-service
-    version: "0.1.0"
-    repository: "file://./charts/visits-service"
+  - name: customers-service
+    version: "0.1.0" # Match the version in charts/customers-service/Chart.yaml
+    repository: "file://./charts/customers-service"
+  - name: api-gateway
+    version: "0.1.0" # Match the version in charts/api-gateway/Chart.yaml
+    repository: "file://./charts/api-gateway"

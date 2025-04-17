@@ -1,75 +1,79 @@
-# Default values for config-server chart.
+# helm-charts/petclinic-umbrella/charts/config-server/values.yaml
+
 replicaCount: 1
 
 image:
-  repository: 22127422/spring-petclinic-config-server # Confirm '22127422' is your Docker Hub username
+  # Use your Docker Hub username and the correct image name prefix
+  repository: 22127422/spring-petclinic-config-server
   pullPolicy: IfNotPresent
+  # tag - This specifies the image tag. Default to 'latest' or 'main'.
+  # This will often be overridden by Jenkins during deployment.
   tag: "latest"
 
-# Override names for predictable resource naming
-nameOverride: "config-server"
-fullnameOverride: "config-server"
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
 
 serviceAccount:
-  create: true
+  # Specifies whether a service account should be created
+  create: false # We removed serviceaccount.yaml, so set to false
+  # Annotations to add to the service account
   annotations: {}
-  # name: ""
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
 
 podAnnotations: {}
 podSecurityContext: {}
+  # fsGroup: 2000
+
 securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
 
 service:
-  type: ClusterIP # Internal service
-  port: 8888 # Standard Spring Cloud Config port
+  type: ClusterIP # Internal service only
+  port: 8888     # The port the Kubernetes service will listen on
 
-# Ingress disabled
-ingress:
-  enabled: false
+# Specific configuration for the config server application
+configServer:
+  # The Git URI where the configuration files are stored
+  gitUri: https://github.com/spring-petclinic/spring-petclinic-microservices-config.git
+  # You might add sub-keys here for gitUsername, gitPassword if your repo becomes private
 
-# Resource requests and limits
-resources:
-  limits:
-    cpu: 500m
-    memory: 512Mi
-  requests:
-    cpu: 200m
-    memory: 256Mi
+# Ingress is removed, keep this section commented/empty or remove
+# ingress:
+#   enabled: false
+#   className: ""
+#   annotations: {}
+#   hosts:
+#     - host: chart-example.local
+#       paths:
+#         - path: /
+#           pathType: ImplementationSpecific
+#   tls: []
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 512Mi # Config server might need a bit more memory
+  # requests:
+  #   cpu: 100m
+  #   memory: 512Mi
 
 autoscaling:
-  enabled: false
+  enabled: false # We removed hpa.yaml
 
 nodeSelector: {}
+
 tolerations: []
+
 affinity: {}
-
-# Custom deployment specific values
-deployment:
-  containerPort: 8888
-  # Environment variables
-  env:
-    # Point the config server to the Git repository holding the configuration files
-    SPRING_CLOUD_CONFIG_SERVER_GIT_URI: https://github.com/spring-petclinic/spring-petclinic-microservices-config
-    # Activate the 'git' profile (optional, often default, but explicit is good)
-    SPRING_PROFILES_ACTIVE: git
-    # Disable Eureka client registration for the config server itself
-    EUREKA_CLIENT_ENABLED: "false"
-
-  # Liveness and Readiness Probes
-  probes:
-    liveness:
-      enabled: true
-      path: "/actuator/health/liveness"
-      initialDelaySeconds: 45 # Config server might take longer to start as it clones git repo
-      periodSeconds: 15
-      timeoutSeconds: 5
-      failureThreshold: 6
-      successThreshold: 1
-    readiness:
-      enabled: true
-      path: "/actuator/health/readiness"
-      initialDelaySeconds: 45 # Config server might take longer to start
-      periodSeconds: 15
-      timeoutSeconds: 5
-      failureThreshold: 3
-      successThreshold: 1

@@ -1,45 +1,44 @@
-# Default values for api-gateway chart.
+# helm-charts/petclinic-umbrella/charts/api-gateway/values.yaml
+
 replicaCount: 1
 
 image:
-  repository: 22127422/spring-petclinic-api-gateway # Confirm '22127422' is your Docker Hub username
+  # Use your Docker Hub username and the correct image name prefix
+  repository: 22127422/spring-petclinic-api-gateway
   pullPolicy: IfNotPresent
+  # tag - Default tag, overridden by Jenkins during deployment.
   tag: "latest"
 
-# Override names for predictable resource naming
-nameOverride: "api-gateway"
-fullnameOverride: "api-gateway"
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
 
 serviceAccount:
-  create: true
+  create: false
   annotations: {}
-  # name: ""
+  name: ""
 
 podAnnotations: {}
 podSecurityContext: {}
 securityContext: {}
 
 service:
-  # CRITICAL: Use NodePort to expose the gateway externally on Minikube
+  # Set type to NodePort to expose the gateway externally as per project requirements
   type: NodePort
-  # Port the service exposes internally and for NodePort mapping
-  port: 8080
-  # Optional: Specify a fixed NodePort (e.g., 30080).
-  # If left blank or null, Kubernetes will assign a random port in the NodePort range (usually 30000-32767).
-  nodePort: "" # Leave blank for auto-assignment
+  port: 8080     # API Gateway port
+  # nodePort: Optional - Specify a static NodePort (e.g., 30080) or leave empty for dynamic assignment.
+  # We can define this globally in the umbrella chart later if needed.
+  nodePort: ""
 
-# Ingress disabled
-ingress:
-  enabled: false
+# API Gateway specific configuration - most routing comes from Config Server/Discovery
 
-# Resource requests and limits
-resources:
-  limits:
-    cpu: 500m
-    memory: 512Mi
-  requests:
-    cpu: 200m
-    memory: 256Mi
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 256Mi # Adjust as needed
+  # requests:
+  #   cpu: 100m
+  #   memory: 256Mi
 
 autoscaling:
   enabled: false
@@ -47,35 +46,3 @@ autoscaling:
 nodeSelector: {}
 tolerations: []
 affinity: {}
-
-# Custom deployment specific values
-deployment:
-  containerPort: 8080
-  # Environment variables needed by the API Gateway
-  env:
-    # Activate docker profile to use DNS service discovery etc.
-    SPRING_PROFILES_ACTIVE: docker
-    # URL for Spring Cloud Config Server (using Kubernetes service DNS)
-    # Alternatively use SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
-    CONFIG_SERVER_URL: http://config-server:8888
-    # URL for Eureka Discovery Server (using Kubernetes service DNS)
-    EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
-
-  # Liveness and Readiness Probes
-  probes:
-    liveness:
-      enabled: true
-      path: "/actuator/health/liveness"
-      initialDelaySeconds: 45 # Gateway might take a bit longer to connect to config/discovery
-      periodSeconds: 15
-      timeoutSeconds: 5
-      failureThreshold: 6
-      successThreshold: 1
-    readiness:
-      enabled: true
-      path: "/actuator/health/readiness"
-      initialDelaySeconds: 45 # Allow time for service registration/route loading
-      periodSeconds: 15
-      timeoutSeconds: 5
-      failureThreshold: 3
-      successThreshold: 1

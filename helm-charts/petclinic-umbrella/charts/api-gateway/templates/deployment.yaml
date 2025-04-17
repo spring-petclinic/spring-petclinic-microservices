@@ -1,3 +1,4 @@
+# helm-charts/petclinic-umbrella/charts/api-gateway/templates/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -5,7 +6,9 @@ metadata:
   labels:
     {{- include "api-gateway.labels" . | nindent 4 }}
 spec:
+  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "api-gateway.selectorLabels" . | nindent 6 }}
@@ -31,42 +34,26 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # Configuration for routing, discovery etc. should be fetched from the Config Server.
+          # Ensure Config/Discovery server are running before this service starts.
           ports:
-            - name: http # Name the port
-              containerPort: {{ .Values.deployment.containerPort }}
+            - name: http
+              containerPort: {{ .Values.service.port }} # Use the service port value (8080)
               protocol: TCP
-          env:
-            # Set environment variables from values.yaml
-            {{- range $key, $value := .Values.deployment.env }}
-            - name: {{ $key }}
-              value: {{ $value | quote }}
-            {{- end }}
-          # Liveness Probe Configuration
-          {{- if .Values.deployment.probes.liveness.enabled }}
           livenessProbe:
             httpGet:
-              path: {{ .Values.deployment.probes.liveness.path }}
-              port: http # Reference the named port
-            initialDelaySeconds: {{ .Values.deployment.probes.liveness.initialDelaySeconds }}
-            periodSeconds: {{ .Values.deployment.probes.liveness.periodSeconds }}
-            timeoutSeconds: {{ .Values.deployment.probes.liveness.timeoutSeconds }}
-            failureThreshold: {{ .Values.deployment.probes.liveness.failureThreshold }}
-            successThreshold: {{ .Values.deployment.probes.liveness.successThreshold }}
-          {{- end }}
-          # Readiness Probe Configuration
-          {{- if .Values.deployment.probes.readiness.enabled }}
+              path: /actuator/health/liveness
+              port: http
+            initialDelaySeconds: 70 # Allow more time for routing setup + config fetch
+            periodSeconds: 10
           readinessProbe:
             httpGet:
-              path: {{ .Values.deployment.probes.readiness.path }}
-              port: http # Reference the named port
-            initialDelaySeconds: {{ .Values.deployment.probes.readiness.initialDelaySeconds }}
-            periodSeconds: {{ .Values.deployment.probes.readiness.periodSeconds }}
-            timeoutSeconds: {{ .Values.deployment.probes.readiness.timeoutSeconds }}
-            failureThreshold: {{ .Values.deployment.probes.readiness.failureThreshold }}
-            successThreshold: {{ .Values.deployment.probes.readiness.successThreshold }}
-          {{- end }}
+              path: /actuator/health/readiness
+              port: http
+            initialDelaySeconds: 50
+            periodSeconds: 10
           resources:
-             {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

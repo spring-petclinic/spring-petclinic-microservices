@@ -1,3 +1,4 @@
+# helm-charts/petclinic-umbrella/charts/config-server/templates/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -5,7 +6,9 @@ metadata:
   labels:
     {{- include "config-server.labels" . | nindent 4 }}
 spec:
+  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "config-server.selectorLabels" . | nindent 6 }}
@@ -31,42 +34,28 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http # Name the port
-              containerPort: {{ .Values.deployment.containerPort }}
-              protocol: TCP
           env:
-            # Set environment variables from values.yaml
-            {{- range $key, $value := .Values.deployment.env }}
-            - name: {{ $key }}
-              value: {{ $value | quote }}
-            {{- end }}
-          # Liveness Probe Configuration
-          {{- if .Values.deployment.probes.liveness.enabled }}
+            - name: SPRING_CONFIG_SERVER_GIT_URI
+              value: {{ .Values.configServer.gitUri }}
+            # Optional: Add SPRING_PROFILES_ACTIVE if needed for Kubernetes-specific config
+            # - name: SPRING_PROFILES_ACTIVE
+            #   value: kubernetes
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }} # Use the service port value
+              protocol: TCP
           livenessProbe:
-            httpGet:
-              path: {{ .Values.deployment.probes.liveness.path }}
-              port: http # Reference the named port
-            initialDelaySeconds: {{ .Values.deployment.probes.liveness.initialDelaySeconds }}
-            periodSeconds: {{ .Values.deployment.probes.liveness.periodSeconds }}
-            timeoutSeconds: {{ .Values.deployment.probes.liveness.timeoutSeconds }}
-            failureThreshold: {{ .Values.deployment.probes.liveness.failureThreshold }}
-            successThreshold: {{ .Values.deployment.probes.liveness.successThreshold }}
-          {{- end }}
-          # Readiness Probe Configuration
-          {{- if .Values.deployment.probes.readiness.enabled }}
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 20 # Give time for the app to start
+            periodSeconds: 10
           readinessProbe:
-            httpGet:
-              path: {{ .Values.deployment.probes.readiness.path }}
-              port: http # Reference the named port
-            initialDelaySeconds: {{ .Values.deployment.probes.readiness.initialDelaySeconds }}
-            periodSeconds: {{ .Values.deployment.probes.readiness.periodSeconds }}
-            timeoutSeconds: {{ .Values.deployment.probes.readiness.timeoutSeconds }}
-            failureThreshold: {{ .Values.deployment.probes.readiness.failureThreshold }}
-            successThreshold: {{ .Values.deployment.probes.readiness.successThreshold }}
-          {{- end }}
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 15 # Check readiness sooner than liveness
+            periodSeconds: 10
           resources:
-             {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

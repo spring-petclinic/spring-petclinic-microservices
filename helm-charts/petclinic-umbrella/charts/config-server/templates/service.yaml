@@ -1,17 +1,16 @@
+# helm-charts/petclinic-umbrella/charts/config-server/templates/service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  # CRITICAL: Explicitly set the name for DNS discovery
-  name: config-server
+  name: {{ include "config-server.fullname" . }}
   labels:
-    {{- include "config-server.labels" . | nindent 4 }} # Use labels helper
+    {{- include "config-server.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      # Reference the named port 'http' from the deployment template
-      targetPort: http
+      targetPort: {{ .Values.service.port }} # Target port should match container port
       protocol: TCP
-      name: http # Name the service port
+      name: http
   selector:
-    {{- include "config-server.selectorLabels" . | nindent 4 }} # Use selector labels helper
+    {{- include "config-server.selectorLabels" . | nindent 4 }}

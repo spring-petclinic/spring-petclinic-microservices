@@ -1,20 +1,21 @@
+# helm-charts/petclinic-umbrella/charts/api-gateway/templates/service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  # Explicitly set the name for clarity, though not strictly required for internal DNS here
-  name: api-gateway
+  name: {{ include "api-gateway.fullname" . }}
   labels:
-    {{- include "api-gateway.labels" . | nindent 4 }} # Use labels helper
+    {{- include "api-gateway.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.service.type }} # Should be NodePort
+  type: {{ .Values.service.type }} # Will be NodePort
   ports:
-    - port: {{ .Values.service.port }} # Should be 8080
-      targetPort: http # Reference the named port 'http' from the deployment
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }} # Target api-gateway port (8080)
       protocol: TCP
-      name: http # Name the service port
-      # Only include nodePort if a value is provided in values.yaml
+      name: http
+      # If nodePort is specified in values.yaml, it will be used.
+      # If not, Kubernetes will assign a random one in the valid range (usually 30000-32767)
       {{- if .Values.service.nodePort }}
       nodePort: {{ .Values.service.nodePort }}
       {{- end }}
   selector:
-    {{- include "api-gateway.selectorLabels" . | nindent 4 }} # Use selector labels helper
+    {{- include "api-gateway.selectorLabels" . | nindent 4 }}

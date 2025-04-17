@@ -1,14 +1,17 @@
+# helm-charts/petclinic-umbrella/charts/discovery-server/templates/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "discovery-server.fullname" . }} # Use fullname helper
+  name: {{ include "discovery-server.fullname" . }}
   labels:
-    {{- include "discovery-server.labels" . | nindent 4 }} # Use labels helper
+    {{- include "discovery-server.labels" . | nindent 4 }}
 spec:
+  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
-      {{- include "discovery-server.selectorLabels" . | nindent 6 }} # Use selector labels helper
+      {{- include "discovery-server.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -16,57 +19,40 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "discovery-server.selectorLabels" . | nindent 8 }} # Use selector labels helper
+        {{- include "discovery-server.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "discovery-server.serviceAccountName" . }} # Use service account name helper
+      serviceAccountName: {{ include "discovery-server.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ .Chart.Name }} # Use chart name for container name
+        - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # No specific env vars needed here usually, relies on config fetched from Config Server
           ports:
-            - name: http # Define a name for the port
-              containerPort: {{ .Values.deployment.containerPort }}
+            - name: http-eureka
+              containerPort: {{ .Values.service.port }} # Use the service port value (8761)
               protocol: TCP
-          env:
-            # Add environment variables from values.yaml if any are defined
-            {{- range $key, $value := .Values.deployment.env }}
-            - name: {{ $key }}
-              value: {{ $value | quote }}
-            {{- end }}
-          # Liveness Probe Configuration
-          {{- if .Values.deployment.probes.liveness.enabled }}
           livenessProbe:
             httpGet:
-              path: {{ .Values.deployment.probes.liveness.path }}
-              port: http # Reference the named port
-            initialDelaySeconds: {{ .Values.deployment.probes.liveness.initialDelaySeconds }}
-            periodSeconds: {{ .Values.deployment.probes.liveness.periodSeconds }}
-            timeoutSeconds: {{ .Values.deployment.probes.liveness.timeoutSeconds }}
-            failureThreshold: {{ .Values.deployment.probes.liveness.failureThreshold }}
-            successThreshold: {{ .Values.deployment.probes.liveness.successThreshold }}
-          {{- end }}
-          # Readiness Probe Configuration
-          {{- if .Values.deployment.probes.readiness.enabled }}
+              path: /actuator/health/liveness # Assuming Spring Boot Actuator health check
+              port: http-eureka
+            initialDelaySeconds: 45 # Give more time for discovery server potentially
+            periodSeconds: 15
           readinessProbe:
             httpGet:
-              path: {{ .Values.deployment.probes.readiness.path }}
-              port: http # Reference the named port
-            initialDelaySeconds: {{ .Values.deployment.probes.readiness.initialDelaySeconds }}
-            periodSeconds: {{ .Values.deployment.probes.readiness.periodSeconds }}
-            timeoutSeconds: {{ .Values.deployment.probes.readiness.timeoutSeconds }}
-            failureThreshold: {{ .Values.deployment.probes.readiness.failureThreshold }}
-            successThreshold: {{ .Values.deployment.probes.readiness.successThreshold }}
-          {{- end }}
+              path: /actuator/health/readiness # Assuming Spring Boot Actuator health check
+              port: http-eureka
+            initialDelaySeconds: 30
+            periodSeconds: 15
           resources:
-             {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -79,3 +65,4 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      
