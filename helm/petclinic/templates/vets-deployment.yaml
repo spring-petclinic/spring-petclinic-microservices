@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+     kind: Deployment
+     metadata:
+       name: vets
+       namespace: {{ .Release.Namespace }}
+     spec:
+       replicas: 1
+       selector:
+         matchLabels:
+           app: vets
+       template:
+         metadata:
+           labels:
+             app: vets
+         spec:
+           containers:
+           - name: vets
+             image: {{ .Values.dockerhubUsername }}/{{ .Values.vets.repository }}:{{ .Values.vets.tag }}
+             ports:
+             - containerPort: {{ .Values.vets.port }}
+             env:
+             - name: SPRING_PROFILES_ACTIVE
+               value: docker

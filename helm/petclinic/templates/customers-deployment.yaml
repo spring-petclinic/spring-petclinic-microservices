@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+     kind: Deployment
+     metadata:
+       name: customers
+       namespace: {{ .Release.Namespace }}
+     spec:
+       replicas: 1
+       selector:
+         matchLabels:
+           app: customers
+       template:
+         metadata:
+           labels:
+             app: customers
+         spec:
+           containers:
+           - name: customers
+             image: {{ .Values.dockerhubUsername }}/{{ .Values.customers.repository }}:{{ .Values.customers.tag }}
+             ports:
+             - containerPort: {{ .Values.customers.port }}
+             env:
+             - name: SPRING_PROFILES_ACTIVE
+               value: docker

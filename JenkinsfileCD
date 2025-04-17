@@ -1,0 +1,82 @@
+pipeline {
+    agent any
+    environment {
+        K8S_NAMESPACE = 'dev'
+    }
+    parameters {
+        string(name: 'admin-server', defaultValue: 'main', description: 'Branch for admin-server (e.g., dev_admin_server)')
+        string(name: 'api-gateway', defaultValue: 'main', description: 'Branch for api-gateway (e.g., dev_api_gateway)')
+        string(name: 'config-server', defaultValue: 'main', description: 'Branch for config-server (e.g., dev_config_server)')
+        string(name: 'customers-service', defaultValue: 'main', description: 'Branch for customers-service (e.g., dev_customers_service)')
+        string(name: 'discovery-server', defaultValue: 'main', description: 'Branch for discovery-server (e.g., dev_discovery_server)')
+        string(name: 'genai-service', defaultValue: 'main', description: 'Branch for genai-service (e.g., dev_genai_service)')
+        string(name: 'vets-service', defaultValue: 'main', description: 'Branch for vets-service (e.g., dev_vets_service)')
+        string(name: 'visits-service', defaultValue: 'main', description: 'Branch for visits-service (e.g., dev_visits_service)')
+    }
+    stages {
+        stage('Prepare Helm Values') {
+            steps {
+                script {
+                    def values = readYaml file: 'helm/petclinic/values.yaml'
+                    
+                    // Map service parameters to Helm values keys
+                    def serviceBranches = [
+                        'admin': params.'admin-server',
+                        'gateway': params.'api-gateway',
+                        'config': params.'config-server',
+                        'customers': params.'customers-service',
+                        'eureka': params.'discovery-server',
+                        'genai': params.'genai-service',
+                        'vets': params.'vets-service',
+                        'visits': params.'visits-service'
+                    ]
+
+                    serviceBranches.each { serviceKey, branchName ->
+                        if (branchName && branchName != 'main') {
+                            def commitId = sh(script: "git ls-remote https://github.com/phucvu0210/spring-petclinic-microservices.git ${branchName} | awk '{print \$1}' | cut -c1-7", returnStdout: true).trim()
+                            if (!commitId) {
+                                error "Could not find commit ID for branch ${branchName} of ${serviceKey}"
+                            }
+                            values[serviceKey].tag = "${serviceKey}-${commitId}"
+                            echo "Updated tag for ${serviceKey} to ${serviceKey}-${commitId}"
+                        } else {
+                            values[serviceKey].tag = 'latest'
+                            echo "Using latest tag for ${serviceKey} (branch: main)"
+                        }
+                    }
+                    
+                    writeYaml file: 'helm/petclinic/values.yaml', data: values
+                }
+            }
+        }
+        stage('Deploy with Helm') {
+            steps {
+                script {
+                    sh "helm upgrade --install petclinic helm/petclinic --namespace ${K8S_NAMESPACE} --create-namespace"
+                }
+            }
+        }
+        stage('Expose Service') {
+            steps {
+                script {
+                    def nodeIp = sh(script: "kubectl get nodes -o jsonpath='{.items[?(@.metadata.labels.kubernetes.io/role==\"worker\")].status.addresses[?(@.type==\"ExternalIP\")].address}'", returnStdout: true).trim()
+                    def servicePort = sh(script: "kubectl get svc gateway -n ${K8S_NAMESPACE} -o jsonpath='{.spec.ports[0].nodePort}'", returnStdout: true).trim()
+                    echo "Access the application at: http://${nodeIp}:${servicePort}"
+                    echo "Or use: http://petclinic.local:${servicePort} (after adding '<node-ip> petclinic.local' to /etc/hosts)"
+                }
+            }
+        }
+    }
+    post {
+        always {
+            echo "Cleaning up workspace..."
+            cleanWs()
+        }
+        success {
+            echo "Deployment completed successfully!"
+        }
+        failure {
+            echo "Deployment failed. Check logs for details."
+        }
+    }
+}

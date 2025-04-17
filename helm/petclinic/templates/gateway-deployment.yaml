@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+     kind: Deployment
+     metadata:
+       name: gateway
+       namespace: {{ .Release.Namespace }}
+     spec:
+       replicas: 1
+       selector:
+         matchLabels:
+           app: gateway
+       template:
+         metadata:
+           labels:
+             app: gateway
+         spec:
+           containers:
+           - name: gateway
+             image: {{ .Values.dockerhubUsername }}/{{ .Values.gateway.repository }}:{{ .Values.gateway.tag }}
+             ports:
+             - containerPort: {{ .Values.gateway.port }}
+             env:
+             - name: SPRING_PROFILES_ACTIVE
+               value: docker

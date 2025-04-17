@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+     kind: Deployment
+     metadata:
+       name: eureka
+       namespace: {{ .Release.Namespace }}
+     spec:
+       replicas: 1
+       selector:
+         matchLabels:
+           app: eureka
+       template:
+         metadata:
+           labels:
+             app: eureka
+         spec:
+           containers:
+           - name: eureka
+             image: {{ .Values.dockerhubUsername }}/{{ .Values.eureka.repository }}:{{ .Values.eureka.tag }}
+             ports:
+             - containerPort: {{ .Values.eureka.port }}
+             env:
+             - name: SPRING_PROFILES_ACTIVE
+               value: docker

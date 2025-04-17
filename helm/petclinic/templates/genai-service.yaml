@@ -1,0 +1,14 @@
+apiVersion: v1
+     kind: Service
+     metadata:
+       name: genai
+       namespace: {{ .Release.Namespace }}
+     spec:
+       selector:
+         app: genai
+       ports:
+       - protocol: TCP
+         port: {{ .Values.genai.port }}
+         targetPort: {{ .Values.genai.port }}
+         nodePort: {{ add .Values.genai.port 20000 }}
+       type: NodePort

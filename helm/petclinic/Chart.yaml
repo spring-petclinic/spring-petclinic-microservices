@@ -1,0 +1,5 @@
+apiVersion: v2
+     name: petclinic
+     description: A Helm chart for Spring PetClinic Microservices
+     version: 0.1.0
+     appVersion: "3.4.1"

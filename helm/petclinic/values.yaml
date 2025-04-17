@@ -1,0 +1,38 @@
+dockerhubUsername: phucvu0210
+
+     eureka:
+       repository: spring-petclinic-discovery-server
+       tag: latest
+       port: 8761
+     admin:
+       repository: spring-petclinic-admin-server
+       tag: latest
+       port: 9090
+     zipkin:
+       repository: spring-petclinic-zipkin
+       tag: latest
+       port: 9411
+     gateway:
+       repository: spring-petclinic-api-gateway
+       tag: latest
+       port: 8080
+     config:
+       repository: spring-petclinic-config-server
+       tag: latest
+       port: 8888
+     customers:
+       repository: spring-petclinic-customers-service
+       tag: latest
+       port: 8081
+     genai:
+       repository: spring-petclinic-genai-service
+       tag: latest
+       port: 8084
+     vets:
+       repository: spring-petclinic-vets-service
+       tag: latest
+       port: 8083
+     visits:
+       repository: spring-petclinic-visits-service
+       tag: latest
+       port: 8082

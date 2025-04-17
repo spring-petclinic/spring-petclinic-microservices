@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+     kind: Deployment
+     metadata:
+       name: visits
+       namespace: {{ .Release.Namespace }}
+     spec:
+       replicas: 1
+       selector:
+         matchLabels:
+           app: visits
+       template:
+         metadata:
+           labels:
+             app: visits
+         spec:
+           containers:
+           - name: visits
+             image: {{ .Values.dockerhubUsername }}/{{ .Values.visits.repository }}:{{ .Values.visits.tag }}
+             ports:
+             - containerPort: {{ .Values.visits.port }}
+             env:
+             - name: SPRING_PROFILES_ACTIVE
+               value: docker

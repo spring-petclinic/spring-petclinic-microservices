@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+     kind: Deployment
+     metadata:
+       name: admin
+       namespace: {{ .Release.Namespace }}
+     spec:
+       replicas: 1
+       selector:
+         matchLabels:
+           app: admin
+       template:
+         metadata:
+           labels:
+             app: admin
+         spec:
+           containers:
+           - name: admin
+             image: {{ .Values.dockerhubUsername }}/{{ .Values.admin.repository }}:{{ .Values.admin.tag }}
+             ports:
+             - containerPort: {{ .Values.admin.port }}
+             env:
+             - name: SPRING_PROFILES_ACTIVE
+               value: docker

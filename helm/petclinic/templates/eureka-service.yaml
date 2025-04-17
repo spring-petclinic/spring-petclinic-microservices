@@ -1,0 +1,14 @@
+apiVersion: v1
+     kind: Service
+     metadata:
+       name: eureka
+       namespace: {{ .Release.Namespace }}
+     spec:
+       selector:
+         app: eureka
+       ports:
+       - protocol: TCP
+         port: {{ .Values.eureka.port }}
+         targetPort: {{ .Values.eureka.port }}
+         nodePort: {{ add .Values.eureka.port 20000 }}
+       type: NodePort
