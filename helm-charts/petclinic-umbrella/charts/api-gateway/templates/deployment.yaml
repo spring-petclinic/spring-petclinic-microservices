@@ -28,30 +28,59 @@ spec:
       serviceAccountName: {{ include "api-gateway.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+
+      # --- ADD INIT CONTAINERS ---
+      initContainers:
+        - name: wait-for-config-server
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z -w 2 {{ .Release.Name }}-config-server 8888; do echo "[api-gateway] waiting for config-server"; sleep 2; done;']
+        - name: wait-for-discovery-server
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z -w 2 {{ .Release.Name }}-discovery-server 8761; do echo "[api-gateway] waiting for discovery-server"; sleep 2; done;']
+      # --- END INIT CONTAINERS ---
+
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          # Configuration for routing, discovery etc. should be fetched from the Config Server.
-          # Ensure Config/Discovery server are running before this service starts.
+
+          # --- ADD ENVIRONMENT VARIABLES (Cleaned Up) ---
+          env:
+            - name: CONFIG_SERVER_URL
+              value: "http://{{ .Release.Name }}-config-server:8888"
+            - name: SPRING_PROFILES_ACTIVE
+              value: "kubernetes"
+            # Set Eureka properties and disable Zipkin health via Java System Properties
+            - name: JAVA_TOOL_OPTIONS
+              value: >-
+                -Deureka.client.serviceUrl.defaultZone=http://{{ .Release.Name }}-discovery-server:8761/eureka/
+                -Deureka.client.registerWithEureka=true
+                -Deureka.client.fetchRegistry=true
+                -Dmanagement.health.zipkin.enabled=false
+            - name: EUREKA_INSTANCE_HOSTNAME
+              value: "{{ .Release.Name }}-api-gateway"
+          # --- END ENVIRONMENT VARIABLES ---
+
           ports:
             - name: http
-              containerPort: {{ .Values.service.port }} # Use the service port value (8080)
+              containerPort: {{ .Values.service.port }} # 8080 from values.yaml
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /actuator/health/liveness
+              path: /actuator/health # Use base health endpoint
               port: http
-            initialDelaySeconds: 70 # Allow more time for routing setup + config fetch
-            periodSeconds: 10
+            initialDelaySeconds: 120 # Give gateway more time
+            periodSeconds: 15
+            failureThreshold: 6
           readinessProbe:
             httpGet:
-              path: /actuator/health/readiness
+              path: /actuator/health # Use base health endpoint
               port: http
-            initialDelaySeconds: 50
-            periodSeconds: 10
+            initialDelaySeconds: 90 # Give gateway more time
+            periodSeconds: 15
+            # failureThreshold: 3
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

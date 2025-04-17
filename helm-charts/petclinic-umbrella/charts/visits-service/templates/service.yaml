@@ -1,0 +1,16 @@
+# helm-charts/petclinic-umbrella/charts/visits-service/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "visits-service.fullname" . }}
+  labels:
+    {{- include "visits-service.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }} # Target visits-service port (8082)
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "visits-service.selectorLabels" . | nindent 4 }}

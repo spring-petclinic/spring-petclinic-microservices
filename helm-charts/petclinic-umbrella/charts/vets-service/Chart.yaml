@@ -1,0 +1,7 @@
+# helm-charts/petclinic-umbrella/charts/vets-service/Chart.yaml
+apiVersion: v2
+name: vets-service
+description: Helm chart for Spring PetClinic Vets Service
+type: application
+version: 0.1.0
+appVersion: "3.4.1" # Example, use appropriate app version

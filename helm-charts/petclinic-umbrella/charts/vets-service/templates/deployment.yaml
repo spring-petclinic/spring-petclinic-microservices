@@ -1,17 +1,17 @@
-# helm-charts/petclinic-umbrella/charts/customers-service/templates/deployment.yaml
+# helm-charts/petclinic-umbrella/charts/vets-service/templates/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "customers-service.fullname" . }}
+  name: {{ include "vets-service.fullname" . }}
   labels:
-    {{- include "customers-service.labels" . | nindent 4 }}
+    {{- include "vets-service.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "customers-service.selectorLabels" . | nindent 6 }}
+      {{- include "vets-service.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -19,13 +19,13 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "customers-service.selectorLabels" . | nindent 8 }}
+        {{- include "vets-service.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "customers-service.serviceAccountName" . }}
+      serviceAccountName: {{ include "vets-service.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
 
@@ -33,12 +33,10 @@ spec:
       initContainers:
         - name: wait-for-config-server
           image: busybox:1.36
-          # Wait for config-server service using full name
-          command: ['sh', '-c', 'until nc -z -w 2 {{ .Release.Name }}-config-server 8888; do echo "[customers-service] waiting for config-server"; sleep 2; done;']
+          command: ['sh', '-c', 'until nc -z -w 2 {{ .Release.Name }}-config-server 8888; do echo "[vets-service] waiting for config-server"; sleep 2; done;']
         - name: wait-for-discovery-server
           image: busybox:1.36
-          # Wait for discovery-server service using full name
-          command: ['sh', '-c', 'until nc -z -w 2 {{ .Release.Name }}-discovery-server 8761; do echo "[customers-service] waiting for discovery-server"; sleep 2; done;']
+          command: ['sh', '-c', 'until nc -z -w 2 {{ .Release.Name }}-discovery-server 8761; do echo "[vets-service] waiting for discovery-server"; sleep 2; done;']
       # --- END INIT CONTAINERS ---
 
       containers:
@@ -54,31 +52,32 @@ spec:
               value: "http://{{ .Release.Name }}-config-server:8888"
             - name: SPRING_PROFILES_ACTIVE
               value: "kubernetes"
+            # Set Eureka properties, disable Zipkin health, and force port via Java System Properties
             - name: JAVA_TOOL_OPTIONS
               value: >-
                 -Deureka.client.serviceUrl.defaultZone=http://{{ .Release.Name }}-discovery-server:8761/eureka/
                 -Deureka.client.registerWithEureka=true
                 -Deureka.client.fetchRegistry=true
                 -Dmanagement.health.zipkin.enabled=false
-                -Dserver.port=8081
+                -Dserver.port=8083
           # --- END ENVIRONMENT VARIABLES ---
 
           ports:
             - name: http
-              containerPort: {{ .Values.service.port }} # Use the service port value (8081)
+              containerPort: {{ .Values.service.port }} # 8083 from values.yaml
               protocol: TCP
           livenessProbe:
             httpGet:
               path: /actuator/health # Use base health endpoint
               port: http
-            initialDelaySeconds: 90 # Increased delay further for dependent service
+            initialDelaySeconds: 90 # Using same delays as customers-service
             periodSeconds: 10
-            failureThreshold: 6  # Allow more failures before restarting
+            failureThreshold: 6
           readinessProbe:
             httpGet:
               path: /actuator/health # Use base health endpoint
               port: http
-            initialDelaySeconds: 60
+            initialDelaySeconds: 60 # Using same delays as customers-service
             periodSeconds: 10
             # failureThreshold: 3
           resources:

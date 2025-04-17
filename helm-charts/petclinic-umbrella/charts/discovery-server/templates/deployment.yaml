@@ -28,13 +28,22 @@ spec:
       serviceAccountName: {{ include "discovery-server.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: wait-for-config-server
+          image: busybox:1.36
+          # --- MODIFY THIS LINE ---
+          command: ['sh', '-c', 'until nc -z -w 2 petclinic-dev-config-server 8888; do echo waiting for config-server; sleep 2; done;']
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          # No specific env vars needed here usually, relies on config fetched from Config Server
+          env:
+            - name: CONFIG_SERVER_URL
+              value: "http://{{ .Release.Name }}-config-server:8888"
+            - name: SPRING_PROFILES_ACTIVE
+              value: "kubernetes"
           ports:
             - name: http-eureka
               containerPort: {{ .Values.service.port }} # Use the service port value (8761)

@@ -2,24 +2,26 @@
 apiVersion: v2
 name: petclinic-umbrella
 description: Umbrella chart for Spring PetClinic Microservices
-
-# Application charts require a version field.
+type: application
 version: 0.1.0
-
-# The appVersion field is recommended, specify the overall app version if applicable
 appVersion: "3.4.1" # Example
 
-# Add dependencies section for the sub-charts
 dependencies:
   - name: config-server
-    version: "0.1.0" # Match the version in charts/config-server/Chart.yaml
-    repository: "file://./charts/config-server" # Path to the local sub-chart
+    version: "0.1.0"
+    repository: "file://./charts/config-server"
   - name: discovery-server
-    version: "0.1.0" # Match the version in charts/discovery-server/Chart.yaml
+    version: "0.1.0"
     repository: "file://./charts/discovery-server"
   - name: customers-service
-    version: "0.1.0" # Match the version in charts/customers-service/Chart.yaml
+    version: "0.1.0"
     repository: "file://./charts/customers-service"
   - name: api-gateway
-    version: "0.1.0" # Match the version in charts/api-gateway/Chart.yaml
+    version: "0.1.0"
     repository: "file://./charts/api-gateway"
+  - name: vets-service
+    version: "0.1.0"
+    repository: "file://./charts/vets-service"
+  - name: visits-service
+    version: "0.1.0"
+    repository: "file://./charts/visits-service"

@@ -1,31 +1,31 @@
 # helm-charts/petclinic-umbrella/values.yaml
 
-# Global values can be defined here if needed, e.g.:
-# global:
-#   imagePullPolicy: Always
-
-# Override sub-chart values by using the sub-chart name as the key.
+# Override sub-chart values by using the sub-chart name (camelCased) as the key.
 # We will primarily use this to control the image tags deployed.
 
 configServer:
   image:
-    tag: latest # Default tag for config-server
+    tag: latest
 
 discoveryServer:
   image:
-    tag: latest # Default tag for discovery-server
+    tag: latest
 
 customersService:
-  # Note: Helm converts chart names with hyphens to camelCase keys
-  # when accessing them like this in the umbrella values.yaml.
-  # So, 'customers-service' chart becomes 'customersService' key here.
   image:
-    tag: latest # Default tag for customers-service
+    tag: latest
 
 apiGateway:
-  # Similarly, 'api-gateway' chart becomes 'apiGateway' key.
   image:
-    tag: latest # Default tag for api-gateway
+    tag: latest
   # Example: Setting nodePort globally if desired
   # service:
   #   nodePort: 30080
+
+vetsService:
+  image:
+    tag: latest # Default tag for vets-service
+
+visitsService:
+  image:
+    tag: latest # Default tag for visits-service
