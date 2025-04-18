@@ -95,6 +95,8 @@ pipeline {
                                                      usernameVariable: 'GIT_USERNAME', 
                                                      passwordVariable: 'GIT_PASSWORD')]) {
                             sh """
+                            git config user.email "tranductung07012004@gmail.com"
+                            git config user.name "tranductung07012004"
                             git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/tranductung07012004/gitops.git main
                             """
                         }
