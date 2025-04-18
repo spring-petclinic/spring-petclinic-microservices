@@ -254,11 +254,7 @@ pipeline {
                                     if (env.BRANCH_NAME == 'main') {
                                         echo "Pushing additional tag 'latest' for main branch build: ${imageName}:latest"
                                         dockerImage.push('latest')
-                                    } else if (env.BRANCH_NAME) {
-                                        def branchTag = env.BRANCH_NAME.replaceAll('/','-')
-                                        echo "Pushing additional tag for branch name: ${imageName}:${branchTag}"
-                                        dockerImage.push("${branchTag}")
-                                    }
+                                    } 
 
                                     echo "Docker build and push successful for ${service}."
 
