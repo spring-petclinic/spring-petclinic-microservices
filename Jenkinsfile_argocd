@@ -69,7 +69,7 @@ pipeline {
                     // Push changes to GitOps repo
                     withCredentials([usernamePassword(credentialsId: 'github_app', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
                         sh """
-                        git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/YOUR_USERNAME/gitops.git main
+                        git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/tranductung07012004/gitops.git main
                         """
                     }
                 }
