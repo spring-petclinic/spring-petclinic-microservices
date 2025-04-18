@@ -97,6 +97,10 @@ pipeline {
                             'visits-service'
                         ]
                     
+                        // Debug - kiểm tra thư mục hiện tại và cấu trúc thư mục
+                        sh "pwd"
+                        sh "find . -name Dockerfile -type f | sort"
+                        
                         // Build and push all service images
                         for (def service in services) {
                             def serviceDir = "spring-petclinic-${service}"
@@ -110,16 +114,20 @@ pipeline {
                                 sh "chmod +x ./mvnw"
                                 sh "./mvnw -pl ${serviceDir} -am clean package -DskipTests"
                                 
-                                // Build Docker image - Sử dụng cùng cách như trong Jenkinsfile gốc
-                                sh "/usr/local/bin/docker build --build-arg ARTIFACT_NAME=${service} --build-arg EXPOSED_PORT=8080 -t ${imageName}:${imageTag} -t ${imageName}:latest ."
+                                // Build Docker image - BƯỚC QUAN TRỌNG: chuyển JAR vào thư mục docker trước
+                                sh """
+                                cp ${serviceDir}/target/*.jar docker/${service}.jar
+                                cd docker
+                                /usr/local/bin/docker build --build-arg ARTIFACT_NAME=${service} --build-arg EXPOSED_PORT=8080 -t ${imageName}:${imageTag} .
+                                /usr/local/bin/docker push ${imageName}:${imageTag}
                                 
-                                // Push images
-                                sh "/usr/local/bin/docker push ${imageName}:${imageTag}"
-                            
-                                // Also push latest tag if this is a main branch build or a tag
-                                if (env.BRANCH_NAME == 'main' || env.TAG_NAME != null) {
-                                    sh "/usr/local/bin/docker push ${imageName}:latest"
-                                }
+                                # Tạo tag latest nếu cần
+                                /usr/local/bin/docker tag ${imageName}:${imageTag} ${imageName}:latest
+                                /usr/local/bin/docker push ${imageName}:latest
+                                
+                                rm ${service}.jar
+                                cd ..
+                                """
                             } else {
                                 echo "Warning: Service directory ${serviceDir} not found, skipping..."
                             }
