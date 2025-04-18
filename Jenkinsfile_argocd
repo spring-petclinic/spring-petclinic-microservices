@@ -42,6 +42,7 @@ pipeline {
                                                      usernameVariable: 'GIT_USERNAME', 
                                                      passwordVariable: 'GIT_PASSWORD')]) {
                             sh """
+                            which git
                             git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/tranductung07012004/gitops.git .
                             """
                         }
