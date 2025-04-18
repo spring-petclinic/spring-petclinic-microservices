@@ -1,0 +1,54 @@
+pipeline {
+    agent {
+        label '!built-in'
+    }
+
+    parameters {
+        string(name: 'customers-services', defaultValue: 'main')
+        string(name: 'visits-services', defaultValue: 'main')
+        string(name: 'vets-services', defaultValue: 'main')
+        string(name: 'genai-services', defaultValue: 'main')
+    }
+
+    environment {
+        REPO_URL = 'https://github.com/22127475/HCMUS-DevOps-Project-02.git'
+        IMAGE_NAME = '22127475/devops-project02'
+    }
+
+    
+
+    stages {
+        stage('Deploy services') {
+            steps {
+                script {
+                    services = [
+                        [name: 'customers-services', branch: params.customers-services],
+                        [name: 'visits-services', branch: params.visits-services], 
+                        [name: 'vets-services', branch: params.vets-services],
+                        [name: 'genai-services', branch: params.genai-services]
+                    ]
+                        
+                    tags = []
+                    for (service in services) {
+                        tags.append(tag.branch == 'main' ? 'main' : sh(script: "git ls-remote ${REPO_URL} refs/heads/${services.branch} | cut -f1", returnStdout: true).trim())
+
+                        echo "tags: ${tags[-1]}"
+                    }
+                }
+            }
+        }
+
+        stage('Pull images') {
+            steps {
+                script {
+                    for (tag in tags)
+                        sh "docker image pull ${IMAGE_NAME}:${tag}"
+                        echo "pulled image: ${IMAGE_NAME}:${tag}"
+                }
+            }
+        }
+        
+    }
+
+    
+}
