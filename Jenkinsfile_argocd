@@ -2,7 +2,7 @@ pipeline {
     agent any
    
     parameters {
-        string(name: 'GIT_REPO', defaultValue: 'https://github.com/tranductung07012004/gitops.git', description: 'GitOps Repository URL')
+        string(name: 'GIT_REPO', defaultValue: 'https://github.com/tranductung07012004/devOps_1_spring-petclinic-microservices.git', description: 'GitOps Repository URL')
     }
    
     stages {
@@ -11,7 +11,7 @@ pipeline {
                 script {
                     // Chỉ checkout main để lấy file cấu hình Kubernetes
                     git branch: 'main', 
-                    url: 'https://github.com/tranductung07012004/gitops.git'
+                    url: 'https://github.com/tranductung07012004/devOps_1_spring-petclinic-microservices.git'
                 }
             }
         }
