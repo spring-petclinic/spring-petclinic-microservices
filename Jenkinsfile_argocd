@@ -42,6 +42,7 @@ pipeline {
                                                      usernameVariable: 'GIT_USERNAME', 
                                                      passwordVariable: 'GIT_PASSWORD')]) {
                             sh """
+                            which git
                             git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/tranductung07012004/gitops.git .
                             """
                         }
@@ -90,10 +91,12 @@ pipeline {
                    
                     // Push changes to GitOps repo
                     dir('gitops-repo') {
-                        withCredentials([usernamePassword(credentialsId: 'github_app', 
+                        withCredentials([usernamePassword(credentialsId: 'github-token-fix', 
                                                      usernameVariable: 'GIT_USERNAME', 
                                                      passwordVariable: 'GIT_PASSWORD')]) {
                             sh """
+                            git config user.email "tranductung07012004@gmail.com"
+                            git config user.name "tranductung07012004"
                             git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/tranductung07012004/gitops.git main
                             """
                         }
@@ -139,6 +142,9 @@ pipeline {
                                                        usernameVariable: 'GIT_USERNAME', 
                                                        passwordVariable: 'GIT_PASSWORD')]) {
                             sh """
+                            echo $GIT_USERNAME
+                            git config user.name "$GIT_USERNAME"
+                            git config user.email "$GIT_USERNAME@gmail.com"
                             git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/tranductung07012004/gitops.git main
                             """
                         }
