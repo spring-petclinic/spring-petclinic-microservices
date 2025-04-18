@@ -1,7 +1,5 @@
 pipeline {
-    agent {
-        label '!built-in'
-    }
+    agent any
 
     parameters {
         string(name: 'eureka-services', defaultValue: 'main')
