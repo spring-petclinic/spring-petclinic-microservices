@@ -4,10 +4,14 @@ pipeline {
     }
 
     parameters {
+        string(name: 'eureka-services', defaultValue: 'main')
+        string(name: 'admin-server', defaultValue: 'main')
+        string(name: 'zipkin', defaultValue: 'main')
+        string(name: 'api-gateway', defaultValue: 'main')
         string(name: 'customers-services', defaultValue: 'main')
-        string(name: 'visits-services', defaultValue: 'main')
-        string(name: 'vets-services', defaultValue: 'main')
         string(name: 'genai-services', defaultValue: 'main')
+        string(name: 'vets-services', defaultValue: 'main')
+        string(name: 'visits-services', defaultValue: 'main')
     }
 
     environment {
@@ -22,6 +26,10 @@ pipeline {
             steps {
                 script {
                     services = [
+                        [name: 'eureka-services', branch: params.eureka-services],
+                        [name: 'admin-server', branch: params.admin-server], 
+                        [name: 'zipkin', branch: params.zipkin],
+                        [name: 'api-gateway', branch: params.api-gateway]
                         [name: 'customers-services', branch: params.customers-services],
                         [name: 'visits-services', branch: params.visits-services], 
                         [name: 'vets-services', branch: params.vets-services],
@@ -30,7 +38,7 @@ pipeline {
                         
                     tags = []
                     for (service in services) {
-                        tags.append(tag.branch == 'main' ? 'main' : sh(script: "git ls-remote ${REPO_URL} refs/heads/${services.branch} | cut -f1", returnStdout: true).trim())
+                        tags.append(tag.branch == 'main' ? 'latest' : sh(script: "git ls-remote ${REPO_URL} refs/heads/${services.branch} | cut -f1", returnStdout: true).trim())
 
                         echo "tags: ${tags[-1]}"
                     }
@@ -47,6 +55,8 @@ pipeline {
                 }
             }
         }
+
+
         
     }
 
