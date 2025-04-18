@@ -3,75 +3,148 @@ pipeline {
    
     parameters {
         string(name: 'GIT_REPO', defaultValue: 'https://github.com/tranductung07012004/devOps_1_spring-petclinic-microservices.git', description: 'GitOps Repository URL')
+        booleanParam(name: 'FORCE_UPDATE_DEV', defaultValue: false, description: 'Force update dev environment')
+        booleanParam(name: 'FORCE_UPDATE_STAGING', defaultValue: false, description: 'Force update staging environment with latest commit')
     }
    
     stages {
+        stage('Debug Environment Info') {
+            steps {
+                script {
+                    // In ra thông tin về môi trường để debug
+                    sh 'git --version'
+                    sh 'echo "Current directory: $(pwd)"'
+                    sh 'echo "Git branch: $(git rev-parse --abbrev-ref HEAD)"'
+                    sh 'echo "Latest commit: $(git rev-parse HEAD)"'
+                    sh 'echo "Latest commit short: $(git rev-parse --short HEAD)"'
+                    sh 'echo "Latest commit message: $(git log -1 --pretty=%B)"'
+                    
+                    // In ra các biến môi trường Jenkins
+                    echo "BRANCH_NAME: ${env.BRANCH_NAME ?: 'not set'}"
+                    echo "GIT_BRANCH: ${env.GIT_BRANCH ?: 'not set'}"
+                    echo "TAG_NAME: ${env.TAG_NAME ?: 'not set'}"
+                    echo "GIT_COMMIT: ${env.GIT_COMMIT ?: 'not set'}"
+                }
+            }
+        }
+        
         stage('Checkout GitOps Repo') {
             steps {
                 script {
-                    // Chỉ checkout main để lấy file cấu hình Kubernetes
-                    git branch: 'main', 
-                    url: 'https://github.com/tranductung07012004/devOps_1_spring-petclinic-microservices.git'
+                    // Checkout repository GitOps
+                    sh 'mkdir -p gitops-repo'
+                    dir('gitops-repo') {
+                        // Xóa nếu đã tồn tại
+                        sh 'rm -rf ./* || true'
+                        
+                        // Clone GitOps repo
+                        withCredentials([usernamePassword(credentialsId: 'github_app', 
+                                                     usernameVariable: 'GIT_USERNAME', 
+                                                     passwordVariable: 'GIT_PASSWORD')]) {
+                            sh """
+                            git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/tranductung07012004/gitops.git .
+                            """
+                        }
+                    }
                 }
             }
         }
        
         stage('Update Dev Environment') {
             when {
-                expression { env.BRANCH_NAME == 'main' && !env.CHANGE_ID }
+                anyOf {
+                    expression { 
+                        // Kiểm tra nhánh main
+                        def currentBranch = env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
+                        return currentBranch.contains('main') || currentBranch.contains('master')
+                    }
+                    expression {
+                        // Kiểm tra nếu là commit merge
+                        def commitMsg = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
+                        return commitMsg.contains('Merge')
+                    }
+                    expression { return params.FORCE_UPDATE_DEV }
+                }
             }
             steps {
                 script {
                     // Get latest commit ID for tagging
                     def commitId = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                    
+                    echo "Updating dev environment with commit: ${commitId}"
+                    
                     // Update kustomization.yaml for dev environment
-                    dir('dev') {
+                    dir('gitops-repo/dev') {
                         sh """
+                        cat kustomization.yaml
                         sed -i '' 's|newTag: .*|newTag: ${commitId}|g' kustomization.yaml
+                        cat kustomization.yaml
+                        
+                        cd ..
                         git config user.email "tranductung07012004@gmail.com"
                         git config user.name "tranductung07012004"
-                        git add kustomization.yaml
+                        git add dev/kustomization.yaml
                         git commit -m "Update dev environment to commit ${commitId}" || echo "No changes"
                         """
                     }
                    
                     // Push changes to GitOps repo
-                    withCredentials([usernamePassword(credentialsId: 'github_app', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-                        sh """
-                        git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/tranductung07012004/gitops.git main
-                        """
+                    dir('gitops-repo') {
+                        withCredentials([usernamePassword(credentialsId: 'github_app', 
+                                                     usernameVariable: 'GIT_USERNAME', 
+                                                     passwordVariable: 'GIT_PASSWORD')]) {
+                            sh """
+                            git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/tranductung07012004/gitops.git main
+                            """
+                        }
                     }
+                    
+                    echo "Successfully updated GitOps repo for dev environment"
                 }
             }
         }
        
         stage('Update Staging Environment') {
             when {
-                expression { env.TAG_NAME != null && env.TAG_NAME.startsWith('v') }
+                anyOf {
+                    expression { return env.TAG_NAME != null && env.TAG_NAME.startsWith('v') }
+                    expression { return params.FORCE_UPDATE_STAGING }
+                }
             }
             steps {
                 script {
-                    // Extract version from tag
-                    def version = env.TAG_NAME
+                    // Extract version from tag or use commit ID if forced
+                    def version = env.TAG_NAME ?: sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                    
+                    echo "Updating staging environment with version: ${version}"
+                    
                     // Update kustomization.yaml for staging environment
-                    dir('staging') {
+                    dir('gitops-repo/staging') {
                         sh """
+                        cat kustomization.yaml
                         sed -i '' 's|newTag: .*|newTag: ${version}|g' kustomization.yaml
-                        git config user.email "tranductung2004@gmail.com"
+                        cat kustomization.yaml
+                        
+                        cd ..
+                        git config user.email "tranductung07012004@gmail.com"
                         git config user.name "tranductung07012004"
-                        git add kustomization.yaml
-                        git commit -m "Update staging environment to release ${version}" || echo "No changes"
+                        git add staging/kustomization.yaml
+                        git commit -m "Update staging environment to version ${version}" || echo "No changes"
                         """
                     }
                    
                     // Push changes to GitOps repo
-                    withCredentials([usernamePassword(credentialsId: 'github_app', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-                        sh """
-                        git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/YOUR_USERNAME/gitops.git main
-                        """
+                    dir('gitops-repo') {
+                        withCredentials([usernamePassword(credentialsId: 'github_app', 
+                                                       usernameVariable: 'GIT_USERNAME', 
+                                                       passwordVariable: 'GIT_PASSWORD')]) {
+                            sh """
+                            git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/tranductung07012004/gitops.git main
+                            """
+                        }
                     }
+                    
+                    echo "Successfully updated GitOps repo for staging environment"
                 }
             }
         }
@@ -80,12 +153,16 @@ pipeline {
             steps {
                 script {
                     // Determine image tag based on trigger type (branch or tag)
-                    def imageTag = env.TAG_NAME ?: (env.BRANCH_NAME == 'main' ? sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim() : 'latest')
-                
-                    withCredentials([usernamePassword(credentialsId: 'docker_hub_PAT', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    def imageTag = env.TAG_NAME ?: (env.BRANCH_NAME == 'main' || env.GIT_BRANCH?.contains('main') 
+                        ? sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim() 
+                        : 'latest')
+                   
+                    withCredentials([usernamePassword(credentialsId: 'docker_hub_PAT', 
+                                                   usernameVariable: 'DOCKER_USERNAME', 
+                                                   passwordVariable: 'DOCKER_PASSWORD')]) {
                         // Login to Docker Hub
                         sh "/usr/local/bin/docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
-                    
+                       
                         // Define all services to build
                         def services = [
                             'api-gateway',
@@ -96,7 +173,7 @@ pipeline {
                             'vets-service',
                             'visits-service'
                         ]
-                    
+                       
                         // Debug - kiểm tra thư mục hiện tại và cấu trúc thư mục
                         sh "pwd"
                         sh "find . -name Dockerfile -type f | sort"
@@ -105,7 +182,7 @@ pipeline {
                         for (def service in services) {
                             def serviceDir = "spring-petclinic-${service}"
                             def imageName = "${DOCKER_USERNAME}/spring-petclinic-${service}"
-                        
+                           
                             echo "Building service: ${service}, directory: ${serviceDir}"
                             
                             // Kiểm tra xem thư mục có tồn tại không
@@ -144,6 +221,10 @@ pipeline {
         }
         failure {
             echo "Pipeline failed!"
+        }
+        always {
+            echo "Cleaning up workspace..."
+            cleanWs()
         }
     }
 }
