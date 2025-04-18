@@ -91,7 +91,7 @@ pipeline {
                    
                     // Push changes to GitOps repo
                     dir('gitops-repo') {
-                        withCredentials([usernamePassword(credentialsId: 'github_app', 
+                        withCredentials([usernamePassword(credentialsId: 'github-token-fix', 
                                                      usernameVariable: 'GIT_USERNAME', 
                                                      passwordVariable: 'GIT_PASSWORD')]) {
                             sh """
