@@ -1,0 +1,16 @@
+# helm-charts/petclinic-umbrella/charts/admin-server/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "admin-server.fullname" . }}
+  labels:
+    {{- include "admin-server.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }} # Target admin-server port (9090)
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "admin-server.selectorLabels" . | nindent 4 }}

@@ -17,5 +17,11 @@ dependencies:
 - name: visits-service
   repository: file://./charts/visits-service
   version: 0.1.0
-digest: sha256:d2199c22d651c2ea86beed97d66c6aa3bfafc8992f37cbbfd36de430de2cb41c
-generated: "2025-04-18T03:37:26.0940192+07:00"
+- name: admin-server
+  repository: file://./charts/admin-server
+  version: 0.1.0
+- name: genai-service
+  repository: file://./charts/genai-service
+  version: 0.1.0
+digest: sha256:034f0e3c3b0defe4cf146cb97e2d14a91c5139cce25f8e5a17a259231eb266b4
+generated: "2025-04-18T19:42:41.4677846+07:00"

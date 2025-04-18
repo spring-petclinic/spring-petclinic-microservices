@@ -1,0 +1,7 @@
+# helm-charts/petclinic-umbrella/charts/genai-service/Chart.yaml
+apiVersion: v2
+name: genai-service
+description: Helm chart for Spring PetClinic GenAI Service
+type: application
+version: 0.1.0
+appVersion: "3.4.1" # Example, use appropriate app version

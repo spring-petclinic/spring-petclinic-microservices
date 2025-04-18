@@ -1,0 +1,96 @@
+# helm-charts/petclinic-umbrella/charts/genai-service/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "genai-service.fullname" . }}
+  labels:
+    {{- include "genai-service.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "genai-service.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "genai-service.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "genai-service.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+
+      # --- ADD INIT CONTAINERS ---
+      initContainers:
+        - name: wait-for-config-server
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z -w 2 {{ .Release.Name }}-config-server 8888; do echo "[genai-service] waiting for config-server"; sleep 2; done;']
+        - name: wait-for-discovery-server
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z -w 2 {{ .Release.Name }}-discovery-server 8761; do echo "[genai-service] waiting for discovery-server"; sleep 2; done;']
+      # --- END INIT CONTAINERS ---
+
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+          # --- ADD ENVIRONMENT VARIABLES ---
+          env:
+            - name: CONFIG_SERVER_URL
+              value: "http://{{ .Release.Name }}-config-server:8888"
+            - name: SPRING_PROFILES_ACTIVE
+              value: "kubernetes"
+            # Set Eureka properties, disable Zipkin health, and force port via Java System Properties
+            - name: JAVA_TOOL_OPTIONS
+              value: >-
+                -Deureka.client.serviceUrl.defaultZone=http://{{ .Release.Name }}-discovery-server:8761/eureka/
+                -Deureka.client.registerWithEureka=true
+                -Deureka.client.fetchRegistry=true
+                -Dmanagement.health.zipkin.enabled=false
+                -Dserver.port=8084
+            - name: EUREKA_INSTANCE_HOSTNAME
+              value: "{{ .Release.Name }}-genai-service"
+
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }} # 8084 from values.yaml
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /actuator/health # Use base health endpoint
+              port: http
+            initialDelaySeconds: 90
+            periodSeconds: 15
+            failureThreshold: 6
+          readinessProbe:
+            httpGet:
+              path: /actuator/health # Use base health endpoint
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 15
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

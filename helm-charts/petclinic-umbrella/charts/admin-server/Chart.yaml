@@ -1,0 +1,7 @@
+# helm-charts/petclinic-umbrella/charts/admin-server/Chart.yaml
+apiVersion: v2
+name: admin-server
+description: Helm chart for Spring PetClinic Admin Server (Spring Boot Admin)
+type: application
+version: 0.1.0
+appVersion: "3.4.1" # Example, use appropriate app version

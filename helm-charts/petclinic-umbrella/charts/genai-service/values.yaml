@@ -1,0 +1,49 @@
+# helm-charts/petclinic-umbrella/charts/genai-service/values.yaml
+
+replicaCount: 1
+
+image:
+  repository: 22127422/spring-petclinic-genai-service
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# genAI: {}
+  # Keys would go here if needed, e.g.:
+  # openai:
+  #   apiKey: ""
+  # azure:
+  #   openai:
+  #     endpoint: ""
+  #     apiKey: ""
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podSecurityContext: {}
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 8084 # GenAI service port
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 256Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 256Mi
+
+autoscaling:
+  enabled: false
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

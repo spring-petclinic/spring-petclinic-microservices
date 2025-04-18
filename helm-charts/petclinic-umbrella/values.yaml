@@ -1,8 +1,5 @@
 # helm-charts/petclinic-umbrella/values.yaml
 
-# Override sub-chart values by using the sub-chart name (camelCased) as the key.
-# We will primarily use this to control the image tags deployed.
-
 configServer:
   image:
     tag: latest
@@ -12,20 +9,33 @@ discoveryServer:
     tag: latest
 
 customersService:
+  enabled: true # <-- Add flag
   image:
     tag: latest
 
 apiGateway:
+  enabled: true # <-- Add flag
   image:
     tag: latest
-  # Example: Setting nodePort globally if desired
-  # service:
-  #   nodePort: 30080
+  service:
+    nodePort: 30080 # Keep this uncommented if you want the static port
 
 vetsService:
+  enabled: true # <-- Add flag
   image:
-    tag: latest # Default tag for vets-service
+    tag: latest
 
 visitsService:
+  enabled: true # <-- Add flag
   image:
-    tag: latest # Default tag for visits-service
+    tag: latest
+
+adminServer:
+  enabled: false # <-- Add flag
+  image:
+    tag: latest
+
+genaiService:
+  enabled: false # <-- Add flag
+  image:
+    tag: latest

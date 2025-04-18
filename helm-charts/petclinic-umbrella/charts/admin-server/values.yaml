@@ -1,0 +1,40 @@
+# helm-charts/petclinic-umbrella/charts/admin-server/values.yaml
+
+replicaCount: 1
+
+image:
+  repository: 22127422/spring-petclinic-admin-server
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podSecurityContext: {}
+securityContext: {}
+
+service:
+  type: ClusterIP # Usually internal, unless you need external access to SBA UI
+  port: 9090     # Default Spring Boot Admin port
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 512Mi # Admin server might need more memory
+  # requests:
+  #   cpu: 100m
+  #   memory: 512Mi
+
+autoscaling:
+  enabled: false
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
