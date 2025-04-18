@@ -60,8 +60,8 @@ spec:
                 -Deureka.client.fetchRegistry=true
                 -Dmanagement.health.zipkin.enabled=false
                 -Dserver.port=8083
-          # --- END ENVIRONMENT VARIABLES ---
-
+            - name: EUREKA_INSTANCE_HOSTNAME
+              value: "{{ .Release.Name }}-vets-service"
           ports:
             - name: http
               containerPort: {{ .Values.service.port }} # 8083 from values.yaml
