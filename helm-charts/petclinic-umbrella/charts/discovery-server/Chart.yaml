@@ -1,7 +1,0 @@
-# helm-charts/petclinic-umbrella/charts/discovery-server/Chart.yaml
-apiVersion: v2
-name: discovery-server
-description: Helm chart for Spring PetClinic Discovery Server (Eureka)
-type: application
-version: 0.1.0
-appVersion: "3.4.1" # Example, use appropriate app version
