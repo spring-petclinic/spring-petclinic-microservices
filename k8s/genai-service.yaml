@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: genai-service
+  namespace: petclinic-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: genai-service
+  template:
+    metadata:
+      labels:
+        app: genai-service
+    spec:
+      containers:
+      - name: genai-service
+        image: ${DOCKER_USERNAME}/spring-petclinic-genai-service:${IMAGE_TAG}
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: docker
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: genai-service
+  namespace: petclinic-dev
+spec:
+  type: NodePort
+  ports:
+    - port: 8081
+      targetPort: 8080
+      nodePort: 30084
+  selector:
+    app: genai-service

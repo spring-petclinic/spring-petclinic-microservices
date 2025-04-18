@@ -1,12 +1,5 @@
 pipeline {
     agent any
-    
-    parameters {
-        string(name: 'CUSTOMERS_BRANCH', defaultValue: 'main', description: 'Branch for customers-service')
-        string(name: 'GENAI_BRANCH', defaultValue: 'main', description: 'Branch for genai-service')
-        string(name: 'VETS_BRANCH', defaultValue: 'main', description: 'Branch for vets-service')
-        string(name: 'VISITS_BRANCH', defaultValue: 'main', description: 'Branch for visits-service')
-    }
 
     stages {
         
@@ -216,7 +209,7 @@ pipeline {
                     // Define Docker Hub credentials
                     withCredentials([usernamePassword(credentialsId: 'docker_hub_PAT', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                         // Login to Docker Hub
-                        sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+                        sh "/usr/local/bin/docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
                         
                         // Get the list of changed files in the current commit
                         def changedFiles = sh(script: 'git diff --name-only HEAD~1 HEAD', returnStdout: true).trim().split('\n')
@@ -259,102 +252,26 @@ pipeline {
                             sh """
                             cp ${serviceDir}/target/*.jar docker/${service}.jar
                             cd docker
-                            docker build --build-arg ARTIFACT_NAME=${service} --build-arg EXPOSED_PORT=8080 -t ${imageName}:${commitId} .
-                            docker tag ${imageName}:${commitId} ${imageName}:latest
-                            docker push ${imageName}:${commitId}
-                            docker push ${imageName}:latest
+                            /usr/local/bin/docker build --build-arg ARTIFACT_NAME=${service} --build-arg EXPOSED_PORT=8080 -t ${imageName}:${commitId} .
+
+                            /usr/local/bin/docker push ${imageName}:${commitId}
+
                             rm ${service}.jar
                             cd ..
                             """
+                            // Only tag/push latest if on main branch
+                            if (env.BRANCH_NAME == 'main') {
+                                sh """
+                                docker tag ${imageName}:${commitId} ${imageName}:latest
+                                docker push ${imageName}:latest
+                                """
+                            }
                         }
                     }
                 }
             }
         }
-        
-        stage('Deploy to Kubernetes') {
-            when {
-                expression { return params.RUN_DEPLOY == 'true' }
-            }
-            steps {
-                script {
-                    // Get Kubernetes config
-                    sh "mkdir -p ~/.kube"
-                    sh "cp /var/jenkins_home/.kube/config ~/.kube/config"
-                    
-                    // Get commit ID for tagging
-                    def commitId = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                    
-                    // Deploy services to Kubernetes
-                    withCredentials([usernamePassword(credentialsId: 'docker_hub_PAT', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        def services = [
-                            ['name': 'customers-service', 'branch': params.CUSTOMERS_BRANCH, 'port': 8081], 
-                            ['name': 'genai-service', 'branch': params.GENAI_BRANCH, 'port': 8082], 
-                            ['name': 'vets-service', 'branch': params.VETS_BRANCH, 'port': 8083], 
-                            ['name': 'visits-service', 'branch': params.VISITS_BRANCH, 'port': 8084]
-                        ]
-                        
-                        // Create namespace if it doesn't exist
-                        sh "kubectl create namespace petclinic-dev --dry-run=client -o yaml | kubectl apply -f -"
-                        
-                        for (service in services) {
-                            def serviceTag = service.branch == 'main' ? 'main' : commitId
-                            def imageName = "${DOCKER_USERNAME}/spring-petclinic-${service.name}:${serviceTag}"
-                            
-                            // Create Kubernetes deployment and service
-                            sh """
-                            cat <<EOF | kubectl apply -f -
-                            apiVersion: apps/v1
-                            kind: Deployment
-                            metadata:
-                              name: ${service.name}
-                              namespace: petclinic-dev
-                            spec:
-                              replicas: 1
-                              selector:
-                                matchLabels:
-                                  app: ${service.name}
-                              template:
-                                metadata:
-                                  labels:
-                                    app: ${service.name}
-                                spec:
-                                  containers:
-                                  - name: ${service.name}
-                                    image: ${imageName}
-                                    ports:
-                                    - containerPort: 8080
-                                    env:
-                                    - name: SPRING_PROFILES_ACTIVE
-                                      value: docker
-                            ---
-                            apiVersion: v1
-                            kind: Service
-                            metadata:
-                              name: ${service.name}
-                              namespace: petclinic-dev
-                            spec:
-                              type: NodePort
-                              ports:
-                              - port: 8080
-                                targetPort: 8080
-                                nodePort: ${service.port}
-                              selector:
-                                app: ${service.name}
-                            EOF
-                            """
-                        }
-                        
-                        // Get Minikube IP
-                        def minikubeIp = sh(script: 'minikube ip', returnStdout: true).trim()
-                        echo "Services are accessible at:"
-                        for (service in services) {
-                            echo "${service.name}: ${minikubeIp}:${service.port}"
-                        }
-                    }
-                }
-            }
-        }
+
     }
 
     post {

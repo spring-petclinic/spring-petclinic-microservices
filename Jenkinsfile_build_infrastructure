@@ -1,0 +1,137 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'CONFIG_SERVER_BRANCH', defaultValue: 'main', description: 'Branch for Config Server')
+        string(name: 'DISCOVERY_SERVER_BRANCH', defaultValue: 'main', description: 'Branch for Discovery Server')
+        string(name: 'API_GATEWAY_BRANCH', defaultValue: 'main', description: 'Branch for API Gateway')
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                script {
+                    echo "Checkout main branch to get all code"
+                    git branch: 'main', 
+                        url: 'https://github.com/tranductung07012004/devOps_1_spring-petclinic-microservices.git'
+                }
+            }
+        }
+
+        stage('Build Services') {
+            parallel {
+                stage('Build - Config Server') {
+                    steps {
+                        script {
+                            def branchToUse = params.CONFIG_SERVER_BRANCH ?: 'main'
+                            if (branchToUse != 'main') {
+                                sh "git fetch origin ${branchToUse}"
+                                sh "git checkout ${branchToUse} -- spring-petclinic-config-server/"
+                            }
+                            
+                            echo "Building Config Server..."
+                            sh './mvnw -pl spring-petclinic-config-server -am clean install -DskipTests'
+                        }
+                    }
+                }
+                
+                stage('Build - Discovery Server') {
+                    steps {
+                        script {
+                            def branchToUse = params.DISCOVERY_SERVER_BRANCH ?: 'main'
+                            if (branchToUse != 'main') {
+                                sh "git fetch origin ${branchToUse}"
+                                sh "git checkout ${branchToUse} -- spring-petclinic-discovery-server/"
+                            }
+                            
+                            echo "Building Discovery Server..."
+                            sh './mvnw -pl spring-petclinic-discovery-server -am clean install -DskipTests'
+                        }
+                    }
+                }
+                
+                stage('Build - API Gateway') {
+                    steps {
+                        script {
+                            def branchToUse = params.API_GATEWAY_BRANCH ?: 'main'
+                            if (branchToUse != 'main') {
+                                sh "git fetch origin ${branchToUse}"
+                                sh "git checkout ${branchToUse} -- spring-petclinic-api-gateway/"
+                            }
+                            
+                            echo "Building API Gateway..."
+                            sh './mvnw -pl spring-petclinic-api-gateway -am clean install -DskipTests'
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Build Docker Images') {
+            steps {
+                script {
+                    // Định nghĩa service và các tham số branch
+                    def services = [
+                        ['name': 'config-server', 'dir': 'spring-petclinic-config-server', 'paramName': 'CONFIG_SERVER_BRANCH'],
+                        ['name': 'discovery-server', 'dir': 'spring-petclinic-discovery-server', 'paramName': 'DISCOVERY_SERVER_BRANCH'],
+                        ['name': 'api-gateway', 'dir': 'spring-petclinic-api-gateway', 'paramName': 'API_GATEWAY_BRANCH']
+                    ]
+                    
+                    withCredentials([usernamePassword(credentialsId: 'docker_hub_PAT', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        // Login to Docker Hub
+                        sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+                        
+                        for (service in services) {
+                            def branchValue = params[service.paramName] ?: 'main'
+                            
+                            // Lấy commitId cho tagging
+                            if (branchValue != 'main') {
+                                sh "git checkout ${branchValue}"
+                            } else {
+                                sh "git checkout main"
+                            }
+                            
+                            def commitId = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                            def imageName = "${DOCKER_USERNAME}/spring-petclinic-${service.name}"
+                            
+                            echo "Building and pushing Docker image for ${service.name} using branch ${branchValue} with tag ${commitId}"
+                            
+                            // Copy JAR file to docker directory
+                            sh """
+                            cp ${service.dir}/target/*.jar docker/${service.name}.jar
+                            cd docker
+                            docker build --build-arg ARTIFACT_NAME=${service.name} --build-arg EXPOSED_PORT=8080 -t ${imageName}:${commitId} .
+                            docker push ${imageName}:${commitId}
+                            rm ${service.name}.jar
+                            cd ..
+                            """
+                            
+                            // Tag as latest if using main branch
+                            if (branchValue == 'main') {
+                                sh """
+                                docker tag ${imageName}:${commitId} ${imageName}:latest
+                                docker push ${imageName}:latest
+                                """
+                            }
+                            
+                            // Return to main branch after processing
+                            sh "git checkout main"
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo "Successfully built and pushed infrastructure service images to Docker Hub"
+        }
+        failure {
+            echo "Failed to build and push infrastructure service images"
+        }
+        always {
+            echo "Pipeline finished."
+        }
+    }
+}
