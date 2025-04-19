@@ -106,7 +106,7 @@ pipeline {
                         ]
                         
                         // Nếu không có service nào thay đổi, thông báo và kết thúc
-                        if (servicesToBuild.isEmpty()) {
+                        if (servicesToBuild.length == 0) {
                             echo "No changes detected in the 4 specified services. Skipping build."
                             return
                         }
@@ -234,7 +234,7 @@ pipeline {
                     def changedServices = env.CHANGED_SERVICES ? env.CHANGED_SERVICES.split(',') : []
                     
                     // Nếu không có service nào thay đổi và không force update, bỏ qua
-                    if (changedServices.isEmpty() && !params.FORCE_UPDATE_DEV) {
+                    if (changedServices.length == 0 && !params.FORCE_UPDATE_DEV) {
                         echo "No services changed, skipping kustomization update"
                         return
                     }
