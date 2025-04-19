@@ -382,16 +382,22 @@ pipeline {
 
                                 // --- Commit and Push the changes ---
                                 echo "Committing and pushing updated values file to ${env.HELM_REPO_BRANCH} branch of Helm repo..."
-                                // Configure Git user identity for the commit
-                                sh "git config user.email 'jenkins-ci@example.com'" // Replace with desired email
-                                sh "git config user.name 'Jenkins CI Bot'"      // Replace with desired name
-
-                                // Add, commit, and push the specific file
+                                sh "git config user.email 'jenkins-ci@example.com'"
+                                sh "git config user.name 'Jenkins CI Bot'"
                                 sh "git add ${env.HELM_STAGING_VALUES_PATH}"
-                                // Use [skip ci] or similar in commit message to prevent potential build loops if the Helm repo also triggers builds
                                 sh "git commit -m 'CI: Update staging image tags to ${env.IMAGE_VERSION_TAG} [skip ci]'"
-                                // Push to the correct branch using credentials implicitly handled by checkout step
-                                sh "git push origin HEAD:${env.HELM_REPO_BRANCH}"
+
+                                // --- Modified Push Command ---
+                                // Extract repo host and path (e.g., github.com/user/repo.git) from the original URL
+                                def repoHostAndPath = env.HELM_REPO_URL.split('//')[1]
+                                // Construct the authenticated URL
+                                // NOTE: Assumes PAT ($GIT_PASSWORD) doesn't contain characters needing URL encoding. Usually safe for GitHub PATs.
+                                def pushUrl = "https://${GIT_USER}:${GIT_PASSWORD}@${repoHostAndPath}"
+                                echo "Pushing changes using authenticated URL..."
+                                // Push using the authenticated URL to the target branch
+                                sh "git push ${pushUrl} HEAD:${env.HELM_REPO_BRANCH}"
+                                // --- End Modified Push Command ---
+
                                 echo "Changes pushed successfully to Helm repository."
 
                             } catch (e) {
