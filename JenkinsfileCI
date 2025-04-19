@@ -29,11 +29,6 @@ pipeline {
         // Subdirectory name for checking out helm repo in workspace
         HELM_REPO_DIR = "helm-repo-checkout"
 
-        // --- New variables to determine build type ---
-        // Flag to indicate if the build was triggered by a valid tag
-        IS_TAGGED_BUILD = "false"
-        // The primary tag to use for Docker images (Commit ID or Git Tag)
-        IMAGE_VERSION_TAG = ""
     }
 
     stages {
