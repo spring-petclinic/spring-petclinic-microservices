@@ -1,4 +1,4 @@
-// Jenkinsfile CI - FINAL VERSION for Tagged Builds and Helm Repo Update
+// Jenkinsfile CI - FINAL VERSION v2 (Fix for post block)
 
 pipeline {
     agent any
@@ -400,7 +400,7 @@ pipeline {
     } // End stages
 
     // ============================================================
-    // Post Actions (MODIFIED cleanWs)
+    // Post Actions (MODIFIED cleanWs & success message)
     // ============================================================
     post {
         always {
@@ -410,9 +410,11 @@ pipeline {
         }
         success {
             echo "Build finished with status SUCCESS."
-            // Add more specific success message for tagged builds if desired
-            if (env.IS_TAGGED_BUILD == "true") {
-                echo "Successfully pushed image tag ${env.IMAGE_VERSION_TAG} and updated Helm repo."
+            // Wrap conditional logic in a script block
+            script {
+                if (env.IS_TAGGED_BUILD == "true") {
+                    echo "Successfully pushed image tag ${env.IMAGE_VERSION_TAG} and updated Helm repo."
+                }
             }
         }
         unstable {
