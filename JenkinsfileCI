@@ -1,4 +1,4 @@
-// Jenkinsfile CI - FINAL VERSION v2 (Fix for post block)
+// Jenkinsfile CI - FINAL VERSION v3 (Fix for commit ID retrieval)
 
 pipeline {
     agent any
@@ -39,7 +39,7 @@ pipeline {
     stages {
 
         // ============================================================
-        // Stage 1: Detect Branch/Tag and Changes (MODIFIED)
+        // Stage 1: Detect Branch/Tag and Changes (MODIFIED - Git Commit ID retrieval)
         // ============================================================
         stage('Detect Branch/Tag and Changes') {
              steps {
@@ -54,9 +54,9 @@ pipeline {
                         echo "Detected Tagged Build for version: ${env.IMAGE_VERSION_TAG}"
                     } else {
                         env.IS_TAGGED_BUILD = "false"
-                        // Use the short commit hash as the image version tag
-                        env.IMAGE_VERSION_TAG = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                        if (!env.IMAGE_VERSION_TAG) { error "FATAL: Could not retrieve Git commit ID." }
+                        // --- Use the built-in Jenkins GIT_COMMIT variable (safer) ---
+                        env.IMAGE_VERSION_TAG = env.GIT_COMMIT.take(7) // Get first 7 chars for short commit ID
+                        if (!env.IMAGE_VERSION_TAG) { error "FATAL: Could not retrieve Git commit ID from env.GIT_COMMIT." } // Updated error msg
                         echo "Detected Branch Build for branch: ${env.BRANCH_NAME ?: 'Unknown'}. Using Commit ID: ${env.IMAGE_VERSION_TAG}"
                     }
 
