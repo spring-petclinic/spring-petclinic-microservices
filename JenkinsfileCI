@@ -43,7 +43,7 @@ pipeline {
         // ============================================================
         stage('Detect Branch/Tag and Changes') {
              steps {
-                                script {
+                script {
                     echo "Pipeline started..."
                     // --- Debug: Print available Git environment variables ---
                     echo "DEBUG: env.TAG_NAME = ${env.TAG_NAME}"
@@ -51,43 +51,45 @@ pipeline {
                     echo "DEBUG: env.GIT_COMMIT = ${env.GIT_COMMIT}"
                     echo "DEBUG: env.GIT_BRANCH = ${env.GIT_BRANCH}"
 
-                    // --- Determine Build Type and Primary Tag ---
+                    // --- Use local variables for determination ---
+                    def boolean isTaggedBuild = false
+                    def String imageVersionTag = ""
+
+                    // --- Determine Build Type and Primary Tag (using local vars) ---
                     if (env.TAG_NAME?.matches('v\\d+\\.\\d+(\\.\\d+)?(-.+)?')) {
-                        env.IS_TAGGED_BUILD = "true"
-                        env.IMAGE_VERSION_TAG = env.TAG_NAME
-                        echo "Detected Tagged Build for version: ${env.IMAGE_VERSION_TAG}"
+                        isTaggedBuild = true
+                        imageVersionTag = env.TAG_NAME // Assign to local var
+                        echo "Build Type: Tagged Build. Version: ${imageVersionTag}"
                     } else {
-                        env.IS_TAGGED_BUILD = "false"
-                        echo "Detected Non-Tagged Build."
-                        // --- Explicitly check if env.GIT_COMMIT is available ---
+                        isTaggedBuild = false
+                        echo "Build Type: Non-Tagged Build."
                         if (!env.GIT_COMMIT) {
                              error "FATAL: env.GIT_COMMIT variable is not set or is empty. Cannot determine commit ID."
                         }
-                        // If GIT_COMMIT exists, try to get the short version
                         try {
-                            // Assign to local variable first
-                            def shortCommitId = env.GIT_COMMIT.take(7)
-
-                            // Check the local variable
+                            def String shortCommitId = env.GIT_COMMIT.take(7)
                             if (!shortCommitId || shortCommitId.length() != 7) {
-                                echo "WARN: Retrieved commit ID '${shortCommitId ?: 'null'}' has unexpected length or is null."
                                 error "FATAL: Failed to extract a valid 7-character commit ID from env.GIT_COMMIT ('${env.GIT_COMMIT}')."
                             }
-
-                            // If local variable is good, assign to env variable
-                            env.IMAGE_VERSION_TAG = shortCommitId
-                            echo "Using Commit ID from env.GIT_COMMIT: ${env.IMAGE_VERSION_TAG}"
-
+                            imageVersionTag = shortCommitId // Assign to local var
+                            echo "Using Commit ID: ${imageVersionTag}"
                         } catch (e) {
-                             // Catch potential errors from '.take(7)' if env.GIT_COMMIT was weirdly formatted
                              error "FATAL: Failed to extract short commit ID from env.GIT_COMMIT ('${env.GIT_COMMIT}'). Error: ${e.message}"
                         }
                     }
 
-                    // --- Determine Changed Services (Logic remains the same) ---
+                    // --- Assign final values to environment variables ---
+                    env.IS_TAGGED_BUILD = isTaggedBuild.toString() // Store as string "true" or "false"
+                    env.IMAGE_VERSION_TAG = imageVersionTag
+                    echo "Assigned env.IS_TAGGED_BUILD = ${env.IS_TAGGED_BUILD}"
+                    echo "Assigned env.IMAGE_VERSION_TAG = ${env.IMAGE_VERSION_TAG}"
+
+
+                    // --- Determine Changed Services (using local isTaggedBuild var) ---
                     echo "Determining services to process..."
                     env.CHANGED_SERVICES = "" // Initialize
-                    if (env.IS_TAGGED_BUILD == "true" || env.BRANCH_NAME == 'main') {
+                    // Use the local boolean variable for the condition
+                    if (isTaggedBuild || env.BRANCH_NAME == 'main') {
                         echo "Processing ALL services for Tagged Build or 'main' branch."
                         env.CHANGED_SERVICES = env.ALL_SERVICES
                     } else {
@@ -129,6 +131,7 @@ pipeline {
                             echo "No relevant service or common file changes detected."
                             env.CHANGED_SERVICES = ""
                         }
+                        // --- End Logic for non-tagged FEATURE BRANCHES ---
                     } // End else (feature branch)
 
                     // Log services to process
