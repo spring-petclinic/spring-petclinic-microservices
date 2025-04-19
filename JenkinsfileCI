@@ -22,7 +22,7 @@ pipeline {
         // Branch in Helm repo to update (e.g., main)
         HELM_REPO_BRANCH = "main"
         // Credentials ID in Jenkins with push access to HELM_REPO_URL
-        HELM_REPO_CREDENTIALS_ID = "a9e49663-4f50-4815-9fd7-264cd3d9d969" // !!! REQUIRED: Replace with your credential ID in Jenkins !!!
+        HELM_REPO_CREDENTIALS_ID = "377406a7-99bb-4796-8d2e-e32234ad757b" // !!! REQUIRED: Replace with your credential ID in Jenkins !!!
         // Path WITHIN the Helm repo checkout to the staging values file
         // Make sure this file exists in the Helm repo!
         HELM_STAGING_VALUES_PATH = "charts/petclinic-umbrella/values-staging.yaml" // !!! ADJUST path if needed !!!
