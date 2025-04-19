@@ -266,20 +266,39 @@ pipeline {
                             ]
                             
                             for (def service in allServices) {
-                                // Convert service name để match với pattern trong kustomization.yaml
                                 def imageName = "tranductung0701/spring-petclinic-${service}"
                                 
                                 // Nếu service có thay đổi, sử dụng commitId mới
                                 if (changedServices.contains(service)) {
                                     sh """
-                                    sed -i '' 's|name: ${imageName}\\n    newTag: .*|name: ${imageName}\\n    newTag: ${commitId}|g' kustomization.yaml
+                                    # Tìm số dòng chứa tên image
+                                    LINE=\$(grep -n "name: ${imageName}" kustomization.yaml | cut -d: -f1)
+                                    if [ ! -z "\$LINE" ]; then
+                                        # Số dòng chứa newTag sẽ là dòng tiếp theo
+                                        NEXT_LINE=\$((LINE + 1))
+                                        # Thay đổi giá trị newTag
+                                        sed -i '' "\${NEXT_LINE}s/newTag: .*/newTag: ${commitId}/" kustomization.yaml
+                                        echo "Updated line \$NEXT_LINE for ${service} to commit ${commitId}"
+                                    else
+                                        echo "Warning: Could not find line with ${imageName}"
+                                    fi
                                     """
                                     echo "Updated ${service} to commit ${commitId}"
                                 } 
                                 // Nếu service không thay đổi, đảm bảo sử dụng tag latest
                                 else {
                                     sh """
-                                    sed -i '' 's|name: ${imageName}\\n    newTag: .*|name: ${imageName}\\n    newTag: latest|g' kustomization.yaml
+                                    # Tìm số dòng chứa tên image
+                                    LINE=\$(grep -n "name: ${imageName}" kustomization.yaml | cut -d: -f1)
+                                    if [ ! -z "\$LINE" ]; then
+                                        # Số dòng chứa newTag sẽ là dòng tiếp theo
+                                        NEXT_LINE=\$((LINE + 1))
+                                        # Thay đổi giá trị newTag
+                                        sed -i '' "\${NEXT_LINE}s/newTag: .*/newTag: latest/" kustomization.yaml
+                                        echo "Updated line \$NEXT_LINE for ${service} to latest"
+                                    else
+                                        echo "Warning: Could not find line with ${imageName}"
+                                    fi
                                     """
                                     echo "Set ${service} to tag 'latest'"
                                 }
