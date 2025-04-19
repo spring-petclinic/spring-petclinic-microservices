@@ -45,8 +45,13 @@ pipeline {
              steps {
                 script {
                     echo "Pipeline started..."
+                    // --- Debug: Print available Git environment variables ---
+                    echo "DEBUG: env.TAG_NAME = ${env.TAG_NAME}"
+                    echo "DEBUG: env.BRANCH_NAME = ${env.BRANCH_NAME}"
+                    echo "DEBUG: env.GIT_COMMIT = ${env.GIT_COMMIT}"
+                    echo "DEBUG: env.GIT_BRANCH = ${env.GIT_BRANCH}" // Another common branch variable
+
                     // --- Determine Build Type and Primary Tag ---
-                    // Check if TAG_NAME environment variable exists and matches vX.Y.Z pattern
                     if (env.TAG_NAME?.matches('v\\d+\\.\\d+(\\.\\d+)?(-.+)?')) { // Match vX.Y or vX.Y.Z or vX.Y.Z-alpha etc.
                         env.IS_TAGGED_BUILD = "true"
                         // Use the Git tag as the image version tag
@@ -54,13 +59,28 @@ pipeline {
                         echo "Detected Tagged Build for version: ${env.IMAGE_VERSION_TAG}"
                     } else {
                         env.IS_TAGGED_BUILD = "false"
-                        // --- Use the built-in Jenkins GIT_COMMIT variable (safer) ---
-                        env.IMAGE_VERSION_TAG = env.GIT_COMMIT.take(7) // Get first 7 chars for short commit ID
-                        if (!env.IMAGE_VERSION_TAG) { error "FATAL: Could not retrieve Git commit ID from env.GIT_COMMIT." } // Updated error msg
-                        echo "Detected Branch Build for branch: ${env.BRANCH_NAME ?: 'Unknown'}. Using Commit ID: ${env.IMAGE_VERSION_TAG}"
+                        echo "Detected Non-Tagged Build."
+                        // --- Explicitly check if env.GIT_COMMIT is available ---
+                        if (!env.GIT_COMMIT) {
+                             error "FATAL: env.GIT_COMMIT variable is not set or is empty. Cannot determine commit ID."
+                        }
+                        // If GIT_COMMIT exists, try to get the short version
+                        try {
+                            env.IMAGE_VERSION_TAG = env.GIT_COMMIT.take(7) // Get first 7 chars for short commit ID
+                            if (env.IMAGE_VERSION_TAG.length() != 7) {
+                                // Handle case where commit hash might be shorter than 7? Unlikely but possible.
+                                echo "WARN: Retrieved commit ID '${env.IMAGE_VERSION_TAG}' has length != 7."
+                                // Optionally error out or use the full env.GIT_COMMIT if needed
+                                // error "FATAL: Retrieved commit ID '${env.IMAGE_VERSION_TAG}' has unexpected length."
+                            }
+                            echo "Using Commit ID from env.GIT_COMMIT: ${env.IMAGE_VERSION_TAG}"
+                        } catch (e) {
+                             // Catch potential errors from '.take(7)' if env.GIT_COMMIT was weirdly formatted
+                             error "FATAL: Failed to extract short commit ID from env.GIT_COMMIT ('${env.GIT_COMMIT}'). Error: ${e.message}"
+                        }
                     }
 
-                    // --- Determine Changed Services ---
+                    // --- Determine Changed Services (Logic remains the same) ---
                     echo "Determining services to process..."
                     env.CHANGED_SERVICES = "" // Initialize
                     // For tagged builds OR builds on the 'main' branch, process ALL services
@@ -69,15 +89,12 @@ pipeline {
                         env.CHANGED_SERVICES = env.ALL_SERVICES
                     } else {
                         // --- Logic for non-tagged FEATURE BRANCHES ---
-                        // For other branches, detect changes based on diff
                         echo "Running on feature branch '${env.BRANCH_NAME}'. Detecting changes..."
                         def changedFilesOutput = ''
                         try {
-                            // Try comparing against origin/main first
                             sh 'git fetch origin main:refs/remotes/origin/main'
                             changedFilesOutput = sh(script: "git diff --name-only origin/main...HEAD || git diff --name-only HEAD~1 HEAD || exit 0", returnStdout: true).trim()
                         } catch (e) {
-                           // Fallback to comparing against previous commit if main compare fails
                            echo "Warning: Could not compare against origin/main, falling back to HEAD~1 comparison. Error: ${e.message}"
                            changedFilesOutput = sh(script: "git diff --name-only HEAD~1 HEAD || exit 0", returnStdout: true).trim()
                         }
@@ -88,24 +105,18 @@ pipeline {
                            echo "Changed files detected:\n${changedFilesOutput}"
                         }
                         def changedFilesList = changedFilesOutput.split('\n').findAll { it }
-
                         def services = env.ALL_SERVICES.split(" ")
                         def detectedServiceChanges = []
-
-                        // Check if any changed file path starts with a service directory name
                         for (service in services) {
                             if (changedFilesList.any { file -> file.startsWith(service + "/") }) {
                                 detectedServiceChanges.add(service)
                             }
                         }
-
-                        // Check if common files affecting all services were changed
                         def commonFilesChanged = changedFilesList.any { file ->
-                            file == 'pom.xml' || file == 'JenkinsfileCI.txt' || file == 'docker-compose.yaml' || // Adjusted Jenkinsfile name
+                            file == 'pom.xml' || file == 'JenkinsfileCI.txt' || file == 'docker-compose.yaml' ||
                             file.startsWith('.mvn/') || file.startsWith('.github/') ||
                             file == 'mvnw' || file == 'mvnw.cmd'
                         }
-
                         if (commonFilesChanged) {
                             echo "Common file(s) changed. Processing ALL services."
                             env.CHANGED_SERVICES = env.ALL_SERVICES
@@ -116,7 +127,6 @@ pipeline {
                             echo "No relevant service or common file changes detected."
                             env.CHANGED_SERVICES = ""
                         }
-                        // --- End Logic for non-tagged FEATURE BRANCHES ---
                     } // End else (feature branch)
 
                     // Log services to process
