@@ -29,6 +29,57 @@ pipeline {
             }
         }
         
+        stage('Detect Changed Services') {
+            steps {
+                script {
+                    // Tạo mapping giữa tên service và thư mục service
+                    def serviceDirs = [
+                        'customers-service': 'spring-petclinic-customers-service',
+                        'vets-service': 'spring-petclinic-vets-service',
+                        'visits-service': 'spring-petclinic-visits-service',
+                        'genai-service': 'spring-petclinic-genai-service'
+                    ]
+                    
+                    // Lấy danh sách file đã thay đổi trong commit hiện tại
+                    def changedFiles = []
+                    if (params.FORCE_BUILD_ALL) {
+                        echo "Force build all services enabled"
+                    } else {
+                        try {
+                            changedFiles = sh(script: 'git diff --name-only HEAD~1 HEAD', returnStdout: true).trim().split('\n')
+                        } catch (Exception e) {
+                            echo "Cannot get changed files, defaulting to all files: ${e.message}"
+                            changedFiles = sh(script: 'git ls-files', returnStdout: true).trim().split('\n')
+                        }
+                    }
+                    
+                    // Xác định service nào đã thay đổi
+                    def changedServices = []
+                    
+                    if (params.FORCE_BUILD_ALL) {
+                        changedServices = serviceDirs.keySet() as List
+                        echo "Using all services due to FORCE_BUILD_ALL"
+                    } else {
+                        // Tìm các service đã thay đổi
+                        for (def file in changedFiles) {
+                            for (def entry in serviceDirs) {
+                                if (file.startsWith(entry.value + '/')) {
+                                    if (!changedServices.contains(entry.key)) {
+                                        changedServices.add(entry.key)
+                                        echo "Detected changes in ${entry.key}, adding to list"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Lưu danh sách service đã thay đổi để các stage sau sử dụng
+                    env.CHANGED_SERVICES = changedServices.join(',')
+                    echo "Changed services: ${env.CHANGED_SERVICES}"
+                }
+            }
+        }
+        
         stage('Build and Push Docker Images') {
             steps {
                 script {
@@ -43,54 +94,16 @@ pipeline {
                         // Login to Docker Hub
                         sh "/usr/local/bin/docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
                        
-                        // Chỉ quan tâm đến 4 service
-                        def allowedServices = [
-                            'customers-service',
-                            'vets-service',
-                            'visits-service',
-                            'genai-service'
-                        ]
+                        // Lấy danh sách service đã thay đổi
+                        def servicesToBuild = env.CHANGED_SERVICES ? env.CHANGED_SERVICES.split(',') : []
                         
-                        // Tạo map để mapping giữa thư mục service và tên service
+                        // Tạo mapping giữa tên service và thư mục service
                         def serviceDirs = [
                             'customers-service': 'spring-petclinic-customers-service',
                             'vets-service': 'spring-petclinic-vets-service',
                             'visits-service': 'spring-petclinic-visits-service',
                             'genai-service': 'spring-petclinic-genai-service'
                         ]
-                        
-                        // Lấy danh sách file đã thay đổi trong commit hiện tại
-                        def changedFiles = []
-                        if (params.FORCE_BUILD_ALL) {
-                            echo "Force build all services enabled"
-                        } else {
-                            try {
-                                changedFiles = sh(script: 'git diff --name-only HEAD~1 HEAD', returnStdout: true).trim().split('\n')
-                            } catch (Exception e) {
-                                echo "Cannot get changed files, defaulting to all files: ${e.message}"
-                                changedFiles = sh(script: 'git ls-files', returnStdout: true).trim().split('\n')
-                            }
-                        }
-                        
-                        // Xác định service nào cần build
-                        def servicesToBuild = []
-                        
-                        if (params.FORCE_BUILD_ALL) {
-                            servicesToBuild = allowedServices
-                            echo "Building all allowed services due to FORCE_BUILD_ALL"
-                        } else {
-                            // Tìm các service đã thay đổi
-                            for (def file in changedFiles) {
-                                for (def entry in serviceDirs) {
-                                    if (file.startsWith(entry.value + '/')) {
-                                        if (!servicesToBuild.contains(entry.key)) {
-                                            servicesToBuild.add(entry.key)
-                                            echo "Detected changes in ${entry.key}, adding to build list"
-                                        }
-                                    }
-                                }
-                            }
-                        }
                         
                         // Nếu không có service nào thay đổi, thông báo và kết thúc
                         if (servicesToBuild.isEmpty()) {
@@ -122,10 +135,6 @@ pipeline {
                                 cd docker
                                 /usr/local/bin/docker build --build-arg ARTIFACT_NAME=${serviceName} --build-arg EXPOSED_PORT=8080 -t ${imageName}:${imageTag} .
                                 /usr/local/bin/docker push ${imageName}:${imageTag}
-                                
-                                # Tạo tag latest nếu cần
-                                /usr/local/bin/docker tag ${imageName}:${imageTag} ${imageName}:latest
-                                /usr/local/bin/docker push ${imageName}:latest
                                 
                                 rm ${serviceName}.jar
                                 cd ..
@@ -184,8 +193,17 @@ pipeline {
                 script {
                     // Get latest commit ID for tagging
                     def commitId = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                   
+                
                     echo "Updating dev environment with commit: ${commitId}"
+                    
+                    // Lấy danh sách service đã thay đổi
+                    def changedServices = env.CHANGED_SERVICES ? env.CHANGED_SERVICES.split(',') : []
+                    
+                    // Nếu không có service nào thay đổi và không force update, bỏ qua
+                    if (changedServices.isEmpty() && !params.FORCE_UPDATE_DEV) {
+                        echo "No services changed, skipping kustomization update"
+                        return
+                    }
                     
                     // Update kustomization.yaml for dev environment
                     dir('gitops-repo/dev') {
@@ -193,29 +211,73 @@ pipeline {
                         cat kustomization.yaml
                         '''
                         
-                        sh """
-                        sed -i '' 's|newTag: .*|newTag: ${commitId}|g' kustomization.yaml
-                        """
+                        // Lưu nội dung file hiện tại
+                        def kustomContent = readFile('kustomization.yaml')
+                        
+                        // Nếu force update, cập nhật tất cả service với tag latest
+                        if (params.FORCE_UPDATE_DEV) {
+                            sh """
+                            sed -i '' 's|newTag: .*|newTag: latest|g' kustomization.yaml
+                            """
+                            echo "Force updated all services to tag 'latest'"
+                        } 
+                        // Nếu không, chỉ cập nhật service đã thay đổi với commitId, các service khác giữ nguyên latest
+                        else {
+                            // Danh sách tất cả service để kiểm tra
+                            def allServices = [
+                                'customers-service',
+                                'vets-service',
+                                'visits-service',
+                                'genai-service'
+                            ]
+                            
+                            for (def service in allServices) {
+                                // Convert service name để match với pattern trong kustomization.yaml
+                                def imageName = "tranductung0701/spring-petclinic-${service}"
+                                
+                                // Nếu service có thay đổi, sử dụng commitId mới
+                                if (changedServices.contains(service)) {
+                                    sh """
+                                    sed -i '' 's|name: ${imageName}\\n    newTag: .*|name: ${imageName}\\n    newTag: ${commitId}|g' kustomization.yaml
+                                    """
+                                    echo "Updated ${service} to commit ${commitId}"
+                                } 
+                                // Nếu service không thay đổi, đảm bảo sử dụng tag latest
+                                else {
+                                    sh """
+                                    sed -i '' 's|name: ${imageName}\\n    newTag: .*|name: ${imageName}\\n    newTag: latest|g' kustomization.yaml
+                                    """
+                                    echo "Set ${service} to tag 'latest'"
+                                }
+                            }
+                        }
                         
                         sh '''
                         cat kustomization.yaml
                         '''
+                        
+                        // Check if any changes were made
+                        def newContent = readFile('kustomization.yaml')
+                        if (kustomContent == newContent) {
+                            echo "No changes made to kustomization.yaml"
+                            return
+                        }
                         
                         dir('..') {
                             sh '''
                             git config user.email "tranductung07012004@gmail.com"
                             git config user.name "tranductung07012004"
                             git add dev/kustomization.yaml
-                            git commit -m "Update dev environment to commit $commitId" || echo "No changes"
+                            git commit -m "Update dev environment" || echo "No changes"
                             '''
                         }
                     }
-                   
+                
                     // Push changes to GitOps repo
                     dir('gitops-repo') {
-                        withCredentials([usernamePassword(credentialsId: 'github-token-fix', 
-                                                     usernameVariable: 'GIT_USERNAME', 
-                                                     passwordVariable: 'GIT_PASSWORD')]) {
+                        withCredentials([usernamePassword(credentialsId: 'github_app', 
+                                                    usernameVariable: 'GIT_USERNAME', 
+                                                    passwordVariable: 'GIT_PASSWORD')]) {
                             // Sử dụng biến môi trường cho bảo mật
                             sh '''
                             git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/tranductung07012004/gitops.git main
@@ -268,7 +330,7 @@ pipeline {
                    
                     // Push changes to GitOps repo
                     dir('gitops-repo') {
-                        withCredentials([usernamePassword(credentialsId: 'github-token-fix', 
+                        withCredentials([usernamePassword(credentialsId: 'github_app', 
                                                        usernameVariable: 'GIT_USERNAME', 
                                                        passwordVariable: 'GIT_PASSWORD')]) {
                             // Sử dụng biến môi trường cho bảo mật
