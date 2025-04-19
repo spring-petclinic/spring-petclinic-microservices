@@ -172,6 +172,40 @@ pipeline {
                 }
             }
         }
+
+        stage('Fix Base Resources') {
+            steps {
+                script {
+                    dir('gitops-repo/base') {
+                        // Liệt kê tất cả file YAML
+                        sh 'ls -la *.yaml'
+                        
+                        // Thay thế biến trong tất cả file YAML
+                        sh '''
+                        for file in *.yaml; do
+                        
+                        # Thay biến IMAGE_TAG 
+                        sed -i '' 's/${IMAGE_TAG}/latest/g' $file
+                        done
+                        '''
+                        
+                        dir('..') {
+                            withCredentials([usernamePassword(credentialsId: 'github-token-fix', 
+                                                    usernameVariable: 'GIT_USERNAME', 
+                                                    passwordVariable: 'GIT_PASSWORD')]) {
+                                sh '''
+                                git config user.email "tranductung07012004@gmail.com"
+                                git config user.name "tranductung07012004"
+                                git add base/
+                                git commit -m "Fix: Replace variables in base YAML files" || echo "No changes"
+                                git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/tranductung07012004/gitops.git main || echo "No changes to push"
+                                '''
+                            }
+                        }
+                    }
+                }
+            }
+        }
        
         stage('Update Dev Environment') {
             when {
