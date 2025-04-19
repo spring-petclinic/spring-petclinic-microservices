@@ -5,6 +5,7 @@ pipeline {
         string(name: 'GIT_REPO', defaultValue: 'https://github.com/tranductung07012004/devOps_1_spring-petclinic-microservices.git', description: 'GitOps Repository URL')
         booleanParam(name: 'FORCE_UPDATE_DEV', defaultValue: false, description: 'Force update dev environment')
         booleanParam(name: 'FORCE_UPDATE_STAGING', defaultValue: false, description: 'Force update staging environment with latest commit')
+        booleanParam(name: 'FORCE_BUILD_ALL', defaultValue: false, description: 'Force build all services')
     }
    
     stages {
@@ -28,6 +29,118 @@ pipeline {
             }
         }
         
+        stage('Build and Push Docker Images') {
+            steps {
+                script {
+                    // Determine image tag based on trigger type (branch or tag)
+                    def imageTag = env.TAG_NAME ?: (env.BRANCH_NAME == 'main' || env.GIT_BRANCH?.contains('main') 
+                        ? sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim() 
+                        : 'latest')
+                   
+                    withCredentials([usernamePassword(credentialsId: 'docker_hub_PAT', 
+                                                   usernameVariable: 'DOCKER_USERNAME', 
+                                                   passwordVariable: 'DOCKER_PASSWORD')]) {
+                        // Login to Docker Hub
+                        sh "/usr/local/bin/docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+                       
+                        // Chỉ quan tâm đến 4 service
+                        def allowedServices = [
+                            'customers-service',
+                            'vets-service',
+                            'visits-service',
+                            'genai-service'
+                        ]
+                        
+                        // Tạo map để mapping giữa thư mục service và tên service
+                        def serviceDirs = [
+                            'customers-service': 'spring-petclinic-customers-service',
+                            'vets-service': 'spring-petclinic-vets-service',
+                            'visits-service': 'spring-petclinic-visits-service',
+                            'genai-service': 'spring-petclinic-genai-service'
+                        ]
+                        
+                        // Lấy danh sách file đã thay đổi trong commit hiện tại
+                        def changedFiles = []
+                        if (params.FORCE_BUILD_ALL) {
+                            echo "Force build all services enabled"
+                        } else {
+                            try {
+                                changedFiles = sh(script: 'git diff --name-only HEAD~1 HEAD', returnStdout: true).trim().split('\n')
+                            } catch (Exception e) {
+                                echo "Cannot get changed files, defaulting to all files: ${e.message}"
+                                changedFiles = sh(script: 'git ls-files', returnStdout: true).trim().split('\n')
+                            }
+                        }
+                        
+                        // Xác định service nào cần build
+                        def servicesToBuild = []
+                        
+                        if (params.FORCE_BUILD_ALL) {
+                            servicesToBuild = allowedServices
+                            echo "Building all allowed services due to FORCE_BUILD_ALL"
+                        } else {
+                            // Tìm các service đã thay đổi
+                            for (def file in changedFiles) {
+                                for (def entry in serviceDirs) {
+                                    if (file.startsWith(entry.value + '/')) {
+                                        if (!servicesToBuild.contains(entry.key)) {
+                                            servicesToBuild.add(entry.key)
+                                            echo "Detected changes in ${entry.key}, adding to build list"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Nếu không có service nào thay đổi, thông báo và kết thúc
+                        if (servicesToBuild.isEmpty()) {
+                            echo "No changes detected in the 4 specified services. Skipping build."
+                            return
+                        }
+                       
+                        // Debug - kiểm tra thư mục hiện tại và cấu trúc thư mục
+                        sh "pwd"
+                        sh "find . -name Dockerfile -type f | sort"
+                        
+                        // Build và push các service đã thay đổi
+                        for (def service in servicesToBuild) {
+                            def serviceDir = serviceDirs[service]
+                            def serviceName = service.replaceAll('-service', '')  // Để match với tham số ARTIFACT_NAME
+                            def imageName = "${DOCKER_USERNAME}/spring-petclinic-${service}"
+                           
+                            echo "Building service: ${service}, directory: ${serviceDir}"
+                            
+                            // Kiểm tra xem thư mục có tồn tại không
+                            if (fileExists(serviceDir)) {
+                                // Build Maven package
+                                sh "chmod +x ./mvnw"
+                                sh "./mvnw -pl ${serviceDir} -am clean package -DskipTests"
+                                
+                                // Build Docker image - chuyển JAR vào thư mục docker trước
+                                sh """
+                                cp ${serviceDir}/target/*.jar docker/${serviceName}.jar
+                                cd docker
+                                /usr/local/bin/docker build --build-arg ARTIFACT_NAME=${serviceName} --build-arg EXPOSED_PORT=8080 -t ${imageName}:${imageTag} .
+                                /usr/local/bin/docker push ${imageName}:${imageTag}
+                                
+                                # Tạo tag latest nếu cần
+                                /usr/local/bin/docker tag ${imageName}:${imageTag} ${imageName}:latest
+                                /usr/local/bin/docker push ${imageName}:latest
+                                
+                                rm ${serviceName}.jar
+                                cd ..
+                                """
+                                
+                                echo "Successfully built and pushed ${imageName}:${imageTag}"
+                            } else {
+                                echo "Warning: Service directory ${serviceDir} not found, skipping..."
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         stage('Checkout GitOps Repo') {
             steps {
                 script {
@@ -41,10 +154,10 @@ pipeline {
                         withCredentials([usernamePassword(credentialsId: 'github_app', 
                                                      usernameVariable: 'GIT_USERNAME', 
                                                      passwordVariable: 'GIT_PASSWORD')]) {
-                            sh """
-                            which git
-                            git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/tranductung07012004/gitops.git .
-                            """
+                            // Sử dụng biến môi trường cho bảo mật
+                            sh '''
+                            git clone https://$GIT_USERNAME:$GIT_PASSWORD@github.com/tranductung07012004/gitops.git .
+                            '''
                         }
                     }
                 }
@@ -76,17 +189,26 @@ pipeline {
                     
                     // Update kustomization.yaml for dev environment
                     dir('gitops-repo/dev') {
-                        sh """
+                        sh '''
                         cat kustomization.yaml
-                        sed -i '' 's|newTag: .*|newTag: ${commitId}|g' kustomization.yaml
-                        cat kustomization.yaml
+                        '''
                         
-                        cd ..
-                        git config user.email "tranductung07012004@gmail.com"
-                        git config user.name "tranductung07012004"
-                        git add dev/kustomization.yaml
-                        git commit -m "Update dev environment to commit ${commitId}" || echo "No changes"
+                        sh """
+                        sed -i '' 's|newTag: .*|newTag: ${commitId}|g' kustomization.yaml
                         """
+                        
+                        sh '''
+                        cat kustomization.yaml
+                        '''
+                        
+                        dir('..') {
+                            sh '''
+                            git config user.email "tranductung07012004@gmail.com"
+                            git config user.name "tranductung07012004"
+                            git add dev/kustomization.yaml
+                            git commit -m "Update dev environment to commit $commitId" || echo "No changes"
+                            '''
+                        }
                     }
                    
                     // Push changes to GitOps repo
@@ -94,11 +216,10 @@ pipeline {
                         withCredentials([usernamePassword(credentialsId: 'github-token-fix', 
                                                      usernameVariable: 'GIT_USERNAME', 
                                                      passwordVariable: 'GIT_PASSWORD')]) {
-                            sh """
-                            git config user.email "tranductung07012004@gmail.com"
-                            git config user.name "tranductung07012004"
-                            git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/tranductung07012004/gitops.git main
-                            """
+                            // Sử dụng biến môi trường cho bảo mật
+                            sh '''
+                            git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/tranductung07012004/gitops.git main
+                            '''
                         }
                     }
                     
@@ -123,99 +244,41 @@ pipeline {
                     
                     // Update kustomization.yaml for staging environment
                     dir('gitops-repo/staging') {
-                        sh """
+                        sh '''
                         cat kustomization.yaml
-                        sed -i '' 's|newTag: .*|newTag: ${version}|g' kustomization.yaml
-                        cat kustomization.yaml
+                        '''
                         
-                        cd ..
-                        git config user.email "tranductung07012004@gmail.com"
-                        git config user.name "tranductung07012004"
-                        git add staging/kustomization.yaml
-                        git commit -m "Update staging environment to version ${version}" || echo "No changes"
+                        sh """
+                        sed -i '' 's|newTag: .*|newTag: ${version}|g' kustomization.yaml
                         """
+                        
+                        sh '''
+                        cat kustomization.yaml
+                        '''
+                        
+                        dir('..') {
+                            sh '''
+                            git config user.email "tranductung07012004@gmail.com"
+                            git config user.name "tranductung07012004"
+                            git add staging/kustomization.yaml
+                            git commit -m "Update staging environment to version $version" || echo "No changes"
+                            '''
+                        }
                     }
                    
                     // Push changes to GitOps repo
                     dir('gitops-repo') {
-                        withCredentials([usernamePassword(credentialsId: 'github_app', 
+                        withCredentials([usernamePassword(credentialsId: 'github-token-fix', 
                                                        usernameVariable: 'GIT_USERNAME', 
                                                        passwordVariable: 'GIT_PASSWORD')]) {
-                            sh """
-                            echo $GIT_USERNAME
-                            git config user.name "$GIT_USERNAME"
-                            git config user.email "$GIT_USERNAME@gmail.com"
-                            git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/tranductung07012004/gitops.git main
-                            """
+                            // Sử dụng biến môi trường cho bảo mật
+                            sh '''
+                            git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/tranductung07012004/gitops.git main
+                            '''
                         }
                     }
                     
                     echo "Successfully updated GitOps repo for staging environment"
-                }
-            }
-        }
-       
-        stage('Build and Push Docker Images') {
-            steps {
-                script {
-                    // Determine image tag based on trigger type (branch or tag)
-                    def imageTag = env.TAG_NAME ?: (env.BRANCH_NAME == 'main' || env.GIT_BRANCH?.contains('main') 
-                        ? sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim() 
-                        : 'latest')
-                   
-                    withCredentials([usernamePassword(credentialsId: 'docker_hub_PAT', 
-                                                   usernameVariable: 'DOCKER_USERNAME', 
-                                                   passwordVariable: 'DOCKER_PASSWORD')]) {
-                        // Login to Docker Hub
-                        sh "/usr/local/bin/docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
-                       
-                        // Define all services to build
-                        def services = [
-                            'api-gateway',
-                            'config-server',
-                            'customers-service',
-                            'discovery-server',
-                            'genai-service',
-                            'vets-service',
-                            'visits-service'
-                        ]
-                       
-                        // Debug - kiểm tra thư mục hiện tại và cấu trúc thư mục
-                        sh "pwd"
-                        sh "find . -name Dockerfile -type f | sort"
-                        
-                        // Build and push all service images
-                        for (def service in services) {
-                            def serviceDir = "spring-petclinic-${service}"
-                            def imageName = "${DOCKER_USERNAME}/spring-petclinic-${service}"
-                           
-                            echo "Building service: ${service}, directory: ${serviceDir}"
-                            
-                            // Kiểm tra xem thư mục có tồn tại không
-                            if (fileExists(serviceDir)) {
-                                // Build Maven package
-                                sh "chmod +x ./mvnw"
-                                sh "./mvnw -pl ${serviceDir} -am clean package -DskipTests"
-                                
-                                // Build Docker image - BƯỚC QUAN TRỌNG: chuyển JAR vào thư mục docker trước
-                                sh """
-                                cp ${serviceDir}/target/*.jar docker/${service}.jar
-                                cd docker
-                                /usr/local/bin/docker build --build-arg ARTIFACT_NAME=${service} --build-arg EXPOSED_PORT=8080 -t ${imageName}:${imageTag} .
-                                /usr/local/bin/docker push ${imageName}:${imageTag}
-                                
-                                # Tạo tag latest nếu cần
-                                /usr/local/bin/docker tag ${imageName}:${imageTag} ${imageName}:latest
-                                /usr/local/bin/docker push ${imageName}:latest
-                                
-                                rm ${service}.jar
-                                cd ..
-                                """
-                            } else {
-                                echo "Warning: Service directory ${serviceDir} not found, skipping..."
-                            }
-                        }
-                    }
                 }
             }
         }
