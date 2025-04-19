@@ -275,7 +275,7 @@ pipeline {
                 
                     // Push changes to GitOps repo
                     dir('gitops-repo') {
-                        withCredentials([usernamePassword(credentialsId: 'github_app', 
+                        withCredentials([usernamePassword(credentialsId: 'github-token-fix', 
                                                     usernameVariable: 'GIT_USERNAME', 
                                                     passwordVariable: 'GIT_PASSWORD')]) {
                             // Sử dụng biến môi trường cho bảo mật
@@ -330,7 +330,7 @@ pipeline {
                    
                     // Push changes to GitOps repo
                     dir('gitops-repo') {
-                        withCredentials([usernamePassword(credentialsId: 'github_app', 
+                        withCredentials([usernamePassword(credentialsId: 'github-token-fix', 
                                                        usernameVariable: 'GIT_USERNAME', 
                                                        passwordVariable: 'GIT_PASSWORD')]) {
                             // Sử dụng biến môi trường cho bảo mật
