@@ -1,0 +1,4 @@
+apapiVersion: v2
+name: admin-server
+description: A Helm chart for Admin Server microservices
+version: 0.1.0

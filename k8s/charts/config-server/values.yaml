@@ -1,0 +1,11 @@
+replicaCount: 1
+image:
+  repository: "quocviet10011/spring-petclinic-config-server"
+  tag: "latest"
+  pullPolicy: IfNotPresent
+service:
+  enabled: true
+  type: NodePort
+  port: 8888
+  targetPort: 8888
+  nodePort: 30000

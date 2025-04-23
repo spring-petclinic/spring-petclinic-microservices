@@ -1,0 +1,4 @@
+apiversion: v1
+name: petclinic
+version: 0.1.0
+description: A Helm chart for Petclinic microservices

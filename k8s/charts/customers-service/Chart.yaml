@@ -1,0 +1,4 @@
+apapiVersion: v2
+name: customers-service
+description: A Helm chart for Customer Service microservice
+version: 0.1.0

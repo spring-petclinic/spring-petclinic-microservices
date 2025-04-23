@@ -1,0 +1,99 @@
+config-server:
+  replicaCount: 1
+  image:
+    repository: "quocviet10011/spring-petclinic-config-server"
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  service:
+    enabled: true
+    type: NodePort
+    port: 8888
+    targetPort: 8888
+    nodePort: 30000
+
+discovery-server:
+  replicaCount: 1
+  image:
+    repository: "quocviet10011/spring-petclinic-discovery-server"
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  service:
+    enabled: true
+    type: NodePort
+    port: 8761
+    targetPort: 8761
+    nodePort: 30001
+
+admin-server:
+  replicaCount: 1
+  image:
+    repository: "quocviet10011/spring-petclinic-admin-server"
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  service:
+    enabled: true
+    type: NodePort
+    port: 9090
+    targetPort: 9090
+    nodePort: 30002
+
+api-gateway:
+  replicaCount: 1
+  image:
+    repository: "quocviet10011/spring-petclinic-api-gateway"
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  service:
+    enabled: true
+    type: NodePort
+    port: 8080
+    targetPort: 8080
+    nodePort: 30003
+
+customers-service:
+  replicaCount: 1
+  image:
+    repository: "quocviet10011/spring-petclinic-customers-service"
+    tag: "latest"
+    pullPolicy: Always
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 8080
+    targetPort: 8080
+
+genai-service:
+  replicaCount: 1
+  image:
+    repository: "quocviet10011/spring-petclinic-genai-service"
+    tag: "latest"
+    pullPolicy: Always
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 8080
+    targetPort: 8080
+
+visits-service:
+  replicaCount: 1
+  image:
+    repository: "quocviet10011/spring-petclinic-visits-service"
+    tag: "latest"
+    pullPolicy: Always
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 8080
+    targetPort: 8080
+
+vets-service:
+  replicaCount: 1
+  image:
+    repository: "quocviet10011/spring-petclinic-vets-service"
+    tag: "latest"
+    pullPolicy: Always
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 8080
+    targetPort: 8080

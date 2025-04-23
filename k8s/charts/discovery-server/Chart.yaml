@@ -1,0 +1,4 @@
+apapiVersion: v2
+name: discovery-server
+description: A Helm chart for Discovery Server microservice
+version: 0.1.0

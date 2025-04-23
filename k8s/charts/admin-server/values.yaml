@@ -1,0 +1,11 @@
+replicaCount: ""
+image:
+  repository: ""
+  tag: ""
+  pullPolicy: ""
+service:
+  enabled: ""
+  type: ""
+  port: ""
+  targetPort: ""
+  nodePort: ""

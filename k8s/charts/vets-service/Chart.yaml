@@ -1,0 +1,4 @@
+apapiVersion: v2
+name: vets-service
+description: A Helm chart for Vets Service microservice
+version: 0.1.0

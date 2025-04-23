@@ -1,0 +1,4 @@
+apapiVersion: v2
+name: visits-service
+description: A Helm chart for Visits Service microservice
+version: 0.1.0
