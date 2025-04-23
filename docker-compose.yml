@@ -1,6 +1,6 @@
 services:
   config-server:
-    image: springcommunity/spring-petclinic-config-server
+    image: 22127025/devops-project2/spring-petclinic-config-server
     container_name: config-server
     deploy:
       resources:
@@ -15,7 +15,7 @@ services:
      - 8888:8888
 
   discovery-server:
-    image: springcommunity/spring-petclinic-discovery-server
+    image: 22127025/devops-project2/spring-petclinic-discovery-server
     container_name: discovery-server
     deploy:
       resources:
@@ -33,7 +33,7 @@ services:
      - 8761:8761
 
   customers-service:
-    image: springcommunity/spring-petclinic-customers-service
+    image: 22127025/devops-project2/spring-petclinic-customers-service
     container_name: customers-service
     deploy:
       resources:
@@ -48,7 +48,7 @@ services:
     - 8081:8081
 
   visits-service:
-    image: springcommunity/spring-petclinic-visits-service
+    image: 22127025/devops-project2/spring-petclinic-visits-service
     container_name: visits-service
     deploy:
       resources:
@@ -63,7 +63,7 @@ services:
      - 8082:8082
 
   vets-service:
-    image: springcommunity/spring-petclinic-vets-service
+    image: 22127025/devops-project2/spring-petclinic-vets-service
     container_name: vets-service
     deploy:
       resources:
@@ -79,7 +79,7 @@ services:
 
 
   genai-service:
-    image: springcommunity/spring-petclinic-genai-service
+    image: 22127025/devops-project2/spring-petclinic-genai-service
     container_name: genai-service
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
@@ -99,7 +99,7 @@ services:
 
 
   api-gateway:
-    image: springcommunity/spring-petclinic-api-gateway
+    image: 22127025/devops-project2/spring-petclinic-api-gateway
     container_name: api-gateway
     deploy:
       resources:
@@ -113,21 +113,21 @@ services:
     ports:
      - 8080:8080
 
-  tracing-server:
-    image: openzipkin/zipkin
-    container_name: tracing-server
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-    environment:
-    # Waiting for https://github.com/openzipkin/zipkin/issues/3786
-    - JAVA_OPTS=-XX:UseSVE=0
-    ports:
-     - 9411:9411
+  # tracing-server:
+  #   image: openzipkin/zipkin
+  #   container_name: tracing-server
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 512M
+  #   environment:
+  #   # Waiting for https://github.com/openzipkin/zipkin/issues/3786
+  #   - JAVA_OPTS=-XX:UseSVE=0
+  #   ports:
+  #    - 9411:9411
 
   admin-server:
-    image: springcommunity/spring-petclinic-admin-server
+    image: 22127025/devops-project2/spring-petclinic-admin-server
     container_name: admin-server
     deploy:
       resources:
@@ -143,22 +143,22 @@ services:
 
   ## Grafana / Prometheus
 
-  grafana-server:
-    build: ./docker/grafana
-    container_name: grafana-server
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-    ports:
-    - 3030:3030
+  # grafana-server:
+  #   build: ./docker/grafana
+  #   container_name: grafana-server
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 256M
+  #   ports:
+  #   - 3030:3030
 
-  prometheus-server:
-    build: ./docker/prometheus
-    container_name: prometheus-server
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-    ports:
-    - 9091:9090
+  # prometheus-server:
+  #   build: ./docker/prometheus
+  #   container_name: prometheus-server
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 256M
+  #   ports:
+  #   - 9091:9090
