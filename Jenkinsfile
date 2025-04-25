@@ -1,5 +1,5 @@
 pipeline {
-    agent 'worker'
+    agent any
 
     environment {
         DOCKER_USER = 'quocviet10011'
