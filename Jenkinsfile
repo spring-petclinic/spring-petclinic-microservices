@@ -79,8 +79,9 @@ pipeline {
                                 sh '../mvnw clean install -P buildDocker'
                             }
 
+                            def oldImage= "springcommunity/${service}:latest"
                             def imageName = "${DOCKER_USER}/${service}:${env.COMMIT_ID}"
-                            sh "docker tag ${service}:latest ${imageName}"
+                            sh "docker tag ${oldImage} ${imageName}"
                             try {
                                 sh "docker push ${imageName}"
                             } catch (e) {
