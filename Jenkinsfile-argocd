@@ -1,0 +1,149 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_USER = 'quocviet10011'
+        DOCKER_CREDENTIALS_ID = 'docker-hub-credentials'
+        SERVICES = "spring-petclinic-customers-service,spring-petclinic-vets-service,spring-petclinic-visits-service,spring-petclinic-genai-service"
+        DEPLOY_REPO = 'https://github.com/Vind1Viet/argo-cd.git'   // repo chứa Helm chart
+        DEPLOY_REPO_DIR = 'argo-cd'   // thư mục clone ra
+        GIT_CREDENTIALS_ID = 'github-token'  // Jenkins secret ID cho GitHub Personal Access Token
+    }
+
+    options {
+        skipDefaultCheckout(true)
+    }
+
+    triggers {
+        githubPush()
+    }
+
+    stages {
+        stage('Checkout Source') {
+            steps {
+                script {
+                    checkout scm
+                    env.GIT_COMMIT_ID = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+
+                    // Kiểm tra nếu build từ TAG hay từ branch
+                    env.GIT_TAG = sh(script: "git describe --tags --exact-match || echo ''", returnStdout: true).trim()
+
+                    if (env.GIT_TAG) {
+                        echo "Building from TAG: ${env.GIT_TAG}"
+                        env.IMAGE_TAG = env.GIT_TAG
+                    } else {
+                        echo "Building from branch: using 'latest' tag"
+                        env.IMAGE_TAG = "latest"
+                    }
+                }
+            }
+        }
+
+        stage('Detect Changed Services') {
+            steps {
+                script {
+                    def servicesList = env.SERVICES.split(',')
+                    def changedFiles = sh(returnStdout: true, script: "git diff-tree --no-commit-id --name-only -r ${env.GIT_COMMIT_ID}").trim()
+
+                    def servicesToBuild = servicesList.findAll { service ->
+                        changedFiles.split('\n').any { it.startsWith("${service}/") }
+                    }
+
+                    if (servicesToBuild.isEmpty()) {
+                        echo "No changes in any services. Skipping build."
+                        currentBuild.result = 'SUCCESS'
+                        return
+                    }
+
+                    env.SERVICES_TO_BUILD = servicesToBuild.join(',')
+                    echo "Services to build: ${env.SERVICES_TO_BUILD}"
+                }
+            }
+        }
+
+        stage('Build and Push Docker Images') {
+            steps {
+                script {
+                    if (!env.SERVICES_TO_BUILD) {
+                        echo "No services to build. Skipping Docker build stage."
+                        return
+                    }
+
+                    def servicesToBuild = env.SERVICES_TO_BUILD.split(',')
+
+                    docker.withRegistry('', DOCKER_CREDENTIALS_ID) {
+                        servicesToBuild.each { service ->
+                            echo "Building and pushing Docker image for ${service}"
+                            dir(service) {
+                                sh '../mvnw clean install -P buildDocker'
+                            }
+
+                            def oldImage = "springcommunity/${service}:latest"
+                            def newImage = "${DOCKER_USER}/${service}:${IMAGE_TAG}"
+
+                            sh "docker tag ${oldImage} ${newImage}"
+                            try {
+                                sh "docker push ${newImage}"
+                            } catch (e) {
+                                echo "Failed to push image ${newImage}: ${e}"
+                                throw e
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Update Chart.yaml and values.yaml and Push to GitOps Repo') {
+            when {
+                expression { return env.GIT_TAG != '' || env.IMAGE_TAG == 'latest' }
+            }
+            steps {
+                script {
+                    echo "Cloning GitOps repo and updating Chart.yaml and values.yaml"
+
+                    // Clone the repo that holds your Helm charts
+                    withCredentials([string(credentialsId: "${GIT_CREDENTIALS_ID}", variable: 'GIT_TOKEN')]) {
+                        sh """
+                            rm -rf ${DEPLOY_REPO_DIR}
+                            git clone ${DEPLOY_REPO} ${DEPLOY_REPO_DIR}
+                            cd ${DEPLOY_REPO_DIR}
+
+                            // Kiểm tra xem đang deploy môi trường nào (dev/staging)
+                            if [ -n "${env.GIT_TAG}" ]; then
+                                echo "Deploying to staging environment"
+                                TARGET_ENV="staging"
+                            else
+                                echo "Deploying to dev environment"
+                                TARGET_ENV="dev"
+                            fi
+
+                            // Cập nhật file Chart.yaml
+                            DEPLOY_TIME=$(date "+%Y-%m-%d %H:%M:%S")
+                            sed -i "s|^description:.*|description: Deployed at ${DEPLOY_TIME}|" ${TARGET_ENV}/Chart.yaml
+
+                            // Cập nhật image tag trong values.yaml
+                            sed -i "s|tag:.*|tag: \\\"${IMAGE_TAG}\\\"|" ${TARGET_ENV}/values.yaml
+
+                            git config user.email "vindiviet@gmail.com"
+                            git config user.name "Vind1Viet"
+                            git remote set-url origin https://username:${GIT_TOKEN}@github.com/Vind1Viet/argo-cd.git
+                            git add ${TARGET_ENV}/Chart.yaml ${TARGET_ENV}/values.yaml
+                            git commit -m "Update Chart.yaml and values.yaml for ${TARGET_ENV} environment at ${DEPLOY_TIME}"
+                            git push origin main
+                        """
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        failure {
+            echo 'Build failed!'
+        }
+        success {
+            echo 'Build and push completed successfully. GitOps repo updated.'
+        }
+    }
+}
