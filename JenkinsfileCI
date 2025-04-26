@@ -13,7 +13,6 @@ pipeline {
         SERVICES_WITHOUT_TESTS = "spring-petclinic-admin-server spring-petclinic-genai-service"
         DOCKERHUB_USERNAME = "22127422" // <--- *** Verify/Replace if needed ***
         DOCKERHUB_CREDENTIALS_ID = "docker-credentials" // Docker push credentials
-        TESTS_FAILED_FLAG = "false"
         DOCKERFILE_PATH = "docker/Dockerfile"
 
         // --- New variables for Helm Repo Update ---
