@@ -182,18 +182,31 @@ pipeline {
                     }
                     // JaCoCo aggregation and final status check
                      if (!jacocoExecFiles.isEmpty()) {
-                        echo "--- Generating Aggregated JaCoCo Coverage Report ---"
-                        echo "Aggregating JaCoCo data from ${jacocoExecFiles.size()} service(s)."
+                        echo "--- Generating Aggregated JaCoCo Coverage Report ---" // [cite: 48]
+                        echo "Aggregating JaCoCo data from ${jacocoExecFiles.size()} service(s)." // [cite: 48]
+                        echo "Exec files: ${jacocoExecFiles.join(',')}" // [cite: 49]
+                        echo "Class dirs: ${jacocoClassDirs.join(',')}" // [cite: 49]
+                        echo "Source dirs: ${jacocoSrcDirs.join(',')}" // [cite: 50]
                         try {
-                            jacoco(
-                                execPattern: jacocoExecFiles.join(','),
-                                classPattern: jacocoClassDirs.join(','),
-                                sourcePattern: jacocoSrcDirs.join(','),
-                                inclusionPattern: '**/*.class',
-                                exclusionPattern: '**/test/**,**/model/**,**/domain/**,**/entity/**',
-                                skipCopyOfSrcFiles: true
+                            jacoco( // [cite: 49]
+                                execPattern: jacocoExecFiles.join(','), // [cite: 49]
+                                classPattern: jacocoClassDirs.join(','), // [cite: 49]
+                                sourcePattern: jacocoSrcDirs.join(','), // [cite: 50]
+                                inclusionPattern: '**/*.class', // [cite: 50]
+                                exclusionPattern: '**/test/**,**/model/**,**/domain/**,**/entity/**', // [cite: 50]
+                                skipCopyOfSrcFiles: true, // [cite: 51]
+                                // *** START: Added Coverage Thresholds ***
+                                minimumInstructionCoverage: '70.0',
+                                minimumLineCoverage: '70.0',
+                                minimumBranchCoverage: '70.0',
+                                minimumComplexityCoverage: '70.0',
+                                // *** END: Added Coverage Thresholds ***
+                                // The plugin automatically sets build to UNSTABLE if thresholds are missed
+                                changeBuildStatus: true // Make sure plugin affects build status
                             )
-                            echo "JaCoCo aggregated report generated successfully."
+                            echo "JaCoCo aggregated report generated. Check Jenkins sidebar for the 'Code Coverage Trend' link."
+                            echo "Coverage thresholds (Instruction, Line, Branch, Complexity) set to 70%. Build will be UNSTABLE if not met."
+                            echo "NOTE: View per-service coverage by navigating the package structure within the aggregated report."
                         } catch (err) {
                             echo "ERROR: Failed to generate JaCoCo aggregated report: ${err.getMessage()}"
                             currentBuild.result = 'UNSTABLE'
