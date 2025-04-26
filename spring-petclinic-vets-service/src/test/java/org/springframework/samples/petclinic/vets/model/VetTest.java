@@ -72,43 +72,38 @@ class VetTest {
     }
 
     @Test
-    void testAddDuplicateSpecialty() {
+    void testAddDuplicateSpecialtyObject() {
         Specialty s1 = new Specialty();
         s1.setName("radiology");
-        s1.setId(1); // Assume ID makes it unique if equals/hashCode were based on it
-
-        Specialty s1Dup = new Specialty();
-        s1Dup.setName("radiology");
-        s1Dup.setId(1);
 
         vet.addSpecialty(s1);
-        vet.addSpecialty(s1Dup); // HashSet uses equals/hashCode, default is object identity
+        assertEquals(1, vet.getNrOfSpecialties(), "Count should be 1 after adding first specialty object");
 
-        // Without equals/hashCode, duplicates based on identity are added.
-        // If s1 and s1Dup are different objects, they both get added.
-        // Let's assume default equals/hashCode (identity)
-        // assertEquals(1, vet.getNrOfSpecialties(), "Adding the 'same' specialty (by identity or default equals) should not increase count if it's the exact same object");
-         vet.addSpecialty(s1); // Add the exact same object again
-         assertEquals(1, vet.getNrOfSpecialties(), "Adding the exact same specialty object again should not increase count");
-
-
-        // If we create two separate objects that are logically equivalent (same name/id)
-        Specialty s2 = new Specialty();
-        s2.setName("surgery");
-        s2.setId(2);
-        vet.addSpecialty(s2); // Now size is 2 (s1, s2)
-
-        Specialty s2LogicalDup = new Specialty();
-        s2LogicalDup.setName("surgery");
-        s2LogicalDup.setId(2);
-        vet.addSpecialty(s2LogicalDup); // Add a *different* object, but logically the same
-
-        // Because Specialty doesn't override equals/hashCode, the HashSet treats s2 and s2LogicalDup as distinct
-        assertEquals(3, vet.getNrOfSpecialties(), "Adding a different specialty object with same data should increase count due to default equals/hashCode");
-        assertTrue(vet.getSpecialties().contains(s1));
-        assertTrue(vet.getSpecialties().contains(s2));
-        assertTrue(vet.getSpecialties().contains(s2LogicalDup)); // It contains the third object
+        // Add the exact same object instance again
+        vet.addSpecialty(s1);
+        assertEquals(1, vet.getNrOfSpecialties(), "Adding the exact same specialty object again should not increase count");
     }
+
+    @Test
+    void testAddLogicallyEquivalentButDifferentSpecialtyObjects() {
+         Specialty s1 = new Specialty();
+         s1.setName("radiology");
+         vet.addSpecialty(s1);
+         assertEquals(1, vet.getNrOfSpecialties(), "Count should be 1 after adding first specialty object");
+
+         // Create a new object with the same name
+         Specialty s1LogicalDup = new Specialty();
+         s1LogicalDup.setName("radiology");
+
+         // Add the different object
+         vet.addSpecialty(s1LogicalDup);
+
+         // Because Specialty doesn't override equals/hashCode, the HashSet treats s1 and s1LogicalDup as distinct based on object identity.
+         assertEquals(2, vet.getNrOfSpecialties(), "Adding a different specialty object with same name should increase count due to default equals/hashCode");
+         assertTrue(vet.getSpecialties().contains(s1), "List should contain the first object");
+         assertTrue(vet.getSpecialties().contains(s1LogicalDup), "List should contain the second, logically equivalent object");
+    }
+
 
     @Test
     void testGetSpecialties_Sorting() {
