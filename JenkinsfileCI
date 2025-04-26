@@ -226,205 +226,205 @@ pipeline {
         } // End Stage 2
 
 
-        // // ============================================================
-        // // Stage 3: Build, Package & Push Docker Images (MODIFIED Tagging)
-        // // ============================================================
-        // stage('Build, Package & Push Docker Images') {
-        //      when {
-        //         // Condition remains the same: run if services changed and previous stages didn't fail
-        //         expression { return env.CHANGED_SERVICES?.trim() && currentBuild.currentResult != 'FAILURE' }
-        //     }
-        //     steps {
-        //         script {
-        //             // Initial checks (DOCKERHUB_USERNAME, DOCKERHUB_CREDENTIALS_ID, DOCKERFILE_PATH) - same as before
-        //             if (!env.DOCKERHUB_USERNAME || env.DOCKERHUB_USERNAME == 'your-dockerhub-username') { error "FATAL: DOCKERHUB_USERNAME environment variable is not set or not replaced in Jenkinsfile." }
-        //             if (!env.DOCKERHUB_CREDENTIALS_ID || env.DOCKERHUB_CREDENTIALS_ID == 'dockerhub-credentials') { error "FATAL: DOCKERHUB_CREDENTIALS_ID environment variable is not set or not replaced in Jenkinsfile." }
-        //             if (!fileExists(env.DOCKERFILE_PATH)) { error "FATAL: Common Dockerfile not found at ${env.DOCKERFILE_PATH}"}
+        // ============================================================
+        // Stage 3: Build, Package & Push Docker Images (MODIFIED Tagging)
+        // ============================================================
+        stage('Build, Package & Push Docker Images') {
+             when {
+                // Condition remains the same: run if services changed and previous stages didn't fail
+                expression { return env.CHANGED_SERVICES?.trim() && currentBuild.currentResult != 'FAILURE' }
+            }
+            steps {
+                script {
+                    // Initial checks (DOCKERHUB_USERNAME, DOCKERHUB_CREDENTIALS_ID, DOCKERFILE_PATH) - same as before
+                    if (!env.DOCKERHUB_USERNAME || env.DOCKERHUB_USERNAME == 'your-dockerhub-username') { error "FATAL: DOCKERHUB_USERNAME environment variable is not set or not replaced in Jenkinsfile." }
+                    if (!env.DOCKERHUB_CREDENTIALS_ID || env.DOCKERHUB_CREDENTIALS_ID == 'dockerhub-credentials') { error "FATAL: DOCKERHUB_CREDENTIALS_ID environment variable is not set or not replaced in Jenkinsfile." }
+                    if (!fileExists(env.DOCKERFILE_PATH)) { error "FATAL: Common Dockerfile not found at ${env.DOCKERFILE_PATH}"}
 
-        //             def serviceList = env.CHANGED_SERVICES.trim().split(" ")
-        //             // IMAGE_VERSION_TAG is now set in Stage 1 (commit ID or Git Tag)
-        //             echo "Using Primary Image Tag for Docker operations: ${env.IMAGE_VERSION_TAG}"
-        //             def buildFailed = false
+                    def serviceList = env.CHANGED_SERVICES.trim().split(" ")
+                    // IMAGE_VERSION_TAG is now set in Stage 1 (commit ID or Git Tag)
+                    echo "Using Primary Image Tag for Docker operations: ${env.IMAGE_VERSION_TAG}"
+                    def buildFailed = false
 
-        //             withCredentials([usernamePassword(credentialsId: env.DOCKERHUB_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-        //                 try { // Docker login
-        //                     echo "Attempting explicit Docker login..."
-        //                     sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
-        //                     echo "Explicit Docker login successful."
-        //                 } catch (e) {
-        //                     error "FATAL: Explicit Docker login failed. Check credentials and permissions. Error: ${e.message}"
-        //                 }
+                    withCredentials([usernamePassword(credentialsId: env.DOCKERHUB_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        try { // Docker login
+                            echo "Attempting explicit Docker login..."
+                            sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+                            echo "Explicit Docker login successful."
+                        } catch (e) {
+                            error "FATAL: Explicit Docker login failed. Check credentials and permissions. Error: ${e.message}"
+                        }
 
-        //                 for (service in serviceList) {
-        //                     echo "--- Processing Service: ${service} ---"
-        //                     def artifactNameArgValue = ""
+                        for (service in serviceList) {
+                            echo "--- Processing Service: ${service} ---"
+                            def artifactNameArgValue = ""
 
-        //                     // 1. Package JAR (same logic as before)
-        //                     dir(service) {
-        //                         try {
-        //                             echo "Running 'mvn clean package -DskipTests' for ${service}..."
-        //                             sh 'mvn clean package -DskipTests'
-        //                             echo "Maven package successful for ${service}."
-        //                             def jarFileFullPath = sh(script: 'find target -maxdepth 1 -name "*.jar" -print -quit', returnStdout: true).trim()
-        //                             if (!jarFileFullPath) { error "Could not find JAR file in target/ for ${service}." }
-        //                             def jarFileRelativePath = "${service}/${jarFileFullPath}"
-        //                             if (jarFileRelativePath.endsWith('.jar')) {
-        //                                 artifactNameArgValue = jarFileRelativePath.substring(0, jarFileRelativePath.length() - 4)
-        //                             } else { error("Could not remove .jar suffix from ${jarFileRelativePath}") }
-        //                             echo "JAR path relative to root: ${jarFileRelativePath}"
-        //                             echo "ARTIFACT_NAME build-arg value: ${artifactNameArgValue}"
-        //                         } catch (err) {
-        //                             echo "ERROR: Maven package FAILED for ${service}: ${err.getMessage()}"
-        //                             buildFailed = true
-        //                             if (currentBuild.currentResult != 'FAILURE') { currentBuild.result = 'UNSTABLE' }
-        //                             continue // Skip Docker steps
-        //                         }
-        //                     } // End dir(service)
+                            // 1. Package JAR (same logic as before)
+                            dir(service) {
+                                try {
+                                    echo "Running 'mvn clean package -DskipTests' for ${service}..."
+                                    sh 'mvn clean package -DskipTests'
+                                    echo "Maven package successful for ${service}."
+                                    def jarFileFullPath = sh(script: 'find target -maxdepth 1 -name "*.jar" -print -quit', returnStdout: true).trim()
+                                    if (!jarFileFullPath) { error "Could not find JAR file in target/ for ${service}." }
+                                    def jarFileRelativePath = "${service}/${jarFileFullPath}"
+                                    if (jarFileRelativePath.endsWith('.jar')) {
+                                        artifactNameArgValue = jarFileRelativePath.substring(0, jarFileRelativePath.length() - 4)
+                                    } else { error("Could not remove .jar suffix from ${jarFileRelativePath}") }
+                                    echo "JAR path relative to root: ${jarFileRelativePath}"
+                                    echo "ARTIFACT_NAME build-arg value: ${artifactNameArgValue}"
+                                } catch (err) {
+                                    echo "ERROR: Maven package FAILED for ${service}: ${err.getMessage()}"
+                                    buildFailed = true
+                                    if (currentBuild.currentResult != 'FAILURE') { currentBuild.result = 'UNSTABLE' }
+                                    continue // Skip Docker steps
+                                }
+                            } // End dir(service)
 
-        //                     // 2. Build and Push Docker Image (Using IMAGE_VERSION_TAG)
-        //                     if (artifactNameArgValue) {
-        //                         try {
-        //                             def imageName = "${env.DOCKERHUB_USERNAME}/${service}"
-        //                             // Use the determined version tag (Commit ID or Git Tag)
-        //                             def primaryTag = env.IMAGE_VERSION_TAG // Use tag determined in Stage 1
-        //                             echo "Building Docker image: ${imageName}:${primaryTag} using ${env.DOCKERFILE_PATH}"
-        //                             def dockerImage = docker.build("${imageName}:${primaryTag}", "-f ${env.DOCKERFILE_PATH} --build-arg ARTIFACT_NAME=${artifactNameArgValue} .")
+                            // 2. Build and Push Docker Image (Using IMAGE_VERSION_TAG)
+                            if (artifactNameArgValue) {
+                                try {
+                                    def imageName = "${env.DOCKERHUB_USERNAME}/${service}"
+                                    // Use the determined version tag (Commit ID or Git Tag)
+                                    def primaryTag = env.IMAGE_VERSION_TAG // Use tag determined in Stage 1
+                                    echo "Building Docker image: ${imageName}:${primaryTag} using ${env.DOCKERFILE_PATH}"
+                                    def dockerImage = docker.build("${imageName}:${primaryTag}", "-f ${env.DOCKERFILE_PATH} --build-arg ARTIFACT_NAME=${artifactNameArgValue} .")
 
-        //                             echo "Pushing Docker image: ${imageName}:${primaryTag}"
-        //                             dockerImage.push() // Push the primary tag (Commit ID or Git Tag)
+                                    echo "Pushing Docker image: ${imageName}:${primaryTag}"
+                                    dockerImage.push() // Push the primary tag (Commit ID or Git Tag)
 
-        //                             // --- Updated conditional push logic ---
-        //                             // Push 'latest' tag ONLY for non-tagged builds on the 'main' branch
-        //                             if (env.BRANCH_NAME == 'main' && env.IS_TAGGED_BUILD == "false") {
-        //                                 echo "Pushing additional tag 'latest' for main branch build: ${imageName}:latest"
-        //                                 dockerImage.push('latest')
-        //                             }
-        //                             // --- Removed push of branch name tag ---
+                                    // --- Updated conditional push logic ---
+                                    // Push 'latest' tag ONLY for non-tagged builds on the 'main' branch
+                                    if (env.BRANCH_NAME == 'main' && env.IS_TAGGED_BUILD == "false") {
+                                        echo "Pushing additional tag 'latest' for main branch build: ${imageName}:latest"
+                                        dockerImage.push('latest')
+                                    }
+                                    // --- Removed push of branch name tag ---
 
-        //                             echo "Docker build and push successful for ${service} with tag ${primaryTag}."
-        //                             // Add echo for latest tag if pushed
-        //                             if (env.BRANCH_NAME == 'main' && env.IS_TAGGED_BUILD == "false") {
-        //                                  echo "Also pushed tag 'latest' for ${service}."
-        //                             }
+                                    echo "Docker build and push successful for ${service} with tag ${primaryTag}."
+                                    // Add echo for latest tag if pushed
+                                    if (env.BRANCH_NAME == 'main' && env.IS_TAGGED_BUILD == "false") {
+                                         echo "Also pushed tag 'latest' for ${service}."
+                                    }
 
-        //                         } catch (err) {
-        //                             echo "ERROR: Docker build or push FAILED for ${service}: ${err.getMessage()}"
-        //                             buildFailed = true
-        //                             if (currentBuild.currentResult != 'FAILURE') { currentBuild.result = 'UNSTABLE' }
-        //                         }
-        //                     } // End if (artifactNameArgValue)
-        //                 } // End for loop
-        //             } // End withCredentials
+                                } catch (err) {
+                                    echo "ERROR: Docker build or push FAILED for ${service}: ${err.getMessage()}"
+                                    buildFailed = true
+                                    if (currentBuild.currentResult != 'FAILURE') { currentBuild.result = 'UNSTABLE' }
+                                }
+                            } // End if (artifactNameArgValue)
+                        } // End for loop
+                    } // End withCredentials
 
-        //             // Final stage status check (same as before)
-        //             if (buildFailed) {
-        //                 echo "One or more services failed during package or docker build/push."
-        //                 if (currentBuild.currentResult != 'FAILURE') { currentBuild.result = 'UNSTABLE' }
-        //             } else {
-        //                 echo "All processed services completed package and docker build/push successfully."
-        //             }
-        //         } // End script
-        //     } // End steps
-        // } // End Stage 3
+                    // Final stage status check (same as before)
+                    if (buildFailed) {
+                        echo "One or more services failed during package or docker build/push."
+                        if (currentBuild.currentResult != 'FAILURE') { currentBuild.result = 'UNSTABLE' }
+                    } else {
+                        echo "All processed services completed package and docker build/push successfully."
+                    }
+                } // End script
+            } // End steps
+        } // End Stage 3
 
-        // // ============================================================
-        // // Stage 4: Update Staging Config in Helm Repo (NEW STAGE)
-        // // ============================================================
-        // stage('Update Staging Config in Helm Repo') {
-        //     // Only run this stage for successful tagged builds
-        //     when {
-        //         expression { return env.IS_TAGGED_BUILD == "true" && currentBuild.currentResult != 'FAILURE' && currentBuild.currentResult != 'UNSTABLE' }
-        //     }
-        //     steps {
-        //         script {
-        //             echo "Tagged build successful (${env.IMAGE_VERSION_TAG}). Updating Helm values for Staging environment..."
-        //             // Check for required environment variables defined earlier
-        //             if (!env.HELM_REPO_URL || !env.HELM_REPO_CREDENTIALS_ID || !env.HELM_STAGING_VALUES_PATH) {
-        //                 error "FATAL: Missing environment variables for Helm repo update (HELM_REPO_URL, HELM_REPO_CREDENTIALS_ID, HELM_STAGING_VALUES_PATH)"
-        //             }
+        // ============================================================
+        // Stage 4: Update Staging Config in Helm Repo (NEW STAGE)
+        // ============================================================
+        stage('Update Staging Config in Helm Repo') {
+            // Only run this stage for successful tagged builds
+            when {
+                expression { return env.IS_TAGGED_BUILD == "true" && currentBuild.currentResult != 'FAILURE' && currentBuild.currentResult != 'UNSTABLE' }
+            }
+            steps {
+                script {
+                    echo "Tagged build successful (${env.IMAGE_VERSION_TAG}). Updating Helm values for Staging environment..."
+                    // Check for required environment variables defined earlier
+                    if (!env.HELM_REPO_URL || !env.HELM_REPO_CREDENTIALS_ID || !env.HELM_STAGING_VALUES_PATH) {
+                        error "FATAL: Missing environment variables for Helm repo update (HELM_REPO_URL, HELM_REPO_CREDENTIALS_ID, HELM_STAGING_VALUES_PATH)"
+                    }
 
-        //             // Use credentials with push access to the Helm repo
-        //             // Ensure HELM_REPO_CREDENTIALS_ID is correctly set in environment block
-        //             withCredentials([usernamePassword(credentialsId: env.HELM_REPO_CREDENTIALS_ID, usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASSWORD')]) { // Or use SSH key credentials if configured
-        //                 // Check out the Helm chart repo into a specific subdirectory
-        //                 dir(env.HELM_REPO_DIR) {
-        //                     echo "Checking out Helm chart repository: ${env.HELM_REPO_URL} branch: ${env.HELM_REPO_BRANCH}"
-        //                     deleteDir() // Clean before checkout
-        //                     // Checkout using credentials specified
-        //                     checkout([
-        //                         $class: 'GitSCM',
-        //                         branches: [[name: env.HELM_REPO_BRANCH]],
-        //                         userRemoteConfigs: [[
-        //                             url: env.HELM_REPO_URL,
-        //                             credentialsId: env.HELM_REPO_CREDENTIALS_ID // Use the push credentials
-        //                         ]]
-        //                     ])
-        //                     echo "Checkout of Helm repo complete into ./${env.HELM_REPO_DIR}"
+                    // Use credentials with push access to the Helm repo
+                    // Ensure HELM_REPO_CREDENTIALS_ID is correctly set in environment block
+                    withCredentials([usernamePassword(credentialsId: env.HELM_REPO_CREDENTIALS_ID, usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASSWORD')]) { // Or use SSH key credentials if configured
+                        // Check out the Helm chart repo into a specific subdirectory
+                        dir(env.HELM_REPO_DIR) {
+                            echo "Checking out Helm chart repository: ${env.HELM_REPO_URL} branch: ${env.HELM_REPO_BRANCH}"
+                            deleteDir() // Clean before checkout
+                            // Checkout using credentials specified
+                            checkout([
+                                $class: 'GitSCM',
+                                branches: [[name: env.HELM_REPO_BRANCH]],
+                                userRemoteConfigs: [[
+                                    url: env.HELM_REPO_URL,
+                                    credentialsId: env.HELM_REPO_CREDENTIALS_ID // Use the push credentials
+                                ]]
+                            ])
+                            echo "Checkout of Helm repo complete into ./${env.HELM_REPO_DIR}"
 
-        //                     // --- Modify the staging values file ---
-        //                     echo "Attempting to read and update ${env.HELM_STAGING_VALUES_PATH} with image tag: ${env.IMAGE_VERSION_TAG}"
-        //                     try {
-        //                         // Read the existing YAML file using Pipeline Utility Steps plugin
-        //                         // Ensure this plugin is installed in Jenkins!
-        //                         def valuesData = readYaml file: env.HELM_STAGING_VALUES_PATH
-        //                         if (!valuesData) {
-        //                              error "Failed to read YAML from ${env.HELM_STAGING_VALUES_PATH}. Is the file path correct, file valid, and plugin installed?"
-        //                         }
+                            // --- Modify the staging values file ---
+                            echo "Attempting to read and update ${env.HELM_STAGING_VALUES_PATH} with image tag: ${env.IMAGE_VERSION_TAG}"
+                            try {
+                                // Read the existing YAML file using Pipeline Utility Steps plugin
+                                // Ensure this plugin is installed in Jenkins!
+                                def valuesData = readYaml file: env.HELM_STAGING_VALUES_PATH
+                                if (!valuesData) {
+                                     error "Failed to read YAML from ${env.HELM_STAGING_VALUES_PATH}. Is the file path correct, file valid, and plugin installed?"
+                                }
 
-        //                         // Update the image tag for all services
-        //                         // This assumes the structure matches: serviceName: { image: { tag: ... } }
-        //                         // *** Uses camelCase keys based on previous discussion - ADJUST if needed ***
-        //                         def serviceKeys = [
-        //                             "adminServer", "apiGateway", "configServer", "customersService",
-        //                             "discoveryServer", "genaiService", "vetsService", "visitsService"
-        //                         ]
-        //                         serviceKeys.each { key ->
-        //                             if (valuesData."${key}") {
-        //                                 // Ensure the nested structure exists before assigning
-        //                                 if (!valuesData."${key}".image) { valuesData."${key}".image = [:] }
-        //                                 valuesData."${key}".image.tag = env.IMAGE_VERSION_TAG // Set the tag
-        //                                 echo "Set ${key}.image.tag = ${env.IMAGE_VERSION_TAG}"
-        //                             } else {
-        //                                 // Warn if a service key defined above isn't found in the values file
-        //                                 echo "WARN: Key '${key}' not found in ${env.HELM_STAGING_VALUES_PATH}. Skipping tag update for it."
-        //                             }
-        //                         }
+                                // Update the image tag for all services
+                                // This assumes the structure matches: serviceName: { image: { tag: ... } }
+                                // *** Uses camelCase keys based on previous discussion - ADJUST if needed ***
+                                def serviceKeys = [
+                                    "adminServer", "apiGateway", "configServer", "customersService",
+                                    "discoveryServer", "genaiService", "vetsService", "visitsService"
+                                ]
+                                serviceKeys.each { key ->
+                                    if (valuesData."${key}") {
+                                        // Ensure the nested structure exists before assigning
+                                        if (!valuesData."${key}".image) { valuesData."${key}".image = [:] }
+                                        valuesData."${key}".image.tag = env.IMAGE_VERSION_TAG // Set the tag
+                                        echo "Set ${key}.image.tag = ${env.IMAGE_VERSION_TAG}"
+                                    } else {
+                                        // Warn if a service key defined above isn't found in the values file
+                                        echo "WARN: Key '${key}' not found in ${env.HELM_STAGING_VALUES_PATH}. Skipping tag update for it."
+                                    }
+                                }
 
-        //                         // Write the updated data back to the YAML file
-        //                         writeYaml file: env.HELM_STAGING_VALUES_PATH, data: valuesData, overwrite: true
-        //                         echo "Successfully updated ${env.HELM_STAGING_VALUES_PATH} in workspace."
+                                // Write the updated data back to the YAML file
+                                writeYaml file: env.HELM_STAGING_VALUES_PATH, data: valuesData, overwrite: true
+                                echo "Successfully updated ${env.HELM_STAGING_VALUES_PATH} in workspace."
 
-        //                         // --- Commit and Push the changes ---
-        //                         echo "Committing and pushing updated values file to ${env.HELM_REPO_BRANCH} branch of Helm repo..."
-        //                         sh "git config user.email 'jenkins-ci@example.com'"
-        //                         sh "git config user.name 'Jenkins CI Bot'"
-        //                         sh "git add ${env.HELM_STAGING_VALUES_PATH}"
-        //                         sh "git commit -m 'CI: Update staging image tags to ${env.IMAGE_VERSION_TAG} [skip ci]'"
+                                // --- Commit and Push the changes ---
+                                echo "Committing and pushing updated values file to ${env.HELM_REPO_BRANCH} branch of Helm repo..."
+                                sh "git config user.email 'jenkins-ci@example.com'"
+                                sh "git config user.name 'Jenkins CI Bot'"
+                                sh "git add ${env.HELM_STAGING_VALUES_PATH}"
+                                sh "git commit -m 'CI: Update staging image tags to ${env.IMAGE_VERSION_TAG} [skip ci]'"
 
-        //                         // --- Modified Push Command ---
-        //                         // Extract repo host and path (e.g., github.com/user/repo.git) from the original URL
-        //                         def repoHostAndPath = env.HELM_REPO_URL.split('//')[1]
-        //                         // Construct the authenticated URL
-        //                         // NOTE: Assumes PAT ($GIT_PASSWORD) doesn't contain characters needing URL encoding. Usually safe for GitHub PATs.
-        //                         def pushUrl = "https://${GIT_USER}:${GIT_PASSWORD}@${repoHostAndPath}"
-        //                         echo "Pushing changes using authenticated URL..."
-        //                         // Push using the authenticated URL to the target branch
-        //                         sh "git push ${pushUrl} HEAD:${env.HELM_REPO_BRANCH}"
-        //                         // --- End Modified Push Command ---
+                                // --- Modified Push Command ---
+                                // Extract repo host and path (e.g., github.com/user/repo.git) from the original URL
+                                def repoHostAndPath = env.HELM_REPO_URL.split('//')[1]
+                                // Construct the authenticated URL
+                                // NOTE: Assumes PAT ($GIT_PASSWORD) doesn't contain characters needing URL encoding. Usually safe for GitHub PATs.
+                                def pushUrl = "https://${GIT_USER}:${GIT_PASSWORD}@${repoHostAndPath}"
+                                echo "Pushing changes using authenticated URL..."
+                                // Push using the authenticated URL to the target branch
+                                sh "git push ${pushUrl} HEAD:${env.HELM_REPO_BRANCH}"
+                                // --- End Modified Push Command ---
 
-        //                         echo "Changes pushed successfully to Helm repository."
+                                echo "Changes pushed successfully to Helm repository."
 
-        //                     } catch (e) {
-        //                         echo "ERROR: Failed to update or push changes to Helm repository!"
-        //                         echo e.getMessage()
-        //                         currentBuild.result = 'FAILURE' // Fail the build if update fails
-        //                         error("Failed to update Helm repository configuration.")
-        //                     }
-        //                 } // End dir(helm-repo-checkout)
-        //             } // End withCredentials
-        //         } // End script
-        //     } // End steps
-        // } // End Stage 4 (New Stage)
+                            } catch (e) {
+                                echo "ERROR: Failed to update or push changes to Helm repository!"
+                                echo e.getMessage()
+                                currentBuild.result = 'FAILURE' // Fail the build if update fails
+                                error("Failed to update Helm repository configuration.")
+                            }
+                        } // End dir(helm-repo-checkout)
+                    } // End withCredentials
+                } // End script
+            } // End steps
+        } // End Stage 4 (New Stage)
 
 
     } // End stages
