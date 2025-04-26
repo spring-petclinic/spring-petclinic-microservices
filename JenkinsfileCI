@@ -196,12 +196,12 @@ pipeline {
                                 exclusionPattern: '**/test/**,**/model/**,**/domain/**,**/entity/**', // [cite: 50]
                                 skipCopyOfSrcFiles: true, // [cite: 51]
                                 // *** START: Added Coverage Thresholds ***
-                                minimumBranchCoverage: '70', 
-                                minimumClassCoverage: '70', 
-                                minimumComplexityCoverage: '70', 
-                                minimumInstructionCoverage: '70', 
-                                minimumLineCoverage: '70', 
-                                minimumMethodCoverage: '70',
+                                minBranch: '70', 
+                                minClass: '70', 
+                                minComplexity: '70', 
+                                minInstruction: '70', 
+                                minLine: '70', 
+                                minMethod: '70',
                                 runAlways: true,
                                 // *** END: Added Coverage Thresholds ***
                                 // The plugin automatically sets build to UNSTABLE if thresholds are missed
