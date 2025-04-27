@@ -148,14 +148,14 @@ Dependency for Connector/J, the MySQL JDBC driver is already included in the `po
 You may start a MySql database with docker:
 
 ```
-docker run -e MYSQL_ROOT_PASSWORD=petclinic -e MYSQL_DATABASE=petclinic -p 3306:3306 mysql:5.7.8
+docker run -e MYSQL_ROOT_PASSWORD=petclinic -e MYSQL_DATABASE=petclinic -p 3306:3306 mysql:8.4.5
 ```
-or download and install the MySQL database (e.g., MySQL Community Server 5.7 GA), which can be found here: https://dev.mysql.com/downloads/
+or download and install the MySQL database (e.g., MySQL Community Server 8.4.5 LTS), which can be found here: https://dev.mysql.com/downloads/
 
 ### Use the Spring 'mysql' profile
 
 To use a MySQL database, you have to start 3 microservices (`visits-service`, `customers-service` and `vets-services`)
-with the `mysql` Spring profile. Add the `--spring.profiles.active=mysql` as programm argument.
+with the `mysql` Spring profile. Add the `--spring.profiles.active=mysql` as program argument.
 
 By default, at startup, database schema will be created and data will be populated.
 You may also manually create the PetClinic database and data by executing the `"db/mysql/{schema,data}.sql"` scripts of each 3 microservices. 
