@@ -5,7 +5,7 @@ pipeline {
         DOCKER_HUB_CREDS = credentials('dockerhub-credentials')
         DOCKER_IMAGE_NAME = 'your-dockerhub-username/petclinic'
         COMMIT_ID = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-        BRANCH_NAME = env.BRANCH_NAME
+        BRANCH_NAME = "${env.BRANCH_NAME}" // Thêm dấu nháy kép
     }
     
     stages {
