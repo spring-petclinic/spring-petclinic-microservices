@@ -3,7 +3,7 @@ pipeline {
     
     environment {
         DOCKER_HUB_CREDS = credentials('dockerhub-credentials')
-        DOCKER_IMAGE_NAME = 'thainhat/petclinic'
+        DOCKER_IMAGE_NAME = 'your-dockerhub-username/petclinic'
         COMMIT_ID = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
         BRANCH_NAME = env.BRANCH_NAME
     }
@@ -17,7 +17,7 @@ pipeline {
         
         stage('Build & Test') {
             steps {
-                sh 'mvnw clean package -DskipTests'
+                sh './mvnw clean package -DskipTests'
             }
         }
         
