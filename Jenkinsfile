@@ -5,7 +5,7 @@ pipeline {
         DOCKER_HUB_CREDS = credentials('dockerhub-credentials')
         DOCKER_IMAGE_NAME = 'thainhat/petclinic'
         COMMIT_ID = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-        BRANCH_NAME = "${env.BRANCH_NAME}" // Thêm dấu nháy kép
+        BRANCH_NAME = "${env.BRANCH_NAME}"
     }
     
     stages {
@@ -23,7 +23,6 @@ pipeline {
         
         stage('Docker Build') {
             steps {
-                // Xây dựng image cho từng service với tag là commit ID
                 script {
                     def services = [
                         [name: 'admin-server', port: 9090],
@@ -39,25 +38,19 @@ pipeline {
                         def serviceName = service.name
                         def servicePort = service.port
                         
-                        // Tìm đường dẫn đến file JAR của service
                         def jarFile = findFiles(glob: "spring-petclinic-${serviceName}/target/*.jar")[0].path
-                        
-                        // Copy JAR file vào thư mục docker
                         sh "cp ${jarFile} docker/${serviceName}.jar"
                         
-                        // Build Docker image sử dụng Dockerfile có sẵn
-                        dir('docker') {
-                            sh """
-                            docker build -t ${DOCKER_IMAGE_NAME}-${serviceName}:${COMMIT_ID} \
-                                --build-arg ARTIFACT_NAME=${serviceName} \
-                                --build-arg EXPOSED_PORT=${servicePort} \
-                                -f dockerfile .
-                            
-                            docker tag ${DOCKER_IMAGE_NAME}-${serviceName}:${COMMIT_ID} ${DOCKER_IMAGE_NAME}-${serviceName}:latest
-                            """
-                        }
+                        // Build image với context là thư mục docker/
+                        sh """
+                        docker build -t ${DOCKER_IMAGE_NAME}-${serviceName}:${COMMIT_ID} \
+                            --build-arg ARTIFACT_NAME=${serviceName} \
+                            --build-arg EXPOSED_PORT=${servicePort} \
+                            -f docker/dockerfile docker
                         
-                        // Xóa JAR file sau khi build xong
+                        docker tag ${DOCKER_IMAGE_NAME}-${serviceName}:${COMMIT_ID} ${DOCKER_IMAGE_NAME}-${serviceName}:latest
+                        """
+                        
                         sh "rm docker/${serviceName}.jar"
                     }
                 }
@@ -66,7 +59,6 @@ pipeline {
         
         stage('Docker Push') {
             steps {
-                // Đăng nhập Docker Hub và push image
                 sh "echo ${DOCKER_HUB_CREDS_PSW} | docker login -u ${DOCKER_HUB_CREDS_USR} --password-stdin"
                 
                 script {
@@ -86,7 +78,6 @@ pipeline {
     post {
         always {
             sh 'docker logout'
-            // Dọn dẹp các image tạm thời để tránh tràn disk
             sh "docker system prune -f"
         }
     }
