@@ -46,7 +46,7 @@ pipeline {
                         docker build -t ${DOCKER_IMAGE_NAME}-${serviceName}:${COMMIT_ID} \
                             --build-arg ARTIFACT_NAME=${serviceName} \
                             --build-arg EXPOSED_PORT=${servicePort} \
-                            -f ./docker/dockerfile ./docker
+                            -f ./docker/Dockerfile ./docker
 
                         docker tag ${DOCKER_IMAGE_NAME}-${serviceName}:${COMMIT_ID} ${DOCKER_IMAGE_NAME}-${serviceName}:latest
                         """
