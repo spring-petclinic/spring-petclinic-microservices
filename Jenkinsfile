@@ -33,37 +33,61 @@ pipeline {
                         [name: 'genai-service', port: 8084]
                     ]
 
+                    def changedServices = []
+
                     for (service in services) {
-                        def serviceName = service.name
-                        def servicePort = service.port
-                        
-                        def jarFile = findFiles(glob: "spring-petclinic-${serviceName}/target/*.jar")[0].path
-                        sh "cp ${jarFile} docker/${serviceName}.jar"
+                        def serviceDir = "spring-petclinic-${service.name}"
+                        def isChanged = sh(
+                            script: "git diff --name-only HEAD~1 HEAD | grep -q '^${serviceDir}/'",
+                            returnStatus: true
+                        ) == 0
 
-                        sh """
-                            docker build -t ${DOCKER_IMAGE_NAME}-${serviceName}:${COMMIT_ID} \
-                                --build-arg ARTIFACT_NAME=${serviceName} \
-                                --build-arg EXPOSED_PORT=${servicePort} \
-                                -f ./docker/Dockerfile ./docker
+                        if (isChanged) {
+                            changedServices << service
+                        }
+                    }
 
-                            docker tag ${DOCKER_IMAGE_NAME}-${serviceName}:${COMMIT_ID} ${DOCKER_IMAGE_NAME}-${serviceName}:latest
-                        """
+                    if (changedServices.isEmpty()) {
+                        echo '✅ Không có service nào thay đổi. Bỏ qua bước Docker build.'
+                    } else {
+                        for (service in changedServices) {
+                            def serviceName = service.name
+                            def servicePort = service.port
 
-                        sh "rm docker/${serviceName}.jar"
+                            def jarFile = findFiles(glob: "spring-petclinic-${serviceName}/target/*.jar")[0].path
+                            sh "cp ${jarFile} docker/${serviceName}.jar"
+
+                            sh """
+                                docker build -t ${DOCKER_IMAGE_NAME}-${serviceName}:${COMMIT_ID} \
+                                    --build-arg ARTIFACT_NAME=${serviceName} \
+                                    --build-arg EXPOSED_PORT=${servicePort} \
+                                    -f ./docker/Dockerfile ./docker
+
+                                docker tag ${DOCKER_IMAGE_NAME}-${serviceName}:${COMMIT_ID} ${DOCKER_IMAGE_NAME}-${serviceName}:latest
+                            """
+
+                            sh "rm docker/${serviceName}.jar"
+                        }
+
+                        // Lưu danh sách service đã build để dùng ở bước push
+                        writeFile file: 'changed-services.txt', text: changedServices*.name.join('\n')
                     }
                 }
             }
         }
 
         stage('Docker Push') {
+            when {
+                expression { fileExists('changed-services.txt') }
+            }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     script {
                         echo "🔐 Logging in to Docker Hub as user: ${DOCKER_USER}"
                         sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
 
-                        def services = ['admin-server', 'api-gateway', 'customers-service', 'discovery-server', 'genai-service', 'vets-service', 'visits-service']
-                        for (service in services) {
+                        def changedServices = readFile('changed-services.txt').split('\n')
+                        for (service in changedServices) {
                             sh """
                                 docker push ${DOCKER_IMAGE_NAME}-${service}:${COMMIT_ID}
                                 docker push ${DOCKER_IMAGE_NAME}-${service}:latest
@@ -77,8 +101,8 @@ pipeline {
 
     post {
         always {
-            sh 'docker logout'
-            sh 'docker system prune -f'
+            sh 'docker logout || true'
+            sh 'docker system prune -f || true'
         }
     }
 }
