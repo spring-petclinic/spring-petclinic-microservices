@@ -2,9 +2,11 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE_NAME = 'thainhat104/spring-petclinic'
-        COMMIT_ID = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+        PROJECT_NAME = 'spring-petclinic'
+        DOCKER_IMAGE_NAME = "thainhat104/${PROJECT_NAME}"
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-cred')
         BRANCH_NAME = "${env.BRANCH_NAME}"
+        COMMIT_ID = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
     }
 
     stages {
@@ -36,7 +38,7 @@ pipeline {
                     def changedServices = []
 
                     for (service in services) {
-                        def serviceDir = "spring-petclinic-${service.name}"
+                        def serviceDir = "${PROJECT_NAME}-${service.name}"
                         def isChanged = sh(
                             script: "git diff --name-only origin/main...HEAD | grep -q '^${serviceDir}/'",
                             returnStatus: true
@@ -54,7 +56,7 @@ pipeline {
                             def serviceName = service.name
                             def servicePort = service.port
 
-                            def jarFile = findFiles(glob: "spring-petclinic-${serviceName}/target/*.jar")[0].path
+                            def jarFile = findFiles(glob: "${PROJECT_NAME}-${serviceName}/target/*.jar")[0].path
                             sh "cp ${jarFile} docker/${serviceName}.jar"
 
                             sh """
@@ -80,18 +82,16 @@ pipeline {
                 expression { fileExists('changed-services.txt') }
             }
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    script {
-                        echo "🔐 Logging in to Docker Hub as user: ${DOCKER_USER}"
-                        sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
+                script {
+                    echo "🔐 Logging in to Docker Hub as user: ${DOCKERHUB_CREDENTIALS_USR}"
+                    sh "echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin"
 
-                        def changedServices = readFile('changed-services.txt').split('\n')
-                        for (service in changedServices) {
-                            sh """
-                                docker push ${DOCKER_IMAGE_NAME}-${service}:${COMMIT_ID}
-                                docker push ${DOCKER_IMAGE_NAME}-${service}:latest
-                            """
-                        }
+                    def changedServices = readFile('changed-services.txt').split('\n').findAll { it }
+                    for (service in changedServices) {
+                        sh """
+                            docker push ${DOCKER_IMAGE_NAME}-${service}:${COMMIT_ID}
+                            docker push ${DOCKER_IMAGE_NAME}-${service}:latest
+                        """
                     }
                 }
             }
