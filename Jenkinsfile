@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE_NAME = 'thainhat/petclinic'
+        DOCKER_IMAGE_NAME = 'thainhat104/spring-petclinic'
         COMMIT_ID = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
         BRANCH_NAME = "${env.BRANCH_NAME}"
     }
@@ -81,7 +81,7 @@ pipeline {
                 expression { fileExists('changed-services.txt') }
             }
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     script {
                         echo "🔐 Logging in to Docker Hub as user: ${DOCKER_USER}"
                         sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
