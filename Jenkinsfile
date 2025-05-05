@@ -38,7 +38,7 @@ pipeline {
                     for (service in services) {
                         def serviceDir = "spring-petclinic-${service.name}"
                         def isChanged = sh(
-                            script: "git diff --name-only HEAD~1 HEAD | grep -q '^${serviceDir}/'",
+                            script: "git diff --name-only origin/main...HEAD | grep -q '^${serviceDir}/'",
                             returnStatus: true
                         ) == 0
 
@@ -69,7 +69,6 @@ pipeline {
                             sh "rm docker/${serviceName}.jar"
                         }
 
-                        // Lưu danh sách service đã build để dùng ở bước push
                         writeFile file: 'changed-services.txt', text: changedServices*.name.join('\n')
                     }
                 }
