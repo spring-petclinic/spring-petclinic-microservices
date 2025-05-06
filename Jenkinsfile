@@ -89,8 +89,8 @@ pipeline {
                     def changedServices = readFile('changed-services.txt').split('\n').findAll { it }
                     for (service in changedServices) {
                         sh """
-                            sudo docker push ${DOCKER_IMAGE_NAME}-${service}:${COMMIT_ID}
-                            sudo docker push ${DOCKER_IMAGE_NAME}-${service}:latest  
+                            docker push ${DOCKER_IMAGE_NAME}-${service}:${COMMIT_ID}
+                            docker push ${DOCKER_IMAGE_NAME}-${service}:latest  
                         """
                     }
                 }
