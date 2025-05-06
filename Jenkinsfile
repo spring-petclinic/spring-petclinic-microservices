@@ -84,7 +84,11 @@ pipeline {
             steps {
                 script {
                     echo "🔐 Logging in to Docker Hub as user: ${DOCKERHUB_CREDENTIALS_USR}"
-                    sh "echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin"
+                    sh """
+                        docker login -u ${DOCKERHUB_CREDENTIALS_USR} -p ${DOCKERHUB_CREDENTIALS_PSW} https://index.docker.io/v1/
+                        docker info
+                        docker images
+                    """
 
                     def changedServices = readFile('changed-services.txt').split('\n').findAll { it }
                     for (service in changedServices) {
