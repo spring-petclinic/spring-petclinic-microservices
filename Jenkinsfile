@@ -41,8 +41,8 @@ pipeline {
                     env.BUILD_SERVICES.split(',').each { service ->
                         echo "Building Docker image for ${service} with tag ${commitId}..."
                         sh """
-                            cd ${service}
-                            docker build -t trgtamthanh/${service}:${commitId} .
+                            docker-compose build ${service}
+                            docker tag springcommunity/${service} trgtamthanh/${service}:${commitId} 
                             docker push trgtamthanh/${service}:${commitId}
                         """
                     }
