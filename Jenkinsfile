@@ -40,16 +40,17 @@ pipeline {
 
                     env.BUILD_SERVICES.split(',').each { service ->
                         echo "Building Docker image for ${service} with tag ${commitId}..."
+                        def serviceName = service.replaceFirst('spring-petclinic-', '')
                         sh """
-                            docker-compose build ${service}
+                            docker-compose build ${serviceName}
                         """
 
                         sh """
-                            docker tag springcommunity/${service} trgtamthanh/${service}:${commitId} 
+                            docker tag springcommunity/${serviceName} trgtamthanh/${serviceName}:${commitId} 
                         """
                         
                         sh """
-                            docker push trgtamthanh/${service}:${commitId}
+                            docker push trgtamthanh/${serviceName}:${commitId}
                         """
                     }
                 }
