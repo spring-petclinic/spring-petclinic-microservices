@@ -29,6 +29,14 @@ pipeline {
             }
         }
 
+        stage('Login to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker_hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
+                }
+            }
+        }
+
         stage('Docker Build & Push') {
             when {
                 expression { return env.BUILD_SERVICES }
@@ -46,11 +54,11 @@ pipeline {
                         """
 
                         sh """
-                            docker tag springcommunity/${service} trgtamthanh/${serviceName}:${commitId} 
+                            docker tag springcommunity/${service} phuong273/${serviceName}:${commitId} 
                         """
                         
                         sh """
-                            docker push trgtamthanh/${serviceName}:${commitId}
+                            docker push phuong273/${serviceName}:${commitId}
                         """
                     }
                 }
