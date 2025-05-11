@@ -77,25 +77,25 @@ services:
     ports:
      - 8083:8083
 
-
-  genai-service:
-    image: springcommunity/spring-petclinic-genai-service
-    container_name: genai-service
-    environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - AZURE_OPENAI_KEY=${AZURE_OPENAI_KEY}
-      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-    depends_on:
-      config-server:
-        condition: service_healthy
-      discovery-server:
-        condition: service_healthy
-    ports:
-     - 8084:8084
+#
+#  genai-service:
+#    image: springcommunity/spring-petclinic-genai-service
+#    container_name: genai-service
+#    environment:
+#      - OPENAI_API_KEY=${OPENAI_API_KEY}
+#      - AZURE_OPENAI_KEY=${AZURE_OPENAI_KEY}
+#      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 512M
+#    depends_on:
+#      config-server:
+#        condition: service_healthy
+#      discovery-server:
+#        condition: service_healthy
+#    ports:
+#     - 8084:8084
 
 
   api-gateway:
@@ -140,22 +140,22 @@ services:
 
   ## Grafana / Prometheus
 
-  grafana-server:
-    build: ./docker/grafana
-    container_name: grafana-server
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-    ports:
-    - 3030:3030
-
-  prometheus-server:
-    build: ./docker/prometheus
-    container_name: prometheus-server
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-    ports:
-    - 9091:9090
+#  grafana-server:
+#    build: ./docker/grafana
+#    container_name: grafana-server
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 256M
+#    ports:
+#    - 3030:3030
+#
+#  prometheus-server:
+#    build: ./docker/prometheus
+#    container_name: prometheus-server
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 256M
+#    ports:
+#    - 9091:9090
