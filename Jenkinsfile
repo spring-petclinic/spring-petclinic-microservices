@@ -46,7 +46,7 @@ pipeline {
                         """
 
                         sh """
-                            docker tag springcommunity/${serviceName} trgtamthanh/${serviceName}:${commitId} 
+                            docker tag springcommunity/${service} trgtamthanh/${serviceName}:${commitId} 
                         """
                         
                         sh """
