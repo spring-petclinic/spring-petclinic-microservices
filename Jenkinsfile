@@ -42,7 +42,13 @@ pipeline {
                         echo "Building Docker image for ${service} with tag ${commitId}..."
                         sh """
                             docker-compose build ${service}
+                        """
+
+                        sh """
                             docker tag springcommunity/${service} trgtamthanh/${service}:${commitId} 
+                        """
+                        
+                        sh """
                             docker push trgtamthanh/${service}:${commitId}
                         """
                     }
