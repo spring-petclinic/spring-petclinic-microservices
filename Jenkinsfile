@@ -32,7 +32,7 @@ pipeline {
             sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
 
             // Build all services with docker-compose
-            sh "docker-compose -f ${env.COMPOSE_FILE} build"
+            sh "docker compose -f ${env.COMPOSE_FILE} build"
 
             // List all service names from docker-compose (hardcoded here or you can parse the file)
             def services = [
