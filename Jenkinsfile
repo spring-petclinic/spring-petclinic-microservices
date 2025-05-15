@@ -3,12 +3,7 @@ pipeline {
 
   environment {
     DOCKER_REGISTRY = "devopshcmus"
-    COMPOSE_FILE = "docker-compose.yml"
   }
-
-//   tools {
-//     jdk 'JDK17'
-//   }
 
   stages {
     stage('Checkout') {
@@ -31,10 +26,6 @@ pipeline {
           withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
             sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
 
-            // Build all services with docker-compose
-            sh "docker compose -f ${env.COMPOSE_FILE} build"
-
-            // List all service names from docker-compose (hardcoded here or you can parse the file)
             def services = [
               "spring-petclinic-config-server",
               "spring-petclinic-discovery-server",
@@ -46,17 +37,16 @@ pipeline {
               "spring-petclinic-admin-server"
             ]
 
-            // Tag & push images with commitId
             services.each { service ->
-              def localImage = "springcommunity/${service}"
+              def localImage = "${service.toLowerCase()}" // optional if needed
               def targetImage = "${env.DOCKER_REGISTRY}/${service}"
 
-              echo "Tagging image ${localImage} as ${targetImage}:${commitId}"
-              sh "docker tag ${localImage} ${targetImage}:${commitId}"
+              echo "Building ${service}..."
+              sh "docker build -t ${targetImage}:${commitId} ./${service}"
+
               sh "docker push ${targetImage}:${commitId}"
 
               if (isMain) {
-                // Tag thêm latest cho main branch
                 echo "Tagging image ${targetImage}:${commitId} as latest"
                 sh "docker tag ${targetImage}:${commitId} ${targetImage}:latest"
                 sh "docker push ${targetImage}:latest"
