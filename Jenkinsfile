@@ -3,13 +3,36 @@ pipeline {
 
   environment {
     DOCKER_REGISTRY = "devopshcmus"
-    DOCKERFILE_PATH = "docker/Dockerfile"  // đường dẫn tới Dockerfile chung
+    COMPOSE_FILE = "docker-compose.yml"
   }
 
   stages {
     stage('Checkout') {
       steps {
         checkout scm
+      }
+    }
+
+    stage('Build JARs') {
+      steps {
+        script {
+          def services = [
+            "spring-petclinic-config-server",
+            "spring-petclinic-discovery-server",
+            "spring-petclinic-customers-service",
+            "spring-petclinic-visits-service",
+            "spring-petclinic-vets-service",
+            "spring-petclinic-genai-service",
+            "spring-petclinic-api-gateway",
+            "spring-petclinic-admin-server"
+          ]
+          // Build từng service và copy jar về root
+          services.each { svc ->
+            echo "Building JAR for ${svc}"
+            sh "./mvnw -pl ${svc} clean package -DskipTests"
+            sh "cp ${svc}/target/${svc}.jar ./"
+          }
+        }
       }
     }
 
@@ -24,42 +47,40 @@ pipeline {
 
           echo "Building images for branch: ${branch} with commit: ${commitId}"
 
-          // List các service với port tương ứng (port lấy theo docker-compose)
-          def services = [
-            [name: "spring-petclinic-config-server", port: 8888],
-            [name: "spring-petclinic-discovery-server", port: 8761],
-            [name: "spring-petclinic-customers-service", port: 8081],
-            [name: "spring-petclinic-visits-service", port: 8082],
-            [name: "spring-petclinic-vets-service", port: 8083],
-            [name: "spring-petclinic-genai-service", port: 8084],
-            [name: "spring-petclinic-api-gateway", port: 8080],
-            [name: "spring-petclinic-admin-server", port: 9090]
-          ]
-
           withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
             sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
 
-            services.each { svc ->
-              echo "Building ${svc.name}..."
+            def services = [
+              "spring-petclinic-config-server",
+              "spring-petclinic-discovery-server",
+              "spring-petclinic-customers-service",
+              "spring-petclinic-visits-service",
+              "spring-petclinic-vets-service",
+              "spring-petclinic-genai-service",
+              "spring-petclinic-api-gateway",
+              "spring-petclinic-admin-server"
+            ]
 
-              // Build image
+            services.each { service ->
+              def localImage = "springcommunity/${service}"
+              def targetImage = "${env.DOCKER_REGISTRY}/${service}"
+
+              echo "Building docker image for ${service}..."
               sh """
-                docker build \\
-                  --file ${env.DOCKERFILE_PATH} \\
-                  --build-arg ARTIFACT_NAME=${svc.name} \\
-                  --build-arg EXPOSED_PORT=${svc.port} \\
-                  --tag ${env.DOCKER_REGISTRY}/${svc.name}:${commitId} \\
+                docker build --file docker/Dockerfile \\
+                  --build-arg ARTIFACT_NAME=${service} \\
+                  --build-arg EXPOSED_PORT=8080 \\
+                  --tag ${targetImage}:${commitId} \\
                   .
               """
 
-              // Push image
-              sh "docker push ${env.DOCKER_REGISTRY}/${svc.name}:${commitId}"
+              echo "Pushing image ${targetImage}:${commitId}"
+              sh "docker push ${targetImage}:${commitId}"
 
               if (isMain) {
-                sh """
-                  docker tag ${env.DOCKER_REGISTRY}/${svc.name}:${commitId} ${env.DOCKER_REGISTRY}/${svc.name}:latest
-                  docker push ${env.DOCKER_REGISTRY}/${svc.name}:latest
-                """
+                echo "Tagging image ${targetImage}:${commitId} as latest"
+                sh "docker tag ${targetImage}:${commitId} ${targetImage}:latest"
+                sh "docker push ${targetImage}:latest"
               }
             }
 
