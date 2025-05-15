@@ -140,22 +140,22 @@ services:
 
   ## Grafana / Prometheus
 
-  grafana-server:
-    build: ./docker/grafana
-    container_name: grafana-server
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-    ports:
-    - 3030:3030
-
-  prometheus-server:
-    build: ./docker/prometheus
-    container_name: prometheus-server
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-    ports:
-    - 9091:9090
+#  grafana-server:
+#    build: ./docker/grafana
+#    container_name: grafana-server
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 256M
+#    ports:
+#    - 3030:3030
+#
+#  prometheus-server:
+#    build: ./docker/prometheus
+#    container_name: prometheus-server
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 256M
+#    ports:
+#    - 9091:9090
