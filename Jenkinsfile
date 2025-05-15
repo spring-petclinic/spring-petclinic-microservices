@@ -6,9 +6,9 @@ pipeline {
     COMPOSE_FILE = "docker-compose.yml"
   }
 
-  tools {
-    jdk 'JDK17'
-  }
+//   tools {
+//     jdk 'JDK17'
+//   }
 
   stages {
     stage('Checkout') {
