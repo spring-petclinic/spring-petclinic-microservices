@@ -100,11 +100,12 @@ pipeline {
                     
                     // Docker build with better error handling
                     sh """
+
                     docker build \
-                      -t ${DOCKER_REPOSITORY}/${service}:latest \
-                      -f ../docker/Dockerfile \
-                      --build-arg ARTIFACT_NAME=target/${service}-0.0.1-SNAPSHOT.jar \
-                      --build-arg EXPOSED_PORT=8080 . || exit 1
+                        -t ${DOCKER_REPOSITORY}/${service}:latest \
+                        -f ../docker/Dockerfile \
+                        --build-arg ARTIFACT_NAME=target/${service}-0.0.1-SNAPSHOT \
+                        --build-arg EXPOSED_PORT=8080 . || exit 1
                     
                     docker push ${DOCKER_REPOSITORY}/${service}:latest || exit 1
                     
@@ -219,3 +220,5 @@ pipeline {
         }
     }
 }
+
+// trigger jenkins
