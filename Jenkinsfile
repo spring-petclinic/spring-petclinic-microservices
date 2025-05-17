@@ -162,14 +162,9 @@ pipeline {
                                     -f ../docker/Dockerfile \\
                                     --build-arg ARTIFACT_NAME=target/${service}-3.4.1 \\
                                     --build-arg EXPOSED_PORT=8080 . || exit 1
-    
+
                                 docker push ${DOCKER_REPOSITORY}/${service}:${env.IMAGE_TAG} || exit 1
                                 """
-                                
-                                // For dev and staging, always tag with commit SHA for traceability
-                                if (env.TARGET_ENV == 'dev' || env.TARGET_ENV == 'staging') {
-                                    sh "docker tag ${DOCKER_REPOSITORY}/${service}:${env.IMAGE_TAG} ${DOCKER_REPOSITORY}/${service}:${GIT_COMMIT_SHORT}"
-                                }
                             }
                         }
                     } catch (Exception e) {
