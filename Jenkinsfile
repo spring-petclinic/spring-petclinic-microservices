@@ -57,49 +57,66 @@ pipeline {
         }
 
         stage('Build and Push Docker Images') {
-            steps {
-                script {
-                    def services = CHANGED_SERVICES.split(',')
+    steps {
+        script {
+            def services = CHANGED_SERVICES.split(',')
+            
+            withCredentials([string(credentialsId: 'docker-hub-token', variable: 'DOCKER_HUB_TOKEN')]) {
+                sh "docker login -u ${DOCKER_REPOSITORY} -p ${DOCKER_HUB_TOKEN} ${DOCKER_REGISTRY}"
+            }
+            
+            services.each { service ->
+                echo "Building ${service}"
+                
+                // Show current directory and list files for debugging
+                sh "pwd && ls -la"
+                
+                // Check if service directory exists
+                sh "ls -la ${service} || echo 'Service directory not found'"
+                
+                // Build with Maven
+                dir(service) {
+                    // Check for Maven wrapper
+                    sh "ls -la ./mvnw || ls -la ../mvnw || echo 'Maven wrapper not found'"
                     
-                    withCredentials([string(credentialsId: 'docker-hub-token', variable: 'DOCKER_HUB_TOKEN')]) {
-                        sh "docker login -u ${DOCKER_REPOSITORY} -p ${DOCKER_HUB_TOKEN} ${DOCKER_REGISTRY}"
-                    }
+                    // Try to run Maven build, with fallback options
+                    sh """
+                    if [ -f "./mvnw" ]; then
+                        chmod +x ./mvnw
+                        ./mvnw clean package -DskipTests
+                    elif [ -f "../mvnw" ]; then
+                        chmod +x ../mvnw
+                        ../mvnw clean package -DskipTests
+                    else
+                        mvn clean package -DskipTests
+                    fi
+                    """
                     
-                    // For all environments, we build with the latest tag first
-                    services.each { service ->
-                        dir(service) {
-                            echo "Building ${service} Docker image"
-                            sh "./mvnw clean package -DskipTests"
-                            
-                            // Build with latest tag
-                            sh """
-                            docker build -t ${DOCKER_REPOSITORY}/${service}:latest \
-                              -f ../docker/Dockerfile \
-                              --build-arg ARTIFACT_NAME=target/${service}-0.0.1-SNAPSHOT.jar \
-                              --build-arg EXPOSED_PORT=8080 .
-                            """
-                            
-                            // Push the latest tag
-                            sh "docker push ${DOCKER_REPOSITORY}/${service}:latest"
-                            
-                            // Save the commit SHA
-                            sh """
-                            docker tag ${DOCKER_REPOSITORY}/${service}:latest ${DOCKER_REPOSITORY}/${service}:${GIT_COMMIT_SHORT}
-                            docker push ${DOCKER_REPOSITORY}/${service}:${GIT_COMMIT_SHORT}
-                            """
-                            
-                            // For tagged releases (staging)
-                            if (env.TAG_NAME) {
-                                sh """
-                                docker tag ${DOCKER_REPOSITORY}/${service}:latest ${DOCKER_REPOSITORY}/${service}:${TAG_NAME}
-                                docker push ${DOCKER_REPOSITORY}/${service}:${TAG_NAME}
-                                """
-                            }
-                        }
-                    }
+                    // Check if target JAR exists
+                    sh "ls -la target/ || echo 'Target directory not found'"
+                    
+                    // Add sleep for debugging if needed
+                    // sh "sleep 10"
+                    
+                    // Docker build with better error handling
+                    sh """
+                    docker build \
+                      -t ${DOCKER_REPOSITORY}/${service}:latest \
+                      -f ../docker/Dockerfile \
+                      --build-arg ARTIFACT_NAME=target/${service}-0.0.1-SNAPSHOT.jar \
+                      --build-arg EXPOSED_PORT=8080 . || exit 1
+                    
+                    docker push ${DOCKER_REPOSITORY}/${service}:latest || exit 1
+                    
+                    # Tag with commit SHA
+                    docker tag ${DOCKER_REPOSITORY}/${service}:latest ${DOCKER_REPOSITORY}/${service}:${GIT_COMMIT_SHORT} || exit 1
+                    docker push ${DOCKER_REPOSITORY}/${service}:${GIT_COMMIT_SHORT} || exit 1
+                    """
                 }
             }
         }
+    }
+}
 
         stage('Update Helm Values for Dev') {
             when {
