@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'maven:3.8.4-openjdk-17'
-            args '-v /var/run/docker.sock:/var/run/docker.sock -v $HOME/.m2:/root/.m2'
-        }
-    }
+    agent any
 
     environment {
         PROJECT_NAME = 'spring-petclinic'
@@ -40,56 +35,66 @@ pipeline {
                         [name: 'genai-service', port: 8084]
                     ]
 
-                    echo '🔨 Đang build tất cả services'
-                    
-                    // Build tất cả services
+                    def changedServices = []
+
                     for (service in services) {
-                        def serviceName = service.name
-                        def servicePort = service.port
+                        def serviceDir = "${PROJECT_NAME}-${service.name}"
+                        def isChanged = sh(
+                            script: "git diff --name-only origin/main...HEAD | grep -q '^${serviceDir}/'",
+                            returnStatus: true
+                        ) == 0
 
-                        def jarFile = findFiles(glob: "${PROJECT_NAME}-${serviceName}/target/*.jar")[0].path
-                        sh "cp ${jarFile} docker/${serviceName}.jar"
-
-                        sh """
-                            docker build -t ${DOCKER_IMAGE_NAME}-${serviceName}:${COMMIT_ID} \
-                                --build-arg ARTIFACT_NAME=${serviceName} \
-                                --build-arg EXPOSED_PORT=${servicePort} \
-                                -f ./docker/Dockerfile ./docker || exit 1
-                            
-                            docker tag ${DOCKER_IMAGE_NAME}-${serviceName}:${COMMIT_ID} ${DOCKER_IMAGE_NAME}-${serviceName}:latest || exit 1
-                        """
-
-                        sh "rm docker/${serviceName}.jar"
+                        if (isChanged) {
+                            changedServices << service
+                        }
                     }
 
-                    // Lưu danh sách tất cả services để push
-                    writeFile file: 'all-services.txt', text: services*.name.join('\n')
+                    if (changedServices.isEmpty()) {
+                        echo '✅ Không có service nào thay đổi. Bỏ qua bước Docker build.'
+                    } else {
+                        for (service in changedServices) {
+                            def serviceName = service.name
+                            def servicePort = service.port
+
+                            def jarFile = findFiles(glob: "${PROJECT_NAME}-${serviceName}/target/*.jar")[0].path
+                            sh "cp ${jarFile} docker/${serviceName}.jar"
+
+                            sh """
+                                docker build -t ${DOCKER_IMAGE_NAME}-${serviceName}:${COMMIT_ID} \
+                                    --build-arg ARTIFACT_NAME=${serviceName} \
+                                    --build-arg EXPOSED_PORT=${servicePort} \
+                                    -f ./docker/Dockerfile ./docker
+
+                                docker tag ${DOCKER_IMAGE_NAME}-${serviceName}:${COMMIT_ID} ${DOCKER_IMAGE_NAME}-${serviceName}:latest
+                            """
+
+                            sh "rm docker/${serviceName}.jar"
+                        }
+
+                        writeFile file: 'changed-services.txt', text: changedServices*.name.join('\n')
+                    }
                 }
             }
         }
 
         stage('Docker Push') {
+            when {
+                expression { fileExists('changed-services.txt') }
+            }
             steps {
                 script {
-                    echo "🔐 Đăng nhập Docker Hub với tài khoản: ${DOCKERHUB_CREDENTIALS_USR}"
-                    
-                    // Đăng nhập Docker Hub
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PWD')]) {
-                        sh 'echo $DOCKER_PWD | docker login -u $DOCKER_USER --password-stdin https://index.docker.io/v1/ || exit 1'
-                    }
-                    
+                    echo "🔐 Logging in to Docker Hub as user: ${DOCKERHUB_CREDENTIALS_USR}"
                     sh """
+                        docker login -u ${DOCKERHUB_CREDENTIALS_USR} -p ${DOCKERHUB_CREDENTIALS_PSW} https://index.docker.io/v1/
+                        docker info
                         docker images
                     """
 
-                    // Đọc danh sách tất cả services và push lên Docker Hub
-                    def allServices = readFile('all-services.txt').split('\n').findAll { it }
-                    echo "🚀 Đang push ${allServices.size()} services lên Docker Hub"
-                    
-                    for (service in allServices) {
+                    def changedServices = readFile('changed-services.txt').split('\n').findAll { it }
+                    for (service in changedServices) {
                         sh """
-                            docker push ${DOCKER_IMAGE_NAME}-${service}:${COMMIT_ID} || exit 1
-                            docker push ${DOCKER_IMAGE_NAME}-${service}:latest || exit 1
+                            docker push ${DOCKER_IMAGE_NAME}-${service}:${COMMIT_ID}
+                            docker push ${DOCKER_IMAGE_NAME}-${service}:latest  
                         """
                     }
                 }
@@ -101,7 +106,6 @@ pipeline {
         always {
             sh 'docker logout || true'
             sh 'docker system prune -f || true'
-            sh 'rm -f all-services.txt || true'
         }
     }
 }
