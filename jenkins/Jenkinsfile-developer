@@ -1,0 +1,78 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'ADMIN_BRANCH', defaultValue: 'main')
+        string(name: 'API_BRANCH', defaultValue: 'main')
+        string(name: 'CUSTOMERS_BRANCH', defaultValue: 'main')
+        string(name: 'DISCOVERY_BRANCH', defaultValue: 'main')
+        string(name: 'VETS_BRANCH', defaultValue: 'main') 
+        string(name: 'VISITS_BRANCH', defaultValue: 'main')
+        string(name: 'GENAI_BRANCH', defaultValue: 'main')
+    }
+
+    environment {
+        IMAGE_REPO = 'thainhat104/spring-petclinic'
+        NAMESPACE = 'petclinic-dev'
+    }
+
+    stages {
+        stage('Deploy services to dev namespace') {
+            steps {
+                script {
+                    def services = [
+                        [name: 'admin-server',    branch: params.ADMIN_BRANCH,    port: 9090],
+                        [name: 'api-gateway',     branch: params.API_BRANCH,      port: 8080],
+                        [name: 'customers-service', branch: params.CUSTOMERS_BRANCH, port: 8081],
+                        [name: 'discovery-server', branch: params.DISCOVERY_BRANCH, port: 8761],
+                        [name: 'vets-service',     branch: params.VETS_BRANCH,     port: 8083],
+                        [name: 'visits-service',   branch: params.VISITS_BRANCH,   port: 8082],
+                        [name: 'genai-service',    branch: params.GENAI_BRANCH,    port: 8084]
+                    ]
+
+                    for (service in services) {
+                        def tag = service.branch == 'main' ? 'latest' : service.branch
+                        def yaml = """
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${service.name}
+  namespace: ${NAMESPACE}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ${service.name}
+  template:
+    metadata:
+      labels:
+        app: ${service.name}
+    spec:
+      containers:
+        - name: ${service.name}
+          image: ${IMAGE_REPO}-${service.name}:${tag}
+          ports:
+            - containerPort: ${service.port}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${service.name}
+  namespace: ${NAMESPACE}
+spec:
+  selector:
+    app: ${service.name}
+  type: NodePort
+  ports:
+    - port: ${service.port}
+      targetPort: ${service.port}
+      nodePort: 30${service.port % 10000}
+"""
+                        writeFile file: "${service.name}.yaml", text: yaml
+                        sh "kubectl apply -f ${service.name}.yaml"
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,49 @@
+---
+# admin-server-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-server
+  namespace: petclinic-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: admin-server
+  template:
+    metadata:
+      labels:
+        app: admin-server
+    spec:
+      containers:
+      - name: admin-server
+        image: springcommunity/spring-petclinic-admin-server:latest
+        ports:
+        - containerPort: 9090
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: kubernetes
+        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          value: http://discovery-server:8761/eureka/
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+# admin-server-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-server
+  namespace: petclinic-dev
+spec:
+  selector:
+    app: admin-server
+  ports:
+  - port: 9090
+    targetPort: 9090
+  type: ClusterIP
+---
