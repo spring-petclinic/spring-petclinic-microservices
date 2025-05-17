@@ -1,0 +1,48 @@
+# visits-service-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: visits-service
+  namespace: petclinic-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: visits-service
+  template:
+    metadata:
+      labels:
+        app: visits-service
+    spec:
+      containers:
+      - name: visits-service
+        image: springcommunity/spring-petclinic-visits-service:latest
+        ports:
+        - containerPort: 8082
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: kubernetes
+        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          value: http://discovery-server:8761/eureka/
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+# visits-service-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: visits-service
+  namespace: petclinic-dev
+spec:
+  selector:
+    app: visits-service
+  ports:
+  - port: 8082
+    targetPort: 8082
+  type: ClusterIP
+---

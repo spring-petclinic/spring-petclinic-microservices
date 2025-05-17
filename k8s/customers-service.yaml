@@ -1,0 +1,48 @@
+# customers-service-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customers-service
+  namespace: petclinic-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: customers-service
+  template:
+    metadata:
+      labels:
+        app: customers-service
+    spec:
+      containers:
+      - name: customers-service
+        image: springcommunity/spring-petclinic-customers-service:latest
+        ports:
+        - containerPort: 8081
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: kubernetes
+        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          value: http://discovery-server:8761/eureka/
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+# customers-service-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: customers-service
+  namespace: petclinic-dev
+spec:
+  selector:
+    app: customers-service
+  ports:
+  - port: 8081
+    targetPort: 8081
+  type: ClusterIP
+---

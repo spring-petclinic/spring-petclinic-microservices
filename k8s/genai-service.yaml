@@ -1,0 +1,48 @@
+# genai-service-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: genai-service
+  namespace: petclinic-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: genai-service
+  template:
+    metadata:
+      labels:
+        app: genai-service
+    spec:
+      containers:
+      - name: genai-service
+        image: springcommunity/spring-petclinic-genai-service:latest
+        ports:
+        - containerPort: 8084
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: kubernetes
+        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          value: http://discovery-server:8761/eureka/
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+# genai-service-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: genai-service
+  namespace: petclinic-dev
+spec:
+  selector:
+    app: genai-service
+  ports:
+  - port: 8084
+    targetPort: 8084
+  type: ClusterIP
+---

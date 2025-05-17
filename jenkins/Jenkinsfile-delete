@@ -1,0 +1,24 @@
+pipeline {
+    agent any
+    environment {
+        NAMESPACE = 'petclinic-dev'
+    }
+
+    parameters {
+        text(name: 'SERVICE_NAMES', defaultValue: 'vets-service\nadmin-server', description: 'Tên các service cần xóa, mỗi dòng 1 tên.')
+    }
+
+    stages {
+        stage('Delete Services') {
+            steps {
+                script {
+                    def serviceList = params.SERVICE_NAMES.split('\n')
+                    for (service in serviceList) {
+                        sh "kubectl delete deployment ${service} -n ${NAMESPACE} || true"
+                        sh "kubectl delete service ${service} -n ${NAMESPACE} || true"
+                    }
+                }
+            }
+        }
+    }
+}
