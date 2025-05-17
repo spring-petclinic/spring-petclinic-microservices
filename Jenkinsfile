@@ -41,27 +41,24 @@ pipeline {
             }
         }
 
-        stage('Docker Build & Push') {
+        stage('Build and Push Docker Images') {
             when {
                 expression { return env.BUILD_SERVICES }
             }
             steps {
                 script {
                     def commitId = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                    env.COMMIT_ID = commitId
-
                     def branch = env.BRANCH_NAME ?: sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
                     def isMain = (branch == 'main')
 
                     env.BUILD_SERVICES.split(',').each { service ->
                         echo "Building Docker image for ${service} with tag ${commitId}..."
 
-                        sh """
-                            docker compose build ${service}
-                            docker tag springcommunity/${service} ${env.DOCKER_REGISTRY}/${service}:${commitId}
-                            docker push ${env.DOCKER_REGISTRY}/${service}:${commitId}
-                        """
+                        // Build jar + docker image via Maven exec plugin profile
+                        sh "./mvnw clean install -pl ${service} -Dmaven.test.skip=true -P buildDocker -Ddocker.image.prefix=${env.DOCKER_REGISTRY} -Ddocker.image.tag=${commitId} -Dcontainer.build.extraarg=--push"
 
+                        // Nếu bạn dùng profile buildDocker với --push thì docker image đã được push rồi
+                        // Nhưng để chắc, bạn có thể tag lại latest và push nếu trên main branch
                         if (isMain) {
                             echo "Tagging and pushing ${service} as latest"
                             sh """
