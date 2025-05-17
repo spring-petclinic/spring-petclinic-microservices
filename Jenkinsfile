@@ -175,15 +175,75 @@ pipeline {
             }
         }
 
-        // Rest of your stages unchanged
+        // stage('Update Helm Values') {
+        //     steps {
+        //         script {
+        //             // For public repositories, we don't need SSH keys for cloning
+        //             sh """
+        //                 # Clone the public Helm repository
+        //                 git clone ${HELM_REPO_URL} helm-repo
+        //                 cd helm-repo
+        //             """
+                    
+        //             // Make sure the directory structure exists
+        //             sh "mkdir -p helm-repo/env/${env.TARGET_ENV}"
+                    
+        //             // Debug - list what we have
+        //             sh "ls -la helm-repo/env/"
+                    
+        //             // Update the appropriate environment's values.yaml file
+        //             def services = env.CHANGED_SERVICES.split(',')
+        //             services.each { service ->
+        //                 // Convert from service dir name to helm service name
+        //                 def helmServiceName = service.replace('spring-petclinic-', '')
+                        
+        //                 // Check if the yq tool is available
+        //                 sh "which yq || echo 'YQ not found'"
+                        
+        //                 // Update image tag in values file using yq
+        //                 sh """
+        //                     # Update image tag in the target environment's values file
+        //                     yq e -i '.services.${helmServiceName}.image.tag = "${env.IMAGE_TAG}"' helm-repo/env/${env.TARGET_ENV}/values.yaml || echo "YQ command failed - ensure yq is installed"
+        //                 """
+        //             }
+                    
+        //             // For pushing changes, we still need credentials
+        //             withCredentials([usernamePassword(credentialsId: 'github-credentials', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+        //                 sh """
+        //                     cd helm-repo
+        //                     git config --global user.email "htkt004@gmail.com"
+        //                     git config --global user.name "Tuyen572004"
+                            
+        //                     # Configure git to use https with credentials
+        //                     git config credential.helper store
+        //                     echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com" > ~/.git-credentials
+                            
+        //                     # Add, commit, and push changes
+        //                     git add env/${env.TARGET_ENV}/values.yaml
+        //                     git commit -m "Update ${env.TARGET_ENV} environment with ${env.IMAGE_TAG} tag for ${env.CHANGED_SERVICES}" || echo "No changes to commit"
+        //                     git push origin ${HELM_REPO_BRANCH}
+                            
+        //                     # Remove credentials file for security
+        //                     rm ~/.git-credentials
+        //                 """
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     post {
         always {
             script {
-                // Clean up Docker images to save space
-                sh "docker rmi ${DOCKER_REPOSITORY}/${service}:${env.IMAGE_TAG} || true"
-                sh "docker rmi ${DOCKER_REPOSITORY}/${service}:${GIT_COMMIT_SHORT} || true"
+                try {
+                    // Safe cleanup operations
+                    echo "Running cleanup tasks..."
+                    sh 'docker system prune -f || true'  // The '|| true' makes it continue even if this command fails
+                    cleanWs()  // Clean workspace
+                } catch (Exception e) {
+                    echo "Warning: Cleanup tasks encountered an issue: ${e.message}"
+                    // Continue without failing the build
+                }
             }
         }
     }
