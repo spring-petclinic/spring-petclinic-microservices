@@ -35,8 +35,9 @@ pipeline {
                         [name: 'genai-service', port: 8084]
                     ]
 
-                    echo '🔨 Building Docker images for all services'
+                    echo '🔨 Đang build tất cả services'
                     
+                    // Build tất cả services không cần kiểm tra thay đổi
                     for (service in services) {
                         def serviceName = service.name
                         def servicePort = service.port
@@ -56,7 +57,8 @@ pipeline {
                         sh "rm docker/${serviceName}.jar"
                     }
 
-                    writeFile file: 'service-list.txt', text: services*.name.join('\n')
+                    // Lưu danh sách tất cả services để push
+                    writeFile file: 'all-services.txt', text: services*.name.join('\n')
                 }
             }
         }
@@ -64,7 +66,8 @@ pipeline {
         stage('Docker Push') {
             steps {
                 script {
-                    echo "🔐 Logging in to Docker Hub as user: ${DOCKERHUB_CREDENTIALS_USR}"
+                    echo "🔐 Đăng nhập Docker Hub với tài khoản: ${DOCKERHUB_CREDENTIALS_USR}"
+                    // Cải thiện bảo mật bằng cách sử dụng --password-stdin
                     withCredentials([string(credentialsId: 'dockerhub-cred', variable: 'DOCKER_PWD')]) {
                         sh 'echo $DOCKER_PWD | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin https://index.docker.io/v1/'
                     }
@@ -74,8 +77,11 @@ pipeline {
                         docker images
                     """
 
-                    def serviceList = readFile('service-list.txt').split('\n').findAll { it }
-                    for (service in serviceList) {
+                    // Đọc danh sách tất cả services và push lên Docker Hub
+                    def allServices = readFile('all-services.txt').split('\n').findAll { it }
+                    echo "🚀 Đang push ${allServices.size()} services lên Docker Hub"
+                    
+                    for (service in allServices) {
                         sh """
                             docker push ${DOCKER_IMAGE_NAME}-${service}:${COMMIT_ID}
                             docker push ${DOCKER_IMAGE_NAME}-${service}:latest  
@@ -90,6 +96,7 @@ pipeline {
         always {
             sh 'docker logout || true'
             sh 'docker system prune -f || true'
+            sh 'rm -f all-services.txt || true'
         }
     }
 }
