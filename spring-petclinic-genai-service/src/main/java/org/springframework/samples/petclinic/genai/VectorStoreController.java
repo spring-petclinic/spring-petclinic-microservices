@@ -32,6 +32,7 @@ import java.util.Set;
  * Loads the veterinarians data into a vector store for the purpose of RAG functionality.
  *
  * @author Oded Shopen
+ * 
  */
 @Component
 public class VectorStoreController {
