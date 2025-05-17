@@ -12,32 +12,43 @@ pipeline {
 
     stages {
         stage('Determine Environment and Tag') {
-            steps {
-                script {
-                    // Check if this is a tagged commit
-                    def isTagged = sh(script: "git tag --points-at HEAD || echo ''", returnStdout: true).trim()
-                    
-                    if (isTagged) {
-                        // Tagged commit = staging environment
-                        env.TARGET_ENV = 'staging'
-                        env.IMAGE_TAG = isTagged
-                        echo "Tagged commit detected: ${isTagged}. Targeting staging environment."
-                    } else if (env.BRANCH_NAME == 'main' || env.BRANCH_NAME == 'origin/main') {
-                        // Main branch without tag = dev environment
-                        env.TARGET_ENV = 'dev'
-                        env.IMAGE_TAG = 'latest'
-                        echo "Main branch commit detected. Targeting dev environment."
-                    } else {
-                        // Other branch = dev-review
-                        env.TARGET_ENV = 'dev-review'
-                        env.IMAGE_TAG = env.GIT_COMMIT_SHORT
-                        echo "Feature branch commit detected. Targeting dev-review environment."
-                    }
-                    
-                    echo "Selected environment: ${env.TARGET_ENV} with image tag: ${env.IMAGE_TAG}"
-                }
+    steps {
+        script {
+            // Add debug info
+            echo "BRANCH_NAME: ${env.BRANCH_NAME}"
+            echo "GIT_BRANCH: ${env.GIT_BRANCH}"
+            
+            // Check current branch another way
+            sh "git branch --show-current"
+            sh "git rev-parse --abbrev-ref HEAD"
+            
+            // Check if this is a tagged commit
+            def isTagged = sh(script: "git tag --points-at HEAD || echo ''", returnStdout: true).trim()
+            
+            // Detect branch more reliably
+            def currentBranch = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+            
+            if (isTagged) {
+                // Tagged commit = staging environment
+                env.TARGET_ENV = 'staging'
+                env.IMAGE_TAG = isTagged
+                echo "Tagged commit detected: ${isTagged}. Targeting staging environment."
+            } else if (currentBranch == 'main' || currentBranch == 'master' || env.BRANCH_NAME == 'main' || env.BRANCH_NAME == 'origin/main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main') {
+                // Main branch without tag = dev environment
+                env.TARGET_ENV = 'dev'
+                env.IMAGE_TAG = 'latest'
+                echo "Main branch commit detected. Targeting dev environment."
+            } else {
+                // Other branch = dev-review
+                env.TARGET_ENV = 'dev-review'
+                env.IMAGE_TAG = env.GIT_COMMIT_SHORT
+                echo "Feature branch commit detected. Targeting dev-review environment."
             }
+            
+            echo "Selected environment: ${env.TARGET_ENV} with image tag: ${env.IMAGE_TAG}"
         }
+    }
+}
 
         stage('Determine Changed Services') {
             steps {
