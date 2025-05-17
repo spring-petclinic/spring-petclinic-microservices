@@ -22,6 +22,13 @@ pipeline {
             }
         }
 
+        stage('Set Docker Permissions') {
+            steps {
+                // Thêm quyền Docker cho người dùng Jenkins
+                sh 'sudo chmod 666 /var/run/docker.sock || true'
+            }
+        }
+
         stage('Docker Build') {
             steps {
                 script {
@@ -49,9 +56,9 @@ pipeline {
                             docker build -t ${DOCKER_IMAGE_NAME}-${serviceName}:${COMMIT_ID} \
                                 --build-arg ARTIFACT_NAME=${serviceName} \
                                 --build-arg EXPOSED_PORT=${servicePort} \
-                                -f ./docker/Dockerfile ./docker
-
-                            docker tag ${DOCKER_IMAGE_NAME}-${serviceName}:${COMMIT_ID} ${DOCKER_IMAGE_NAME}-${serviceName}:latest
+                                -f ./docker/Dockerfile ./docker || exit 1
+                            
+                            docker tag ${DOCKER_IMAGE_NAME}-${serviceName}:${COMMIT_ID} ${DOCKER_IMAGE_NAME}-${serviceName}:latest || exit 1
                         """
 
                         sh "rm docker/${serviceName}.jar"
@@ -67,13 +74,14 @@ pipeline {
             steps {
                 script {
                     echo "🔐 Đăng nhập Docker Hub với tài khoản: ${DOCKERHUB_CREDENTIALS_USR}"
-                    // Cải thiện bảo mật bằng cách sử dụng --password-stdin
-                    withCredentials([string(credentialsId: 'dockerhub-cred', variable: 'DOCKER_PWD')]) {
-                        sh 'echo $DOCKER_PWD | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin https://index.docker.io/v1/'
+                    
+                    // Đăng nhập Docker Hub
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PWD')]) {
+                        sh 'echo $DOCKER_PWD | docker login -u $DOCKER_USER --password-stdin https://index.docker.io/v1/ || exit 1'
                     }
                     
                     sh """
-                        docker info
+                        docker info || exit 1
                         docker images
                     """
 
@@ -83,8 +91,8 @@ pipeline {
                     
                     for (service in allServices) {
                         sh """
-                            docker push ${DOCKER_IMAGE_NAME}-${service}:${COMMIT_ID}
-                            docker push ${DOCKER_IMAGE_NAME}-${service}:latest  
+                            docker push ${DOCKER_IMAGE_NAME}-${service}:${COMMIT_ID} || exit 1
+                            docker push ${DOCKER_IMAGE_NAME}-${service}:latest || exit 1
                         """
                     }
                 }
