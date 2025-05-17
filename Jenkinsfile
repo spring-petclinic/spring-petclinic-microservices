@@ -91,14 +91,14 @@ pipeline {
                             echo "Tagging and pushing ${service} as latest"
                             // Kiểm tra image tồn tại trước khi tag và push
                             def imageExists = sh(script: "docker images -q ${env.DOCKER_REGISTRY}/${service}:${commitId}", returnStdout: true).trim()
-//                             if (imageExists) {
-//                                 sh """
-//                                     docker tag ${env.DOCKER_REGISTRY}/${service}:${commitId} ${env.DOCKER_REGISTRY}/${service}:latest
-//                                     docker push ${env.DOCKER_REGISTRY}/${service}:latest
-//                                 """
-//                             } else {
-//                                 echo "Image ${env.DOCKER_REGISTRY}/${service}:${commitId} not found locally. Skipping tag latest."
-//                             }
+                            if (imageExists) {
+                                sh """
+                                    docker tag ${env.DOCKER_REGISTRY}/${service}:${commitId} ${env.DOCKER_REGISTRY}/${service}:latest
+                                    docker push ${env.DOCKER_REGISTRY}/${service}:latest
+                                """
+                            } else {
+                                echo "Image ${env.DOCKER_REGISTRY}/${service}:${commitId} not found locally. Skipping tag latest."
+                            }
                         }
                     }
                 }
