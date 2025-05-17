@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'maven:3.8.4-openjdk-17'
+            args '-v /var/run/docker.sock:/var/run/docker.sock -v $HOME/.m2:/root/.m2'
+        }
+    }
 
     environment {
         PROJECT_NAME = 'spring-petclinic'
@@ -22,13 +27,6 @@ pipeline {
             }
         }
 
-        stage('Set Docker Permissions') {
-            steps {
-                // Thêm quyền Docker cho người dùng Jenkins
-                sh 'sudo chmod 666 /var/run/docker.sock || true'
-            }
-        }
-
         stage('Docker Build') {
             steps {
                 script {
@@ -44,7 +42,7 @@ pipeline {
 
                     echo '🔨 Đang build tất cả services'
                     
-                    // Build tất cả services không cần kiểm tra thay đổi
+                    // Build tất cả services
                     for (service in services) {
                         def serviceName = service.name
                         def servicePort = service.port
@@ -81,7 +79,6 @@ pipeline {
                     }
                     
                     sh """
-                        docker info || exit 1
                         docker images
                     """
 
