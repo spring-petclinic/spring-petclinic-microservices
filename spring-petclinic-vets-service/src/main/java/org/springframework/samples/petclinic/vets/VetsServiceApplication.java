@@ -28,7 +28,7 @@ import org.springframework.samples.petclinic.vets.system.VetsProperties;
 @SpringBootApplication
 @EnableConfigurationProperties(VetsProperties.class)
 public class VetsServiceApplication {
-    // Test another branch
+    // Test another branch #2
 	public static void main(String[] args) {
 		SpringApplication.run(VetsServiceApplication.class, args);
 	}
