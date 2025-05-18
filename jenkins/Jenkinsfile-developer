@@ -18,15 +18,20 @@ pipeline {
     }
 
     stages {
+        stage('Clean and Checkout') {
+            steps {
+                cleanWs() // <-- Xóa toàn bộ workspace trước khi checkout
+                checkout([$class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[url: "${GIT_REPO}"]],
+                    extensions: []
+                ])
+            }
+        }
+
         stage('Deploy services to dev namespace') {
             steps {
                 script {
-                    checkout([$class: 'GitSCM',
-                      branches: [[name: '*/main']],
-                      userRemoteConfigs: [[url: "${GIT_REPO}"]],
-                      extensions: [[$class: 'WipeWorkspace']]
-                    ])
-                    
                     def services = [
                         [name: 'admin-server',    branch: params.ADMIN_BRANCH,    port: 9090],
                         [name: 'api-gateway',     branch: params.API_BRANCH,      port: 8080],
