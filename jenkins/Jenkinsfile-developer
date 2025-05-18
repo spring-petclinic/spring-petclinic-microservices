@@ -21,6 +21,7 @@ pipeline {
         stage('Clean and Checkout') {
             steps {
                 cleanWs() // <-- Xóa toàn bộ workspace trước khi checkout
+                sh 'rm -rf .git'
                 checkout([$class: 'GitSCM',
                     branches: [[name: '*/loc']],
                     userRemoteConfigs: [[url: "${GIT_REPO}"]],
