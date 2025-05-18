@@ -1,21 +1,35 @@
 pipeline {
     agent any
+
     environment {
         NAMESPACE = 'petclinic-dev'
     }
 
     parameters {
-        text(name: 'SERVICE_NAMES', defaultValue: 'vets-service\nadmin-server', description: 'Tên các service cần xóa, mỗi dòng 1 tên.')
+        text(
+            name: 'SERVICE_NAMES',
+            defaultValue: 'vets-service\nadmin-server',
+            description: 'Nhập tên các service cần xóa (mỗi dòng 1 tên).'
+        )
     }
 
     stages {
-        stage('Delete Services') {
+        stage('Delete Services & Deployments') {
             steps {
                 script {
-                    def serviceList = params.SERVICE_NAMES.split('\n')
-                    for (service in serviceList) {
-                        sh "kubectl delete deployment ${service} -n ${NAMESPACE} || true"
-                        sh "kubectl delete service ${service} -n ${NAMESPACE} || true"
+                    // Xử lý từng dòng service, bỏ dòng trống và khoảng trắng
+                    def services = params.SERVICE_NAMES.readLines().collect { it.trim() }.findAll { it }
+
+                    if (services.size() == 0) {
+                        error "Không có service nào được chỉ định để xóa."
+                    }
+
+                    for (service in services) {
+                        echo "Đang xóa service và deployment: ${service}"
+                        sh """
+                            kubectl delete deployment ${service} -n ${NAMESPACE} --ignore-not-found
+                            kubectl delete service ${service} -n ${NAMESPACE} --ignore-not-found
+                        """
                     }
                 }
             }

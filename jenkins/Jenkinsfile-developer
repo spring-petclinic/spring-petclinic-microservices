@@ -13,6 +13,7 @@ pipeline {
 
     environment {
         IMAGE_REPO = 'thainhat104/spring-petclinic'
+        GIT_REPO = 'https://github.com/thainhat04/spring-petclinic-microservices.git'
         NAMESPACE = 'petclinic-dev'
     }
 
@@ -31,7 +32,15 @@ pipeline {
                     ]
 
                     for (service in services) {
-                        def tag = service.branch == 'main' ? 'latest' : service.branch
+                        def tag = 'latest'
+                        if (service.branch != 'main') {
+                            tag = sh(
+                                script: "git ls-remote ${GIT_REPO} refs/heads/${service.branch} | cut -c1-7",
+                                returnStdout: true
+                            ).trim()
+                        }
+                        
+                        // def tag = service.branch == 'main' ? 'latest' : service.branch
                         def yaml = """
 apiVersion: apps/v1
 kind: Deployment
