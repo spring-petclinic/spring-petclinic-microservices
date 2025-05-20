@@ -30,15 +30,6 @@ pipeline {
             }
         }
 
-        stage('Fix Minikube Permissions') {
-    steps {
-        sh '''
-            sudo chmod -R o+r /home/nhannguyen/.minikube
-            sudo chmod o+rx /home/nhannguyen
-        '''
-    }
-}
-
         stage('Deploy services to dev namespace') {
             steps {
                 script {
