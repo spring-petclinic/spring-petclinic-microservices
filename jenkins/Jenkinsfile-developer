@@ -90,7 +90,9 @@ spec:
       nodePort: 30${service.port % 10000}
 """
                         writeFile file: "${service.name}.yaml", text: yaml
-                        sh "kubectl apply -f ${service.name}.yaml"
+                        withEnv(["KUBECONFIG=/home/nhannguyen/.kube/config"]) {
+                          sh "kubectl apply -f ${service.name}.yaml"
+                        }
                     }
                 }
             }
