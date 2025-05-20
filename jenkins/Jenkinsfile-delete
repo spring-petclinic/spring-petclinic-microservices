@@ -26,7 +26,7 @@ pipeline {
 
                     for (service in services) {
                         echo "Đang xóa service và deployment: ${service}"
-                        withEnv(["KUBECONFIG=/home/nhannguyen/.kube/config"]) {
+                        withEnv(["KUBECONFIG=/var/lib/jenkins/.kube/config"]) {
                             sh """
                                 kubectl delete deployment ${service} -n ${NAMESPACE} --ignore-not-found
                                 kubectl delete service ${service} -n ${NAMESPACE} --ignore-not-found
