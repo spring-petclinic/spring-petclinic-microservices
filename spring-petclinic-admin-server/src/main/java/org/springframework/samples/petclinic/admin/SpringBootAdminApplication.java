@@ -29,3 +29,5 @@ public class SpringBootAdminApplication {
     }
 
 }
+
+//latest
