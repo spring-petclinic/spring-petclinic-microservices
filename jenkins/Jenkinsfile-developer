@@ -23,7 +23,7 @@ pipeline {
                 cleanWs() // <-- Xóa toàn bộ workspace trước khi checkout
                 sh 'rm -rf .git'
                 checkout([$class: 'GitSCM',
-                    branches: [[name: '*/loc']],
+                    branches: [[name: '*/main']],
                     userRemoteConfigs: [[url: "${GIT_REPO}"]],
                     extensions: []
                 ])
