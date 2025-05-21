@@ -87,7 +87,7 @@ spec:
   ports:
     - port: ${service.port}
       targetPort: ${service.port}
-      nodePort: 30${service.port % 10000}
+      nodePort: ${30000 + (service.port % 1000)}
 """
                         writeFile file: "${service.name}.yaml", text: yaml
                         withEnv(["KUBECONFIG=/var/lib/jenkins/.kube/config"]) {
