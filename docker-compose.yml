@@ -120,9 +120,6 @@ services:
       resources:
         limits:
           memory: 512M
-    environment:
-    # Waiting for https://github.com/openzipkin/zipkin/issues/3786
-    - JAVA_OPTS=-XX:UseSVE=0
     ports:
      - 9411:9411
 
