@@ -59,4 +59,5 @@ class VetResourceTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(1));
     }
+    
 }
