@@ -21,3 +21,4 @@ target/
 generated/
 
 **/.DS_Store
+.env
