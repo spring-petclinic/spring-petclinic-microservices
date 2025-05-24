@@ -7,7 +7,7 @@ pipeline {
     }
     
     environment {
-        // Docker Hub credentials
+        // Docker Hub credentials - sử dụng username/password credential
         DOCKERHUB = credentials('dockerhub-credentials')
         
         // Define service paths for easier reference
@@ -332,7 +332,7 @@ pipeline {
                                 classPattern: '**/target/classes',
                                 sourcePattern: '**/src/main/java',
                                 exclusionPattern: '**/test/**',
-                                changeBuildStatus: true,
+                                changeBuildStatus: true
                             )
                         }
                     } 
@@ -357,7 +357,7 @@ pipeline {
                                 classPattern: '**/target/classes',
                                 sourcePattern: '**/src/main/java',
                                 exclusionPattern: '**/test/**',
-                                changeBuildStatus: true,
+                                changeBuildStatus: true
                             ) 
                         } 
                     } 
@@ -382,7 +382,7 @@ pipeline {
                                 classPattern: '**/target/classes',
                                 sourcePattern: '**/src/main/java',
                                 exclusionPattern: '**/test/**',
-                                changeBuildStatus: true,
+                                changeBuildStatus: true
                             )
                         } 
                     } 
@@ -403,7 +403,7 @@ pipeline {
                 script {
                     echo "🔐 Logging into Docker Hub..."
                     sh '''
-                        echo $DOCKER_HUB_TOKEN | docker login -u $DOCKER_HUB_USERNAME --password-stdin
+                        echo $DOCKERHUB_PSW | docker login -u $DOCKERHUB_USR --password-stdin
                     '''
                     
                     // Define service mappings
@@ -455,8 +455,8 @@ pipeline {
                                     echo "✅ Found JAR: ${jarName}"
                                     
                                     // Build Docker images
-                                    def primaryImage = "${env.DOCKER_HUB_USERNAME}/${service.name}:${env.PRIMARY_TAG}"
-                                    def secondaryImage = "${env.DOCKER_HUB_USERNAME}/${service.name}:${env.SECONDARY_TAG}"
+                                    def primaryImage = "${env.DOCKERHUB_USR}/${service.name}:${env.PRIMARY_TAG}"
+                                    def secondaryImage = "${env.DOCKERHUB_USR}/${service.name}:${env.SECONDARY_TAG}"
                                     
                                     echo "🐳 Building Docker image..."
                                     sh "docker build -t ${primaryImage} ."
@@ -487,7 +487,7 @@ pipeline {
                                     
                                     echo "✅ Successfully pushed ${service.name}"
                                     echo "   🏷️ Tags: ${env.PRIMARY_TAG}, ${env.SECONDARY_TAG}"
-                                    echo "   📦 Repository: https://hub.docker.com/r/${env.DOCKER_HUB_USERNAME}/${service.name}"
+                                    echo "   📦 Repository: https://hub.docker.com/r/${env.DOCKERHUB_USR}/${service.name}"
                                     
                                     // Clean up local image to save space
                                     sh "docker rmi ${primaryImage} || true"
@@ -550,12 +550,12 @@ pipeline {
                             echo ""
                             echo "🎯 Successfully built and pushed images:"
                             successfulImages.each { service ->
-                                echo "   docker pull ${env.DOCKER_HUB_USERNAME}/${service}:${env.PRIMARY_TAG}"
+                                echo "   docker pull ${env.DOCKERHUB_USR}/${service}:${env.PRIMARY_TAG}"
                             }
                             echo ""
                             echo "🌐 Docker Hub repositories:"
                             successfulImages.each { service ->
-                                echo "   https://hub.docker.com/r/${env.DOCKER_HUB_USERNAME}/${service}"
+                                echo "   https://hub.docker.com/r/${env.DOCKERHUB_USR}/${service}"
                             }
                         }
                         
