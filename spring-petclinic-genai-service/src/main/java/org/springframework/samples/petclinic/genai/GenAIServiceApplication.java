@@ -25,7 +25,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 @EnableDiscoveryClient
 @SpringBootApplication
 public class GenAIServiceApplication {
-    // Ahihi
+    // Ahihi ahihi
 	public static void main(String[] args) {
 		SpringApplication.run(GenAIServiceApplication.class, args);
 	}
