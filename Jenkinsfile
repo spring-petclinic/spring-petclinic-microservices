@@ -82,6 +82,10 @@ pipeline {
                    def commitId = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
                    def branch = env.BRANCH_NAME ?: sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
                    def isMain = (branch == 'main')
+                   def gitopsRepo = "https://github.com/nguyenvinhluong242004/petclinic-argocd.git"
+                   def gitopsDir = "petclinic-argocd"
+                   def chartPath = "charts/petclinic"
+
 
                    // Lấy tag release nếu có, từ commit hiện tại
                    def releaseTag = ''
@@ -102,6 +106,57 @@ pipeline {
                        echo "Building and pushing Docker image for ${service} with tag ${imageTag}..."
 
                        sh "./mvnw clean install -pl ${service} -Dmaven.test.skip=true -P buildDocker -Ddocker.image.prefix=${env.DOCKER_REGISTRY} -Ddocker.image.tag=${imageTag} -Dcontainer.build.extraarg=--push"
+                   }
+                   if (isMain) {
+
+                        // Clone repo GitOps
+                        sh """
+                            rm -rf ${gitopsDir}
+                            git clone ${gitopsRepo}
+                        """
+
+                        env.BUILD_SERVICES.split(',').each { service ->
+                            def devValuesPath = "${chartPath}/values-dev.yaml"
+                            def stagingValuesPath = "${chartPath}/values-staging.yaml"
+
+                            def serviceKeyMap = [
+                                "api-gateway": "apiGateway",
+                                "discovery-server": "discoveryServer",
+                                "customers-service": "customersService",
+                                "vets-service": "vetsService",
+                                "visits-service": "visitsService",
+                                "genai-service": "genaiService",
+                                "admin-server": "adminServer",
+                                "config-server": "configServer"
+                            ]
+                            def yamlKey = serviceKeyMap[service] ?: service
+
+                            if (releaseTag) {
+                                echo "Updating ${yamlKey}.tag in values-staging.yaml for ${service}..."
+                                sh """
+                                    sed -i 's|\\(${yamlKey}:\\s*\\n\\s*  repository:.*\\n\\s*  tag:\\s*\\).*|\\1${commitId}|' ${stagingValuesPath}
+                                """
+                            }
+                            else {
+                                echo "Updating ${yamlKey}.tag in values-dev.yaml for ${service}..."
+                                sh """
+                                    sed -i 's|\\(${yamlKey}:\\s*\\n\\s*  repository:.*\\n\\s*  tag:\\s*\\).*|\\1${commitId}|' ${devValuesPath}
+                                """
+                            }
+                        }
+
+                        withCredentials([usernamePassword(credentialsId: 'github-credentials', usernameVariable: 'username', passwordVariable: 'pass')]) {
+                            dir("${gitopsDir}") {
+                                sh """
+                                    git config user.email "\${username}@users.noreply.github.com"
+                                    git config user.name "\${username}"
+                                    git remote set-url origin https://\${username}:\${pass}@github.com/nguyenvinhluong242004/petclinic-argocd.git
+                                    git add charts/petclinic/values-*.yaml
+                                    git commit -m "Update image tags to \${commitId} for changed services [ci skip]" || echo "No changes to commit"
+                                    git push origin \${branch}
+                                """
+                            }
+                        }
                    }
                }
            }
