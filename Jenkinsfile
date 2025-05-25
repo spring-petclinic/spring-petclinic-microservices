@@ -134,13 +134,13 @@ pipeline {
                             if (releaseTag) {
                                 echo "Updating ${yamlKey}.tag in values-staging.yaml for ${service}..."
                                 sh """
-                                    sed -i 's|\\(${yamlKey}:\\s*\\n\\s*  repository:.*\\n\\s*  tag:\\s*\\).*|\\1${commitId}|' ${stagingValuesPath}
+                                    yq eval '.image.${yamlKey}.tag = "${releaseTag}"' -i ${stagingValuesPath}
                                 """
                             }
                             else {
                                 echo "Updating ${yamlKey}.tag in values-dev.yaml for ${service}..."
                                 sh """
-                                    sed -i 's|\\(${yamlKey}:\\s*\\n\\s*  repository:.*\\n\\s*  tag:\\s*\\).*|\\1${commitId}|' ${devValuesPath}
+                                    yq eval '.image.${yamlKey}.tag = "${commitId}"' -i ${devValuesPath}
                                 """
                             }
                         }
