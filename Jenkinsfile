@@ -86,14 +86,17 @@ pipeline {
                    // Lấy tag release nếu có, từ commit hiện tại
                    def releaseTag = ''
                    if (isMain) {
+                       sh 'git fetch --tags'
                        releaseTag = sh(
                            script: "git tag --points-at HEAD | grep -E '^v[0-9]+\\.[0-9]+\\.[0-9]+' || true",
                            returnStdout: true
                        ).trim()
+                       echo "Tags on HEAD: '${releaseTag}'"
                    }
-
+                   echo "RELEASE TAG: ${releaseTag}"
                    // Nếu không có tag release thì lấy commitId làm tag
                    def imageTag = releaseTag ?: commitId
+                   echo "Using image tag: ${imageTag}"
 
                    env.BUILD_SERVICES.split(',').each { service ->
                        echo "Building and pushing Docker image for ${service} with tag ${imageTag}..."
