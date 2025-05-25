@@ -116,8 +116,8 @@ pipeline {
                         """
 
                         env.BUILD_SERVICES.split(',').each { service ->
-                            def devValuesPath = "${chartPath}/values-dev.yaml"
-                            def stagingValuesPath = "${chartPath}/values-staging.yaml"
+                            def devValuesPath = "${gitopsDir}/${chartPath}/values-dev.yaml"
+                            def stagingValuesPath = "${gitopsDir}/${chartPath}/values-staging.yaml"
 
                             def serviceKeyMap = [
                                 "api-gateway": "apiGateway",
