@@ -41,37 +41,68 @@ pipeline {
             }
         }
 
-        stage('Build and Push Docker Images') {
-            when {
-                expression { return env.BUILD_SERVICES }
-            }
-            steps {
-                script {
-                    def commitId = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                    def branch = env.BRANCH_NAME ?: sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
-                    def isMain = (branch == 'main')
+//         stage('Build and Push Docker Images') {
+//             when {
+//                 expression { return env.BUILD_SERVICES }
+//             }
+//             steps {
+//                 script {
+//                     def commitId = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+//                     def branch = env.BRANCH_NAME ?: sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+//                     def isMain = (branch == 'main')
+//
+//                     env.BUILD_SERVICES.split(',').each { service ->
+//                         echo "Building and pushing Docker image for ${service} with tag ${commitId}..."
+//
+//                         sh "./mvnw clean install -pl ${service} -Dmaven.test.skip=true -P buildDocker -Ddocker.image.prefix=${env.DOCKER_REGISTRY} -Ddocker.image.tag=${commitId} -Dcontainer.build.extraarg=--push"
+//
+//                         if (isMain) {
+//                             echo "Tagging and pushing ${service} as latest"
+//                             def imageExists = sh(script: "docker images -q ${env.DOCKER_REGISTRY}/${service}:${commitId}", returnStdout: true).trim()
+//                             if (imageExists) {
+//                                 sh """
+//                                     docker tag ${env.DOCKER_REGISTRY}/${service}:${commitId} ${env.DOCKER_REGISTRY}/${service}:latest
+//                                     docker push ${env.DOCKER_REGISTRY}/${service}:latest
+//                                 """
+//                             } else {
+//                                 echo "Image ${env.DOCKER_REGISTRY}/${service}:${commitId} not found locally. Skipping tag latest."
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//         }
 
-                    env.BUILD_SERVICES.split(',').each { service ->
-                        echo "Building and pushing Docker image for ${service} with tag ${commitId}..."
+       stage('Build and Push Docker Images') {
+           when {
+               expression { return env.BUILD_SERVICES }
+           }
+           steps {
+               script {
+                   def commitId = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                   def branch = env.BRANCH_NAME ?: sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+                   def isMain = (branch == 'main')
 
-                        sh "./mvnw clean install -pl ${service} -Dmaven.test.skip=true -P buildDocker -Ddocker.image.prefix=${env.DOCKER_REGISTRY} -Ddocker.image.tag=${commitId} -Dcontainer.build.extraarg=--push"
+                   // Lấy tag release nếu có, từ commit hiện tại
+                   def releaseTag = ''
+                   if (isMain) {
+                       releaseTag = sh(
+                           script: "git tag --points-at HEAD | grep -E '^v[0-9]+\\.[0-9]+\\.[0-9]+' || true",
+                           returnStdout: true
+                       ).trim()
+                   }
 
-                        if (isMain) {
-                            echo "Tagging and pushing ${service} as latest"
-                            def imageExists = sh(script: "docker images -q ${env.DOCKER_REGISTRY}/${service}:${commitId}", returnStdout: true).trim()
-                            if (imageExists) {
-                                sh """
-                                    docker tag ${env.DOCKER_REGISTRY}/${service}:${commitId} ${env.DOCKER_REGISTRY}/${service}:latest
-                                    docker push ${env.DOCKER_REGISTRY}/${service}:latest
-                                """
-                            } else {
-                                echo "Image ${env.DOCKER_REGISTRY}/${service}:${commitId} not found locally. Skipping tag latest."
-                            }
-                        }
-                    }
-                }
-            }
-        }
+                   // Nếu không có tag release thì lấy commitId làm tag
+                   def imageTag = releaseTag ?: commitId
+
+                   env.BUILD_SERVICES.split(',').each { service ->
+                       echo "Building and pushing Docker image for ${service} with tag ${imageTag}..."
+
+                       sh "./mvnw clean install -pl ${service} -Dmaven.test.skip=true -P buildDocker -Ddocker.image.prefix=${env.DOCKER_REGISTRY} -Ddocker.image.tag=${imageTag} -Dcontainer.build.extraarg=--push"
+                   }
+               }
+           }
+       }
 
         stage('Docker Logout') {
             when {
