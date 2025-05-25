@@ -120,14 +120,14 @@ pipeline {
                             def stagingValuesPath = "${gitopsDir}/${chartPath}/values-staging.yaml"
 
                             def serviceKeyMap = [
-                                "api-gateway": "apiGateway",
-                                "discovery-server": "discoveryServer",
-                                "customers-service": "customersService",
-                                "vets-service": "vetsService",
-                                "visits-service": "visitsService",
-                                "genai-service": "genaiService",
-                                "admin-server": "adminServer",
-                                "config-server": "configServer"
+                                "spring-petclinic-api-gateway": "apiGateway",
+                                "spring-petclinic-discovery-server": "discoveryServer",
+                                "spring-petclinic-customers-service": "customersService",
+                                "spring-petclinic-vets-service": "vetsService",
+                                "spring-petclinic-visits-service": "visitsService",
+                                "spring-petclinic-genai-service": "genaiService",
+                                "spring-petclinic-admin-server": "adminServer",
+                                "spring-petclinic-config-server": "configServer"
                             ]
                             def yamlKey = serviceKeyMap[service] ?: service
 

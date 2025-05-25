@@ -25,7 +25,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 @EnableDiscoveryClient
 @SpringBootApplication
 public class VisitsServiceApplication {
-    // I test for Jenkins #4
+    // I test for Jenkins #4 test
     public static void main(String[] args) {
         SpringApplication.run(VisitsServiceApplication.class, args);
     }
