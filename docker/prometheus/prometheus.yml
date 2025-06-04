@@ -36,10 +36,10 @@ scrape_configs:
   static_configs:
   - targets: ['config-server:8888']
 
-- job_name: admin-server
-  metrics_path: /actuator/prometheus
-  static_configs:
-  - targets: ['admin-server:9090']
+# - job_name: admin-server
+#   metrics_path: /actuator/prometheus
+#   static_configs:
+#   - targets: ['admin-server:9090']
 
 - job_name: discovery-server
   metrics_path: /actuator/prometheus
