@@ -12,6 +12,11 @@ spring:
       on-profile: docker
     import: configserver:http://config-server:8888
 
+spring:
+  boot:
+    admin:
+      client:
+        enabled: false
 
 management:
   endpoints:
