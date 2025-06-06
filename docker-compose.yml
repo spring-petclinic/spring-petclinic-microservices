@@ -149,13 +149,13 @@ services:
 #          memory: 256M
 #    ports:
 #    - 3030:3030
-#
-#  prometheus-server:
-#    build: ./docker/prometheus
-#    container_name: prometheus-server
-#    deploy:
-#      resources:
-#        limits:
-#          memory: 256M
-#    ports:
-#    - 9091:9090
+
+  prometheus-server:
+   build: ./docker/prometheus
+   container_name: prometheus-server
+   deploy:
+     resources:
+       limits:
+         memory: 256M
+   ports:
+   - 9091:9090
