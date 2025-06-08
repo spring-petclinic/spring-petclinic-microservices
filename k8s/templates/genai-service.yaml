@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: genai-service
+  namespace: ${NAMESPACE}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: genai-service
+  template:
+    metadata:
+      labels:
+        app: genai-service
+    spec:
+      containers:
+        - name: genai-service
+          image: ${DOCKER_USERNAME}/petclinic-genai-service:${GENAI_SERVICE_TAG}
+          ports:
+            - containerPort: 8084
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: kubernetes
+            - name: SPRING_CONFIG_IMPORT
+              value: optional:configserver:http://config-server:8888/
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: http://discovery-server:8761/eureka/
+            - name: OPENAI_API_KEY
+              value: "demo"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: genai-service
+  namespace: ${NAMESPACE}
+spec:
+  selector:
+    app: genai-service
+  ports:
+    - port: 8084
+      targetPort: 8084
+  type: ClusterIP

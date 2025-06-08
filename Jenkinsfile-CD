@@ -1,0 +1,129 @@
+// Jenkinsfile-CD
+pipeline {
+    agent any
+    
+    parameters {
+        string(name: 'NAMESPACE', defaultValue: 'petclinic-dev', description: 'Kubernetes namespace')
+        string(name: 'CONFIG_SERVER_BRANCH', defaultValue: 'main', description: 'Branch for Config Server')
+        string(name: 'DISCOVERY_SERVER_BRANCH', defaultValue: 'main', description: 'Branch for Discovery Server')
+        string(name: 'API_GATEWAY_BRANCH', defaultValue: 'main', description: 'Branch for API Gateway')
+        string(name: 'CUSTOMERS_SERVICE_BRANCH', defaultValue: 'main', description: 'Branch for Customers Service')
+        string(name: 'VETS_SERVICE_BRANCH', defaultValue: 'main', description: 'Branch for Vets Service')
+        string(name: 'VISITS_SERVICE_BRANCH', defaultValue: 'main', description: 'Branch for Visits Service')
+        string(name: 'GENAI_SERVICE_BRANCH', defaultValue: 'main', description: 'Branch for GenAI Service')
+        string(name: 'ADMIN_SERVER_BRANCH', defaultValue: 'main', description: 'Branch for Admin Server')
+    }
+    
+    environment {
+        DOCKER_USERNAME = credentials('dockerhub-credentials').username
+    }
+    
+    stages {
+        stage('Determine Tags') {
+            steps {
+                script {
+                    // Hàm để xác định tag cho một service
+                    def getTagForBranch = { branchName ->
+                        if (branchName == 'main') {
+                            return 'latest'
+                        } else {
+                            // Lấy commit hash mới nhất của branch
+                            def commitHash = sh(
+                                script: "git ls-remote origin ${branchName} | head -1 | cut -f 1 | cut -c1-7",
+                                returnStdout: true
+                            ).trim()
+                            return commitHash
+                        }
+                    }
+                    
+                    // Thiết lập tag cho từng service
+                    env.CONFIG_SERVER_TAG = getTagForBranch(params.CONFIG_SERVER_BRANCH)
+                    env.DISCOVERY_SERVER_TAG = getTagForBranch(params.DISCOVERY_SERVER_BRANCH)
+                    env.API_GATEWAY_TAG = getTagForBranch(params.API_GATEWAY_BRANCH)
+                    env.CUSTOMERS_SERVICE_TAG = getTagForBranch(params.CUSTOMERS_SERVICE_BRANCH)
+                    env.VETS_SERVICE_TAG = getTagForBranch(params.VETS_SERVICE_BRANCH)
+                    env.VISITS_SERVICE_TAG = getTagForBranch(params.VISITS_SERVICE_BRANCH)
+                    env.GENAI_SERVICE_TAG = getTagForBranch(params.GENAI_SERVICE_BRANCH)
+                    env.ADMIN_SERVER_TAG = getTagForBranch(params.ADMIN_SERVER_BRANCH)
+                    
+                    // Debug info
+                    echo "CONFIG_SERVER_TAG: ${env.CONFIG_SERVER_TAG}"
+                    echo "DISCOVERY_SERVER_TAG: ${env.DISCOVERY_SERVER_TAG}"
+                    echo "API_GATEWAY_TAG: ${env.API_GATEWAY_TAG}"
+                    echo "CUSTOMERS_SERVICE_TAG: ${env.CUSTOMERS_SERVICE_TAG}"
+                    echo "VETS_SERVICE_TAG: ${env.VETS_SERVICE_TAG}"
+                    echo "VISITS_SERVICE_TAG: ${env.VISITS_SERVICE_TAG}"
+                    echo "GENAI_SERVICE_TAG: ${env.GENAI_SERVICE_TAG}"
+                    echo "ADMIN_SERVER_TAG: ${env.ADMIN_SERVER_TAG}"
+                }
+            }
+        }
+        
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    // Tạo namespace nếu chưa tồn tại
+                    sh "kubectl create namespace ${params.NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -"
+                    
+                    // Deploy theo thứ tự phù hợp
+                    sh """
+                    cat k8s/templates/config-server.yaml | 
+                    sed 's/\\${NAMESPACE}/${params.NAMESPACE}/g' | 
+                    sed 's/\\${DOCKER_USERNAME}/${DOCKER_USERNAME}/g' | 
+                    sed 's/\\${CONFIG_SERVER_TAG}/${env.CONFIG_SERVER_TAG}/g' > k8s/deploy-config-server.yaml
+                    
+                    kubectl apply -f k8s/deploy-config-server.yaml
+                    """
+                    
+                    sh """
+                    cat k8s/templates/discovery-server.yaml | 
+                    sed 's/\\${NAMESPACE}/${params.NAMESPACE}/g' | 
+                    sed 's/\\${DOCKER_USERNAME}/${DOCKER_USERNAME}/g' | 
+                    sed 's/\\${DISCOVERY_SERVER_TAG}/${env.DISCOVERY_SERVER_TAG}/g' > k8s/deploy-discovery-server.yaml
+                    
+                    kubectl apply -f k8s/deploy-discovery-server.yaml
+                    """
+                    
+                    // Đợi để config và discovery server khởi động
+                    sh "sleep 30"
+                    
+                    // Deploy các service khác
+                    def deployService = { service, tag ->
+                        sh """
+                        cat k8s/templates/${service}.yaml | 
+                        sed 's/\\${NAMESPACE}/${params.NAMESPACE}/g' | 
+                        sed 's/\\${DOCKER_USERNAME}/${DOCKER_USERNAME}/g' | 
+                        sed 's/\\${${service.toUpperCase().replace('-', '_')}_TAG}/${tag}/g' > k8s/deploy-${service}.yaml
+                        
+                        kubectl apply -f k8s/deploy-${service}.yaml
+                        """
+                    }
+                    
+                    deployService('customers-service', env.CUSTOMERS_SERVICE_TAG)
+                    deployService('vets-service', env.VETS_SERVICE_TAG)
+                    deployService('visits-service', env.VISITS_SERVICE_TAG)
+                    deployService('genai-service', env.GENAI_SERVICE_TAG)
+                    
+                    // Đợi để các service khởi động
+                    sh "sleep 30"
+                    
+                    deployService('api-gateway', env.API_GATEWAY_TAG)
+                    deployService('admin-server', env.ADMIN_SERVER_TAG)
+                }
+            }
+        }
+        
+        stage('Get Access Information') {
+            steps {
+                script {
+                    def nodeIP = sh(script: 'minikube ip', returnStdout: true).trim()
+                    echo "=========================================================="
+                    echo "Application deployed successfully!"
+                    echo "Access the application at: http://${nodeIP}:30080"
+                    echo "Add this to your hosts file: ${nodeIP} petclinic.test"
+                    echo "=========================================================="
+                }
+            }
+        }
+    }
+}

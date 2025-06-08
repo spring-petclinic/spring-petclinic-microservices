@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-server
+  namespace: ${NAMESPACE}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: admin-server
+  template:
+    metadata:
+      labels:
+        app: admin-server
+    spec:
+      containers:
+        - name: admin-server
+          image: ${DOCKER_USERNAME}/petclinic-admin-server:${ADMIN_SERVER_TAG}
+          ports:
+            - containerPort: 9090
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: kubernetes
+            - name: SPRING_CONFIG_IMPORT
+              value: optional:configserver:http://config-server:8888/
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: http://discovery-server:8761/eureka/
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-server
+  namespace: ${NAMESPACE}
+spec:
+  selector:
+    app: admin-server
+  ports:
+    - port: 9090
+      targetPort: 9090
+  type: ClusterIP

@@ -1,0 +1,29 @@
+// Jenkinsfile-Cleanup
+pipeline {
+    agent any
+    
+    parameters {
+        string(name: 'NAMESPACE', defaultValue: 'petclinic-dev', description: 'Kubernetes namespace to clean up')
+    }
+    
+    stages {
+        stage('Cleanup Deployment') {
+            steps {
+                script {
+                    def services = ['config-server', 'discovery-server', 'api-gateway', 
+                                   'customers-service', 'vets-service', 'visits-service', 
+                                   'genai-service', 'admin-server']
+                    
+                    for (service in services) {
+                        sh """
+                        kubectl delete deployment ${service} -n ${params.NAMESPACE} --ignore-not-found=true
+                        kubectl delete service ${service} -n ${params.NAMESPACE} --ignore-not-found=true
+                        """
+                    }
+                    
+                    echo "Cleanup completed successfully!"
+                }
+            }
+        }
+    }
+}
