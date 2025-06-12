@@ -1,0 +1,51 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # Windows container logs
+  - job_name: windows-containers
+    static_configs:
+    - targets:
+        - localhost
+      labels:
+        job: windows
+        __path__: C:/ProgramData/Docker/containers/*/*-json.log
+
+  - job_name: api-gateway
+    static_configs:
+    - targets:
+        - localhost
+      labels:
+        job: api-gateway
+        __path__: C:/logs/spring-petclinic/api-gateway.log
+
+  - job_name: customers-service
+    static_configs:
+    - targets:
+        - localhost
+      labels:
+        job: customers-service
+        __path__: C:/logs/spring-petclinic/customers-service.log
+
+  - job_name: visits-service
+    static_configs:
+    - targets:
+        - localhost
+      labels:
+        job: visits-service
+        __path__: C:/logs/spring-petclinic/visits-service.log
+
+  - job_name: vets-service
+    static_configs:
+    - targets:
+        - localhost
+      labels:
+        job: vets-service
+        __path__: C:/logs/spring-petclinic/vets-service.log
