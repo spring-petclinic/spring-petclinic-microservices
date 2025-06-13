@@ -1,0 +1,13 @@
+# Exclude common development files and directories
+.git
+.idea
+*.iml
+*.log
+*.class
+target/
+build/
+
+# Exclude application configuration files
+application*.properties
+application*.yml
+application*.yaml

@@ -1,0 +1,23 @@
+FROM eclipse-temurin:17-jre-alpine
+
+WORKDIR /app
+
+# Copy all service JARs
+COPY spring-petclinic-admin-server/target/*.jar admin-server.jar
+COPY spring-petclinic-api-gateway/target/*.jar api-gateway.jar
+COPY spring-petclinic-config-server/target/*.jar config-server.jar
+COPY spring-petclinic-customers-service/target/*.jar customers-service.jar
+COPY spring-petclinic-discovery-server/target/*.jar discovery-server.jar
+COPY spring-petclinic-genai-service/target/*.jar genai-service.jar
+COPY spring-petclinic-vets-service/target/*.jar vets-service.jar
+COPY spring-petclinic-visits-service/target/*.jar visits-service.jar
+
+# Copy startup script
+COPY start-all.sh /app/start-all.sh
+RUN chmod +x /app/start-all.sh
+
+# Expose all required ports
+EXPOSE 8080 8761 8888 9090 8081 8082 8083 8084
+
+# Set the entry point to the startup script
+ENTRYPOINT ["/app/start-all.sh"]
