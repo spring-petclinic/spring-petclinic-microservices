@@ -3,11 +3,26 @@ spring:
     name: customers-service
   config:
     import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
-
-
 ---
 spring:
   config:
     activate:
       on-profile: docker
     import: configserver:http://config-server:8888
+  zipkin:
+    base-url: http://tracing-server:9411/
+  sleuth:
+    sampler:
+      probability: 1.0
+  profiles:
+    active: docker
+  cloud:
+    config:
+      uri: http://config-server:8888
+  server:
+    port: 8081
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,trace
