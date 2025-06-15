@@ -121,6 +121,10 @@
             <artifactId>spring-cloud-sleuth-zipkin</artifactId>
             <version>3.1.9</version>
         </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
 	</dependencies>
 
     <profiles>

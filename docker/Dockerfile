@@ -10,6 +10,7 @@ WORKDIR application
 
 ARG EXPOSED_PORT
 EXPOSE ${EXPOSED_PORT}
+ARG ARTIFACT_NAME="spring-petclinic-customers-service-3.0.0-SNAPSHOT"
 
 ENV SPRING_PROFILES_ACTIVE=docker
 
