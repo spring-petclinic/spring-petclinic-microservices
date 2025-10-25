@@ -32,6 +32,7 @@ public class PetclinicChatClient {
 
 	public PetclinicChatClient(ChatClient.Builder builder, ChatMemory chatMemory) {
 		// @formatter:off
+//        hello
 		this.chatClient = builder
 				.defaultSystem("""
                           You are a friendly AI assistant designed to help with the management of a veterinarian pet clinic called Spring Petclinic.
