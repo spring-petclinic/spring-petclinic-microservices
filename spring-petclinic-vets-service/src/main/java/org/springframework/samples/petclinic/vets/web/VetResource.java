@@ -49,6 +49,6 @@ class VetResource {
 
     @GetMapping("/health")
     public String health() {
-        return "{"status": "UP"}";
+        return "{\"status\": \"UP\"}";
     }
 }
