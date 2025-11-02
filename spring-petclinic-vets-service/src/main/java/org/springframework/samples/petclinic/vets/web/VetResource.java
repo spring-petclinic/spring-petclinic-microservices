@@ -46,4 +46,9 @@ class VetResource {
     public List<Vet> showResourcesVetList() {
         return vetRepository.findAll();
     }
+
+    @GetMapping("/health")
+    public String health() {
+        return "{"status": "UP"}";
+    }
 }
