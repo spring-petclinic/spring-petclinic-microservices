@@ -23,7 +23,7 @@ If everything goes well, you can access the following services at given location
 * Customers, Vets, Visits and GenAI Services - random port, check Eureka Dashboard 
 * Tracing Server (Zipkin) - http://localhost:9411/zipkin/ (we use [openzipkin](https://github.com/openzipkin/zipkin/tree/main/zipkin-server))
 * Admin Server (Spring Boot Admin) - http://localhost:9090
-* Grafana Dashboards - http://localhost:3000
+* Grafana Dashboards - http://localhost:3030
 * Prometheus - http://localhost:9091
 
 You can tell Config Server to use your local Git repository by using `native` Spring profile and setting
@@ -184,7 +184,7 @@ A JMeter load testing script is available to stress the application and generate
 ### Using Grafana with Prometheus
 
 * An anonymous access and a Prometheus datasource are setup.
-* A `Spring Petclinic Metrics` Dashboard is available at the URL http://localhost:3000/d/69JXeR0iw/spring-petclinic-metrics.
+* A `Spring Petclinic Metrics` Dashboard is available at the URL http://localhost:3030/d/69JXeR0iw/spring-petclinic-metrics.
 You will find the JSON configuration file here: [docker/grafana/dashboards/grafana-petclinic-dashboard.json]().
 * You may create your own dashboard or import the [Micrometer/SpringBoot dashboard](https://grafana.com/dashboards/4701) via the Import Dashboard menu item.
 The id for this dashboard is `4701`.
