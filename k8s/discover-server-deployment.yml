@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: discover-server
+  namespace: petclinic
+  labels:
+    app: discover-server
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: discover-server
+    template:
+      metadata:
+        labels:
+          app: discover-server
+      spec:
+        containers:
+          - image: springcommunity/spring-petclinic-discovery-server
+            name: discover-server
+            port:
+              containerPort: 8761
+            resources:
+              limits:
+                memory: "512Mi"
+            livenessProbe:
+              httpGet:
+                path: /
+                port: 8761
+              initialDelaySeconds: 30
+              periodSeconds: 10

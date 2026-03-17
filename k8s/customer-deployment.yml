@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customer
+  namespace: petclinic
+  labels:
+    app: customer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: customer
+  template:
+    metadata:
+      labels:
+        app: customer
+    spec:
+      containers:
+        - image: springcommunity/spring-petclinic-customers-service
+          name: customer
+          port:
+            containerPort: 8081
+          resources:
+            limits:
+              memory: "512Mi"
+
