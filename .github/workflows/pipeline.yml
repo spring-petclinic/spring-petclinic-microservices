@@ -43,18 +43,32 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build and push images
-        run: |
-          mvn spring-boot:build-image \
-            -Dspring-boot.build-image.publish=true \
-            -Dspring-boot.build-image.imageName=ross1832/\${project.artifactId}:latest \
-            --batch-mode \
-            -DskipTests
-            
-      - name: Clean up local images
+          
+      - name: Clean up before build
         run: docker image prune -a -f
         continue-on-error: true
+        
+      - name: Build and push images
+        run: |
+          for service in \
+            spring-petclinic-config-server \
+            spring-petclinic-discovery-server \
+            spring-petclinic-admin-server \
+            spring-petclinic-customers-service \
+            spring-petclinic-vets-service \
+            spring-petclinic-visits-service \
+            spring-petclinic-genai-service \
+            spring-petclinic-api-gateway; do
+            
+            mvn spring-boot:build-image \
+              -pl $service \
+              -Dspring-boot.build-image.publish=true \
+              -Dspring-boot.build-image.imageName=ross1832/$service:latest \
+              --batch-mode \
+              -DskipTests
+            
+            docker image rm ross1832/$service:latest || true
+          done
 
   deploy:
     runs-on: [self-hosted, Linux, X64, k8s]
