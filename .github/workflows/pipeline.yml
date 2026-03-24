@@ -54,6 +54,7 @@ jobs:
             
       - name: Clean up local images
         run: docker image prune -a -f
+        continue-on-error: true
 
   deploy:
     runs-on: [self-hosted, Linux, X64, k8s]
