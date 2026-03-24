@@ -47,8 +47,8 @@ jobs:
       - name: Build and push images
         run: |
           mvn spring-boot:build-image \
-            -Pk8s \
-            -DREPOSITORY_PREFIX=ross1832 \
+            -Dspring-boot.build-image.publish=true \
+            -Dspring-boot.build-image.imageName=ross1832/spring-petclinic:latest \
             --batch-mode \
             -DskipTests
 
