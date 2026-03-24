@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, k8s]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,7 +22,7 @@ jobs:
         run: mvn test --batch-mode -DskipTests
 
   build-and-push:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, k8s]
     needs: build-and-test
     permissions:
       contents: read
