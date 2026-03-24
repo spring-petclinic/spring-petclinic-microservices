@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: config-server
-          image: ghcr.io/ross1832/spring-petclinic-cloud-config-server:latest
+          image: ross1832/spring-petclinic-config-server:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8888
