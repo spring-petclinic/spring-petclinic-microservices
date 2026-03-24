@@ -48,7 +48,7 @@ jobs:
         run: |
           mvn spring-boot:build-image \
             -Dspring-boot.build-image.publish=true \
-            -Dspring-boot.build-image.imageName=ross1832/spring-petclinic:latest \
+            -Dspring-boot.build-image.imageName=ross1832/\${project.artifactId}:${{ github.sha }} \
             --batch-mode \
             -DskipTests
 
