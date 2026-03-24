@@ -51,6 +51,9 @@ jobs:
             -Dspring-boot.build-image.imageName=ross1832/\${project.artifactId}:${{ github.sha }} \
             --batch-mode \
             -DskipTests
+            
+      - name: Clean up local images
+        run: docker image prune -a -f
 
   deploy:
     runs-on: [self-hosted, Linux, X64, k8s]
