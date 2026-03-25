@@ -20,5 +20,7 @@ spec:
           env:
             - name: CONFIG_SERVER_URL
               value: http://config-server:8888/
+            - name: SPRING_PROFILES_ACTIVE
+              value: docker
           ports:
             - containerPort: 8084
