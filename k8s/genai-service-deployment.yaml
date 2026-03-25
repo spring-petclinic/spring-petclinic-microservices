@@ -17,5 +17,8 @@ spec:
         - name: genai-service
           image: ross1832/spring-petclinic-genai-service:latest
           imagePullPolicy: Always
+          env:
+            - name: CONFIG_SERVER_URL
+              value: http://config-server:8888/
           ports:
             - containerPort: 8084
