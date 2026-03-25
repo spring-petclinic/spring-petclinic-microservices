@@ -17,5 +17,8 @@ spec:
         - name: discovery-server
           image: ross1832/spring-petclinic-discovery-server:latest
           imagePullPolicy: Always
+          env:
+            - name: CONFIG_SERVER_URL
+              value: http://config-server:8888/
           ports:
             - containerPort: 8761
