@@ -7,6 +7,9 @@ spring:
     active: production
   config:
     import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/},optional:classpath:/creds.yaml
+  cloud:
+    discovery:
+      enable: true
   ai:
     chat:
       client:
@@ -28,7 +31,15 @@ spring:
             temperature: 0.7
             model: gpt-4o-mini
 
+server:
+  port: 8084
 
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://discovery-server:8761/eureka
 logging:
   level:
     org:

@@ -4,6 +4,8 @@ spring:
   config:
     import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
   cloud:
+    discovery:
+      enable: true
     gateway:
       server:
         webflux:
@@ -44,6 +46,15 @@ spring:
                 - StripPrefix=2
                 - CircuitBreaker=name=genaiCircuitBreaker,fallbackUri=/fallback
 
+server:
+  port: 8080
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://discovery-server:8761/eureka
 ---
 spring:
   config:

@@ -10,3 +10,4 @@ spring:
         native:
           searchLocations: file:///${GIT_REPO}
 
+# todo update with my data
