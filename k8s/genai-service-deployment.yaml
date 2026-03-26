@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: genai-service
+  name: genai-service
+  namespace: petclinic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: genai-service
+  template:
+    metadata:
+      labels:
+        app: genai-service
+    spec:
+      containers:
+        - env:
+            - name: AZURE_OPENAI_ENDPOINT
+            - name: AZURE_OPENAI_KEY
+            - name: OPENAI_API_KEY
+          image: springcommunity/spring-petclinic-genai-service
+          imagePullPolicy: IfNotPresent
+          name: genai-service
+          ports:
+            - containerPort: 8084
+              protocol: TCP
+          resources:
+            limits:
+              memory: "512Mi"

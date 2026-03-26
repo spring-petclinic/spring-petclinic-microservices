@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: discovery-server
+  name: discovery-server
+  namespace: petclinic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: discovery-server
+  template:
+    metadata:
+      labels:
+        app: discovery-server
+    spec:
+      containers:
+        - image: springcommunity/spring-petclinic-discovery-server
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+                - curl
+                - -f
+                - http://discovery-server:8761
+            failureThreshold: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+          name: discovery-server
+          ports:
+            - containerPort: 8761
+              protocol: TCP
+          resources:
+            limits:
+              memory: "512Mi"

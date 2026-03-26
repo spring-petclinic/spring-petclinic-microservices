@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: prometheus-server
+  name: prometheus-server
+  namespace: petclinic
+spec:
+  type: NodePort
+  ports:
+    - name: "9091"
+      port: 9091
+      targetPort: 9090
+  selector:
+    app: prometheus-server

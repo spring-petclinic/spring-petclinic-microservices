@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: vets-service
+  name: vets-service
+  namespace: petclinic
+spec:
+  type: NodePort
+  ports:
+    - name: "8083"
+      port: 8083
+      targetPort: 8083
+  selector:
+    app: vets-service

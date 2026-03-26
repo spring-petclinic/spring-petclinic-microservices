@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: vets-service
+  name: vets-service
+  namespace: petclinic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vets-service
+  template:
+    metadata:
+      labels:
+        app: vets-service
+    spec:
+      containers:
+        - image: springcommunity/spring-petclinic-vets-service
+          imagePullPolicy: IfNotPresent
+          name: vets-service
+          ports:
+            - containerPort: 8083
+              protocol: TCP
+          resources:
+            limits:
+              memory: "512Mi"

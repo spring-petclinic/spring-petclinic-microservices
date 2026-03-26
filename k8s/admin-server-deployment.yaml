@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: admin-server
+  name: admin-server
+  namespace: petclinic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+     app: admin-server
+  template:
+    metadata:
+      labels:
+        app: admin-server
+    spec:
+      containers:
+        - image: springcommunity/spring-petclinic-admin-server
+          imagePullPolicy: IfNotPresent
+          name: admin-server
+          ports:
+            - containerPort: 9090
+              protocol: TCP
+          resources:
+            limits:
+              memory: "512Mi"

@@ -1,15 +1,15 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: config-server
-  namespace: petclinic
   labels:
     app: config-server
+  name: config-server
+  namespace: petclinic
 spec:
+  replicas: 1
   selector:
     matchLabels:
       app: config-server
-  replicas: 1
   template:
     metadata:
       labels:
@@ -17,18 +17,20 @@ spec:
     spec:
       containers:
         - image: springcommunity/spring-petclinic-config-server
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+                - curl
+                - -I
+                - http://config-server:8888
+            failureThreshold: 10
+            periodSeconds: 5
+            timeoutSeconds: 5
           name: config-server
           ports:
             - containerPort: 8888
+              protocol: TCP
           resources:
             limits:
               memory: "512Mi"
-          livenessProbe:
-            httpGet:
-              path: /
-              port: 8888
-            initialDelaySeconds: 30
-            periodSeconds: 10
-
-
-

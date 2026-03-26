@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: visits-service
+  name: visits-service
+  namespace: petclinic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: visits-service
+  template:
+    metadata:
+      labels:
+        app: visits-service
+    spec:
+      containers:
+        - image: springcommunity/spring-petclinic-visits-service
+          imagePullPolicy: IfNotPresent
+          name: visits-service
+          ports:
+            - containerPort: 8082
+              protocol: TCP
+          resources:
+            limits:
+              memory: "512Mi"
