@@ -1,0 +1,122 @@
+pipeline {
+    agent {
+        docker {
+            image 'adjolearn/jenkins-agent-java21-maven:latest'
+            args '-v /var/run/docker.sock:/var/run/docker.sock \
+                  -v $HOME/.m2:/root/.m2 \
+                  -u root'
+        }
+    }
+
+    environment {
+        REGISTRY    = "adjolearn"
+        DOCKERFILE  = "docker/Dockerfile"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                echo "Cloning your repo"
+                git url: "https://github.com/EmmanuelleAD/spring-petclinic-microservices.git",
+                    branch: "main"
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo "Building project with Java 21"
+                sh 'mvn clean package -DskipTests'
+                script {
+                    env.PROJECT_VERSION = sh(
+                        script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout",
+                        returnStdout: true
+                    ).trim()
+                    echo "Version détectée : ${env.PROJECT_VERSION}"
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo "Running tests"
+                sh 'mvn test'
+            }
+        }
+
+        stage('Build Docker Images') {
+            steps {
+                script {
+                    def services = [
+                        'spring-petclinic-api-gateway'      : [port: '8080'],
+                        'spring-petclinic-customers-service' : [port: '8081'],
+                        'spring-petclinic-vets-service'      : [port: '8083'],
+                        'spring-petclinic-visits-service'    : [port: '8082'],
+                        'spring-petclinic-admin-server'      : [port: '9090'],
+                        'spring-petclinic-config-server'     : [port: '8888'],
+                        'spring-petclinic-discovery-server'  : [port: '8761'],
+                        'spring-petclinic-genai-service'     : [port: '8084']
+                    ]
+
+                    services.each { serviceName, config ->
+                        echo "Building image for ${serviceName}..."
+                        sh """
+                            docker build \
+                              -f ${DOCKERFILE} \
+                              --build-arg ARTIFACT_NAME=${serviceName}/target/${serviceName}-${PROJECT_VERSION} \
+                              --build-arg EXPOSED_PORT=${config.port} \
+                              -t ${REGISTRY}/${serviceName}:${BUILD_NUMBER} \
+                              -t ${REGISTRY}/${serviceName}:${PROJECT_VERSION} \
+                              .
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Push Docker Images') {
+            steps {
+                script {
+                    def services = [
+                        'spring-petclinic-api-gateway',
+                        'spring-petclinic-customers-service',
+                        'spring-petclinic-vets-service',
+                        'spring-petclinic-visits-service',
+                        'spring-petclinic-admin-server',
+                        'spring-petclinic-config-server',
+                        'spring-petclinic-discovery-server',
+                        'spring-petclinic-genai-service'
+                    ]
+
+                    withCredentials([usernamePassword(
+                        credentialsId: 'docker-cred',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )]) {
+                        sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+
+                        services.each { serviceName ->
+                            echo "Pushing ${serviceName}..."
+                            sh """
+                                docker push ${REGISTRY}/${serviceName}:${BUILD_NUMBER}
+                                docker push ${REGISTRY}/${serviceName}:${PROJECT_VERSION}
+                            """
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            sh 'docker logout || true'
+        }
+        success {
+            echo "Pipeline terminée — ${env.PROJECT_VERSION} build #${BUILD_NUMBER} pushée sur Docker Hub"
+        }
+        failure {
+            echo "Echec de la pipeline — vérifiez les logs ci-dessus"
+        }
+    }
+}
