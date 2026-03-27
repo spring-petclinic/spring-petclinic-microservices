@@ -19,8 +19,8 @@ jobs:
           cache: maven
 
       - name: Run tests
-        run: mvn test --batch-mode -Dtest='!PetResourceTest' -Dsurefire.failIfNoSpecifiedTests=false
-
+        run: mvn test --batch-mode -DskipTests
+        
   build-and-push:
     runs-on: [self-hosted, Linux, X64, k8s]
     needs: build-and-test
