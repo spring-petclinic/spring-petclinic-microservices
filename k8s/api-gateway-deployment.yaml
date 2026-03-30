@@ -4,7 +4,7 @@ metadata:
   name: api-gateway
   namespace: dev
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: api-gateway
@@ -13,6 +13,19 @@ spec:
       labels:
         app: api-gateway
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: config-server
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: config-server
+          image: ross1832/spring-petclinic-config-server:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8888
       containers:
         - name: api-gateway
           image: ross1832/spring-petclinic-api-gateway:latest
