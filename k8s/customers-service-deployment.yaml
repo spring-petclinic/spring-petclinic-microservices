@@ -4,7 +4,7 @@ metadata:
   name: customers-service
   namespace: dev
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: customers-service
@@ -13,6 +13,19 @@ spec:
       labels:
         app: customers-service
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: config-server
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: config-server
+          image: ross1832/spring-petclinic-config-server:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8888
       containers:
         - name: customers-service
           image: ross1832/spring-petclinic-customers-service:latest
