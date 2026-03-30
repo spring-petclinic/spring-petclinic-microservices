@@ -22,11 +22,11 @@ spec:
               value: http://config-server:8888/
             - name: SPRING_PROFILES_ACTIVE
               value: docker,mysql
-            - name: MYSQL_URL
+            - name: SPRING_DATASOURCE_URL
               value: jdbc:mysql://mysql:3306/petclinic?allowPublicKeyRetrieval=true&useSSL=false
-            - name: MYSQL_USER
+            - name: SPRING_DATASOURCE_USERNAME
               value: root
-            - name: MYSQL_PASS
+            - name: SPRING_DATASOURCE_PASSWORD
               value: petclinic
           ports:
-            - containerPort: 8083
+            - containerPort: 8081
