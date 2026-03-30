@@ -21,12 +21,6 @@ spec:
                   app: config-server
               topologyKey: "kubernetes.io/hostname"
       containers:
-        - name: config-server
-          image: ross1832/spring-petclinic-config-server:latest
-          imagePullPolicy: Always
-          ports:
-            - containerPort: 8888
-      containers:
         - name: customers-service
           image: ross1832/spring-petclinic-customers-service:latest
           imagePullPolicy: Always
