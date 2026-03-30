@@ -10,17 +10,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-
       - name: Run tests
         run: mvn test --batch-mode -DskipTests
-        
+
   build-and-push:
     runs-on: [self-hosted, Linux, X64, k8s]
     needs: build-and-test
@@ -30,24 +28,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          
       - name: Clean up before build
         run: docker image prune -a -f
         continue-on-error: true
-        
       - name: Build and push images
         run: |
           for service in \
@@ -59,24 +53,34 @@ jobs:
             spring-petclinic-visits-service \
             spring-petclinic-genai-service \
             spring-petclinic-api-gateway; do
-            
+
             mvn spring-boot:build-image \
               -pl $service \
               -Dspring-boot.build-image.publish=true \
               -Dspring-boot.build-image.imageName=ross1832/$service:latest \
               --batch-mode \
               -DskipTests
-            
+
             docker image rm ross1832/$service:latest || true
           done
 
-  deploy:
+  deploy-dev:
     runs-on: [self-hosted, Linux, X64, k8s]
     needs: build-and-push
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Deploy to Kubernetes
+      - name: Deploy to dev
         run: |
-          kubectl apply -f k8s/ -n dev
+          kubectl apply -f k8s/dev/ -n dev
+
+  deploy-prod:
+    runs-on: [self-hosted, Linux, X64, k8s]
+    needs: build-and-push
+    environment: prod
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Deploy to prod
+        run: |
+          kubectl apply -f k8s/prod/ -n prod
