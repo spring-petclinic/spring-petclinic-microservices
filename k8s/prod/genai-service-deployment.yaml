@@ -18,7 +18,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
                 matchLabels:
-                  app: config-server
+                  app: genai-service
               topologyKey: "kubernetes.io/hostname"
       containers:
         - name: genai-service

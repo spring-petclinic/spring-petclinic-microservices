@@ -18,7 +18,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
                 matchLabels:
-                  app: config-server
+                  app: visits-service
               topologyKey: "kubernetes.io/hostname"
       containers:
         - name: visits-service
@@ -36,4 +36,4 @@ spec:
             - name: SPRING_DATASOURCE_PASSWORD
               value: petclinic
           ports:
-            - containerPort: 8081
+            - containerPort: 8082
