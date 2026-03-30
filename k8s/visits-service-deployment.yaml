@@ -4,7 +4,7 @@ metadata:
   name: visits-service
   namespace: dev
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: visits-service
@@ -13,6 +13,19 @@ spec:
       labels:
         app: visits-service
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: config-server
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: config-server
+          image: ross1832/spring-petclinic-config-server:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8888
       containers:
         - name: visits-service
           image: ross1832/spring-petclinic-visits-service:latest
