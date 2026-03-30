@@ -4,7 +4,7 @@ metadata:
   name: discovery-server
   namespace: dev
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: discovery-server
@@ -13,6 +13,19 @@ spec:
       labels:
         app: discovery-server
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: config-server
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: config-server
+          image: ross1832/spring-petclinic-config-server:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8888
       containers:
         - name: discovery-server
           image: ross1832/spring-petclinic-discovery-server:latest
