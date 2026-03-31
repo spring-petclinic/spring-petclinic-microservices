@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: genai-service
+  namespace: dev
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: genai-service
+  template:
+    metadata:
+      labels:
+        app: genai-service
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: genai-service
+                topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: genai-service
+          image: ross1832/spring-petclinic-genai-service:latest
+          imagePullPolicy: Always
+          env:
+            - name: CONFIG_SERVER_URL
+              value: http://config-server:8888/
+            - name: SPRING_PROFILES_ACTIVE
+              value: docker
+          ports:
+            - containerPort: 8084

@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-server
+  namespace: prod
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: admin-server
+  template:
+    metadata:
+      labels:
+        app: admin-server
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: admin-server
+                topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: admin-server
+          image: ross1832/spring-petclinic-admin-server:latest
+          imagePullPolicy: Always
+          env:
+            - name: CONFIG_SERVER_URL
+              value: http://config-server:8888/
+            - name: SPRING_PROFILES_ACTIVE
+              value: docker
+          ports:
+            - containerPort: 9090
