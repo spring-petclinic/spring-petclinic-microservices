@@ -33,3 +33,4 @@ spec:
               value: docker
           ports:
             - containerPort: 9090
+            
