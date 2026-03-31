@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: visits-service
+  namespace: prod
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: visits-service
+  template:
+    metadata:
+      labels:
+        app: visits-service
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: visits-service
+                topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: visits-service
+          image: ross1832/spring-petclinic-visits-service:latest
+          imagePullPolicy: Always
+          env:
+            - name: CONFIG_SERVER_URL
+              value: http://config-server:8888/
+            - name: SPRING_PROFILES_ACTIVE
+              value: docker,mysql
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://mysql:3306/petclinic?allowPublicKeyRetrieval=true&useSSL=false
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: petclinic
+          ports:
+            - containerPort: 8082
