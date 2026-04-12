@@ -8,6 +8,10 @@ spring:
   profiles:
     active: production
 
+eureka:
+  instance:
+    prefer-ip-address: ${EUREKA_INSTANCE_PREFER_IP_ADDRESS:true}
+
 ---
 spring:
   config:

@@ -37,6 +37,10 @@ logging:
           chat:
             client:
               advisor: DEBUG
+
+eureka:
+  instance:
+    prefer-ip-address: ${EUREKA_INSTANCE_PREFER_IP_ADDRESS:true}
 ---
 spring:
   config:
