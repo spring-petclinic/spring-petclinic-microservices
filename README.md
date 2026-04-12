@@ -26,6 +26,9 @@ If everything goes well, you can access the following services at given location
 * Grafana Dashboards - http://localhost:3030
 * Prometheus - http://localhost:9091
 
+Discovery clients in this repo now default to `eureka.instance.prefer-ip-address=true` to avoid hostname resolution problems that can show up on some Windows and containerized setups.
+If you need the previous Eureka hostname-based registration behavior, set `EUREKA_INSTANCE_PREFER_IP_ADDRESS=false` before starting the services.
+
 You can tell Config Server to use your local Git repository by using `native` Spring profile and setting
 `GIT_REPO` environment variable, for example:
 `-Dspring.profiles.active=native -DGIT_REPO=/projects/spring-petclinic-microservices-config`

@@ -44,6 +44,10 @@ spring:
                 - StripPrefix=2
                 - CircuitBreaker=name=genaiCircuitBreaker,fallbackUri=/fallback
 
+eureka:
+  instance:
+    prefer-ip-address: ${EUREKA_INSTANCE_PREFER_IP_ADDRESS:true}
+
 ---
 spring:
   config:
