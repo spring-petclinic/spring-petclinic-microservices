@@ -43,7 +43,8 @@ spring:
               filters:
                 - StripPrefix=2
                 - CircuitBreaker=name=genaiCircuitBreaker,fallbackUri=/fallback
-
+  reactor:
+    context-propagation: auto
 ---
 spring:
   config:
