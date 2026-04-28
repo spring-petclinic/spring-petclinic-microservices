@@ -66,7 +66,7 @@ are usually not enough and make the `docker-compose up` painfully slow.*
 ## Starting services locally with docker-compose and Java
 If you experience issues with running the system via docker-compose you can try running the `./scripts/run_all.sh` script that will start the infrastructure services via docker-compose and all the Java based applications via standard `nohup java -jar ...` command. The logs will be available under `${ROOT}/target/nameoftheapp.log`. 
 
-Each of the java based applications is started with the `chaos-monkey` profile in order to interact with Spring Boot Chaos Monkey. You can check out the (README)[scripts/chaos/README.md] for more information about how to use the `./scripts/chaos/call_chaos.sh` helper script to enable assaults.
+Each of the java based applications is started with the `chaos-monkey` profile in order to interact with Spring Boot Chaos Monkey. You can check out the [README](scripts/chaos/README.md) for more information about how to use the `./scripts/chaos/call_chaos.sh` helper script to enable assaults.
 
 ## Understanding the Spring Petclinic application
 
@@ -110,12 +110,12 @@ Spring Petclinic integrates a Chatbot that allows you to interact with the appli
 
 ![Screenshot of the chat dialog](docs/spring-ai.png)
 
-This `spring-petlinic-genai-service` microservice currently supports **OpenAI** (default) or **Azure's OpenAI** as the LLM provider.
+This `spring-petclinic-genai-service` microservice currently supports **OpenAI** (default) or **Azure's OpenAI** as the LLM provider.
 In order to start the microservice, perform the following steps:
 
 1. Decide which provider you want to use. By default, the `spring-ai-starter-model-openai` dependency is enabled. 
    You can change it to `spring-ai-starter-model-azure-openai`in the `pom.xml`.
-2. Create an OpenAI API key or a Azure OpenAI resource in your Azure Portal.
+2. Create an OpenAI API key or an Azure OpenAI resource in your Azure Portal.
    Refer to the [OpenAI's quickstart](https://platform.openai.com/docs/quickstart) or [Azure's documentation](https://learn.microsoft.com/en-us/azure/ai-services/openai/) for further information on how to obtain these.
    You only need to populate the provider you're using - either openai, or azure-openai.
    If you don't have your own OpenAI API key, don't worry!
@@ -161,7 +161,7 @@ By default, at startup, database schema will be created and data will be populat
 You may also manually create the PetClinic database and data by executing the `"db/mysql/{schema,data}.sql"` scripts of each 3 microservices. 
 In the `application.yml` of the [Configuration repository], set the `initialization-mode` to `never`.
 
-If you are running the microservices with Docker, you have to add the `mysql` profile into the (Dockerfile)[docker/Dockerfile]:
+If you are running the microservices with Docker, you have to add the `mysql` profile into the [Dockerfile](docker/Dockerfile):
 ```
 ENV SPRING_PROFILES_ACTIVE docker,mysql
 ```
