@@ -43,11 +43,11 @@ spring:
               filters:
                 - StripPrefix=2
                 - CircuitBreaker=name=genaiCircuitBreaker,fallbackUri=/fallback
-  reactor:
-    context-propagation: auto
 ---
 spring:
   config:
     activate:
       on-profile: docker
     import: configserver:http://config-server:8888
+reactor:
+  context-propagation: auto
