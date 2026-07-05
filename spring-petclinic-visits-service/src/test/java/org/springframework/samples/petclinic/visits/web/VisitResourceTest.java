@@ -12,7 +12,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static java.util.Arrays.asList;
 import static org.mockito.BDDMockito.given;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -54,5 +56,11 @@ class VisitResourceTest {
             .andExpect(jsonPath("$.items[0].petId").value(111))
             .andExpect(jsonPath("$.items[1].petId").value(222))
             .andExpect(jsonPath("$.items[2].petId").value(222));
+    }
+
+    @Test
+    void shouldRejectInvalidVisitBody() throws Exception {
+        mvc.perform(post("/owners/1/pets/1/visits"))
+            .andExpect(status().isBadRequest());
     }
 }

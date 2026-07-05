@@ -5,12 +5,14 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.samples.petclinic.customers.model.Owner;
 import org.springframework.samples.petclinic.customers.model.OwnerRepository;
 import org.springframework.samples.petclinic.customers.model.Pet;
 import org.springframework.samples.petclinic.customers.model.PetRepository;
 import org.springframework.samples.petclinic.customers.model.PetType;
+import org.springframework.samples.petclinic.customers.web.mapper.OwnerEntityMapper;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -18,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -25,7 +28,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * @author Maciej Szarlinski
  */
-@WebMvcTest(PetResource.class)
+@WebMvcTest({PetResource.class, OwnerResource.class})
+@Import(OwnerEntityMapper.class)
 @ActiveProfiles("test")
 class PetResourceTest {
 
@@ -52,6 +56,44 @@ class PetResourceTest {
             .andExpect(jsonPath("$.id").value(2))
             .andExpect(jsonPath("$.name").value("Basil"))
             .andExpect(jsonPath("$.type.id").value(6));
+    }
+
+    @Test
+    void shouldRejectCreatePetForMissingOwner() throws Exception {
+        given(ownerRepository.findById(99)).willReturn(Optional.empty());
+
+        mvc.perform(post("/owners/99/pets")
+                .contentType("application/json")
+                .content("""
+                    {
+                        "id": 0,
+                        "name": "Fluffy",
+                        "typeId": 1
+                    }
+                """))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldRejectBlankInput() throws Exception {
+        mvc.perform(post("/owners")
+                .contentType("application/json")
+                .content("""
+                    {
+                      "firstName": "",
+                      "lastName": "TestLastName",
+                      "address": "YorkU",
+                      "city": "Markham",
+                      "telephone": "1234567890"
+                    }
+                    """))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldRejectInvalidOwnerId() throws Exception {
+        mvc.perform(get("/owners/0"))
+            .andExpect(status().isBadRequest());
     }
 
     private Pet setupPet() {
