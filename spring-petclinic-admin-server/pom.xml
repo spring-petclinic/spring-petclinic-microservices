@@ -52,6 +52,13 @@
             <version>${spring-boot-admin.version}</version>
         </dependency>
 
+        <!-- Testing -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Third-party librairies -->
         <dependency>
             <groupId>org.jolokia</groupId>

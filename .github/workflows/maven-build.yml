@@ -10,20 +10,43 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-
+  build-and-test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        java: [ '17' ]
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK ${{matrix.java}}
-      uses: actions/setup-java@v4
-      with:
-        java-version: ${{matrix.java}}
-        distribution: 'adopt'
-        cache: maven
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build all modules (compile only)
+        run: ./mvnw -B package -DskipTests --file pom.xml
+
+      - name: Test customers-service
+        run: ./mvnw -B test -pl spring-petclinic-customers-service
+
+      - name: Test vets-service
+        run: ./mvnw -B test -pl spring-petclinic-vets-service
+
+      - name: Test visits-service
+        run: ./mvnw -B test -pl spring-petclinic-visits-service
+
+      - name: Test admin-server
+        run: ./mvnw -B test -pl spring-petclinic-admin-server
+
+      - name: Upload JaCoCo coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-reports
+          path: |
+            spring-petclinic-customers-service/target/site/jacoco/
+            spring-petclinic-vets-service/target/site/jacoco/
+            spring-petclinic-visits-service/target/site/jacoco/
+            spring-petclinic-admin-server/target/site/jacoco/
+          retention-days: 14

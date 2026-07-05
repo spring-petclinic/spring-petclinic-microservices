@@ -1,0 +1,10 @@
+spring:
+  cloud:
+    config:
+      enabled: false
+
+eureka:
+  client:
+    enabled: false
+
+logging.level.org.springframework: INFO
