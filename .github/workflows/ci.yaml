@@ -1,0 +1,94 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  sonar-check:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build with Maven
+        run: ./mvnw -B clean verify checkstyle:checkstyle
+
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
+
+      - name: SonarQube Quality Gate Check
+        uses: sonarsource/sonarqube-quality-gate-action@v1.1.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
+        with:
+          scanMetadataReportFile: .scannerwork/report-task.txt
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build with Maven
+        run: ./mvnw clean install -DskipTests
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to AWS ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set Image Tag
+        id: meta
+        run: echo "sha_tag=${GITHUB_SHA}" >> $GITHUB_OUTPUT
+
+      - name: build docker images
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ steps.meta.outputs.sha_tag }}
+        run: |
+          docker build -t $ECR_REGISTRY/spring-petclinic-config-server:$IMAGE_TAG -f spring-petclinic-config-server/Dockerfile spring-petclinic-config-server
+          docker build -t $ECR_REGISTRY/spring-petclinic-discovery-server:$IMAGE_TAG -f spring-petclinic-discovery-server/Dockerfile spring-petclinic-discovery-server
+          docker build -t $ECR_REGISTRY/spring-petclinic-vets-service:$IMAGE_TAG -f spring-petclinic-vets-service/Dockerfile spring-petclinic-vets-service
+          docker build -t $ECR_REGISTRY/spring-petclinic-customers-service:$IMAGE_TAG -f spring-petclinic-customers-service/Dockerfile spring-petclinic-customers-service
+          docker build -t $ECR_REGISTRY/spring-petclinic-visits-service:$IMAGE_TAG -f spring-petclinic-visits-service/Dockerfile spring-petclinic-visits-service
+          docker build -t $ECR_REGISTRY/spring-petclinic-api-gateway:$IMAGE_TAG -f spring-petclinic-api-gateway/Dockerfile spring-petclinic-api-gateway
+          docker build -t $ECR_REGISTRY/spring-petclinic-admin-server:$IMAGE_TAG -f spring-petclinic-admin-server/Dockerfile spring-petclinic-admin-server
+
+      - name: Push Docker images to AWS ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ steps.meta.outputs.sha_tag }}
+        run: |
+          docker push $ECR_REGISTRY/spring-petclinic-config-server:$IMAGE_TAG
+          docker push $ECR_REGISTRY/spring-petclinic-discovery-server:$IMAGE_TAG
+          docker push $ECR_REGISTRY/spring-petclinic-vets-service:$IMAGE_TAG
+          docker push $ECR_REGISTRY/spring-petclinic-customers-service:$IMAGE_TAG
+          docker push $ECR_REGISTRY/spring-petclinic-visits-service:$IMAGE_TAG
+          docker push $ECR_REGISTRY/spring-petclinic-api-gateway:$IMAGE_TAG
+          docker push $ECR_REGISTRY/spring-petclinic-admin-server:$IMAGE_TAG
+      
