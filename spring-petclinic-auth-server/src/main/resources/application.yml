@@ -1,0 +1,11 @@
+server:
+  port: 9000
+
+spring:
+  application:
+    name: auth-server
+
+  security:
+    user:
+      name: petclinic
+      password: petclinic
