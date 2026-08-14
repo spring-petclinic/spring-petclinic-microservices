@@ -12,6 +12,7 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -115,11 +116,13 @@ public class AuthorizationServerConfig {
      * this production-ready.
      */
     @Bean
-    public UserDetailsService userDetailsService() {
+    public UserDetailsService userDetailsService(
+        @Value("${AUTH_SERVER_USERNAME}") String username,
+        @Value("${AUTH_SERVER_PASSWORD}") String password) {
 
         UserDetails user = User
-            .withUsername("petclinic")
-            .password("{noop}petclinic")
+            .withUsername(username)
+            .password("{noop}" + password)
             .roles("USER")
             .build();
 
@@ -134,7 +137,8 @@ public class AuthorizationServerConfig {
      * This is an in-memory implementation for development.
      */
     @Bean
-    public RegisteredClientRepository registeredClientRepository() {
+    public RegisteredClientRepository registeredClientRepository(
+        @Value("${AUTH_SERVER_CLIENT_SECRET}") String clientSecret) {
 
         RegisteredClient petclinicClient =
             RegisteredClient.withId(
@@ -142,7 +146,7 @@ public class AuthorizationServerConfig {
                 )
                 .clientId("petclinic-client")
 
-                .clientSecret("{noop}petclinic-secret")
+                .clientSecret("{noop}" + clientSecret)
 
                 .clientAuthenticationMethod(
                     ClientAuthenticationMethod.CLIENT_SECRET_BASIC

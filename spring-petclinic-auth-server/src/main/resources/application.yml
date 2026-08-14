@@ -7,5 +7,5 @@ spring:
 
   security:
     user:
-      name: petclinic
-      password: petclinic
+      name: ${AUTH_SERVER_USERNAME}
+      password: ${AUTH_SERVER_PASSWORD}
