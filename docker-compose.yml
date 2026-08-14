@@ -6,8 +6,11 @@ services:
       resources:
         limits:
           memory: 512M
+    environment:
+      THC_PORT: 8888
+      THC_PATH: /
     healthcheck:
-      test: ["CMD", "curl", "-I", "http://config-server:8888"]
+      test: ["CMD", "/workspace/health-check"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -21,8 +24,11 @@ services:
       resources:
         limits:
           memory: 512M
+    environment:
+      THC_PORT: 8761
+      THC_PATH: /
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://discovery-server:8761"]
+      test: ["CMD", "/workspace/health-check"]
       interval: 5s
       timeout: 3s
       retries: 10
