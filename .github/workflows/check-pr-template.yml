@@ -57,20 +57,24 @@ jobs:
             // using GITHUB_TOKEN — it cannot distinguish members from non-members.
             //
             // Solution: use ORG_READ_PAT (a classic PAT with read:org scope stored as a
-            // repo/org secret) only for this call. All write operations below still use
-            // the default GITHUB_TOKEN so automated comments appear as github-actions[bot].
+            // repo/org secret) only for this call, by overriding the Authorization header
+            // on a single request through the existing `github` client. All write
+            // operations below still use the default GITHUB_TOKEN so automated comments
+            // appear as github-actions[bot].
+            //
+            // Note: `require('@actions/github')` is NOT available here — github-script's
+            // bundled runtime has no on-disk node_modules for user scripts to resolve
+            // against, so requiring it throws "Cannot find module '@actions/github'".
             //
             // Fallback: if ORG_READ_PAT is not configured, the GITHUB_TOKEN is used and
             // only *public* org members are bypassed (302 is treated as non-member).
             const orgReadToken = process.env.ORG_READ_PAT;
-            const orgClient = orgReadToken
-              ? require('@actions/github').getOctokit(orgReadToken)
-              : github;
 
             try {
-              const { status } = await orgClient.rest.orgs.checkMembershipForUser({
+              const { status } = await github.request('GET /orgs/{org}/members/{username}', {
                 org: context.repo.owner,
                 username: pr.user.login,
+                headers: orgReadToken ? { authorization: `token ${orgReadToken}` } : undefined,
               });
               if (status === 204) {
                 console.log(`@${pr.user.login} is a ${context.repo.owner} org member — skipping triage.`);
