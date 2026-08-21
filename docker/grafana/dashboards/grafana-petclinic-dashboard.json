@@ -525,7 +525,7 @@
         "lineColor": "rgb(31, 120, 193)",
         "show": false
       },
-      "tableColumn": "Value",
+      "tableColumn": "",
       "targets": [
         {
           "expr": "sum(petclinic_visit_seconds_count{method=\"read\", exception=\"none\"})",
