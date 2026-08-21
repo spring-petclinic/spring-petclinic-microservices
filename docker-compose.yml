@@ -5,7 +5,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 1G
     environment:
       THC_PORT: 8888
       THC_PATH: /
@@ -23,9 +23,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 1G
     environment:
-      THC_PORT: 8761
+      THC_PORT: 8080
       THC_PATH: /
     healthcheck:
       test: ["CMD", "/workspace/health-check"]
