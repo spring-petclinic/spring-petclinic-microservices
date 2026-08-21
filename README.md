@@ -62,6 +62,25 @@ The `main` branch uses an Eclipse Temurin with Java 17 as Docker base image.
 *NOTE: Under MacOSX or Windows, make sure that the Docker VM has enough memory to run the microservices. The default settings
 are usually not enough and make the `docker-compose up` painfully slow.*
 
+### Authorization Server configuration
+
+The Authorization Server requires the following environment variables:
+
+- AUTH_SERVER_USERNAME
+- AUTH_SERVER_PASSWORD
+- AUTH_SERVER_CLIENT_SECRET
+
+For local development, copy `.env.sample` and configure the values for your environment:
+
+    cp .env.sample .env
+
+On Windows PowerShell:
+
+    $env:AUTH_SERVER_USERNAME="petclinic"
+    $env:AUTH_SERVER_PASSWORD="your-password"
+    $env:AUTH_SERVER_CLIENT_SECRET="your-client-secret"
+
+Do not commit real credentials to the repository.
 
 ## Starting services locally with docker-compose and Java
 If you experience issues with running the system via docker-compose you can try running the `./scripts/run_all.sh` script that will start the infrastructure services via docker-compose and all the Java based applications via standard `nohup java -jar ...` command. The logs will be available under `${ROOT}/target/nameoftheapp.log`. 

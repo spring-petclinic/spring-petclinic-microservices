@@ -23,6 +23,7 @@
         <module>spring-petclinic-genai-service</module>
         <module>spring-petclinic-config-server</module>
         <module>spring-petclinic-discovery-server</module>
+        <module>spring-petclinic-auth-server</module>
         <module>spring-petclinic-api-gateway</module>
     </modules>
 
