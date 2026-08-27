@@ -25,7 +25,7 @@ services:
         limits:
           memory: 1G
     environment:
-      THC_PORT: 8080
+      THC_PORT: 8761
       THC_PATH: /
     healthcheck:
       test: ["CMD", "/workspace/health-check"]
