@@ -14,10 +14,12 @@ import org.springframework.samples.petclinic.customers.model.PetType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -53,13 +55,37 @@ class PetResourceTest {
             .andExpect(jsonPath("$.name").value("Basil"))
             .andExpect(jsonPath("$.type.id").value(6));
     }
-    
+
     @Test
     void shouldReturnNotFoundWhenPetDoesNotExist() throws Exception {
         given(petRepository.findById(99)).willReturn(Optional.empty());
 
         mvc.perform(get("/owners/2/pets/99").accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldRejectFuturePetBirthdayOnUpdate() throws Exception{
+        String futureBirthDateJson = """
+        {"id": 2, "name": "Basil", "typeId": 6, "birthDate": "2030-01-01"}
+        """;
+
+        mvc.perform(put("/owners/2/pets/2")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(futureBirthDateJson))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldRejectFuturePetBirthdayOnPost() throws Exception{
+        String futureBirthDateJson = """
+        {"id": 2, "name": "Basil", "typeId": 6, "birthDate": "2030-01-01"}
+        """;
+
+        mvc.perform(MockMvcRequestBuilders.post("/owners/2/pets")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(futureBirthDateJson))
+            .andExpect(status().isBadRequest());
     }
 
     private Pet setupPet() {

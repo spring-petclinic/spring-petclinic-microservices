@@ -55,7 +55,7 @@ class PetResource {
     @PostMapping("/owners/{ownerId}/pets")
     @ResponseStatus(HttpStatus.CREATED)
     public Pet processCreationForm(
-        @RequestBody PetRequest petRequest,
+        @RequestBody @Valid PetRequest petRequest,
         @PathVariable("ownerId") @Min(1) int ownerId) {
 
         Owner owner = ownerRepository.findById(ownerId)
