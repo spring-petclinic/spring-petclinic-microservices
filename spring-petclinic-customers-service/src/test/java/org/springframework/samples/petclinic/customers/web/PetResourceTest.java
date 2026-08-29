@@ -1,5 +1,6 @@
 package org.springframework.samples.petclinic.customers.web;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -14,8 +15,6 @@ import org.springframework.samples.petclinic.customers.model.PetType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
 
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -23,6 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 /**
  * @author Maciej Szarlinski
@@ -66,9 +66,10 @@ class PetResourceTest {
 
     @Test
     void shouldRejectFuturePetBirthdayOnUpdate() throws Exception{
+        String futureDate = LocalDate.now().plusYears(1).toString();
         String futureBirthDateJson = """
-        {"id": 2, "name": "Basil", "typeId": 6, "birthDate": "2030-01-01"}
-        """;
+        {"id": 2, "name": "Basil", "typeId": 6, "birthDate": "%s"}
+        """.formatted(futureDate);
 
         mvc.perform(put("/owners/2/pets/2")
             .contentType(MediaType.APPLICATION_JSON)
@@ -78,11 +79,12 @@ class PetResourceTest {
 
     @Test
     void shouldRejectFuturePetBirthdayOnPost() throws Exception{
+        String futureDate = LocalDate.now().plusYears(1).toString();
         String futureBirthDateJson = """
-        {"id": 2, "name": "Basil", "typeId": 6, "birthDate": "2030-01-01"}
-        """;
+        {"name": "Basil", "typeId": 6, "birthDate": "%s"}
+        """.formatted(futureDate);
 
-        mvc.perform(MockMvcRequestBuilders.post("/owners/2/pets")
+        mvc.perform(post("/owners/2/pets")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(futureBirthDateJson))
             .andExpect(status().isBadRequest());
