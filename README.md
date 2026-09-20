@@ -64,9 +64,17 @@ are usually not enough and make the `docker-compose up` painfully slow.*
 
 
 ## Starting services locally with docker-compose and Java
-If you experience issues with running the system via docker-compose you can try running the `./scripts/run_all.sh` script that will start the infrastructure services via docker-compose and all the Java based applications via standard `nohup java -jar ...` command. The logs will be available under `${ROOT}/target/nameoftheapp.log`. 
+If you experience issues with running the system via docker-compose you can try running the `./scripts/run_all.sh` script that will start the infrastructure 
+services via `docker compose` and all the Java based applications via standard `nohup java -jar ...` command.
+The logs will be available under `${ROOT}/target/nameoftheapp.log`.
 
-Each of the java based applications is started with the `chaos-monkey` profile in order to interact with Spring Boot Chaos Monkey. You can check out the [README](scripts/chaos/README.md) for more information about how to use the `./scripts/chaos/call_chaos.sh` helper script to enable assaults.
+By default the applications are started without the `chaos-monkey` profile. Pass the optional `--chaos-monkey` flag to enable it and interact with Spring Boot Chaos Monkey:
+```bash
+./scripts/run_all.sh --chaos-monkey
+```
+You can check out the [README](scripts/chaos/README.md) for more information about how to use the `./scripts/chaos/call_chaos.sh` helper script to enable assaults.
+
+Use `./scripts/stop_all.sh` to stop all the Java applications and the docker-compose infrastructure containers started by `run_all.sh`.
 
 ## Understanding the Spring Petclinic application
 
