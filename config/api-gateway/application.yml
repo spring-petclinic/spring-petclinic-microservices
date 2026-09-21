@@ -1,0 +1,16 @@
+# api-gateway environment configuration.
+#
+# docker-compose : bind-mounted at /config/app/
+# Kubernetes     : ConfigMap "api-gateway-config" mounted at /config/app/
+
+# Addresses of the downstream services. In Kubernetes these are Service DNS
+# names, resolved and load-balanced by the cluster.
+petclinic:
+  customers-service:
+    url: http://customers-service:8081
+  visits-service:
+    url: http://visits-service:8082
+  vets-service:
+    url: http://vets-service:8083
+  genai-service:
+    url: http://genai-service:8084

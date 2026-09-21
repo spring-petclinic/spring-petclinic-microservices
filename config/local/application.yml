@@ -1,0 +1,19 @@
+# Overrides for running the jars directly on the host (scripts/run_all.sh),
+# where peers are reachable on localhost rather than by container/Service name.
+# Not used by docker-compose and not deployed to Kubernetes.
+
+petclinic:
+  customers-service:
+    url: http://localhost:8081
+  visits-service:
+    url: http://localhost:8082
+  vets-service:
+    url: http://localhost:8083
+  genai-service:
+    url: http://localhost:8084
+
+management:
+  tracing:
+    export:
+      zipkin:
+        endpoint: http://localhost:9411/api/v2/spans

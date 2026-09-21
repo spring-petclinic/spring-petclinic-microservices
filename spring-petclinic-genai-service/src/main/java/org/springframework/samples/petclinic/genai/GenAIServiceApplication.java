@@ -17,12 +17,10 @@ package org.springframework.samples.petclinic.genai;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 /**
  * @author Oded Shopen
  */
-@EnableDiscoveryClient
 @SpringBootApplication
 public class GenAIServiceApplication {
 

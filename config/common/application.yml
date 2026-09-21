@@ -1,0 +1,43 @@
+# Environment-level settings shared by every PetClinic service.
+#
+# docker-compose : bind-mounted at /config/common/
+# Kubernetes     : ConfigMap "petclinic-common" mounted at /config/common/
+#
+# Picked up through SPRING_CONFIG_ADDITIONAL_LOCATION (see docker/Dockerfile).
+# Values here override the defaults baked into each application's own
+# application.yml, and are in turn overridden by /config/app/application.yml.
+
+management:
+  tracing:
+    export:
+      zipkin:
+        endpoint: http://tracing-server:9411/api/v2/spans
+
+logging:
+  level:
+    org.springframework: INFO
+
+# Chaos Engineering. Activate with the "chaos-monkey" Spring profile; attacks
+# are then toggled at runtime through the /actuator/chaosmonkey endpoint
+# (see scripts/chaos).
+---
+spring:
+  config:
+    activate:
+      on-profile: chaos-monkey
+# management.endpoint.<id>.enabled is deprecated since Spring Boot 3.4 in
+# favour of .access; the chaosmonkey endpoint has write operations, so it
+# needs "unrestricted".
+management:
+  endpoint:
+    chaosmonkey:
+      access: unrestricted
+chaos:
+  monkey:
+    enabled: true
+    watcher:
+      component: false
+      controller: false
+      repository: false
+      rest-controller: false
+      service: false

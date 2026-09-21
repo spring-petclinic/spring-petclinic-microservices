@@ -1,8 +1,10 @@
 spring:
   application:
     name: api-gateway
-  config:
-    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
+  reactor:
+    context-propagation: auto
+  messages:
+    basename: messages/messages
   cloud:
     gateway:
       server:
@@ -17,37 +19,69 @@ spring:
                 retries: 1
                 statuses: SERVICE_UNAVAILABLE
                 methods: POST
+          # Routes point straight at the Kubernetes Service DNS names.
+          # The Service load-balances across the pods behind it, so no lb:// scheme
+          # and no client-side load balancer are involved.
           routes:
             - id: vets-service
-              uri: lb://vets-service
+              uri: ${petclinic.vets-service.url}
               predicates:
                 - Path=/api/vet/**
               filters:
                 - StripPrefix=2
             - id: visits-service
-              uri: lb://visits-service
+              uri: ${petclinic.visits-service.url}
               predicates:
                 - Path=/api/visit/**
               filters:
                 - StripPrefix=2
             - id: customers-service
-              uri: lb://customers-service
+              uri: ${petclinic.customers-service.url}
               predicates:
                 - Path=/api/customer/**
               filters:
                 - StripPrefix=2
             - id: genai-service
-              uri: lb://genai-service
+              uri: ${petclinic.genai-service.url}
               predicates:
                 - Path=/api/genai/**
               filters:
                 - StripPrefix=2
                 - CircuitBreaker=name=genaiCircuitBreaker,fallbackUri=/fallback
-  reactor:
-    context-propagation: auto
----
-spring:
-  config:
-    activate:
-      on-profile: docker
-    import: configserver:http://config-server:8888
+
+# Default downstream addresses. Overridden per environment from the mounted
+# ConfigMap (/config) or by PETCLINIC_*_URL environment variables.
+petclinic:
+  customers-service:
+    url: http://customers-service:8081
+  visits-service:
+    url: http://visits-service:8082
+  vets-service:
+    url: http://vets-service:8083
+  genai-service:
+    url: http://genai-service:8084
+
+server:
+  port: 8080
+  shutdown: graceful
+  compression:
+    enabled: true
+    mime-types: application/json,text/css,application/javascript
+    min-response-size: 2048
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+
+logging:
+  level:
+    org.springframework: INFO

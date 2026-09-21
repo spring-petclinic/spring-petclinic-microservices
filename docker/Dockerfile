@@ -11,7 +11,9 @@ WORKDIR application
 ARG EXPOSED_PORT
 EXPOSE ${EXPOSED_PORT}
 
-ENV SPRING_PROFILES_ACTIVE=docker
+# Configuration is mounted in, not fetched from a config server.
+# Both locations are optional, so the image still starts with nothing mounted.
+ENV SPRING_CONFIG_ADDITIONAL_LOCATION=optional:file:/config/common/,optional:file:/config/app/
 
 COPY --from=builder application/dependencies/ ./
 

@@ -1,13 +1,56 @@
 spring:
   application:
     name: visits-service
-  config:
-    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+  sql:
+    init:
+      schema-locations: classpath*:db/hsqldb/schema.sql
+      data-locations: classpath*:db/hsqldb/data.sql
 
+server:
+  port: 8082
+  # Grace period during which in-flight requests complete but no new ones are accepted.
+  # Matches the Kubernetes pod termination flow.
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      # Exposes /actuator/health/liveness and /actuator/health/readiness for the K8s probes
+      probes:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+
+logging:
+  level:
+    org.springframework: INFO
 
 ---
 spring:
   config:
     activate:
-      on-profile: docker
-    import: configserver:http://config-server:8888
+      on-profile: mysql
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:petclinic}?allowPublicKeyRetrieval=true&useSSL=false
+    username: ${MYSQL_USER:petclinic}
+    password: ${MYSQL_PASSWORD:petclinic}
+    # Each replica opens its own pool, so the default of 10 multiplies across
+    # replicas and services into a lot of MySQL memory. Five is plenty here.
+    hikari:
+      maximum-pool-size: 5
+  # The schema is shared across services (visits.pet_id references pets.id) and is
+  # created once when the MySQL container initialises, from the db/mysql/*.sql files
+  # mounted into /docker-entrypoint-initdb.d. Application pods must not race to
+  # create it, nor re-seed demo rows over real data on every restart.
+  sql:
+    init:
+      mode: never

@@ -1,6 +1,6 @@
 package org.springframework.samples.petclinic.api.boundary.web;
 
-import org.apache.hc.core5.http.HttpStatus;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,7 +10,7 @@ public class FallbackController {
 
     @PostMapping("/fallback")
     public ResponseEntity<String> fallback() {
-        return ResponseEntity.status(HttpStatus.SC_SERVICE_UNAVAILABLE)
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body("Chat is currently unavailable. Please try again later.");
     }
 }

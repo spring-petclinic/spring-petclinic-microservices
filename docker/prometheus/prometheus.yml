@@ -30,3 +30,8 @@ scrape_configs:
   metrics_path: /actuator/prometheus
   static_configs:
   - targets: ['vets-service:8083']
+
+- job_name: genai-service
+  metrics_path: /actuator/prometheus
+  static_configs:
+  - targets: ['genai-service:8084']

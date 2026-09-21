@@ -23,13 +23,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.circuitbreaker.resilience4j.ReactiveResilience4JCircuitBreakerFactory;
 import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JConfigBuilder;
 import org.springframework.cloud.client.circuitbreaker.Customizer;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.server.RequestPredicates;
 import org.springframework.web.reactive.function.server.RouterFunction;
@@ -42,7 +39,6 @@ import java.time.Duration;
 /**
  * @author Maciej Szarlinski
  */
-@EnableDiscoveryClient
 @SpringBootApplication
 public class ApiGatewayApplication {
 
@@ -50,15 +46,12 @@ public class ApiGatewayApplication {
         SpringApplication.run(ApiGatewayApplication.class, args);
     }
 
+    /**
+     * Downstream services are reached through their Kubernetes Service DNS names,
+     * so no client-side load balancing is needed: the Service load-balances across pods.
+     */
     @Bean
-    @LoadBalanced
-    RestTemplate loadBalancedRestTemplate() {
-        return new RestTemplate();
-    }
-
-    @Bean
-    @LoadBalanced
-    public WebClient.Builder loadBalancedWebClientBuilder() {
+    public WebClient.Builder webClientBuilder() {
         return WebClient.builder();
     }
 

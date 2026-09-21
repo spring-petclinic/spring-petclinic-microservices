@@ -1,0 +1,13 @@
+# genai-service environment configuration.
+#
+# docker-compose : bind-mounted at /config/app/
+# Kubernetes     : ConfigMap "genai-service-config" mounted at /config/app/
+#
+# API keys do NOT belong here. They arrive as environment variables
+# (OPENAI_API_KEY / AZURE_OPENAI_KEY) from a Secret.
+
+petclinic:
+  customers-service:
+    url: http://customers-service:8081
+  vets-service:
+    url: http://vets-service:8083

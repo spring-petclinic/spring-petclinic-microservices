@@ -16,6 +16,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.samples.petclinic.genai.dto.Vet;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.reactive.function.client.WebClient;
 import tools.jackson.core.JacksonException;
 
@@ -41,9 +42,13 @@ public class VectorStoreController {
 	private final VectorStore vectorStore;
     private final WebClient webClient;
 
-    public VectorStoreController(VectorStore vectorStore, WebClient.Builder webClientBuilder) {
+    private final String vetsServiceUrl;
+
+    public VectorStoreController(VectorStore vectorStore, WebClient.Builder webClientBuilder,
+                                 @Value("${petclinic.vets-service.url}") String vetsServiceUrl) {
 		this.webClient = webClientBuilder.build();
 		this.vectorStore = vectorStore;
+		this.vetsServiceUrl = vetsServiceUrl;
 	}
 
 	@EventListener
@@ -64,10 +69,9 @@ public class VectorStoreController {
 		// If vectorstore.json is deleted, the data will be loaded on startup every time.
 		// Warning - this can be costly in terms of credits used with the AI provider.
 		// Fetches all Vet entites and creates a document per vet
-        String vetsHostname = "http://vets-service/";
         List<Vet> vets = webClient
 	            .get()
-	            .uri(vetsHostname + "vets")
+	            .uri(vetsServiceUrl + "/vets")
 	            .retrieve()
 	            .bodyToMono(new ParameterizedTypeReference<List<Vet>>() {})
 	            .block();

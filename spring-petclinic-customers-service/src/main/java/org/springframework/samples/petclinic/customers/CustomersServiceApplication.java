@@ -17,12 +17,10 @@ package org.springframework.samples.petclinic.customers;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 /**
  * @author Maciej Szarlinski
  */
-@EnableDiscoveryClient
 @SpringBootApplication
 public class CustomersServiceApplication {
 

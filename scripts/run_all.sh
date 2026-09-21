@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+#
+# Runs every service as a plain Spring Boot jar on the host.
+#
+# There is no config server and no service registry to wait for, so the apps
+# all start at once: each one reads ./config/common, its own ./config/<name>
+# and ./config/local (which points the peers at localhost instead of at
+# container/Service names).
 
 set -o errexit
 set -o errtrace
@@ -29,10 +36,10 @@ docker compose kill || echo "No docker containers are running"
 
 PROFILE_ARG=""
 if [[ "${CHAOS_MONKEY}" == "yes" ]]; then
-  echo "Chaos Monkey activé (profil chaos-monkey)"
+  echo "Chaos Monkey enabled (chaos-monkey profile)"
   PROFILE_ARG="--spring.profiles.active=chaos-monkey"
 else
-  echo "Chaos Monkey désactivé"
+  echo "Chaos Monkey disabled"
 fi
 
 echo "Running infra"
@@ -40,17 +47,21 @@ docker compose up -d grafana-server prometheus-server tracing-server
 
 echo "Running apps"
 mkdir -p target
-nohup java -jar spring-petclinic-config-server/target/*.jar --server.port=8888 ${PROFILE_ARG} > target/config-server.log 2>&1 &
-echo "Waiting for config server to start"
-sleep 20
-nohup java -jar spring-petclinic-discovery-server/target/*.jar --server.port=8761 ${PROFILE_ARG} > target/discovery-server.log 2>&1 &
-echo "Waiting for discovery server to start"
-sleep 20
-nohup java -jar spring-petclinic-customers-service/target/*.jar --server.port=8081 ${PROFILE_ARG} > target/customers-service.log 2>&1 &
-nohup java -jar spring-petclinic-visits-service/target/*.jar --server.port=8082 ${PROFILE_ARG} > target/visits-service.log 2>&1 &
-nohup java -jar spring-petclinic-vets-service/target/*.jar --server.port=8083 ${PROFILE_ARG} > target/vets-service.log 2>&1 &
-nohup java -jar spring-petclinic-genai-service/target/*.jar --server.port=8084 ${PROFILE_ARG} > target/genai-service.log 2>&1 &
-nohup java -jar spring-petclinic-api-gateway/target/*.jar --server.port=8080 ${PROFILE_ARG} > target/gateway-service.log 2>&1 &
-nohup java -jar spring-petclinic-admin-server/target/*.jar --server.port=9090 ${PROFILE_ARG} > target/admin-server.log 2>&1 &
+
+start() {
+  local name="$1" port="$2"
+  local locations="optional:file:./config/common/,optional:file:./config/${name}/,optional:file:./config/local/"
+  nohup java -jar spring-petclinic-"${name}"/target/*.jar \
+    --server.port="${port}" \
+    --spring.config.additional-location="${locations}" \
+    ${PROFILE_ARG} > "target/${name}.log" 2>&1 &
+}
+
+start customers-service 8081
+start visits-service    8082
+start vets-service      8083
+start genai-service     8084
+start api-gateway       8080
+
 echo "Waiting for apps to start"
 sleep 60

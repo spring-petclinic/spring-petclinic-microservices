@@ -3,7 +3,6 @@ package org.springframework.samples.petclinic.genai;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.vectorstore.SimpleVectorStore;
 import org.springframework.ai.vectorstore.VectorStore;
-import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -21,9 +20,12 @@ public class AIBeanConfiguration {
 		return SimpleVectorStore.builder(embeddingModel).build();
 	}
 
+    /**
+     * Downstream services are reached through their Kubernetes Service DNS names,
+     * so no client-side load balancing is needed: the Service load-balances across pods.
+     */
     @Bean
-    @LoadBalanced
-    public WebClient.Builder loadBalancedWebClientBuilder() {
+    public WebClient.Builder webClientBuilder() {
         return WebClient.builder();
     }
 }

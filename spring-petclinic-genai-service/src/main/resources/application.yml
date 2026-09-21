@@ -6,7 +6,7 @@ spring:
   profiles:
     active: production
   config:
-    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/},optional:classpath:/creds.yaml
+    import: optional:classpath:/creds.yaml
   ai:
     chat:
       client:
@@ -28,6 +28,30 @@ spring:
             temperature: 0.7
             model: gpt-4o-mini
 
+# Default downstream addresses. Overridden per environment from the mounted
+# ConfigMap (/config) or by PETCLINIC_*_URL environment variables.
+petclinic:
+  customers-service:
+    url: http://customers-service:8081
+  vets-service:
+    url: http://vets-service:8083
+
+server:
+  port: 8084
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
 
 logging:
   level:
@@ -37,9 +61,3 @@ logging:
           chat:
             client:
               advisor: DEBUG
----
-spring:
-  config:
-    activate:
-      on-profile: docker
-    import: configserver:http://config-server:8888

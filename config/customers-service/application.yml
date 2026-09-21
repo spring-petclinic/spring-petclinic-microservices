@@ -1,0 +1,16 @@
+# customers-service environment configuration.
+#
+# docker-compose : bind-mounted at /config/app/
+# Kubernetes     : ConfigMap "customers-service-config" mounted at /config/app/
+#
+# The service talks to the shared MySQL instance. Connection details arrive as
+# environment variables from the Deployment (MYSQL_HOST, MYSQL_USER) and the
+# mysql-credentials Secret (MYSQL_PASSWORD), with the "mysql" profile active;
+# see k8s/03-services.yaml. The schema is created by the database container,
+# not by this service.
+#
+# Anything genuinely service-specific and non-secret belongs here.
+
+logging:
+  level:
+    org.springframework.samples.petclinic: INFO
