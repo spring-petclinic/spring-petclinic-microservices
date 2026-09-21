@@ -17,7 +17,6 @@ package org.springframework.samples.petclinic.api;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.circuitbreaker.resilience4j.ReactiveResilience4JCircuitBreakerFactory;
@@ -62,19 +61,21 @@ public class ApiGatewayApplication {
         return WebClient.builder();
     }
 
-    @Value("classpath:/static/index.html")
-    private Resource indexHtml;
-
-    /**
-     * workaround solution for forwarding to index.html
-     * @see <a href="https://github.com/spring-projects/spring-boot/issues/9785">#9785</a>
-     */
     @Bean
     RouterFunction<?> routerFunction() {
-        RouterFunction router = RouterFunctions.resources("/**", new ClassPathResource("static/"))
-            .andRoute(RequestPredicates.GET("/"),
-                request -> ServerResponse.ok().contentType(MediaType.TEXT_HTML).bodyValue(indexHtml));
-        return router;
+        Resource indexHtml = new ClassPathResource("static/index.html");
+        var htmlNavigation = RequestPredicates.GET("/**")
+            .and(RequestPredicates.headers(headers -> headers.accept().stream()
+                .anyMatch(mediaType -> mediaType.isCompatibleWith(MediaType.TEXT_HTML)
+                    && !mediaType.isWildcardType()
+                    && !mediaType.isWildcardSubtype())))
+            .and(RequestPredicates.path("/api/**").negate())
+            .and(RequestPredicates.path("/actuator/**").negate())
+            .and(RequestPredicates.path("/webjars/**").negate())
+            .and(RequestPredicates.path("/fallback").negate());
+
+        return RouterFunctions.route(htmlNavigation,
+            request -> ServerResponse.ok().contentType(MediaType.TEXT_HTML).bodyValue(indexHtml));
     }
 
     /**

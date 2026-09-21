@@ -219,12 +219,12 @@ All those three REST controllers `OwnerResource`, `PetResource` and `VisitResour
 | Circuit Breaker                 | [Resilience4j fallback method](spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/boundary/web/ApiGatewayController.java)  |
 | Grafana / Prometheus Monitoring | [Micrometer implementation](https://micrometer.io/), [Spring Boot Actuator Production Ready Metrics] |
 
-|  Front-end module | Files |
-|-------------------|-------|
-| Node and NPM      | [The frontend-maven-plugin plugin downloads/installs Node and NPM locally then runs Bower and Gulp](spring-petclinic-ui/pom.xml)  |
-| Bower             | [JavaScript libraries are defined by the manifest file bower.json](spring-petclinic-ui/bower.json)  |
-| Gulp              | [Tasks automated by Gulp: minify CSS and JS, generate CSS from LESS, copy other static resources](spring-petclinic-ui/gulpfile.js)  |
-| Angular JS        | [app.js, controllers and templates](spring-petclinic-ui/src/scripts/)  |
+| Front-end module   | Files                                                                                                                                                                                                 |
+|--------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Maven build        | [Maven dependencies for Vue, Vue Router, Bootstrap, DOMPurify, and Marked](spring-petclinic-api-gateway/pom.xml). Maven packages the frontend; no Node.js, NPM, or maven-frontend-plugin is required. |
+| Vue JS             | [Standalone Vue modules](spring-petclinic-api-gateway/src/main/resources/static/scripts/main.js) use runtime templates and native browser imports in no-build mode.                                    |
+| Vue Router         | [Client-side routes](spring-petclinic-api-gateway/src/main/resources/static/scripts/router.js) use browser history for all application screens.                                                        |
+| Static entry point | [HTML host page](spring-petclinic-api-gateway/src/main/resources/static/index.html) mounts the Vue application and loads local WebJar assets.                                                         |
 
 ## Pushing to a Docker registry
 
