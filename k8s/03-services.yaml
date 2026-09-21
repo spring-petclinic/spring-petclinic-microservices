@@ -1,0 +1,461 @@
+# Deployment + Service per application. The Service is the only discovery
+# mechanism: its DNS name (<name>.<namespace>.svc.cluster.local, or just
+# <name> inside the namespace) is what the other services address.
+#
+# customers/vets/visits share the MySQL instance in 06-mysql.yaml, so their
+# replicas see one dataset. genai-service and api-gateway are stateless.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customers-service
+  namespace: petclinic
+  labels:
+    app: customers-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: customers-service
+  template:
+    metadata:
+      labels:
+        app: customers-service
+    spec:
+      # Long enough for the graceful shutdown configured in application.yml.
+      terminationGracePeriodSeconds: 45
+      initContainers:
+        # The app fails to start if the database is not reachable. Waiting here
+        # turns a few CrashLoopBackOffs on first deploy into a clean rollout.
+        - name: wait-for-mysql
+          image: busybox:1.36
+          command: ["sh", "-c", "until nc -z petclinic-mysql 3306; do echo waiting for mysql; sleep 2; done"]
+      containers:
+        - name: customers-service
+          image: springcommunity/spring-petclinic-customers-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8081
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "mysql"
+            - name: MYSQL_HOST
+              value: petclinic-mysql
+            - name: MYSQL_USER
+              value: petclinic
+            # Only the application password, never the root one.
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-credentials
+                  key: MYSQL_PASSWORD
+          volumeMounts:
+            - name: common-config
+              mountPath: /config/common
+              readOnly: true
+            - name: app-config
+              mountPath: /config/app
+              readOnly: true
+          # startupProbe absorbs JVM cold start so the other two can stay tight.
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: common-config
+          configMap:
+            name: petclinic-common
+        - name: app-config
+          configMap:
+            name: customers-service-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: customers-service
+  namespace: petclinic
+  labels:
+    app: customers-service
+spec:
+  selector:
+    app: customers-service
+  ports:
+    - name: http
+      port: 8081
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vets-service
+  namespace: petclinic
+  labels:
+    app: vets-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vets-service
+  template:
+    metadata:
+      labels:
+        app: vets-service
+    spec:
+      # Long enough for the graceful shutdown configured in application.yml.
+      terminationGracePeriodSeconds: 45
+      initContainers:
+        # The app fails to start if the database is not reachable. Waiting here
+        # turns a few CrashLoopBackOffs on first deploy into a clean rollout.
+        - name: wait-for-mysql
+          image: busybox:1.36
+          command: ["sh", "-c", "until nc -z petclinic-mysql 3306; do echo waiting for mysql; sleep 2; done"]
+      containers:
+        - name: vets-service
+          image: springcommunity/spring-petclinic-vets-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8083
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "production,mysql"
+            - name: MYSQL_HOST
+              value: petclinic-mysql
+            - name: MYSQL_USER
+              value: petclinic
+            # Only the application password, never the root one.
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-credentials
+                  key: MYSQL_PASSWORD
+          volumeMounts:
+            - name: common-config
+              mountPath: /config/common
+              readOnly: true
+            - name: app-config
+              mountPath: /config/app
+              readOnly: true
+          # startupProbe absorbs JVM cold start so the other two can stay tight.
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: common-config
+          configMap:
+            name: petclinic-common
+        - name: app-config
+          configMap:
+            name: vets-service-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vets-service
+  namespace: petclinic
+  labels:
+    app: vets-service
+spec:
+  selector:
+    app: vets-service
+  ports:
+    - name: http
+      port: 8083
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: visits-service
+  namespace: petclinic
+  labels:
+    app: visits-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: visits-service
+  template:
+    metadata:
+      labels:
+        app: visits-service
+    spec:
+      # Long enough for the graceful shutdown configured in application.yml.
+      terminationGracePeriodSeconds: 45
+      initContainers:
+        # The app fails to start if the database is not reachable. Waiting here
+        # turns a few CrashLoopBackOffs on first deploy into a clean rollout.
+        - name: wait-for-mysql
+          image: busybox:1.36
+          command: ["sh", "-c", "until nc -z petclinic-mysql 3306; do echo waiting for mysql; sleep 2; done"]
+      containers:
+        - name: visits-service
+          image: springcommunity/spring-petclinic-visits-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8082
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "mysql"
+            - name: MYSQL_HOST
+              value: petclinic-mysql
+            - name: MYSQL_USER
+              value: petclinic
+            # Only the application password, never the root one.
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-credentials
+                  key: MYSQL_PASSWORD
+          volumeMounts:
+            - name: common-config
+              mountPath: /config/common
+              readOnly: true
+            - name: app-config
+              mountPath: /config/app
+              readOnly: true
+          # startupProbe absorbs JVM cold start so the other two can stay tight.
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: common-config
+          configMap:
+            name: petclinic-common
+        - name: app-config
+          configMap:
+            name: visits-service-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: visits-service
+  namespace: petclinic
+  labels:
+    app: visits-service
+spec:
+  selector:
+    app: visits-service
+  ports:
+    - name: http
+      port: 8082
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: genai-service
+  namespace: petclinic
+  labels:
+    app: genai-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: genai-service
+  template:
+    metadata:
+      labels:
+        app: genai-service
+    spec:
+      # Long enough for the graceful shutdown configured in application.yml.
+      terminationGracePeriodSeconds: 45
+      containers:
+        - name: genai-service
+          image: springcommunity/spring-petclinic-genai-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8084
+          envFrom:
+            - secretRef:
+                name: genai-secrets
+          volumeMounts:
+            - name: common-config
+              mountPath: /config/common
+              readOnly: true
+            - name: app-config
+              mountPath: /config/app
+              readOnly: true
+          # startupProbe absorbs JVM cold start so the other two can stay tight.
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: common-config
+          configMap:
+            name: petclinic-common
+        - name: app-config
+          configMap:
+            name: genai-service-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: genai-service
+  namespace: petclinic
+  labels:
+    app: genai-service
+spec:
+  selector:
+    app: genai-service
+  ports:
+    - name: http
+      port: 8084
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: petclinic
+  labels:
+    app: api-gateway
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      # Long enough for the graceful shutdown configured in application.yml.
+      terminationGracePeriodSeconds: 45
+      containers:
+        - name: api-gateway
+          image: springcommunity/spring-petclinic-api-gateway:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          volumeMounts:
+            - name: common-config
+              mountPath: /config/common
+              readOnly: true
+            - name: app-config
+              mountPath: /config/app
+              readOnly: true
+          # startupProbe absorbs JVM cold start so the other two can stay tight.
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: common-config
+          configMap:
+            name: petclinic-common
+        - name: app-config
+          configMap:
+            name: api-gateway-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: petclinic
+  labels:
+    app: api-gateway
+spec:
+  selector:
+    app: api-gateway
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

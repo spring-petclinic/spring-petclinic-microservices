@@ -1,0 +1,163 @@
+# Mirrors ./config in the repository root. Regenerate after editing those files:
+#
+#   kubectl create configmap petclinic-common -n petclinic \
+#     --from-file=application.yml=config/common/application.yml \
+#     --dry-run=client -o yaml | kubectl apply -f -
+#
+# Each is mounted at /config/common or /config/app; the image's
+# SPRING_CONFIG_ADDITIONAL_LOCATION picks both up, with /config/app winning.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: petclinic-common
+  namespace: petclinic
+data:
+  application.yml: |
+    # Environment-level settings shared by every PetClinic service.
+    #
+    # docker-compose : bind-mounted at /config/common/
+    # Kubernetes     : ConfigMap "petclinic-common" mounted at /config/common/
+    #
+    # Picked up through SPRING_CONFIG_ADDITIONAL_LOCATION (see docker/Dockerfile).
+    # Values here override the defaults baked into each application's own
+    # application.yml, and are in turn overridden by /config/app/application.yml.
+
+    management:
+      tracing:
+        export:
+          zipkin:
+            endpoint: http://tracing-server:9411/api/v2/spans
+
+    logging:
+      level:
+        org.springframework: INFO
+
+    # Chaos Engineering. Activate with the "chaos-monkey" Spring profile; attacks
+    # are then toggled at runtime through the /actuator/chaosmonkey endpoint
+    # (see scripts/chaos).
+    ---
+    spring:
+      config:
+        activate:
+          on-profile: chaos-monkey
+    # management.endpoint.<id>.enabled is deprecated since Spring Boot 3.4 in
+    # favour of .access; the chaosmonkey endpoint has write operations, so it
+    # needs "unrestricted".
+    management:
+      endpoint:
+        chaosmonkey:
+          access: unrestricted
+    chaos:
+      monkey:
+        enabled: true
+        watcher:
+          component: false
+          controller: false
+          repository: false
+          rest-controller: false
+          service: false
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-gateway-config
+  namespace: petclinic
+data:
+  application.yml: |
+    # Service DNS names. kube-dns resolves these to the Service ClusterIP,
+    # which load-balances across the ready pods.
+    petclinic:
+      customers-service:
+        url: http://customers-service:8081
+      visits-service:
+        url: http://visits-service:8082
+      vets-service:
+        url: http://vets-service:8083
+      genai-service:
+        url: http://genai-service:8084
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: customers-service-config
+  namespace: petclinic
+data:
+  application.yml: |
+    # customers-service environment configuration.
+    #
+    # docker-compose : bind-mounted at /config/app/
+    # Kubernetes     : ConfigMap "customers-service-config" mounted at /config/app/
+    #
+    # The service talks to the shared MySQL instance. Connection details arrive as
+    # environment variables from the Deployment (MYSQL_HOST, MYSQL_USER) and the
+    # mysql-credentials Secret (MYSQL_PASSWORD), with the "mysql" profile active;
+    # see k8s/03-services.yaml. The schema is created by the database container,
+    # not by this service.
+    #
+    # Anything genuinely service-specific and non-secret belongs here.
+
+    logging:
+      level:
+        org.springframework.samples.petclinic: INFO
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vets-service-config
+  namespace: petclinic
+data:
+  application.yml: |
+    # vets-service environment configuration.
+    #
+    # docker-compose : bind-mounted at /config/app/
+    # Kubernetes     : ConfigMap "vets-service-config" mounted at /config/app/
+    #
+    # The service talks to the shared MySQL instance. Connection details arrive as
+    # environment variables from the Deployment (MYSQL_HOST, MYSQL_USER) and the
+    # mysql-credentials Secret (MYSQL_PASSWORD), with the "mysql" profile active;
+    # see k8s/03-services.yaml. The schema is created by the database container,
+    # not by this service.
+    #
+    # Anything genuinely service-specific and non-secret belongs here.
+
+    logging:
+      level:
+        org.springframework.samples.petclinic: INFO
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: visits-service-config
+  namespace: petclinic
+data:
+  application.yml: |
+    # visits-service environment configuration.
+    #
+    # docker-compose : bind-mounted at /config/app/
+    # Kubernetes     : ConfigMap "visits-service-config" mounted at /config/app/
+    #
+    # The service talks to the shared MySQL instance. Connection details arrive as
+    # environment variables from the Deployment (MYSQL_HOST, MYSQL_USER) and the
+    # mysql-credentials Secret (MYSQL_PASSWORD), with the "mysql" profile active;
+    # see k8s/03-services.yaml. The schema is created by the database container,
+    # not by this service.
+    #
+    # Anything genuinely service-specific and non-secret belongs here.
+
+    logging:
+      level:
+        org.springframework.samples.petclinic: INFO
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: genai-service-config
+  namespace: petclinic
+data:
+  application.yml: |
+    # API keys are NOT here - they come from the genai-secrets Secret as env vars.
+    petclinic:
+      customers-service:
+        url: http://customers-service:8081
+      vets-service:
+        url: http://vets-service:8083

@@ -1,0 +1,22 @@
+# Only the gateway is exposed outside the cluster; everything else is
+# reachable only through ClusterIP Services.
+#
+# Without an ingress controller, use instead:
+#   kubectl port-forward -n petclinic svc/api-gateway 8080:8080
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: petclinic
+  namespace: petclinic
+spec:
+  rules:
+    - host: petclinic.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 8080
