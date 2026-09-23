@@ -1,24 +1,26 @@
 {
   "name": "Spring Petclinic Microservices",
   // Java Development Container Images https://mcr.microsoft.com/en-us/product/devcontainers/java/tags
-  "image": "mcr.microsoft.com/devcontainers/java:17-bullseye",
+  "image": "mcr.microsoft.com/devcontainers/java:17-bookworm",
   // Features list https://containers.dev/features
   "features": {
     "ghcr.io/devcontainers/features/java:1": {
       "installMaven": "true",
       "installGradle": "false"
     },
-    "ghcr.io/devcontainers/features/azure-cli:1":{}, // Install Azure CLI
-    "ghcr.io/devcontainers/features/docker-in-docker:2":{}, // install docker
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22"
+    },
+    "ghcr.io/devcontainers/features/azure-cli:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
+  "postCreateCommand": "npm install -g @github/copilot && copilot --version",
   "customizations": {
-    // Configure properties specific to VScode
     "vscode": {
       "settings": {
-        // VSCode settings https://github.com/redhat-developer/vscode-java/blob/master/README.md
         "java.server.launchMode": "Standard"
       },
-      "extensions":[
+      "extensions": [
         "vscjava.vscode-java-pack",
         "vscjava.vscode-maven",
         "github.vscode-github-actions",
@@ -27,7 +29,7 @@
         "vmware.vscode-boot-dev-pack",
         "mhutchie.git-graph"
       ]
-    },
+    }
   },
   "forwardPorts": [8080, 8888, 8761]
 }
