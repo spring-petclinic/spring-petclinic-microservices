@@ -14,11 +14,12 @@ and the Eureka Service Discovery from the [Spring Cloud Netflix](https://github.
 ## Starting services locally without Docker
 
 Every microservice is a Spring Boot application and can be started locally using IDE or `../mvnw spring-boot:run` command.
-Please note that supporting services (Config and Discovery Server) must be started before any other application (Customers, Vets, Visits and API).
+Please note that supporting services (Config, Discovery and Authorization Server) must be started before any other application (Customers, Vets, Visits and API).
 Startup of Tracing server, Admin server, Grafana and Prometheus is optional.
 If everything goes well, you can access the following services at given location:
 * Discovery Server - http://localhost:8761
 * Config Server - http://localhost:8888
+* Authorization Server - http://localhost:9000
 * AngularJS frontend (API Gateway) - http://localhost:8080
 * Customers, Vets, Visits and GenAI Services - random port, check Eureka Dashboard 
 * Tracing Server (Zipkin) - http://localhost:9411/zipkin/ (we use [openzipkin](https://github.com/openzipkin/zipkin/tree/main/zipkin-server))
@@ -92,6 +93,7 @@ This project consists of several microservices:
 - **Visits Service**: Manages pet visit records.
 - **GenAI Service**: Provides a chatbot interface to the application.
 - **API Gateway**: Routes client requests to the appropriate services.
+- **Auth Server**: OAuth2 / OpenID Connect authorization server, based on [Spring Authorization Server](https://spring.io/projects/spring-authorization-server). It authenticates the end users and issues the tokens used by the API Gateway.
 - **Config Server**: Centralized configuration management for all services.
 - **Discovery Server**: Eureka-based service registry.
 
@@ -104,6 +106,57 @@ Each service has its own specific role and communicates via REST APIs.
 **Architecture diagram of the Spring Petclinic Microservices**
 
 ![Spring Petclinic Microservices architecture](docs/microservices-architecture-diagram.jpg)
+
+## Securing the application with OAuth2
+
+The API Gateway is the only application exposed to the outside world, it is therefore the
+place where the end users are authenticated. The other microservices are assumed to sit on
+a private network, behind the gateway.
+
+The `spring-petclinic-auth-server` microservice is a
+[Spring Authorization Server](https://spring.io/projects/spring-authorization-server). It
+owns the users and the client registrations, and issues JWT access tokens and ID tokens.
+Everything is kept in memory so that the demo starts without any external dependency.
+
+The flow is a standard OpenID Connect authorization code flow with PKCE:
+
+1. The browser asks the gateway for a protected resource, for instance `/api/customer/owners`.
+2. The gateway redirects the browser to the authorization server (http://localhost:9000).
+3. Once the user is authenticated, the authorization server redirects the browser back to
+   `/login/oauth2/code/petclinic` with an authorization code.
+4. The gateway exchanges the code for an ID token and an access token, and creates a session.
+5. Every proxied call then carries the access token to the downstream microservice, thanks
+   to the `TokenRelay` gateway filter.
+
+Two users are provisioned out of the box:
+
+| Username | Password | Roles          |
+|----------|----------|----------------|
+| `admin`  | `admin`  | `ADMIN`, `USER`|
+| `user`   | `user`   | `USER`         |
+
+The AngularJS front end learns who is logged in through the `GET /api/user/me` endpoint of
+the gateway, and displays the user name along with a logout button in the navigation bar.
+The logout is an [RP initiated logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html):
+the session is closed both on the gateway and on the authorization server.
+
+The coordinates of the authorization server can be changed with the following environment
+variables:
+
+| Variable                   | Default                  | Used by       | Description                                                                          |
+|----------------------------|--------------------------|---------------|--------------------------------------------------------------------------------------|
+| `AUTH_SERVER_ISSUER_URI`   | `http://localhost:9000`  | both          | Public URL of the authorization server, it must be reachable from the browser        |
+| `AUTH_SERVER_INTERNAL_URI` | the issuer URI           | API Gateway   | URL used by the gateway for the back channel calls (token, JWK set and user info)    |
+| `GATEWAY_BASE_URL`         | `http://localhost:8080`  | Auth Server   | Public URL of the gateway, used to register its redirect URIs                        |
+| `GATEWAY_CLIENT_SECRET`    | `petclinic-gateway-secret` | both        | Secret of the `petclinic-gateway` client registration                                |
+
+With `docker compose`, the browser reaches the authorization server on `localhost:9000`
+while the gateway reaches it on `auth-server:9000`, which is why the `docker` profile only
+overrides `AUTH_SERVER_INTERNAL_URI`.
+
+*NOTE: the in-memory users, the plain text client secret and the RSA key pair generated at
+startup are fine for a demonstration, but a production deployment would store them in a
+database or a vault.*
 
 ## Integrating the Spring AI Chatbot
 
@@ -217,6 +270,7 @@ All those three REST controllers `OwnerResource`, `PetResource` and `VisitResour
 | API Gateway                     | [Spring Cloud Gateway starter](spring-petclinic-api-gateway/pom.xml) and [Routing configuration](/spring-petclinic-api-gateway/src/main/resources/application.yml) |
 | Docker Compose                  | [Spring Boot with Docker guide](https://spring.io/guides/gs/spring-boot-docker/) and [docker-compose file](docker-compose.yml) |
 | Circuit Breaker                 | [Resilience4j fallback method](spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/boundary/web/ApiGatewayController.java)  |
+| OAuth2 / OpenID Connect         | [Authorization server configuration](spring-petclinic-auth-server/src/main/java/org/springframework/samples/petclinic/auth/AuthorizationServerConfig.java) and [API Gateway security configuration](spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/security/SecurityConfig.java) |
 | Grafana / Prometheus Monitoring | [Micrometer implementation](https://micrometer.io/), [Spring Boot Actuator Production Ready Metrics] |
 
 |  Front-end module | Files |

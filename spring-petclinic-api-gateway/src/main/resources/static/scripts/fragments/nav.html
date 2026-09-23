@@ -36,6 +36,35 @@
                 </li>
 
             </ul>
+
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+
+                <li class="nav-item" ng-if="!$ctrl.user.authenticated">
+                    <a class="nav-link" ng-href="{{$ctrl.loginUrl}}" title="log in">
+                        <span class="fa fa-sign-in"></span>
+                        <span>Login</span>
+                    </a>
+                </li>
+
+                <li class="nav-item" ng-if="$ctrl.user.authenticated">
+                    <span class="nav-link" title="{{$ctrl.user.roles.join(', ')}}">
+                        <span class="fa fa-user"></span>
+                        <span ng-bind="$ctrl.user.username"></span>
+                    </span>
+                </li>
+
+                <li class="nav-item" ng-if="$ctrl.user.authenticated">
+                    <!-- A form POST lets the browser follow the OpenID Connect logout redirections -->
+                    <form method="post" action="/logout">
+                        <input type="hidden" name="_csrf" value="{{$ctrl.csrfToken}}"/>
+                        <button type="submit" class="nav-link btn btn-link" title="log out">
+                            <span class="fa fa-sign-out"></span>
+                            <span>Logout</span>
+                        </button>
+                    </form>
+                </li>
+
+            </ul>
         </div>
     </div>
 </nav>

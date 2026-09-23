@@ -26,6 +26,11 @@ function toggleChatbox() {
     }
 }
 
+function csrfToken() {
+    const match = document.cookie.match(/(^|;\s*)XSRF-TOKEN=([^;]*)/);
+    return match ? decodeURIComponent(match[2]) : '';
+}
+
 function sendMessage() {
     const query = document.getElementById('chatbox-input').value;
 
@@ -41,12 +46,21 @@ function sendMessage() {
     // Send the message to the backend
     fetch('/api/genai/chatclient', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
             'Content-Type': 'application/json',
+            'X-XSRF-TOKEN': csrfToken(),
         },
         body: JSON.stringify(query),
     })
-        .then(response => response.text())
+        .then(response => {
+            // The session expired: restart an OAuth2 authorization code flow
+            if (response.status === 401) {
+                window.location.href = '/oauth2/authorization/petclinic';
+                return Promise.reject(new Error('Not authenticated'));
+            }
+            return response.text();
+        })
         .then(responseText => {
             // Display the response from the server in the chatbox
             appendMessage(responseText, 'bot');

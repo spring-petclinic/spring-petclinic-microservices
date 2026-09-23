@@ -27,10 +27,17 @@ petClinicApp.config(['$stateProvider', '$urlRouterProvider', '$locationProvider'
         });
 }]);
 
-['welcome', 'nav', 'footer'].forEach(function(c) {
+['welcome', 'footer'].forEach(function(c) {
     var mod = 'layout' + c.toUpperCase().substring(0, 1) + c.substring(1);
     angular.module(mod, []);
     angular.module(mod).component(mod, {
         templateUrl: "scripts/fragments/" + c + ".html"
     });
+});
+
+// The navigation bar displays the logged in user, it therefore needs a controller
+angular.module('layoutNav', ['infrastructure']);
+angular.module('layoutNav').component('layoutNav', {
+    templateUrl: "scripts/fragments/nav.html",
+    controller: 'NavController'
 });
