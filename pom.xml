@@ -203,6 +203,35 @@
                 </pluginManagement>
             </build>
         </profile>
+        <profile>
+            <id>buildImage</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>build-image-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <image>
+                                <name>${docker.image.prefix}/${project.artifactId}</name>
+                                <env>
+                                    <BP_HEALTH_CHECKER_ENABLED>true</BP_HEALTH_CHECKER_ENABLED>
+                                </env>
+                                <buildpacks>
+                                    <buildpack>urn:cnb:builder:paketo-buildpacks/java</buildpack>
+                                    <buildpack>docker.io/paketobuildpacks/health-checker:latest</buildpack>
+                                </buildpacks>
+                            </image>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
-
 </project>
