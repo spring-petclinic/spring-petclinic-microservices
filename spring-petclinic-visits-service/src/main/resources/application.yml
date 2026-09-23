@@ -1,13 +1,21 @@
 spring:
   application:
     name: visits-service
+
   config:
     import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9000
 
 ---
+
 spring:
   config:
     activate:
       on-profile: docker
+
     import: configserver:http://config-server:8888
