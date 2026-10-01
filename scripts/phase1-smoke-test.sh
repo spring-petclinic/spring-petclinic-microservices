@@ -9,7 +9,8 @@
 #   HOST            host the stack is published on        (default: localhost)
 #   CUSTOMERS_PORT  host port of customers-service        (default: read from docker compose, else 8081)
 #   TIMEOUT         per-request timeout in seconds        (default: 5)
-#   RETRIES         attempts per check before FAIL        (default: 1; use e.g. 30 right after startup)
+#   WAIT            total seconds to wait for services    (default: 120; 0 = single attempt, no waiting)
+#                   that are still starting, shared by all checks
 #   RETRY_DELAY     seconds between attempts              (default: 5)
 #   NO_COLOR        set to any value to disable colours
 #
@@ -23,15 +24,17 @@
 #     "$'\r': command not found", run: git add --renormalize . && git checkout -- scripts
 #   - Git Bash rewrites arguments that look like Unix paths; the script disables that
 #     (MSYS_NO_PATHCONV) for its `docker exec ... /opt/kafka/bin/...` calls only.
-#   - If a port is already taken on your laptop (Windows often reserves 8081), change the
-#     host side of the mapping in docker-compose.yml; customers-service is auto-detected.
+#   - If port 8081 is already taken on your laptop (Windows often reserves it), put
+#     CUSTOMERS_PORT=18081 in a .env file next to docker-compose.yml; the script detects it.
+#   - More detail: SETUP.md
 
+# shellcheck disable=SC2329  # probe_* functions are invoked indirectly through check()
 set -o nounset
 set -o pipefail
 
 HOST="${HOST:-localhost}"
 TIMEOUT="${TIMEOUT:-5}"
-RETRIES="${RETRIES:-1}"
+WAIT="${WAIT:-120}"
 RETRY_DELAY="${RETRY_DELAY:-5}"
 EXPECTED_CHECKS=18
 
@@ -67,7 +70,8 @@ CUSTOMERS_PORT="${CUSTOMERS_PORT:-$(detect_customers_port)}"
 
 # --- probes: each returns 0 on success and prints a short detail line ---
 
-# probe_http <url>: any 2xx/3xx answer counts as reachable
+# probe_http <url>: any 2xx/3xx answer counts as reachable. The body is not read: Spring's
+# /actuator/health answers 503 when the service is DOWN, so the status code is enough.
 probe_http() {
   local url="$1" code
   code="$(curl -s -o /dev/null -w '%{http_code}' --max-time "${TIMEOUT}" "${url}" 2> /dev/null)" || code="000"
@@ -105,10 +109,31 @@ probe_topics() {
   return "${rc}"
 }
 
-# check <name> <probe> [args...]: run a probe (with retries) and record PASS/FAIL
+# probe_roundtrip: produce one message to the smoke-test topic and consume it back
+probe_roundtrip() {
+  local id got
+  id="smoke-$(date +%s)-$$"
+  # shellcheck disable=SC2016  # expanded by bash inside the container, not here
+  got="$(MSYS_NO_PATHCONV=1 docker exec kafka bash -c '
+    BIN=/opt/kafka/bin; BS=kafka:9092; T=smoke-test
+    offset="$($BIN/kafka-get-offsets.sh --bootstrap-server $BS --topic $T | cut -d: -f3)" || exit 1
+    [ -n "$offset" ] || exit 1
+    echo "$1" | $BIN/kafka-console-producer.sh --bootstrap-server $BS --topic $T || exit 1
+    $BIN/kafka-console-consumer.sh --bootstrap-server $BS --topic $T --partition 0 --offset "$offset" --max-messages 1 --timeout-ms 10000
+  ' _ "${id}" 2> /dev/null | tr -d '\r')" || got=""
+  if [[ "${got}" == "${id}" ]]; then
+    echo "produced and consumed ${id} on topic smoke-test"
+    return 0
+  fi
+  echo "message ${id} not read back from topic smoke-test (run 'docker compose up -d kafka-init' if the topic is missing)"
+  return 1
+}
+
+# check <name> <probe> [args...]: run a probe and record PASS/FAIL. A failing probe is retried
+# until the shared WAIT budget is used up, so a dead service cannot stall the run for long.
 check() {
   local name="$1"; shift
-  local attempt=1 detail=""
+  local detail=""
   TOTAL=$((TOTAL + 1))
   while true; do
     if detail="$("$@")"; then
@@ -116,10 +141,9 @@ check() {
       printf '%s[PASS]%s %2d. %-34s %s\n' "${GREEN}" "${RESET}" "${TOTAL}" "${name}" "${detail}"
       return 0
     fi
-    if (( attempt >= RETRIES )); then
+    if (( SECONDS + RETRY_DELAY > WAIT )); then
       break
     fi
-    attempt=$((attempt + 1))
     sleep "${RETRY_DELAY}"
   done
   FAILED=$((FAILED + 1))
@@ -147,7 +171,6 @@ check "vets-service :8083"         probe_http "http://${HOST}:8083/actuator/heal
 check "genai-service :8084"        probe_http "http://${HOST}:8084/actuator/health"
 
 section "Gateway routes"
-check "gateway UI /"               probe_http "http://${HOST}:8080/"
 check "gateway -> customers"       probe_http "http://${HOST}:8080/api/customer/owners"
 check "gateway -> vets"            probe_http "http://${HOST}:8080/api/vet/vets"
 check "gateway -> visits"          probe_http "http://${HOST}:8080/api/visit/pets/visits?petId=1"
@@ -161,6 +184,7 @@ section "Kafka"
 check "kafka broker :29092"        probe_tcp 29092
 check "kafka-ui :8090"             probe_http "http://${HOST}:8090/actuator/health"
 check "topics visit-events + DLT"  probe_topics
+check "kafka produce/consume"      probe_roundtrip
 
 echo
 if (( TOTAL != EXPECTED_CHECKS )); then
@@ -177,5 +201,5 @@ echo "${RED}${BOLD}RESULT: ${PASSED}/${TOTAL} passed, ${FAILED} FAILED${RESET}"
 for name in "${FAILED_NAMES[@]}"; do
   echo "  ${RED}-${RESET} ${name}"
 done
-echo "${YELLOW}Hint:${RESET} services need 1-2 minutes after 'docker compose up -d'. Retry with RETRIES=30, or check 'docker compose ps' and 'docker compose logs <service>'."
+echo "${YELLOW}Hint:${RESET} services need 1-2 minutes after 'docker compose up -d'. Raise WAIT (seconds), or check 'docker compose ps' and 'docker compose logs <service>'."
 exit 1

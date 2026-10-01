@@ -42,5 +42,15 @@ jobs:
           echo "No shell scripts found"
           exit 0
         fi
-        printf 'Checking %s\n' "${scripts[@]}"
-        shellcheck --severity=warning "${scripts[@]}"
+        # Upstream scripts we do not own are held to warnings only; everything else gets the full check
+        legacy=(scripts/pushImages.sh scripts/tagImages.sh scripts/run_all.sh scripts/stop_all.sh scripts/chaos/call_chaos.sh)
+        ours=()
+        for script in "${scripts[@]}"; do
+          [[ " ${legacy[*]} " == *" ${script} "* ]] || ours+=("${script}")
+        done
+        printf 'Checking (warnings and errors): %s\n' "${legacy[@]}"
+        shellcheck --severity=warning "${legacy[@]}"
+        if (( ${#ours[@]} > 0 )); then
+          printf 'Checking (all findings): %s\n' "${ours[@]}"
+          shellcheck "${ours[@]}"
+        fi

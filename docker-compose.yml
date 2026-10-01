@@ -45,7 +45,8 @@ services:
       discovery-server:
         condition: service_healthy
     ports:
-    - 8081:8081
+    # Set CUSTOMERS_PORT in .env if 8081 is taken on your machine (common on Windows)
+    - ${CUSTOMERS_PORT:-8081}:8081
 
   visits-service:
     image: springcommunity/spring-petclinic-visits-service
@@ -82,6 +83,7 @@ services:
     image: springcommunity/spring-petclinic-genai-service
     container_name: genai-service
     environment:
+      # "demo" only lets the service start; chat needs a real key (see SETUP.md)
       - OPENAI_API_KEY=${OPENAI_API_KEY:-demo}
       - AZURE_OPENAI_KEY=${AZURE_OPENAI_KEY}
       - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
@@ -189,10 +191,12 @@ services:
       KAFKA_HEAP_OPTS: -Xms384m -Xmx384m
     healthcheck:
       test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
-      interval: 10s
-      timeout: 10s
-      retries: 12
-      start_period: 15s
+      # The probe starts a JVM, so poll fast only while starting up
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 60s
+      start_interval: 5s
     ports:
      - 29092:29092
 
@@ -214,11 +218,13 @@ services:
         done
         $$BIN/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic visit-events --partitions 3 --replication-factor 1
         $$BIN/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic visit-events.DLT --partitions 1 --replication-factor 1
+        # Scratch topic for the smoke test round trip, so test messages never reach visit-events
+        $$BIN/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic smoke-test --partitions 1 --replication-factor 1 --config retention.ms=60000
         echo "Topics ready:"
         $$BIN/kafka-topics.sh --bootstrap-server kafka:9092 --list
 
   kafka-ui:
-    image: provectuslabs/kafka-ui:v0.7.2
+    image: ghcr.io/kafbat/kafka-ui:v1.0.0
     container_name: kafka-ui
     deploy:
       resources:
