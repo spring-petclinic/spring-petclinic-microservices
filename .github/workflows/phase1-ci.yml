@@ -1,0 +1,46 @@
+name: Phase 1 CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  compose-validate:
+    name: Validate docker-compose.yml
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Validate compose syntax
+      env:
+        # Placeholders so interpolation does not warn; nothing is started here
+        OPENAI_API_KEY: ci
+        AZURE_OPENAI_KEY: ci
+        AZURE_OPENAI_ENDPOINT: http://localhost
+      run: docker compose -f docker-compose.yml config --quiet
+    - name: Check Kafka services are defined
+      run: |
+        services="$(docker compose -f docker-compose.yml config --services)"
+        for svc in kafka kafka-init kafka-ui; do
+          grep -qx "${svc}" <<< "${services}" || { echo "::error::service '${svc}' missing from docker-compose.yml"; exit 1; }
+        done
+
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run shellcheck on all shell scripts
+      run: |
+        shellcheck --version
+        mapfile -t scripts < <(git ls-files '*.sh')
+        if (( ${#scripts[@]} == 0 )); then
+          echo "No shell scripts found"
+          exit 0
+        fi
+        printf 'Checking %s\n' "${scripts[@]}"
+        shellcheck --severity=warning "${scripts[@]}"
