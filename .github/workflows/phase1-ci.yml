@@ -29,6 +29,19 @@ jobs:
           grep -qx "${svc}" <<< "${services}" || { echo "::error::service '${svc}' missing from docker-compose.yml"; exit 1; }
         done
 
+  contract-test:
+    name: VisitEvent contract test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - name: Install jsonschema
+      run: pip install -r contracts/requirements.txt
+    - name: Validate examples against the schema
+      run: python contracts/validate-events.py --expect 11
+
   shellcheck:
     name: ShellCheck
     runs-on: ubuntu-latest
