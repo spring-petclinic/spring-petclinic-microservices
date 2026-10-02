@@ -10,6 +10,8 @@ This covers Phase 1; later phases extend it.
 | Docker Desktop (or Docker Engine with Compose v2) | Engine 25 or newer |
 | Git | On Windows, install Git for Windows; it includes Git Bash |
 | Bash and curl | Needed for the smoke test. Included in Git Bash, WSL, macOS and Linux |
+| Python 3.9 or newer | Only for the contract test |
+| GitHub CLI (`gh`) | Only for the issue script |
 
 Give Docker at least **8 GB of memory**. The container limits add up to about 6 GB
 (eight Spring services at 512 MB, Kafka at 1 GB, Kafka UI at 512 MB, Grafana and Prometheus
@@ -90,6 +92,38 @@ value on a slow machine, for example `WAIT=300 ./scripts/phase1-smoke-test.sh`.
 
 CI validates the compose file and lints the scripts, but it does not start the stack.
 Run the smoke test on each laptop before a demo and record the result in the sprint report.
+
+## Contract test
+
+Checks the example events in `contracts/examples/` against the VisitEvent schema. It does not
+need the stack to be running.
+
+```bash
+pip install -r contracts/requirements.txt
+python contracts/validate-events.py
+```
+
+It prints one PASS or FAIL line per example and exits with status 0 only when all 16 pass.
+On Windows, if `python` opens the Microsoft Store, use `py` instead. CI runs the same test on
+every pull request. Details are in [contracts/README.md](contracts/README.md).
+
+## GitHub issues for the next phase
+
+`scripts/create-github-issues.sh` creates the Phase 2 milestone, labels and issues.
+Preview first; the dry run needs no login and changes nothing:
+
+```bash
+./scripts/create-github-issues.sh --dry-run
+```
+
+For the real run, install the GitHub CLI, sign in with `gh auth login`, and enable issues on
+the fork (Settings > General > Features > Issues). Running it twice is safe: anything that
+already exists is skipped.
+
+## Further reading
+
+- [What the baseline lacks](docs/spikes/baseline-limitations.md) (Phase 1 spike)
+- [Architecture diagrams](docs/architecture.md)
 
 ## Windows notes
 
