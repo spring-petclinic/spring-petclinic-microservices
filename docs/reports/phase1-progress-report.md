@@ -59,6 +59,7 @@ Velocity this sprint: TODO points.
 | customers-service on host port 8081 | Port is configurable through `CUSTOMERS_PORT` in `.env`, default 8081 | Port 8081 was not available on at least one Windows laptop |
 | Kafka UI image `provectuslabs/kafka-ui` | `kafbat/kafka-ui` | The original image is no longer maintained |
 | SETUP.md as part of W3 | First version delivered in W1, extended in W3 | Review of PR #1 asked for it there |
+| Baseline `aefaf7f` "matches the running Docker images" | The published images are Spring Boot 3.4.1; the baseline source is 4.0.1 | Found in the spike (finding 6). The running stack is not our code until W9 builds our own images |
 
 ### Contribution per member
 
@@ -82,6 +83,10 @@ Command: `./scripts/phase1-smoke-test.sh`
 | Jawad | Windows 11, Git Bash | 2026-10-01 | 18/18 | TODO screenshot |
 | Rahul | TODO | TODO | TODO /18 | TODO screenshot |
 | Sneha | TODO | TODO | TODO /18 | TODO screenshot |
+
+These results are for the published upstream images (Spring Boot 3.4.1 on Jawad's laptop) plus
+our Kafka containers. They show that the stack and Kafka run together; they do not test a
+build of the baseline source.
 
 ### Contract test (plan target 11/11, now 16/16)
 
@@ -120,7 +125,30 @@ Command: `python contracts/validate-events.py`
 | Rahul | TODO |
 | Sneha | TODO |
 
-## 5. Scrum meeting log
+### W3 items that are GitHub settings, not files
+
+These are part of W3 in the plan and cannot be delivered through a pull request. W3 is not
+done until all three are ticked.
+
+- [ ] Phase 2 issues and milestone created (`./scripts/create-github-issues.sh`; needs Issues
+      enabled on the fork and the GitHub CLI)
+- [ ] Project board created with the W4 to W9 issues on it
+- [ ] `main` protected: pull request, one approval and passing checks required
+
+## 5. Demo
+
+Five minutes in total. Each member presents their own story and shows what a user or a new
+contributor gains, not the code.
+
+| Order | Presenter | Story | What is shown | Minutes |
+|---|---|---|---|---|
+| 1 | TODO | US9 part 1 (W1): one compose file with Kafka | TODO, for example `docker compose up -d`, Kafka UI with the topics, smoke test 18/18 | TODO |
+| 2 | TODO | Enabler (W2): VisitEvent contract | TODO, for example the schema, one valid and one invalid example, contract test 16/16 | TODO |
+| 3 | TODO | W3: spike findings and architecture | TODO, for example the fallback experiment and the target diagram | TODO |
+
+Demo date: TODO. Questions or feedback received: TODO.
+
+## 6. Scrum meeting log
 
 | Date | Type | Attendees | Done since last meeting | Planned next | Blockers |
 |---|---|---|---|---|---|
@@ -130,7 +158,7 @@ Command: `python contracts/validate-events.py`
 | TODO | Sprint review | TODO | TODO | TODO | TODO |
 | TODO | Retrospective | TODO | TODO | TODO | TODO |
 
-## 6. Retrospective
+## 7. Retrospective
 
 Held on TODO date. Photo: TODO insert the team photo here.
 
@@ -155,7 +183,7 @@ Facts from this sprint the team may want to discuss (delete what does not apply)
 - A stale Grafana container with the wrong port mapping made one smoke check fail locally.
 - Both pull requests went through one round of requested changes before approval.
 
-## 7. Architecture
+## 8. Architecture
 
 Current and target diagrams, and the booking flow: [docs/architecture.md](../architecture.md).
 
@@ -165,7 +193,7 @@ setup and Kafka UI were added to the compose stack. No service produces or consu
 Findings about the baseline that shape the next sprints:
 [docs/spikes/baseline-limitations.md](../spikes/baseline-limitations.md).
 
-## 8. Next sprint (Phase 2: event pipeline and live push, 28 points)
+## 9. Next sprint (Phase 2: event pipeline and live push, 28 points)
 
 Goal: booking a visit produces a classified, audited alert that appears live in every open browser.
 
@@ -182,9 +210,10 @@ Order: W4 and W6 first, then W7, then W8. W5 and W9 run alongside.
 
 Flow diagram: the sequence diagram "How a booking flows" in [docs/architecture.md](../architecture.md).
 
-Methods planned per story:
+Proposed methods per story. **This is a proposal, not a decided design**: the names are a
+starting point for sprint planning and nothing in the code depends on them yet.
 
-| Story | Class | Methods |
+| Story | Proposed class | Proposed methods |
 |---|---|---|
 | US1 (W4) | `VisitResource` | `create(visit, ownerId, petId)` |
 | US1 (W4) | `VisitEventPublisher` | `publishScheduled(visit, ownerId)` |
@@ -194,9 +223,10 @@ Methods planned per story:
 | US3 (W7) | `AuditResource` | `search(petId, ownerId, type, from, to)` |
 | US4 (W8) | `AlertPushService` | `push(alert)` |
 
-TODO: the team confirms or corrects these names during sprint planning.
+TODO: the team confirms or corrects these names during sprint planning, then removes the
+word "proposed".
 
-## 9. Next meeting
+## 10. Next meeting
 
 | | |
 |---|---|
@@ -205,7 +235,7 @@ TODO: the team confirms or corrects these names during sprint planning.
 | Scrum Master for Sprint 2 | TODO |
 | Agenda | Sprint 2 planning: confirm W4 to W9, assign substantial stories, answer the open questions from the spike |
 
-## 10. Teammate evaluations
+## 11. Teammate evaluations
 
 Each member rates the other two from 1 (low) to 5 (high) and adds one sentence.
 

@@ -11,6 +11,26 @@ and the Eureka Service Discovery from the [Spring Cloud Netflix](https://github.
 
 [![Open in Codeanywhere](https://codeanywhere.com/img/open-in-codeanywhere-btn.svg)](https://app.codeanywhere.com/#https://github.com/spring-petclinic/spring-petclinic-microservices)
 
+## Team project: event-driven alert and audit pipeline
+
+This fork adds an event-driven alert and audit pipeline on top of the upstream application,
+in three phases. Booking or cancelling a visit will publish an event to Kafka; a new
+notification-alert-service classifies it, keeps a permanent audit record and pushes it live to
+open browsers. The gateway gains rate limiting and a visit-specific fallback.
+
+| Document | What it covers |
+|---|---|
+| [SETUP.md](SETUP.md) | Run the stack with Kafka, the smoke test and the contract test |
+| [docs/architecture.md](docs/architecture.md) | Current and target architecture, booking flow |
+| [docs/spikes/baseline-limitations.md](docs/spikes/baseline-limitations.md) | What the upstream baseline lacks |
+| [contracts/README.md](contracts/README.md) | The VisitEvent contract and its test |
+| [docs/reports/phase1-progress-report.md](docs/reports/phase1-progress-report.md) | Phase 1 progress report and retrospective |
+
+Status: Phase 1 (setup and contracts) adds Kafka, the event contract and these documents.
+No service produces or consumes events yet; that is Phase 2.
+
+The rest of this README is the upstream documentation.
+
 ## Starting services locally without Docker
 
 Every microservice is a Spring Boot application and can be started locally using IDE or `../mvnw spring-boot:run` command.

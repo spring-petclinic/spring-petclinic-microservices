@@ -103,7 +103,7 @@ pip install -r contracts/requirements.txt
 python contracts/validate-events.py
 ```
 
-It prints one PASS or FAIL line per example and exits with status 0 only when all 16 pass.
+It prints one PASS or FAIL line per example and exits with status 0 only when every example passes.
 On Windows, if `python` opens the Microsoft Store, use `py` instead. CI runs the same test on
 every pull request. Details are in [contracts/README.md](contracts/README.md).
 
@@ -118,7 +118,8 @@ Preview first; the dry run needs no login and changes nothing:
 
 For the real run, install the GitHub CLI, sign in with `gh auth login`, and enable issues on
 the fork (Settings > General > Features > Issues). Running it twice is safe: anything that
-already exists is skipped.
+already exists is skipped. Each issue is assigned to its lead; the header of the script shows
+how to change the GitHub user names.
 
 ## Further reading
 

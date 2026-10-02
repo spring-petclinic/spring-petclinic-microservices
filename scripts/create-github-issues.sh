@@ -11,6 +11,10 @@
 #   --repo OWNER/NAME    target repository (default: JawadCEO/spring-petclinic-microservices)
 #   --due YYYY-MM-DD     due date for the milestone (default: none)
 #
+# Each issue is assigned to its lead. The GitHub user names come from these environment
+# variables; an empty one leaves that person's issues unassigned:
+#   ASSIGNEE_JAWAD (default: JawadCEO)   ASSIGNEE_SNEHA (default: SnehaVarra3436)
+#
 # Before the real run:
 #   - Install the GitHub CLI (https://cli.github.com) and sign in with: gh auth login
 #   - Enable issues on the fork: Settings > General > Features > Issues. Forks have them off.
@@ -22,6 +26,9 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+ASSIGNEE_JAWAD="${ASSIGNEE_JAWAD-JawadCEO}"
+ASSIGNEE_SNEHA="${ASSIGNEE_SNEHA-SnehaVarra3436}"
+
 REPO="JawadCEO/spring-petclinic-microservices"
 MILESTONE="Phase 2: Event pipeline and live push"
 MILESTONE_DESCRIPTION="Booking a visit produces a classified, audited alert that appears live in every open browser. 28 points, W4 to W9."
@@ -29,7 +36,12 @@ DUE=""
 DRY_RUN="no"
 
 usage() {
-  sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,23p' "$0" | sed 's/^# \{0,1\}//'
+}
+
+# valid_date <YYYY-MM-DD>: shape and ranges only, enough to catch typos before calling the API
+valid_date() {
+  [[ "$1" =~ ^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$ ]]
 }
 
 while [[ $# -gt 0 ]]; do
@@ -43,9 +55,15 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
+if [[ -n "${DUE}" ]] && ! valid_date "${DUE}"; then
+  echo "ERROR: --due must be a date like 2026-10-22, got '${DUE}'" >&2
+  exit 1
+fi
+
 CREATED=0
 SKIPPED=0
 EXISTING_TITLES=""
+EXISTING_LABELS=""
 
 say() {
   if [[ "${DRY_RUN}" == "yes" ]]; then
@@ -72,13 +90,18 @@ preflight() {
     exit 2
   fi
   EXISTING_TITLES="$(gh issue list --repo "${REPO}" --state all --limit 500 --json title --jq '.[].title')"
+  EXISTING_LABELS="$(gh label list --repo "${REPO}" --limit 500 --json name --jq '.[].name')"
 }
 
 # ensure_label <name> <colour> <description>
 ensure_label() {
+  if grep -qxF "$1" <<< "${EXISTING_LABELS}"; then
+    say "label      $1 (exists, skipped)"
+    return 0
+  fi
   say "label      $1"
   if [[ "${DRY_RUN}" == "no" ]]; then
-    gh label create "$1" --repo "${REPO}" --color "$2" --description "$3" --force > /dev/null
+    gh label create "$1" --repo "${REPO}" --color "$2" --description "$3" > /dev/null
   fi
 }
 
@@ -99,19 +122,22 @@ ensure_milestone() {
   say "milestone  ${MILESTONE} (created)"
 }
 
-# create_issue <work item> <title> <comma-separated labels>, body on stdin
+# create_issue <work item> <title> <comma-separated labels> <assignee or empty>, body on stdin
 create_issue() {
-  local item="$1" title="[$1] $2" labels="$3" body
+  local item="$1" title="[$1] $2" labels="$3" assignee="$4" body
   body="$(cat)"
   if grep -qF "[${item}] " <<< "${EXISTING_TITLES}"; then
     say "issue      ${title} (exists, skipped)"
     SKIPPED=$((SKIPPED + 1))
     return 0
   fi
-  say "issue      ${title}  {${labels}}"
+  say "issue      ${title}  {${labels}}  -> ${assignee:-unassigned}"
   if [[ "${DRY_RUN}" == "no" ]]; then
-    gh issue create --repo "${REPO}" --title "${title}" --body "${body}" \
-      --label "${labels}" --milestone "${MILESTONE}" > /dev/null
+    local args=(--repo "${REPO}" --title "${title}" --body "${body}" --label "${labels}" --milestone "${MILESTONE}")
+    if [[ -n "${assignee}" ]]; then
+      args+=(--assignee "${assignee}")
+    fi
+    gh issue create "${args[@]}" > /dev/null
   fi
   CREATED=$((CREATED + 1))
 }
@@ -124,7 +150,7 @@ ensure_label "story"   "0e8a16" "User story"
 ensure_label "enabler" "5319e7" "Technical work that enables stories"
 ensure_milestone
 
-create_issue "W4" "US1: Publish a VisitEvent when a visit is booked (5 pts)" "phase-2,story" <<'EOF'
+create_issue "W4" "US1: Publish a VisitEvent when a visit is booked (5 pts)" "phase-2,story" "${ASSIGNEE_JAWAD}" <<'EOF'
 **Story.** As a developer, I want visits-service to publish an event whenever a visit is booked, so other services can react without a direct call.
 
 **Lead:** Jawad. **Points:** 5 (Jawad 3 design and code, Rahul 1 tests, Sneha 1 infra).
@@ -150,7 +176,7 @@ create_issue "W4" "US1: Publish a VisitEvent when a visit is booked (5 pts)" "ph
 See `docs/spikes/baseline-limitations.md`, findings 2 and 4.
 EOF
 
-create_issue "W5" "US1: Cancel a visit (3 pts)" "phase-2,story" <<'EOF'
+create_issue "W5" "US1: Cancel a visit (3 pts)" "phase-2,story" "${ASSIGNEE_JAWAD}" <<'EOF'
 **Story.** As front-desk staff, I want to cancel a visit, so the schedule and alerts stay correct.
 
 **Lead:** Jawad. **Points:** 3 (Jawad 2 code, Rahul 1 tests).
@@ -173,7 +199,7 @@ create_issue "W5" "US1: Cancel a visit (3 pts)" "phase-2,story" <<'EOF'
 Depends on W4.
 EOF
 
-create_issue "W6" "US2: Visit type and alert classification (5 pts)" "phase-2,story" <<'EOF'
+create_issue "W6" "US2: Visit type and alert classification (5 pts)" "phase-2,story" "${ASSIGNEE_JAWAD}" <<'EOF'
 **Story.** As front-desk staff, I want to choose a visit type when booking, and as an administrator I want each visit classified as emergency or routine, so urgent visits stand out.
 
 **Lead:** Jawad. **Points:** 5 (Jawad 3 code, Rahul 1 tests, Sneha 1 config).
@@ -198,7 +224,7 @@ create_issue "W6" "US2: Visit type and alert classification (5 pts)" "phase-2,st
 Can start alongside W4.
 EOF
 
-create_issue "W7" "US3: Alert service with a permanent audit record (8 pts)" "phase-2,story" <<'EOF'
+create_issue "W7" "US3: Alert service with a permanent audit record (8 pts)" "phase-2,story" "${ASSIGNEE_JAWAD}" <<'EOF'
 **Story.** As a clinic administrator, I want every alert stored as a permanent audit record I can search, so I can see what happened and when.
 
 **Lead:** Jawad. **Points:** 8 (Jawad 4 code, Rahul 3 tests, Sneha 1 infra).
@@ -225,7 +251,7 @@ create_issue "W7" "US3: Alert service with a permanent audit record (8 pts)" "ph
 Depends on W4 and W6.
 EOF
 
-create_issue "W8" "US4: Push new alerts to open browsers over WebSocket (5 pts)" "phase-2,story" <<'EOF'
+create_issue "W8" "US4: Push new alerts to open browsers over WebSocket (5 pts)" "phase-2,story" "${ASSIGNEE_JAWAD}" <<'EOF'
 **Story.** As front-desk staff, I want new bookings pushed to my open screen instantly, so I never need to refresh.
 
 **Lead:** Jawad. **Points:** 5 (Jawad 3 code, Rahul 1 tests, Sneha 1 infra).
@@ -246,7 +272,7 @@ create_issue "W8" "US4: Push new alerts to open browsers over WebSocket (5 pts)"
 Depends on W7.
 EOF
 
-create_issue "W9" "Enabler: Run our own images in Docker (2 pts)" "phase-2,enabler" <<'EOF'
+create_issue "W9" "Enabler: Run our own images in Docker (2 pts)" "phase-2,enabler" "${ASSIGNEE_SNEHA}" <<'EOF'
 **Story.** As the team, we want Docker to run our own code, so the demo shows our changes and not the upstream images.
 
 **Lead:** Sneha. **Points:** 2.
