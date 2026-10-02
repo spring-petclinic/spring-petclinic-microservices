@@ -1,0 +1,10 @@
+{
+  "eventType": "VISIT_SCHEDULED",
+  "visitId": 12,
+  "petId": 7,
+  "ownerId": 6,
+  "visitDate": "2026-10-15",
+  "visitType": "ROUTINE",
+  "description": "Annual check-up and rabies booster",
+  "occurredAt": "2026-10-01T14:32:05Z"
+}

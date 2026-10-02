@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/JawadCEO/spring-petclinic-microservices/contracts/visit-event-schema.json",
+  "title": "VisitEvent",
+  "description": "Published by visits-service to Kafka topic visit-events (key = petId) whenever a visit is booked or cancelled. Consumed by notification-alert-service.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "eventId",
+    "eventType",
+    "visitId",
+    "petId",
+    "ownerId",
+    "visitDate",
+    "visitType",
+    "description",
+    "occurredAt"
+  ],
+  "properties": {
+    "eventId": {
+      "description": "Unique id of this event. Consumers use it to skip events they have already processed.",
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    },
+    "eventType": {
+      "description": "What happened to the visit.",
+      "type": "string",
+      "enum": ["VISIT_SCHEDULED", "VISIT_CANCELLED"]
+    },
+    "visitId": {
+      "description": "Database id of the visit in visits-service.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "petId": {
+      "description": "Id of the pet the visit is for. Also the Kafka message key.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "ownerId": {
+      "description": "Id of the pet's owner.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "visitDate": {
+      "description": "Appointment date, YYYY-MM-DD.",
+      "type": "string",
+      "format": "date",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "visitType": {
+      "description": "Kind of visit, for example ROUTINE, EMERGENCY or URGENT_CARE. Deliberately not an enum: which types count as urgent is configuration (petclinic.alerts.urgent-types), and an unknown type is classified as ROUTINE.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$",
+      "maxLength": 40
+    },
+    "description": {
+      "description": "Free-text description of the visit. May be empty.",
+      "type": "string",
+      "maxLength": 8192
+    },
+    "occurredAt": {
+      "description": "When the visit was booked or cancelled: ISO-8601 timestamp in UTC, ending in Z.",
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,9})?Z$"
+    }
+  }
+}
