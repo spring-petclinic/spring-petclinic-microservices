@@ -28,7 +28,7 @@
 #     CUSTOMERS_PORT=18081 in a .env file next to docker-compose.yml; the script detects it.
 #   - More detail: SETUP.md
 
-# shellcheck disable=SC2329  # probe_* functions are invoked indirectly through check()
+# shellcheck disable=SC2317,SC2329  # probe_* functions are invoked indirectly through check()
 set -o nounset
 set -o pipefail
 
