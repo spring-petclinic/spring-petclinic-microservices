@@ -1,0 +1,11 @@
+{
+  "eventId": "5a9c3e7d-2f41-4c68-b0d3-9e8f1a6b4c27",
+  "eventType": "VISIT_SCHEDULED",
+  "visitId": 14,
+  "petId": 7,
+  "ownerId": 6,
+  "visitDate": "2026-10-15",
+  "visitType": "ROUTINE",
+  "description": "",
+  "occurredAt": "2026-10-01T16:05:09.5Z"
+}

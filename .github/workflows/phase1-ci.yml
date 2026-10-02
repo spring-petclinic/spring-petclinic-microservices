@@ -1,3 +1,4 @@
+# Started in Phase 1 and kept under this name; later phases add their jobs here.
 name: Phase 1 CI
 
 on:
@@ -40,7 +41,7 @@ jobs:
     - name: Install jsonschema
       run: pip install -r contracts/requirements.txt
     - name: Validate examples against the schema
-      run: python contracts/validate-events.py --expect 11
+      run: python contracts/validate-events.py --expect 16
 
   shellcheck:
     name: ShellCheck

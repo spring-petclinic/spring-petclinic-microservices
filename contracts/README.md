@@ -37,6 +37,16 @@ All nine fields are required, and no other fields are allowed.
 
 `visitType` is deliberately not a fixed list. Which types count as urgent is configuration
 (`petclinic.alerts.urgent-types`), and a type the consumer does not know is classified as ROUTINE.
+The producer must send it in upper case: `routine` is rejected.
+
+Notes for the producer (W4):
+
+- Some rules are JSON Schema *formats* (`uuid`, `date`, `date-time`). Many validators, including
+  the common Java ones, ignore formats unless format assertion is switched on. Switch it on in
+  the producer's schema check, otherwise an impossible date such as `2026-02-30` passes there
+  and fails here.
+- Unknown fields are rejected, so the producer cannot add a field ahead of the contract.
+  Every new field goes through a pull request on this folder first.
 
 Example:
 
@@ -56,7 +66,8 @@ Example:
 
 ## Running the contract test
 
-Needs Python 3.9 or newer.
+Needs Python 3.9 or newer. `requirements.txt` pins one jsonschema version so that CI and
+every laptop get the same result.
 
 ```bash
 pip install -r contracts/requirements.txt
@@ -64,8 +75,8 @@ python contracts/validate-events.py
 ```
 
 It prints one PASS or FAIL line per example and exits with status 0 only when all pass.
-CI runs it with `--expect 11`, which also fails if an example is added or removed without
-updating the workflow.
+CI runs it with `--expect 16`. The fixed number is deliberate: it makes the build fail if an
+example is deleted or renamed by accident, at the cost of one extra edit when adding one.
 
 ## Adding an example
 

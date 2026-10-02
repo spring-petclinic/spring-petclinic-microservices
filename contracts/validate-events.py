@@ -13,13 +13,14 @@ Exits 0 only when every example behaves as expected.
 Usage (from anywhere):
     pip install -r contracts/requirements.txt
     python contracts/validate-events.py            # run all examples
-    python contracts/validate-events.py --expect 11  # also fail if the number of examples differs
+    python contracts/validate-events.py --expect 16  # also fail if the number of examples differs
 """
 
 import argparse
 import datetime
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -31,6 +32,9 @@ except ImportError:
 CONTRACTS_DIR = Path(__file__).resolve().parent
 SCHEMA_FILE = CONTRACTS_DIR / "visit-event-schema.json"
 EXAMPLES_DIR = CONTRACTS_DIR / "examples"
+
+# date and time, optional fraction, then Z or a numeric offset
+DATE_TIME = re.compile(r"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(\.\d+)?(Z|[+-]\d{2}:\d{2})")
 
 USE_COLOR = sys.stdout.isatty() and not os.environ.get("NO_COLOR")
 GREEN, RED, BOLD, RESET = ("\033[0;32m", "\033[0;31m", "\033[1m", "\033[0m") if USE_COLOR else ("", "", "", "")
@@ -47,20 +51,25 @@ def build_validator():
     @formats.checks("date-time", raises=ValueError)
     def is_date_time(value):
         if isinstance(value, str):
-            datetime.datetime.fromisoformat(value.replace("Z", "+00:00"))
+            # Not datetime.fromisoformat: before Python 3.11 it rejects "Z" and short fractions
+            match = DATE_TIME.fullmatch(value)
+            if not match:
+                raise ValueError(value)
+            datetime.datetime.strptime(match.group(1), "%Y-%m-%dT%H:%M:%S")
         return True
 
     return Draft202012Validator(schema, format_checker=formats)
 
 
-def field_of(error):
-    """Name of the field a validation error is about."""
+def fields_of(error):
+    """Names of the fields a validation error is about, taken from the error's data."""
     if error.path:
-        return str(error.path[0])
+        return [str(error.path[0])]
     if error.validator == "required":
-        # message looks like: 'petId' is a required property
-        return error.message.split("'")[1]
-    return "(event)"
+        return sorted(name for name in error.validator_value if name not in error.instance)
+    if error.validator == "additionalProperties":
+        return sorted(name for name in error.instance if name not in error.schema.get("properties", {}))
+    return ["(event)"]
 
 
 def reason(error):
@@ -82,13 +91,15 @@ def run_example(validator, path):
     except json.JSONDecodeError as exc:
         return False, f"not parseable as JSON: {exc}"
 
-    errors = sorted(validator.iter_errors(event), key=lambda e: (field_of(e), e.message))
-    fields = sorted({field_of(e) for e in errors})
+    errors = sorted(validator.iter_errors(event), key=lambda e: (fields_of(e), e.message))
+    fields = sorted({name for e in errors for name in fields_of(e)})
 
     if expect_valid:
         if not errors:
             return True, "accepted"
-        return False, "expected to be accepted, but: " + "; ".join(f"{field_of(e)}: {e.message}" for e in errors)
+        return False, "expected to be accepted, but: " + "; ".join(
+            f"{', '.join(fields_of(e))}: {e.message}" for e in errors
+        )
 
     if not errors:
         return False, "expected to be rejected, but the schema accepted it"
