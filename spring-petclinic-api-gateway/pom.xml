@@ -17,8 +17,8 @@
     <properties>
         <webjars-bootstrap.version>5.3.3</webjars-bootstrap.version>
         <webjars-font-awesome.version>4.7.0</webjars-font-awesome.version>
-        <webjars-angular.version>1.8.3</webjars-angular.version>
-        <webjars-angular-ui-router.version>1.0.30</webjars-angular-ui-router.version>
+        <webjars-vue-router.version>4.5.1</webjars-vue-router.version>
+        <webjars-dompurify.version>3.3.1</webjars-dompurify.version>
         <webjars-marked.version>14.1.2</webjars-marked.version>
         <squareup-okhttp3.version>5.0.0-alpha.14</squareup-okhttp3.version>
 
@@ -104,11 +104,6 @@
 
         <!-- Webjars -->
         <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>angularjs</artifactId>
-            <version>${webjars-angular.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.webjars.npm</groupId>
             <artifactId>font-awesome</artifactId>
             <version>${webjars-font-awesome.version}</version>
@@ -120,17 +115,27 @@
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
-            <artifactId>angular-ui-router</artifactId>
-            <version>${webjars-angular-ui-router.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars</groupId>
             <artifactId>webjars-locator-lite</artifactId>
         </dependency>
         <dependency>
             <groupId>org.webjars.npm</groupId>
             <artifactId>marked</artifactId>
             <version>${webjars-marked.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>vue</artifactId>
+            <version>3.5.17</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>vue-router</artifactId>
+            <version>${webjars-vue-router.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>dompurify</artifactId>
+            <version>${webjars-dompurify.version}</version>
         </dependency>
 
         <!-- Testing -->

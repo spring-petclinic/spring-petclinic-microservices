@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 
-<html ng-app="petClinicApp" lang="en">
+<html lang="en">
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <meta charset="utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0, minimal-ui"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <!-- The above 4 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 
     <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.png"/>
@@ -18,78 +18,21 @@
 
     <script src="/webjars/bootstrap/js/bootstrap.min.js"></script>
 
-    <script src="/webjars/angularjs/angular.min.js"></script>
-    <script src="/webjars/angular-ui-router/angular-ui-router.min.js"></script>
-
-    <script src="/scripts/app.js"></script>
-    <script src="/scripts/genai/chat.js"></script>
-
-    <script src="/scripts/owner-list/owner-list.js"></script>
-    <script src="/scripts/owner-list/owner-list.controller.js"></script>
-    <script src="/scripts/owner-list/owner-list.component.js"></script>
-
-    <script src="/scripts/owner-details/owner-details.js"></script>
-    <script src="/scripts/owner-details/owner-details.controller.js"></script>
-    <script src="/scripts/owner-details/owner-details.component.js"></script>
-
-    <script src="/scripts/owner-form/owner-form.js"></script>
-    <script src="/scripts/owner-form/owner-form.controller.js"></script>
-    <script src="/scripts/owner-form/owner-form.component.js"></script>
-
-    <script src="/scripts/pet-form/pet-form.js"></script>
-    <script src="/scripts/pet-form/pet-form.controller.js"></script>
-    <script src="/scripts/pet-form/pet-form.component.js"></script>
-
-    <script src="/scripts/visits/visits.js"></script>
-    <script src="/scripts/visits/visits.controller.js"></script>
-    <script src="/scripts/visits/visits.component.js"></script>
-
-    <script src="/scripts/vet-list/vet-list.js"></script>
-    <script src="/scripts/vet-list/vet-list.controller.js"></script>
-    <script src="/scripts/vet-list/vet-list.component.js"></script>
-
-    <script src="/scripts/infrastructure/infrastructure.js"></script>
-    <script src="/scripts/infrastructure/httpErrorHandlingInterceptor.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "vue": "/webjars/vue/dist/vue.esm-browser.prod.js",
+                "vue-router": "/webjars/vue-router/dist/vue-router.esm-browser.prod.js",
+                "dompurify": "/webjars/dompurify/dist/purify.es.mjs",
+                "marked": "/webjars/marked/lib/marked.esm.js"
+            }
+        }
+    </script>
+    <script type="module" src="/scripts/main.js?v=explicit-esm-dependencies"></script>
 </head>
 
 <body>
-<layout-nav></layout-nav>
-<div class="container-fluid">
-    <div class="container xd-container">
-        <div ui-view=""></div>
-    </div>
-</div>
-
-<div class="chatbox" id="chatbox">
-    <button class="chatbox-header" onclick="toggleChatbox()">
-        Chat with Us!
-    </button>
-    <div class="chatbox-content" id="chatbox-content">
-        <div class="chatbox-messages" id="chatbox-messages">
-            <!-- Chat messages will be dynamically inserted here -->
-        </div>
-        <div class="chatbox-footer">
-            <input type="text" id="chatbox-input" placeholder="Type a message..." onkeydown="handleKeyPress(event)" />
-            <button onclick="sendMessage()">Send</button>
-        </div>
-    </div>
-</div>
-
-<!-- JavaScript for handling chatbox interaction -->
-<script>
-
-    // Call loadChatMessages when the page loads
-    window.onload = loadChatMessages;
-
-    // Ensure messages are saved when navigating away
-    window.onbeforeunload = saveChatMessages;
-</script>
-
-
-
-<script src="/webjars/marked/marked.min.js"></script>
-
-<layout-footer></layout-footer>
+<div id="app"></div>
 </body>
 
 </html>

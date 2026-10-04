@@ -3,9 +3,9 @@
 [![Build Status](https://github.com/spring-petclinic/spring-petclinic-microservices/actions/workflows/maven-build.yml/badge.svg)](https://github.com/spring-petclinic/spring-petclinic-microservices/actions/workflows/maven-build.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-This microservices branch was initially derived from [AngularJS version](https://github.com/spring-petclinic/spring-petclinic-angular1) to demonstrate how to split sample Spring application into [microservices](http://www.martinfowler.com/articles/microservices.html).
-To achieve that goal, we use Spring Cloud Gateway, Spring Cloud Circuit Breaker, Spring Cloud Config, Micrometer Tracing, Resilience4j, Open Telemetry 
-and the Eureka Service Discovery from the [Spring Cloud Netflix](https://github.com/spring-cloud/spring-cloud-netflix) technology stack.
+This project demonstrates how to split the classic Spring PetClinic sample application into **[microservices](http://www.martinfowler.com/articles/microservices.html)**, with a **Vue.js frontend** and a Spring AI-powered chatbot.
+To achieve that goal, it relies on Spring Boot, **Spring Cloud Gateway**, **Spring Cloud Circuit Breaker** with Resilience4j, **Spring Cloud Config**, Micrometer Tracing with Zipkin, Prometheus and Grafana for monitoring, 
+Spring Boot Admin, Chaos Monkey for Spring Boot,  and the Eureka Service Discovery from the [Spring Cloud Netflix](https://github.com/spring-cloud/spring-cloud-netflix) technology stack.
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/spring-petclinic/spring-petclinic-microservices)
 
@@ -19,7 +19,7 @@ Startup of Tracing server, Admin server, Grafana and Prometheus is optional.
 If everything goes well, you can access the following services at given location:
 * Discovery Server - http://localhost:8761
 * Config Server - http://localhost:8888
-* AngularJS frontend (API Gateway) - http://localhost:8080
+* Vue.js frontend (API Gateway) - http://localhost:8080
 * Customers, Vets, Visits and GenAI Services - random port, check Eureka Dashboard 
 * Tracing Server (Zipkin) - http://localhost:9411/zipkin/ (we use [openzipkin](https://github.com/openzipkin/zipkin/tree/main/zipkin-server))
 * Admin Server (Spring Boot Admin) - http://localhost:9090
@@ -219,12 +219,12 @@ All those three REST controllers `OwnerResource`, `PetResource` and `VisitResour
 | Circuit Breaker                 | [Resilience4j fallback method](spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/boundary/web/ApiGatewayController.java)  |
 | Grafana / Prometheus Monitoring | [Micrometer implementation](https://micrometer.io/), [Spring Boot Actuator Production Ready Metrics] |
 
-|  Front-end module | Files |
-|-------------------|-------|
-| Node and NPM      | [The frontend-maven-plugin plugin downloads/installs Node and NPM locally then runs Bower and Gulp](spring-petclinic-ui/pom.xml)  |
-| Bower             | [JavaScript libraries are defined by the manifest file bower.json](spring-petclinic-ui/bower.json)  |
-| Gulp              | [Tasks automated by Gulp: minify CSS and JS, generate CSS from LESS, copy other static resources](spring-petclinic-ui/gulpfile.js)  |
-| Angular JS        | [app.js, controllers and templates](spring-petclinic-ui/src/scripts/)  |
+| Front-end module   | Files                                                                                                                                                                                                 |
+|--------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Maven build        | [Maven dependencies for Vue, Vue Router, Bootstrap, DOMPurify, and Marked](spring-petclinic-api-gateway/pom.xml). Maven packages the frontend; no Node.js, NPM, or maven-frontend-plugin is required. |
+| Vue JS             | [Standalone Vue modules](spring-petclinic-api-gateway/src/main/resources/static/scripts/main.js) use runtime templates and native browser imports in no-build mode.                                    |
+| Vue Router         | [Client-side routes](spring-petclinic-api-gateway/src/main/resources/static/scripts/router.js) use browser history for all application screens.                                                        |
+| Static entry point | [HTML host page](spring-petclinic-api-gateway/src/main/resources/static/index.html) mounts the Vue application and loads local WebJar assets.                                                         |
 
 ## Pushing to a Docker registry
 
