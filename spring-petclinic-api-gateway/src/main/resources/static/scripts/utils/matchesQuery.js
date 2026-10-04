@@ -12,7 +12,7 @@ export function matchesQuery(value, query) {
     }
 
     if (typeof value === 'object') {
-        return Object.keys(value).some((key) => key.charAt(0) !== '$' && matchesQuery(value[key], query));
+        return Object.keys(value).some((key) => !key.startsWith('$') && matchesQuery(value[key], query));
     }
 
     return false;

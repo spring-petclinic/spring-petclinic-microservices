@@ -52,7 +52,8 @@ export const PetFormPage = {
                 birthDate: pet.birthDate,
                 typeId: Number(pet.typeId)
             };
-            const url = `/api/customer/owners/${ownerId}/pets${petId ? `/${petId}` : ''}`;
+            const petPath = petId ? `/${petId}` : '';
+            const url = `/api/customer/owners/${ownerId}/pets${petPath}`;
 
             const errorContext = clearError();
             try {
@@ -79,7 +80,7 @@ export const PetFormPage = {
             submit
         };
     },
-    template: String.raw`
+    template: `
         <section>
             <loading-spinner v-if="loading"></loading-spinner>
             <load-failure v-else-if="failed" :error="failure" resource="Pet details"></load-failure>

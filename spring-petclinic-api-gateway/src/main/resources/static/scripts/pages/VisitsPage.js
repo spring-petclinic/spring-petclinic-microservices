@@ -59,7 +59,7 @@ export const VisitsPage = {
             submit
         };
     },
-    template: String.raw`
+    template: `
         <section>
             <loading-spinner v-if="loading"></loading-spinner>
             <load-failure v-else-if="failed" :error="failure" resource="Visit data"></load-failure>

@@ -5,6 +5,17 @@ function isJsonResponse(contentType) {
     return mediaType === 'application/json' || mediaType.endsWith('+json');
 }
 
+export class ApiError extends Error {
+    constructor(message, { status = null, payload = null, timeout = false, cancelled = false } = {}) {
+        super(message);
+        this.name = 'ApiError';
+        this.status = status;
+        this.payload = payload;
+        this.timeout = timeout;
+        this.cancelled = cancelled;
+    }
+}
+
 async function readPayload(response) {
     const body = await response.text();
     if (!body) {
@@ -17,13 +28,22 @@ async function readPayload(response) {
 
     try {
         return JSON.parse(body);
-    } catch (error) {
-        throw {
-            message: 'The server returned an invalid JSON response.',
-            status: response.status,
-            payload: null
-        };
+    } catch {
+        throw new ApiError('The server returned an invalid JSON response.', { status: response.status });
     }
+}
+
+function toApiError(error, { timedOut, externalSignal }) {
+    if (timedOut) {
+        return new ApiError('The request timed out. Please try again.', { timeout: true });
+    }
+    if (externalSignal?.aborted) {
+        return new ApiError('The request was cancelled.', { cancelled: true });
+    }
+    if (error instanceof ApiError) {
+        return error;
+    }
+    return new ApiError('Unable to reach the server.');
 }
 
 export async function request(url, options = {}) {
@@ -36,12 +56,10 @@ export async function request(url, options = {}) {
     }, REQUEST_TIMEOUT_MS);
     const abortRequest = () => controller.abort();
 
-    if (externalSignal) {
-        if (externalSignal.aborted) {
-            abortRequest();
-        } else {
-            externalSignal.addEventListener('abort', abortRequest, { once: true });
-        }
+    if (externalSignal?.aborted) {
+        abortRequest();
+    } else {
+        externalSignal?.addEventListener('abort', abortRequest, { once: true });
     }
 
     let response;
@@ -54,29 +72,17 @@ export async function request(url, options = {}) {
         });
         payload = await readPayload(response);
     } catch (error) {
-        if (timedOut) {
-            throw { message: 'The request timed out. Please try again.', status: null, timeout: true };
-        }
-        if (externalSignal && externalSignal.aborted) {
-            throw { message: 'The request was cancelled.', status: null, cancelled: true };
-        }
-        if (error && typeof error === 'object' && 'message' in error && 'status' in error) {
-            throw error;
-        }
-        throw { message: 'Unable to reach the server.', status: null };
+        throw toApiError(error, { timedOut, externalSignal });
     } finally {
         clearTimeout(timeout);
-        if (externalSignal) {
-            externalSignal.removeEventListener('abort', abortRequest);
-        }
+        externalSignal?.removeEventListener('abort', abortRequest);
     }
 
     if (!response.ok) {
-        throw {
-            message: `Request failed (${response.status}).`,
+        throw new ApiError(`Request failed (${response.status}).`, {
             status: response.status,
             payload: payload && typeof payload === 'object' ? payload : null
-        };
+        });
     }
 
     return payload;
@@ -94,14 +100,14 @@ export function jsonRequest(method, body) {
 
 export function requireArray(value, message) {
     if (!Array.isArray(value)) {
-        throw { message };
+        throw new ApiError(message);
     }
     return value;
 }
 
 export function requireObject(value, message) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
-        throw { message };
+        throw new ApiError(message);
     }
     return value;
 }

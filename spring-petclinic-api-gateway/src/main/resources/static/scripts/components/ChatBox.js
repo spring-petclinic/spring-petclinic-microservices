@@ -5,6 +5,10 @@ import { marked } from 'marked';
 import { jsonRequest, request } from '../api/client.js';
 import { clearError, reportError } from '../state/errors.js';
 
+function renderMarkdown(content) {
+    return DOMPurify.sanitize(marked.parse(content));
+}
+
 export const ChatBox = {
     setup() {
         const storageKey = 'petclinic.chat.messages';
@@ -23,10 +27,6 @@ export const ChatBox = {
                     messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
                 }
             });
-        }
-
-        function renderMarkdown(content) {
-            return DOMPurify.sanitize(marked.parse(content));
         }
 
         async function send() {
@@ -66,7 +66,8 @@ export const ChatBox = {
                     messages.value = savedMessages.filter((entry) =>
                         entry && (entry.author === 'user' || entry.author === 'bot') && typeof entry.content === 'string');
                 }
-            } catch (error) {
+            } catch {
+                // Corrupted saved conversation: discard it and start with an empty chat.
                 localStorage.removeItem(storageKey);
             }
             scrollToBottom();
@@ -86,7 +87,7 @@ export const ChatBox = {
             send
         };
     },
-    template: String.raw`
+    template: `
         <div class="chatbox" :class="{ minimized: minimized }">
             <button class="chatbox-header" type="button" @click="minimized = !minimized">Chat with Us!</button>
             <div class="chatbox-content">

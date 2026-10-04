@@ -1,5 +1,5 @@
 export const WelcomePage = {
-    template: String.raw`
+    template: `
         <div>
             <h1>Welcome to Petclinic</h1>
             <div class="row">

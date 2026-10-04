@@ -68,7 +68,7 @@ export const OwnerFormPage = {
             submit
         };
     },
-    template: String.raw`
+    template: `
         <section>
             <loading-spinner v-if="loading"></loading-spinner>
             <load-failure v-else-if="failed" :error="failure" resource="Owner details"></load-failure>

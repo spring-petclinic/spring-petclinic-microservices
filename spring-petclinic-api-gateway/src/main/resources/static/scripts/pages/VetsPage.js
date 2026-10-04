@@ -17,7 +17,7 @@ export const VetsPage = {
             failure: state.failure
         };
     },
-    template: String.raw`
+    template: `
         <section>
             <loading-spinner v-if="loading"></loading-spinner>
             <load-failure v-else-if="failed" :error="failure" resource="Veterinarian data"></load-failure>
