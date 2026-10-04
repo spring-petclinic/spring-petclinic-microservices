@@ -23,9 +23,57 @@ for arg in "$@"; do
   esac
 done
 
+INFRA_SERVICES=(grafana-server prometheus-server tracing-server)
+
+APP_MODULES=(config-server discovery-server customers-service visits-service vets-service genai-service api-gateway admin-server)
+
+# Resolves the executable jar of a module (ignores sources/javadoc/original jars).
+find_jar() {
+  ls "$1"/target/*.jar 2>/dev/null | grep -v -- '-sources\|-javadoc\|\.original' | head -n 1 || true
+}
+
+# Starts a Spring Boot jar in the background and records its PID in target/<name>.pid.
+start_app() {
+  local module="$1" port="$2" name="$3" jar
+  jar=$(find_jar "${module}")
+  nohup java -jar "${jar}" --server.port="${port}" ${PROFILE_ARG} > "target/${name}.log" 2>&1 &
+  echo $! > "target/${name}.pid"
+}
+
+# Polls a service actuator health endpoint until it answers.
+# Fails fast if the process died, and only warns after a timeout.
+wait_for_service() {
+  local name="$1" port="$2" timeout="${3:-120}" waited=0
+  echo "Waiting for ${name} on port ${port} (timeout: ${timeout}s)"
+  until curl --silent --fail --output /dev/null "http://localhost:${port}/actuator/health"; do
+    if ! kill -0 "$(cat "target/${name}.pid")" 2>/dev/null; then
+      echo "Error: ${name} exited unexpectedly, last log lines (target/${name}.log):" >&2
+      tail -n 20 "target/${name}.log" >&2
+      exit 1
+    fi
+    if (( waited >= timeout )); then
+      echo "Warning: ${name} did not become healthy within ${timeout}s (see target/${name}.log)" >&2
+      return 0
+    fi
+    sleep 2
+    waited=$((waited + 2))
+  done
+}
+
+# Fail before touching anything if the project has not been built
+for module in "${APP_MODULES[@]}"; do
+  if [[ -z "$(find_jar "spring-petclinic-${module}")" ]]; then
+    echo "Error: no jar found in spring-petclinic-${module}/target. Build the project first: ./mvnw clean install -DskipTests" >&2
+    exit 1
+  fi
+done
+
 pkill -9 -f spring-petclinic || echo "Failed to kill any apps"
 
-docker compose kill || echo "No docker containers are running"
+# Containers have fixed names (container_name in docker-compose.yml): remove them, including
+# stopped ones or ones created from another compose project/directory, to avoid name conflicts.
+docker compose down --remove-orphans || echo "No docker containers are running"
+docker rm --force "${INFRA_SERVICES[@]}" > /dev/null 2>&1 || true
 
 PROFILE_ARG=""
 if [[ "${CHAOS_MONKEY}" == "yes" ]]; then
@@ -36,21 +84,22 @@ else
 fi
 
 echo "Running infra"
-docker compose up -d grafana-server prometheus-server tracing-server
+docker compose up -d "${INFRA_SERVICES[@]}"
 
 echo "Running apps"
 mkdir -p target
-nohup java -jar spring-petclinic-config-server/target/*.jar --server.port=8888 ${PROFILE_ARG} > target/config-server.log 2>&1 &
-echo "Waiting for config server to start"
-sleep 20
-nohup java -jar spring-petclinic-discovery-server/target/*.jar --server.port=8761 ${PROFILE_ARG} > target/discovery-server.log 2>&1 &
-echo "Waiting for discovery server to start"
-sleep 20
-nohup java -jar spring-petclinic-customers-service/target/*.jar --server.port=8081 ${PROFILE_ARG} > target/customers-service.log 2>&1 &
-nohup java -jar spring-petclinic-visits-service/target/*.jar --server.port=8082 ${PROFILE_ARG} > target/visits-service.log 2>&1 &
-nohup java -jar spring-petclinic-vets-service/target/*.jar --server.port=8083 ${PROFILE_ARG} > target/vets-service.log 2>&1 &
-nohup java -jar spring-petclinic-genai-service/target/*.jar --server.port=8084 ${PROFILE_ARG} > target/genai-service.log 2>&1 &
-nohup java -jar spring-petclinic-api-gateway/target/*.jar --server.port=8080 ${PROFILE_ARG} > target/gateway-service.log 2>&1 &
-nohup java -jar spring-petclinic-admin-server/target/*.jar --server.port=9090 ${PROFILE_ARG} > target/admin-server.log 2>&1 &
-echo "Waiting for apps to start"
-sleep 60
+start_app spring-petclinic-config-server 8888 config-server
+wait_for_service config-server 8888
+start_app spring-petclinic-discovery-server 8761 discovery-server
+wait_for_service discovery-server 8761
+start_app spring-petclinic-customers-service 8081 customers-service
+start_app spring-petclinic-visits-service 8082 visits-service
+start_app spring-petclinic-vets-service 8083 vets-service
+start_app spring-petclinic-genai-service 8084 genai-service
+start_app spring-petclinic-api-gateway 8080 api-gateway
+start_app spring-petclinic-admin-server 9090 admin-server
+for service in "customers-service 8081" "visits-service 8082" "vets-service 8083" "genai-service 8084" "api-gateway 8080" "admin-server 9090"; do
+  # shellcheck disable=SC2086
+  wait_for_service ${service}
+done
+echo "All apps started"
