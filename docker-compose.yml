@@ -45,7 +45,8 @@ services:
       discovery-server:
         condition: service_healthy
     ports:
-    - 8081:8081
+    # Set CUSTOMERS_PORT in .env if 8081 is taken on your machine (common on Windows)
+    - ${CUSTOMERS_PORT:-8081}:8081
 
   visits-service:
     image: springcommunity/spring-petclinic-visits-service
@@ -82,7 +83,8 @@ services:
     image: springcommunity/spring-petclinic-genai-service
     container_name: genai-service
     environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # "demo" only lets the service start; chat needs a real key (see SETUP.md)
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-demo}
       - AZURE_OPENAI_KEY=${AZURE_OPENAI_KEY}
       - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
     deploy:
@@ -159,3 +161,80 @@ services:
           memory: 256M
     ports:
     - 9091:9090
+
+  ## Kafka (KRaft mode, no ZooKeeper)
+
+  kafka:
+    image: apache/kafka:3.9.1
+    container_name: kafka
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      # INTERNAL is for containers (kafka:9092), EXTERNAL is for the host (localhost:29092)
+      KAFKA_LISTENERS: INTERNAL://:9092,EXTERNAL://:29092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      # Single broker, so every internal topic must have replication factor 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      # Topics are created by kafka-init so partition counts are explicit
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_HEAP_OPTS: -Xms384m -Xmx384m
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      # The probe starts a JVM, so poll fast only while starting up
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 60s
+      start_interval: 5s
+    ports:
+     - 29092:29092
+
+  kafka-init:
+    image: apache/kafka:3.9.1
+    container_name: kafka-init
+    depends_on:
+      kafka:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        set -e
+        BIN=/opt/kafka/bin
+        echo "Waiting for Kafka at kafka:9092"
+        until $$BIN/kafka-broker-api-versions.sh --bootstrap-server kafka:9092 > /dev/null 2>&1; do
+          sleep 2
+        done
+        $$BIN/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic visit-events --partitions 3 --replication-factor 1
+        $$BIN/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic visit-events.DLT --partitions 1 --replication-factor 1
+        # Scratch topic for the smoke test round trip, so test messages never reach visit-events
+        $$BIN/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic smoke-test --partitions 1 --replication-factor 1 --config retention.ms=60000
+        echo "Topics ready:"
+        $$BIN/kafka-topics.sh --bootstrap-server kafka:9092 --list
+
+  kafka-ui:
+    image: ghcr.io/kafbat/kafka-ui:v1.0.0
+    container_name: kafka-ui
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_CLUSTERS_0_NAME: petclinic
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    ports:
+     - 8090:8080
