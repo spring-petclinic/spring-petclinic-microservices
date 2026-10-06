@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Creates the Phase 2 milestone, labels and issues (W4 to W9) with the GitHub CLI.
+# Creates the Phase 2 milestone, labels and issues (W4 to W9 and W15) with the GitHub CLI.
 # Safe to run again: an existing milestone, label or issue is left alone.
 #
 # Usage (from anywhere):
@@ -31,7 +31,7 @@ ASSIGNEE_SNEHA="${ASSIGNEE_SNEHA-SnehaVarra3436}"
 
 REPO="JawadCEO/spring-petclinic-microservices"
 MILESTONE="Phase 2: Event pipeline and live push"
-MILESTONE_DESCRIPTION="Booking a visit produces a classified, audited alert that appears live in every open browser. 28 points, W4 to W9."
+MILESTONE_DESCRIPTION="Booking a visit produces a classified, audited alert that appears live in every open browser. 31 points, W4 to W9 and W15."
 DUE=""
 DRY_RUN="no"
 
@@ -291,6 +291,32 @@ create_issue "W9" "Enabler: Run our own images in Docker (2 pts)" "phase-2,enabl
 - [ ] Phase 2 smoke test on every laptop
 
 Can run alongside W4 to W8.
+EOF
+
+create_issue "W15" "Enabler: Regression tests for the UI and the backend (3 pts)" "phase-2,enabler" "${ASSIGNEE_SNEHA}" <<'EOF'
+**Story.** As the team, we want regression tests for the existing UI and backend, so the Phase 2 changes do not break what already works.
+
+**Lead:** Sneha. **Points:** 3. Added for Sprint 2; not in the original plan of 14 items.
+
+## Acceptance criteria
+- [ ] Backend: one command checks the existing endpoints through the gateway and exits 0 only when all pass
+- [ ] Backend checks cover: list owners, one owner, owner details with visits, list vets, visits of a pet, and booking a visit with the request the UI sends today (no visit type) still returning 201
+- [ ] UI: the existing pages still work: home, owner list, owner details, add and edit owner, add pet, add visit, vet list
+- [ ] UI: a visit booked through the form appears on the owner page
+- [ ] A baseline run is recorded before the first Phase 2 change merges
+- [ ] The tests are run again after each of W4 to W8 merges, on our own images (W9), and the results go in the sprint report
+
+## Tasks
+- [ ] `scripts/regression-backend.sh`, in the style of the smoke test (PASS/FAIL per check)
+- [ ] UI regression: an automated browser test, or a step-by-step checklist in `docs/testing/ui-regression.md` if automation does not fit the sprint; the team decides at planning
+- [ ] Section in SETUP.md on how to run both
+- [ ] Record the baseline run
+
+## Tests
+- [ ] Baseline run before W4 merges: all pass
+- [ ] Re-run after each merged Phase 2 pull request
+
+Start first, together with W9, so the baseline exists before the code changes.
 EOF
 
 echo

@@ -37,7 +37,8 @@ Substantial story: US9 (one compose file that starts everything).
 | W12 | US7: visit-specific fallback | 5 | 3 | To do |
 | W13 | US8: degraded banner | 3 | 3 | To do |
 | W14 | US9 final: end-to-end run and guide | 5 | 3 | To do |
-| | **Total** | **61** | | |
+| W15 | Enabler: regression tests for the UI and the backend (added for Sprint 2) | 3 | 2 | To do |
+| | **Total** | **64** | | |
 
 ## 3. Sprint backlog: planned vs done
 
@@ -193,7 +194,7 @@ setup and Kafka UI were added to the compose stack. No service produces or consu
 Findings about the baseline that shape the next sprints:
 [docs/spikes/baseline-limitations.md](../spikes/baseline-limitations.md).
 
-## 9. Next sprint (Phase 2: event pipeline and live push, 28 points)
+## 9. Next sprint (Phase 2: event pipeline and live push, 31 points)
 
 Goal: booking a visit produces a classified, audited alert that appears live in every open browser.
 
@@ -205,8 +206,12 @@ Goal: booking a visit produces a classified, audited alert that appears live in 
 | W7 | US3: alert service and audit record | 8 | Jawad | TODO |
 | W8 | US4: WebSocket push | 5 | Jawad | TODO |
 | W9 | Enabler: run our own images | 2 | Sneha | |
+| W15 | Enabler: regression tests for the UI and the backend | 3 | Sneha | |
 
-Order: W4 and W6 first, then W7, then W8. W5 and W9 run alongside.
+Order: W9 and W15 first, so our own images run and a regression baseline exists before the
+code changes. Then W4 and W6, then W7, then W8. W5 runs alongside.
+
+W15 was added for Sprint 2 and is not in the original plan of 14 items and 61 points.
 
 Flow diagram: the sequence diagram "How a booking flows" in [docs/architecture.md](../architecture.md).
 
