@@ -20,11 +20,10 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 
 import io.micrometer.core.annotation.Timed;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.samples.petclinic.visits.model.Visit;
 import org.springframework.samples.petclinic.visits.model.VisitRepository;
+import org.springframework.samples.petclinic.visits.service.VisitService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,23 +44,23 @@ import org.springframework.web.bind.annotation.RestController;
 @Timed("petclinic.visit")
 class VisitResource {
 
-    private static final Logger log = LoggerFactory.getLogger(VisitResource.class);
-
     private final VisitRepository visitRepository;
 
-    VisitResource(VisitRepository visitRepository) {
+    private final VisitService visitService;
+
+    VisitResource(VisitRepository visitRepository, VisitService visitService) {
         this.visitRepository = visitRepository;
+        this.visitService = visitService;
     }
 
-    @PostMapping("owners/*/pets/{petId}/visits")
+    @PostMapping("owners/{ownerId}/pets/{petId}/visits")
     @ResponseStatus(HttpStatus.CREATED)
     public Visit create(
         @Valid @RequestBody Visit visit,
+        @PathVariable("ownerId") @Min(1) int ownerId,
         @PathVariable("petId") @Min(1) int petId) {
 
-        visit.setPetId(petId);
-        log.info("Saving visit {}", visit);
-        return visitRepository.save(visit);
+        return visitService.schedule(ownerId, petId, visit);
     }
 
     @GetMapping("owners/*/pets/{petId}/visits")

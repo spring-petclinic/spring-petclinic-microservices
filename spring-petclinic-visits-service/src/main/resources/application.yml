@@ -3,7 +3,20 @@ spring:
     name: visits-service
   config:
     import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
+  kafka:
+    # localhost:29092 is the listener docker-compose publishes for programs running on the host
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    producer:
+      acks: all
+      properties:
+        # Bound how long a send can wait when Kafka is unreachable
+        max.block.ms: 5000
+        request.timeout.ms: 5000
+        delivery.timeout.ms: 15000
 
+petclinic:
+  events:
+    visit-topic: visit-events
 
 ---
 spring:
@@ -11,3 +24,5 @@ spring:
     activate:
       on-profile: docker
     import: configserver:http://config-server:8888
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}

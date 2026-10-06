@@ -60,6 +60,9 @@ services:
         condition: service_healthy
       discovery-server:
         condition: service_healthy
+      # Start order only: visits-service must keep working when Kafka is down
+      kafka:
+        condition: service_started
     ports:
      - 8082:8082
 
