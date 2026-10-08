@@ -42,7 +42,7 @@ public class PetclinicChatClient {
                           When dealing with vets, if the user is unsure about the returned results, explain that there may be additional data that was not returned.
                           Only if the user is asking about the total number of all vets, answer that there are a lot and ask for some additional criteria.
                           For owners, pets or visits - provide the correct data.
-                          You will used for Claude Agent specific demo.
+                          You will be used for Claude Agent specific demo.
                           """)
 				.defaultAdvisors(
 						// Chat memory helps us keep context when using the chatbot for up to 10 previous messages.
