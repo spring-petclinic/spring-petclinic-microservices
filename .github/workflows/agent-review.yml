@@ -68,7 +68,7 @@ jobs:
         run: |
           {
             echo "<!-- agent-review -->"
-            echo "### 🤖 Automated review (advisory)"
+            echo "### Automated review (advisory)"
             echo
             jq -r '.summary' review.json
             echo
