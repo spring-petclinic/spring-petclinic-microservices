@@ -1,0 +1,90 @@
+name: agent-review
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      pr_number: { description: "PR number to review", required: true }
+
+permissions: {}
+
+concurrency:
+  group: agent-review-${{ github.event.pull_request.number || inputs.pr_number }}
+  cancel-in-progress: true
+
+jobs:
+  analyse:
+    if: >
+      vars.AGENTS_ENABLED == 'true' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (!github.event.pull_request.draft &&
+        github.event.pull_request.head.repo.full_name == github.repository))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+      BASE_SHA:  ${{ github.event.pull_request.base.sha }}
+      HEAD_SHA:  ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4          # pin to a full commit SHA in real use
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude -p "Review the changes between ${BASE_SHA} and ${HEAD_SHA} using the code-reviewer agent and the review-standards skill. Output only JSON matching schemas/review.schema.json." \
+            --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*)" \
+            --output-format json \
+            --max-turns 12 > raw.json
+          jq -r '.result' raw.json > review.json      # the agent's JSON is in the .result field
+          jq -e '.findings' review.json > /dev/null   # fail the job if the output is not valid JSON
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: review
+          path: review.json
+
+  post:
+    needs: analyse
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write                 # only this job can write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { name: review }
+
+      - name: Render and post (update the same comment)
+        run: |
+          {
+            echo "<!-- agent-review -->"
+            echo "### 🤖 Automated review (advisory)"
+            echo
+            jq -r '.summary' review.json
+            echo
+            echo "**Risk:** $(jq -r '.risk' review.json)"
+            echo
+            echo "| Sev | Location | Finding | Suggested fix |"
+            echo "|---|---|---|---|"
+            jq -r '.findings[] | "| \(.severity) | `\(.file):\(.line)` | \(.message) | \(.suggested_fix) |"' review.json
+            echo
+            echo "_First-pass automated review. Human validation required._"
+          } > comment.md
+
+          EXISTING=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+            --jq '[.[] | select(.body | contains("<!-- agent-review -->"))][0].id // empty')
+          if [ -n "$EXISTING" ]; then
+            gh api -X PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${EXISTING}" -F body=@comment.md
+          else
+            gh pr comment "${PR_NUMBER}" --body-file comment.md
+          fi
