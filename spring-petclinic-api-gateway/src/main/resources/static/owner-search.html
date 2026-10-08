@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Owner search</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: sans-serif; margin: 2rem; }
+    table { border-collapse: collapse; margin-top: 1rem; width: 100%; max-width: 48rem; }
+    th, td { border: 1px solid #ccc; padding: 0.4rem 0.6rem; text-align: left; }
+    th { background: #f3f3f3; }
+    #message { margin-top: 1rem; color: #555; }
+  </style>
+</head>
+<body>
+  <h2>Search owners by city</h2>
+
+  <form id="search-form">
+    <label for="city">City</label>
+    <input id="city" name="city" type="text" placeholder="Madison">
+    <button type="submit">Search</button>
+  </form>
+
+  <div id="message"></div>
+
+  <table id="owners" hidden>
+    <thead>
+      <tr><th>Name</th><th>City</th><th>Email</th></tr>
+    </thead>
+    <tbody id="owners-body"></tbody>
+  </table>
+
+  <script>
+    var form = document.getElementById('search-form');
+    var message = document.getElementById('message');
+    var table = document.getElementById('owners');
+    var body = document.getElementById('owners-body');
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      var city = document.getElementById('city').value;
+
+      fetch('/api/customer/owners/search?city=' + city)
+        .then(function (response) { return response.json(); })
+        .then(function (owners) {
+          body.innerHTML = '';
+          owners.forEach(function (owner) {
+            var row = document.createElement('tr');
+            row.innerHTML =
+              '<td>' + owner.firstName + ' ' + owner.lastName + '</td>' +
+              '<td>' + owner.city + '</td>' +
+              '<td>' + owner.email + '</td>';
+            body.appendChild(row);
+          });
+          table.hidden = owners.length === 0;
+          message.textContent = owners.length + ' owner(s) found';
+        })
+        .catch(function () {
+          message.textContent = 'Search failed';
+        });
+    });
+  </script>
+</body>
+</html>
