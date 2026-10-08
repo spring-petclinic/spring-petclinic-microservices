@@ -14,7 +14,7 @@
  * limitations under the License.
  * GSS - New file added for demo
  */
-package org.springframework.samples.petclinic.owner;
+package org.springframework.samples.petclinic.customers.model;
 
 import java.util.List;
 

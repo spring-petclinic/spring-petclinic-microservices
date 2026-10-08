@@ -14,7 +14,7 @@
  * limitations under the License.
  * GSS - New file for demo
  */
-package org.springframework.samples.petclinic.owner;
+package org.springframework.samples.petclinic.customers.web;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
