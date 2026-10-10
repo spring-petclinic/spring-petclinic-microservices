@@ -1,0 +1,18 @@
+name: lint
+
+on:
+  pull_request:
+
+jobs:
+  lint:
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Announce
+        run: echo "Linting PR ${{ github.event.pull_request.title }}"
+
+      - uses: some-vendor/lint-action@v2
+        with:
+          path: src/
