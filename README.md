@@ -41,6 +41,11 @@ Alternatively you can also build all the images on `Podman`, which requires Podm
 ```bash
 ./mvnw clean install -PbuildDocker -Dcontainer.executable=podman
 ```
+Alternatively, you can build the Docker images using Spring Boot's Cloud Native Buildpacks:
+
+```bash
+./mvnw clean install -PbuildImage
+```
 By default, the Docker OCI image is build for an `linux/amd64` platform.
 For other architectures, you could change it by using the `-Dcontainer.platform` maven command line argument.
 For instance, if you target container images for an Apple M2, you could use the command line with the `linux/arm64` architecture:
