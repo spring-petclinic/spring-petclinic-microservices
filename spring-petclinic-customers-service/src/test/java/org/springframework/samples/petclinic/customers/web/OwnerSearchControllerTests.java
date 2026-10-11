@@ -34,15 +34,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-//import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 
 @WebMvcTest(OwnerSearchController.class)
 class OwnerSearchControllerTests {
 
 	@Autowired
-	//private MockMvc mockMvc;
-	private AutoConfigureMockMvc mockMvc;
+	private MockMvc mockMvc;
+	//private AutoConfigureMockMvc mockMvc;
 
 	@MockitoBean
 	private OwnerService ownerService;
