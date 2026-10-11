@@ -49,6 +49,7 @@ jobs:
             --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*)" \
             --output-format json \
             --max-turns 12 > raw.json
+          jq '{is_error, subtype, num_turns, result: (.result | tostring | .[0:300])}' raw.json
           jq -r '.result' raw.json > review.json      # the agent's JSON is in the .result field
           jq -e '.findings' review.json > /dev/null   # fail the job if the output is not valid JSON
 
