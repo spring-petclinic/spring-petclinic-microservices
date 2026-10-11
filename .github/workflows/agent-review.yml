@@ -35,6 +35,11 @@ jobs:
 
       - name: Install Claude Code
         run: npm install -g @anthropic-ai/claude-code
+      
+      - name: Trust workspace (demo only)
+        run: |
+          jq -n --arg p "$GITHUB_WORKSPACE" \
+            '{projects: {($p): {hasTrustDialogAccepted: true}}}' > "$HOME/.claude.json"
 
       - name: Review
         env:
