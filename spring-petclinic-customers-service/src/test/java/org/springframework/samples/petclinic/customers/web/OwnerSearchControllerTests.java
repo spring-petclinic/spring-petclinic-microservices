@@ -19,6 +19,7 @@ package org.springframework.samples.petclinic.owner;
 import org.springframework.samples.petclinic.customers.model.OwnerSearchController;
 import org.springframework.samples.petclinic.customers.model.OwnerService;
 import org.springframework.samples.petclinic.customers.model.Owner;
+import org.springframework.samples.petclinic.customers.model.CustomersServiceApplication;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
