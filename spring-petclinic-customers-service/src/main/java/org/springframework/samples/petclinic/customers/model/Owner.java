@@ -54,6 +54,10 @@ public class Owner {
     @NotBlank
     private String address;
 
+    @Column(name = "email")
+    @NotBlank
+    private String email;
+
     @Column(name = "city")
     @NotBlank
     private String city;
@@ -90,6 +94,7 @@ public class Owner {
             .append("id", this.getId())
             .append("lastName", this.getLastName())
             .append("firstName", this.getFirstName())
+            .append("email", this.getEmail())
             .append("address", this.address)
             .append("city", this.city)
             .append("telephone", this.telephone)
@@ -106,6 +111,10 @@ public class Owner {
 
     public String getLastName() {
         return this.lastName;
+    }
+
+    public String getEmail() {
+        return this.email;
     }
 
     public String getAddress() {
@@ -126,6 +135,10 @@ public class Owner {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public void setAddress(String address) {
