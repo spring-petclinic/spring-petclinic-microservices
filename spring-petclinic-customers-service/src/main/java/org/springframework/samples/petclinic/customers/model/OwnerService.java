@@ -37,7 +37,7 @@ public class OwnerService {
 		this.repository = repository;
 	}
 
-	List<Owner> searchByCity(String city, String requestedBy) {
+	public List<Owner> searchByCity(String city, String requestedBy) {
 		List<Owner> owners = this.repository.searchByCity(city);
 		for (Owner owner : owners) {
 			log.info("Search by city={} requestedBy={} matched owner={} email={}", city, requestedBy,
