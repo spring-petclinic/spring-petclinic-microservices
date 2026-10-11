@@ -27,7 +27,7 @@ import org.springframework.stereotype.Service;
  * Orchestrates owner searches.
  */
 @Service
-class OwnerService {
+public class OwnerService {
 
 	private static final Logger log = LoggerFactory.getLogger(OwnerService.class);
 

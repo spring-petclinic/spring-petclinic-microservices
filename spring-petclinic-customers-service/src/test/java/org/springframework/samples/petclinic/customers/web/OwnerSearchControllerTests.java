@@ -17,6 +17,7 @@
 package org.springframework.samples.petclinic.owner;
 
 import org.springframework.samples.petclinic.customers.model.OwnerSearchController;
+import org.springframework.samples.petclinic.customers.model.OwnerService;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -39,7 +40,8 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 class OwnerSearchControllerTests {
 
 	@Autowired
-	private MockMvc mockMvc;
+	//private MockMvc mockMvc;
+	private AutoConfigureMockMvc mockMvc;
 
 	@MockitoBean
 	private OwnerService ownerService;
