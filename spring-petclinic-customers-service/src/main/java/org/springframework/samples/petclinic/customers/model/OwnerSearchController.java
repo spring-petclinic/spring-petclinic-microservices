@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  * Search owners by city.
  */
 @Controller
-class OwnerSearchController {
+public class OwnerSearchController {
 
 	private final OwnerService ownerService;
 
