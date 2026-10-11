@@ -38,6 +38,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 
 @WebMvcTest(OwnerSearchController.class)
+@ContextConfiguration(classes = CustomersServiceApplication.class)
 class OwnerSearchControllerTests {
 
 	@Autowired
