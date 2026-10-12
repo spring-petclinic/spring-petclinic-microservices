@@ -49,8 +49,20 @@ jobs:
             --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*)" \
             --output-format json \
             --max-turns 12 > raw.json
+          
+          # Debug: show full raw response structure
+          echo "=== RAW RESPONSE ===" 
+          jq '.' raw.json
+          echo "=== END RAW RESPONSE ==="
+
           jq '{is_error, subtype, num_turns, result: (.result | tostring | .[0:300])}' raw.json
           jq -r '.result' raw.json > review.json      # the agent's JSON is in the .result field
+
+          # Debug: show extracted review.json
+          echo "=== REVIEW JSON ===" 
+          jq '.' review.json
+          echo "=== END REVIEW JSON ==="
+
           jq -e '.findings' review.json > /dev/null   # fail the job if the output is not valid JSON
 
       - uses: actions/upload-artifact@v4
