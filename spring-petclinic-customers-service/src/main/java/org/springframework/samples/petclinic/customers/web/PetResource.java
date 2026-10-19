@@ -68,8 +68,8 @@ class PetResource {
 
     @PutMapping("/owners/*/pets/{petId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void processUpdateForm(@Valid @RequestBody PetRequest petRequest) {
-        int petId = petRequest.id();
+    public void processUpdateForm(@Valid @RequestBody PetRequest petRequest,
+                                  @PathVariable("petId") @Min(1) int petId) {
         Pet pet = findPetById(petId);
         save(pet, petRequest);
     }

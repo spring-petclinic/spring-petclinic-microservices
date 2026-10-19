@@ -24,7 +24,7 @@ import java.util.Date;
 /**
  * @author mszarlinski@bravurasolutions.com on 2016-12-05.
  */
-record PetRequest(int id,
+record PetRequest(
                   @JsonFormat(pattern = "yyyy-MM-dd")
                   @PastOrPresent Date birthDate,
                   @Size(min = 1)

@@ -15,7 +15,6 @@ export const PetFormPage = {
         const petId = route.params.petId;
         const types = ref([]);
         const pet = reactive({
-            id: null,
             owner: '',
             name: '',
             birthDate: '',
@@ -27,7 +26,6 @@ export const PetFormPage = {
             if (petId) {
                 const loadedPet = requireObject(await request(`/api/customer/owners/${ownerId}/pets/${petId}`, { signal }), 'Pet not found.');
                 Object.assign(pet, {
-                    id: loadedPet.id,
                     owner: loadedPet.owner,
                     name: loadedPet.name,
                     birthDate: toDateInputValue(loadedPet.birthDate),
@@ -47,7 +45,6 @@ export const PetFormPage = {
             }
 
             const payload = {
-                id: pet.id || 0,
                 name: pet.name.trim(),
                 birthDate: pet.birthDate,
                 typeId: Number(pet.typeId)

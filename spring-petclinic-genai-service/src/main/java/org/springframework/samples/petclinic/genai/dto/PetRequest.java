@@ -24,7 +24,7 @@ import java.util.Date;
  *
  * @author Oded Shopen
  */
-public record PetRequest(int id,
+public record PetRequest(
                   @JsonFormat(pattern = "yyyy-MM-dd")
                   Date birthDate,
                   String name,
