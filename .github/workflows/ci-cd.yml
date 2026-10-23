@@ -1,0 +1,29 @@
+name: Spring Petclinic CI/CD
+
+# Trigger the workflow on pushes or pull requests to the main branch
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Fetch the code from the GitHub repository
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    # 2. Setup Java Environment (Spring Boot 3+ typically requires JDK 17)
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        cache: 'maven' # Caches dependencies to speed up future runs
+
+    # 3. Build the application and run unit/integration tests
+    - name: Build and Test with Maven
+      run: ./mvnw clean verify

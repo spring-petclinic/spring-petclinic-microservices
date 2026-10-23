@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Read", "Grep", "Glob",
+      "Bash(git diff:*)", "Bash(git log:*)", "Bash(git show:*)"
+    ],
+    "deny": [
+      "Edit", "Write",
+      "Read(./.env)", "Read(./**/*.pem)", "Read(./secrets/**)",
+      "Bash(curl:*)", "Bash(rm:*)", "Bash(git push:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [{ "type": "command", "command": "./ci/hooks/block-network-and-secrets.sh" }]
+      }
+    ]
+  }
+}

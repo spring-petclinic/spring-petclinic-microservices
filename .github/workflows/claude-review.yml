@@ -1,0 +1,9 @@
+# claude-review.yml
+name: claude-review
+on:
+  workflow_dispatch: # Allows you to manually trigger it later when you add steps
+jobs:
+  dummy:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Placeholder"
