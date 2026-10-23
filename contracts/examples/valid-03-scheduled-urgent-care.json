@@ -1,0 +1,11 @@
+{
+  "eventId": "c47e9d20-1b5a-4f83-9e6c-2a0b8d7f4e15",
+  "eventType": "VISIT_SCHEDULED",
+  "visitId": 13,
+  "petId": 2,
+  "ownerId": 2,
+  "visitDate": "2026-10-02",
+  "visitType": "URGENT_CARE",
+  "description": "Limping on front left leg since this morning",
+  "occurredAt": "2026-10-02T07:45:00Z"
+}

@@ -21,3 +21,6 @@ target/
 generated/
 
 **/.DS_Store
+
+# Local docker compose overrides
+.env

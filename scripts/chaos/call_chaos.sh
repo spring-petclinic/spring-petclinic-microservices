@@ -22,9 +22,8 @@ fi
 
 export PORT="${PORT:-}"
 
-while [[ $# > 0 ]]
+while [[ $# -gt 0 ]]
 do
-key="$1"
 case $1 in
     customers)
         PORT=8081
