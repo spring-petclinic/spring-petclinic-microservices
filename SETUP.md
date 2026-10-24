@@ -12,6 +12,7 @@ This covers Phase 1; later phases extend it.
 | Bash and curl | Needed for the smoke test. Included in Git Bash, WSL, macOS and Linux |
 | Python 3.9 or newer | Only for the contract test |
 | GitHub CLI (`gh`) | Only for the issue script |
+| JDK 17 or newer | Only to build and test the services; Maven comes with the project (`./mvnw`) |
 
 Give Docker at least **8 GB of memory**. The container limits add up to about 6 GB
 (eight Spring services at 512 MB, Kafka at 1 GB, Kafka UI at 512 MB, Grafana and Prometheus
@@ -106,6 +107,29 @@ python contracts/validate-events.py
 It prints one PASS or FAIL line per example and exits with status 0 only when every example passes.
 On Windows, if `python` opens the Microsoft Store, use `py` instead. CI runs the same test on
 every pull request. Details are in [contracts/README.md](contracts/README.md).
+
+## Building and testing the services
+
+The unit and integration tests need JDK 17, but no Docker and no running stack: the Kafka
+tests start an embedded broker. To run the visits-service tests:
+
+```bash
+./mvnw -pl spring-petclinic-visits-service test
+```
+
+To build and test every module, as CI does:
+
+```bash
+./mvnw package
+```
+
+If the build stops with "This project requires Java 17 or higher" although `java -version`
+shows 17, your JDK is the very first 17 release, which the project's version check does not
+accept. Install a current JDK 17 update, or skip the check locally with
+`-Denforcer.skip=true`.
+
+Progress and design notes for Phase 2 are in
+[docs/reports/phase2-progress.md](docs/reports/phase2-progress.md).
 
 ## GitHub issues for the next phase
 
