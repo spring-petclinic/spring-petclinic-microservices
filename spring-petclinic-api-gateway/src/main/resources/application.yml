@@ -42,6 +42,10 @@ spring:
                 - Path=/api/alert/**
               filters:
                 - StripPrefix=2
+            - id: notification-alert-websocket
+              uri: lb:ws://notification-alert-service
+              predicates:
+                - Path=/ws/**
             - id: genai-service
               uri: lb://genai-service
               predicates:
