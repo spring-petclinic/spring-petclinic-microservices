@@ -114,6 +114,17 @@ CI validates the compose file, lints the scripts and runs the unit and integrati
 does not start the stack. Run the smoke test on each laptop before a demo and record the result
 in the sprint report.
 
+## Regression tests
+
+What worked before Phase 2 must keep working. The backend test goes through the gateway with the
+requests the UI sends, and adds one test owner, pet and visit:
+
+```bash
+./scripts/regression-backend.sh
+```
+
+The UI has a [checklist](docs/testing/ui-regression.md) to run by hand.
+
 ## See it working
 
 1. Open http://localhost:8080, go to an owner, and click **Add Visit** on a pet.

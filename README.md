@@ -26,8 +26,8 @@ open browsers. The gateway gains rate limiting and a visit-specific fallback.
 | [contracts/README.md](contracts/README.md) | The VisitEvent contract and its test |
 | [docs/reports/phase1-progress-report.md](docs/reports/phase1-progress-report.md) | Phase 1 progress report and retrospective |
 
-Status: Phase 1 (setup and contracts) adds Kafka, the event contract and these documents.
-No service produces or consumes events yet; that is Phase 2.
+Status: Phase 1 (setup and contracts) is merged. Phase 2 (event pipeline and live push) is in
+review; see [docs/reports/phase2-progress.md](docs/reports/phase2-progress.md).
 
 The rest of this README is the upstream documentation.
 
