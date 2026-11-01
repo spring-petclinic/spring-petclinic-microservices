@@ -31,9 +31,9 @@ one did not fit the sprint.
 
 ## Results
 
-| Date | Run by | Steps | Result | Stack |
+| Date | Where | Steps | Result | Stack |
 |---|---|---|---|---|
-| 2026-11-01 | Claude Code on Jawad's laptop | 1 to 13 | All as expected | Own images, Spring Boot 4.0.1, built from the W9 branch |
+| 2026-11-01 | Jawad's laptop | 1 to 13 | All as expected | Own images, Spring Boot 4.0.1, built from the W9 branch |
 
 This run is on the Phase 2 code. No run on the code before Phase 2 was recorded, so there is no
 separate "before" baseline.

@@ -96,7 +96,7 @@ with the volume `alerts-db`. `scripts/phase2-smoke-test.sh`.
 
 ## Test results
 
-All on Jawad's laptop (Windows 11, JDK 17, Docker Desktop), 2026-11-01. Run by Claude Code.
+All on Jawad's laptop (Windows 11, JDK 17, Docker Desktop), 2026-11-01.
 
 | Test | Result |
 |---|---|
