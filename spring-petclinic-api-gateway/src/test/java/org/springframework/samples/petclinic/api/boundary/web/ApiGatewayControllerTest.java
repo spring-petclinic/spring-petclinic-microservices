@@ -49,7 +49,7 @@ class ApiGatewayControllerTest {
             .when(customersServiceClient.getOwner(1))
             .thenReturn(Mono.just(owner));
 
-        VisitDetails visit = new VisitDetails(300, cat.id(), null, "First visit");
+        VisitDetails visit = new VisitDetails(300, cat.id(), null, "First visit", null);
         Visits visits = new Visits(List.of(visit));
         Mockito
             .when(visitsServiceClient.getVisitsForPets(Collections.singletonList(cat.id())))

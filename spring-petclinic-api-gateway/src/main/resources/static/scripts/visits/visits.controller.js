@@ -7,6 +7,8 @@ angular.module('visits')
         var url = "api/visit/owners/" + ($stateParams.ownerId || 0) + "/pets/" + petId + "/visits";
         self.date = new Date();
         self.desc = "";
+        self.visitTypes = ["ROUTINE", "EMERGENCY", "URGENT_CARE"];
+        self.visitType = "ROUTINE";
 
         $http.get(url).then(function (resp) {
             self.visits = resp.data;
@@ -15,7 +17,8 @@ angular.module('visits')
         self.submit = function () {
             var data = {
                 date: $filter('date')(self.date, "yyyy-MM-dd"),
-                description: self.desc
+                description: self.desc,
+                visitType: self.visitType
             };
 
             $http.post(url, data).then(function () {

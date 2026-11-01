@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.Set;
 
 import com.networknt.schema.InputFormat;
@@ -43,7 +43,7 @@ class VisitEventContractTest {
         Visit visit = Visit.VisitBuilder.aVisit()
             .id(12)
             .petId(7)
-            .date(Date.from(Instant.parse("2026-10-15T00:00:00Z")))
+            .date(LocalDate.parse("2026-10-15"))
             .description("Annual check-up")
             .build();
 
@@ -66,20 +66,21 @@ class VisitEventContractTest {
         Visit visit = Visit.VisitBuilder.aVisit()
             .id(13)
             .petId(2)
-            .date(Date.from(Instant.parse("2026-10-02T00:00:00Z")))
+            .date(LocalDate.parse("2026-10-02"))
+            .visitType("URGENT_CARE")
             .build();
 
         String json = VisitEventPublisher.toJson(VisitEvent.scheduled(visit, 2, Instant.now()));
 
         assertThat(validate(json)).as(json).isEmpty();
-        assertThat(json).contains("\"description\":\"\"");
+        assertThat(json).contains("\"description\":\"\"").contains("\"visitType\":\"URGENT_CARE\"");
     }
 
     @Test
     void validatorRejectsWhatTheContractForbids() {
         // Guards the test itself: a validator with format checking off would accept these
         String valid = VisitEventPublisher.toJson(VisitEvent.scheduled(
-            Visit.VisitBuilder.aVisit().id(1).petId(1).date(Date.from(Instant.parse("2026-10-15T00:00:00Z"))).build(),
+            Visit.VisitBuilder.aVisit().id(1).petId(1).date(LocalDate.parse("2026-10-15")).build(),
             1, Instant.parse("2026-10-01T14:32:05Z")));
 
         assertThat(validate(valid)).isEmpty();

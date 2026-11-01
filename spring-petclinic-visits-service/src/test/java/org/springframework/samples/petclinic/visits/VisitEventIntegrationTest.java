@@ -48,11 +48,12 @@ class VisitEventIntegrationTest {
 
             mvc.perform(post("/owners/6/pets/7/visits")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"date\":\"2026-10-15\",\"description\":\"Annual check-up\"}"))
+                    .content("{\"date\":\"2026-10-15\",\"description\":\"Annual check-up\",\"visitType\":\"EMERGENCY\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.petId").value(7))
                 .andExpect(jsonPath("$.date").value("2026-10-15"))
+                .andExpect(jsonPath("$.visitType").value("EMERGENCY"))
                 .andExpect(jsonPath("$.description").value("Annual check-up"));
 
             List<ConsumerRecord<String, String>> records = pollFor(consumer, Duration.ofSeconds(20));
@@ -65,6 +66,7 @@ class VisitEventIntegrationTest {
                 .contains("\"petId\":7")
                 .contains("\"ownerId\":6")
                 .contains("\"visitDate\":\"2026-10-15\"")
+                .contains("\"visitType\":\"EMERGENCY\"")
                 .contains("\"description\":\"Annual check-up\"");
         }
     }

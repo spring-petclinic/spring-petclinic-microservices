@@ -1,8 +1,6 @@
 package org.springframework.samples.petclinic.visits.service;
 
-import java.time.Instant;
 import java.time.LocalDate;
-import java.util.Date;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,7 +41,7 @@ class VisitServiceTest {
 
     @Test
     void savesTheVisitForThePetInThePath() {
-        Visit visit = Visit.VisitBuilder.aVisit().date(new Date()).description("check-up").build();
+        Visit visit = Visit.VisitBuilder.aVisit().date(LocalDate.now()).description("check-up").build();
 
         Visit saved = visitService.schedule(6, 7, visit);
 
@@ -55,8 +53,9 @@ class VisitServiceTest {
     @Test
     void announcesExactlyOneScheduledEventWithTheOwnerId() {
         Visit visit = Visit.VisitBuilder.aVisit()
-            .date(Date.from(Instant.parse("2026-10-15T00:00:00Z")))
+            .date(LocalDate.parse("2026-10-15"))
             .description("check-up")
+            .visitType("EMERGENCY")
             .build();
 
         visitService.schedule(6, 7, visit);
@@ -68,6 +67,7 @@ class VisitServiceTest {
         assertThat(event.getValue().petId()).isEqualTo(7);
         assertThat(event.getValue().ownerId()).isEqualTo(6);
         assertThat(event.getValue().visitDate()).isEqualTo(LocalDate.parse("2026-10-15"));
+        assertThat(event.getValue().visitType()).isEqualTo("EMERGENCY");
         assertThat(event.getValue().eventId()).isNotNull();
     }
 

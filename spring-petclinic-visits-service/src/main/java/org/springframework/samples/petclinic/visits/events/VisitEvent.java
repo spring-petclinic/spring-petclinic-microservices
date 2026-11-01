@@ -2,7 +2,6 @@ package org.springframework.samples.petclinic.visits.events;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
@@ -25,11 +24,6 @@ public record VisitEvent(
 ) {
 
     /**
-     * Visits have no type yet, so every event carries this one until the visit type is added.
-     */
-    public static final String DEFAULT_VISIT_TYPE = "ROUTINE";
-
-    /**
      * Builds the event for a visit that has just been saved.
      *
      * @param visit      the saved visit, with its id and date set
@@ -43,9 +37,8 @@ public record VisitEvent(
             visit.getId(),
             visit.getPetId(),
             ownerId,
-            // the visit date is parsed as midnight UTC, so read it back in UTC
-            visit.getDate().toInstant().atZone(ZoneOffset.UTC).toLocalDate(),
-            DEFAULT_VISIT_TYPE,
+            visit.getDate(),
+            visit.getVisitType(),
             visit.getDescription() == null ? "" : visit.getDescription(),
             occurredAt.truncatedTo(ChronoUnit.MILLIS)
         );

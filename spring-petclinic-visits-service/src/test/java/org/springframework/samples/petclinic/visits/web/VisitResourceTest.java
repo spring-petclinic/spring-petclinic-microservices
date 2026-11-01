@@ -1,7 +1,6 @@
 package org.springframework.samples.petclinic.visits.web;
 
-import java.time.Instant;
-import java.util.Date;
+import java.time.LocalDate;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +45,8 @@ class VisitResourceTest {
                 Visit.VisitBuilder.aVisit()
                     .id(42)
                     .petId(7)
-                    .date(Date.from(Instant.parse("2026-10-15T00:00:00Z")))
+                    .date(LocalDate.parse("2026-10-15"))
+                    .visitType("EMERGENCY")
                     .description("Annual check-up")
                     .build()
             );
@@ -58,9 +58,31 @@ class VisitResourceTest {
             .andExpect(jsonPath("$.id").value(42))
             .andExpect(jsonPath("$.petId").value(7))
             .andExpect(jsonPath("$.date").value("2026-10-15"))
-            .andExpect(jsonPath("$.description").value("Annual check-up"));
+            .andExpect(jsonPath("$.description").value("Annual check-up"))
+            .andExpect(jsonPath("$.visitType").value("EMERGENCY"));
 
         verify(visitService).schedule(eq(6), eq(7), any(Visit.class));
+    }
+
+    @Test
+    void shouldDefaultTheVisitTypeToRoutine() throws Exception {
+        given(visitService.schedule(eq(6), eq(7), any(Visit.class))).willAnswer(call -> call.getArgument(2));
+
+        mvc.perform(post("/owners/6/pets/7/visits")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"date\":\"2026-10-15\",\"description\":\"No type sent, as the old form does\"}"))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.visitType").value("ROUTINE"));
+    }
+
+    @Test
+    void shouldRejectALowerCaseVisitType() throws Exception {
+        mvc.perform(post("/owners/6/pets/7/visits")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"date\":\"2026-10-15\",\"description\":\"x\",\"visitType\":\"routine\"}"))
+            .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(visitService);
     }
 
     @Test
