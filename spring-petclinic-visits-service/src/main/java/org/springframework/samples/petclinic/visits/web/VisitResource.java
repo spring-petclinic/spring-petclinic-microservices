@@ -27,6 +27,7 @@ import org.springframework.samples.petclinic.visits.service.VisitService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -61,6 +62,15 @@ class VisitResource {
         @PathVariable("petId") @Min(1) int petId) {
 
         return visitService.schedule(ownerId, petId, visit);
+    }
+
+    @PutMapping("owners/{ownerId}/pets/{petId}/visits/{visitId}/cancel")
+    public Visit cancel(
+        @PathVariable("ownerId") @Min(1) int ownerId,
+        @PathVariable("petId") @Min(1) int petId,
+        @PathVariable("visitId") @Min(1) int visitId) {
+
+        return visitService.cancel(ownerId, petId, visitId);
     }
 
     @GetMapping("owners/*/pets/{petId}/visits")

@@ -21,7 +21,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -43,8 +45,10 @@ class VisitEventIntegrationTest {
 
     @Test
     void bookingAVisitPublishesExactlyOneEventKeyedByPetId() throws Exception {
-        try (Consumer<String, String> consumer = consumer()) {
+        try (Consumer<String, String> consumer = consumer("booking-test")) {
             consumer.subscribe(List.of("visit-events"));
+            // join the group and start from the end, so events of other tests do not count
+            consumer.poll(Duration.ofSeconds(2));
 
             mvc.perform(post("/owners/6/pets/7/visits")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -71,6 +75,46 @@ class VisitEventIntegrationTest {
         }
     }
 
+    @Test
+    void cancellingAVisitKeepsTheRowAndPublishesACancelEvent() throws Exception {
+        try (Consumer<String, String> consumer = consumer("cancel-test")) {
+            consumer.subscribe(List.of("visit-events"));
+            // visit 1 of pet 7 comes from data.sql; only this test uses it
+            consumer.poll(Duration.ofSeconds(2));
+
+            mvc.perform(put("/owners/6/pets/7/visits/1/cancel"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CANCELLED"));
+
+            List<ConsumerRecord<String, String>> records = new ArrayList<>();
+            long deadline = System.nanoTime() + Duration.ofSeconds(20).toNanos();
+            while (System.nanoTime() < deadline
+                && records.stream().noneMatch(r -> r.value().contains("VISIT_CANCELLED"))) {
+                consumer.poll(Duration.ofMillis(500)).forEach(records::add);
+            }
+            assertThat(records).filteredOn(r -> r.value().contains("VISIT_CANCELLED")).hasSize(1)
+                .first().satisfies(r -> {
+                    assertThat(r.key()).isEqualTo("7");
+                    assertThat(r.value()).contains("\"visitId\":1").contains("\"ownerId\":6")
+                        .contains("\"visitDate\":\"2013-01-01\"");
+                });
+
+            mvc.perform(put("/owners/6/pets/7/visits/1/cancel")).andExpect(status().isConflict());
+            mvc.perform(put("/owners/6/pets/7/visits/99999/cancel")).andExpect(status().isNotFound());
+            mvc.perform(get("/owners/6/pets/7/visits"))
+                .andExpect(jsonPath("$[?(@.id == 1)].status").value("CANCELLED"));
+        }
+    }
+
+    @Test
+    void aClientCannotBookAVisitAsCancelled() throws Exception {
+        mvc.perform(post("/owners/6/pets/8/visits")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"date\":\"2026-10-15\",\"description\":\"x\",\"status\":\"CANCELLED\"}"))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.status").value("SCHEDULED"));
+    }
+
     /** Waits for the first record, then keeps listening briefly so that a duplicate would be seen. */
     private static List<ConsumerRecord<String, String>> pollFor(Consumer<String, String> consumer, Duration timeout) {
         List<ConsumerRecord<String, String>> records = new ArrayList<>();
@@ -82,11 +126,11 @@ class VisitEventIntegrationTest {
         return records;
     }
 
-    private Consumer<String, String> consumer() {
+    private Consumer<String, String> consumer(String group) {
         return new KafkaConsumer<>(Map.of(
             ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBrokersAsString(),
-            ConsumerConfig.GROUP_ID_CONFIG, "visit-event-integration-test",
-            ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest",
+            ConsumerConfig.GROUP_ID_CONFIG, group,
+            ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest",
             ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
             ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class));
     }

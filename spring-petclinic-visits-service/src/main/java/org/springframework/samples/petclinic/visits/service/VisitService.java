@@ -5,11 +5,14 @@ import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.samples.petclinic.visits.events.VisitEvent;
 import org.springframework.samples.petclinic.visits.model.Visit;
 import org.springframework.samples.petclinic.visits.model.VisitRepository;
+import org.springframework.samples.petclinic.visits.model.VisitStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class VisitService {
@@ -39,6 +42,31 @@ public class VisitService {
             log.warn("Visit {} has no date; no event published", saved.getId());
         } else {
             events.publishEvent(VisitEvent.scheduled(saved, ownerId, Instant.now()));
+        }
+        return saved;
+    }
+
+    /**
+     * Marks the visit cancelled; the row is kept.
+     *
+     * @throws ResponseStatusException 404 if the pet has no such visit, 409 if it is already cancelled
+     */
+    @Transactional
+    public Visit cancel(int ownerId, int petId, int visitId) {
+        Visit visit = visitRepository.findById(visitId)
+            .filter(found -> found.getPetId() == petId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                "Pet " + petId + " has no visit " + visitId));
+        if (visit.getStatus() == VisitStatus.CANCELLED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Visit " + visitId + " is already cancelled");
+        }
+        visit.cancel();
+        log.info("Cancelling visit {}", visitId);
+        Visit saved = visitRepository.save(visit);
+        if (saved.getDate() == null) {
+            log.warn("Visit {} has no date; no event published", saved.getId());
+        } else {
+            events.publishEvent(VisitEvent.cancelled(saved, ownerId, Instant.now()));
         }
         return saved;
     }

@@ -18,6 +18,7 @@ package org.springframework.samples.petclinic.visits.model;
 import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -59,6 +60,14 @@ public class Visit {
     @Column(name = "visit_type", nullable = false)
     private String visitType = DEFAULT_VISIT_TYPE;
 
+    /**
+     * Changed only by cancelling, so a client cannot set it when booking.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private VisitStatus status = VisitStatus.SCHEDULED;
+
     public Integer getId() {
         return this.id;
     }
@@ -73,6 +82,10 @@ public class Visit {
 
     public String getVisitType() {
         return this.visitType;
+    }
+
+    public VisitStatus getStatus() {
+        return this.status;
     }
 
     public int getPetId() {
@@ -93,6 +106,10 @@ public class Visit {
 
     public void setVisitType(String visitType) {
         this.visitType = visitType == null ? DEFAULT_VISIT_TYPE : visitType;
+    }
+
+    public void cancel() {
+        this.status = VisitStatus.CANCELLED;
     }
 
     public void setPetId(int petId) {

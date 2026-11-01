@@ -47,19 +47,26 @@
                 <tr>
                     <th>Visit Date</th>
                     <th>Type</th>
+                    <th>Status</th>
+                    <th></th>
                     <th>Description</th>
                 </tr>
                 </thead>
                 <tr ng-repeat="visit in pet.visits track by visit.id">
                     <td>{{visit.date | date:'yyyy MMM dd'}}</td>
                     <td>{{visit.visitType}}</td>
+                    <td>{{visit.status}}</td>
+                    <td>
+                        <button class="btn btn-default btn-xs" type="button" ng-if="visit.status !== 'CANCELLED'"
+                                ng-click="$ctrl.cancelVisit(pet, visit)">Cancel</button>
+                    </td>
                     <td>{{visit.description}}</td>
                 </tr>
                 <tr>
                     <td>
                         <a ui-sref="petEdit({ownerId: $ctrl.owner.id, petId: pet.id})">Edit Pet</a>
                     </td>
-                    <td colspan="2">
+                    <td colspan="4">
                         <a ui-sref="visits({ownerId: $ctrl.owner.id, petId: pet.id})">Add Visit</a>
                     </td>
                 </tr>

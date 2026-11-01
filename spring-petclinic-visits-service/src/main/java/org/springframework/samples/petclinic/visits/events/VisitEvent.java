@@ -31,9 +31,20 @@ public record VisitEvent(
      * @param occurredAt when the visit was booked
      */
     public static VisitEvent scheduled(Visit visit, int ownerId, Instant occurredAt) {
+        return of(VisitEventType.VISIT_SCHEDULED, visit, ownerId, occurredAt);
+    }
+
+    /**
+     * Builds the event for a visit that has just been cancelled.
+     */
+    public static VisitEvent cancelled(Visit visit, int ownerId, Instant occurredAt) {
+        return of(VisitEventType.VISIT_CANCELLED, visit, ownerId, occurredAt);
+    }
+
+    private static VisitEvent of(VisitEventType type, Visit visit, int ownerId, Instant occurredAt) {
         return new VisitEvent(
             UUID.randomUUID(),
-            VisitEventType.VISIT_SCHEDULED,
+            type,
             visit.getId(),
             visit.getPetId(),
             ownerId,
