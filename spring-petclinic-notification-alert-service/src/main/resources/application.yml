@@ -1,0 +1,51 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: notification-alert-service
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
+  datasource:
+    url: ${ALERTS_DB_URL:jdbc:postgresql://localhost:5432/petclinic_alerts}
+    username: ${ALERTS_DB_USER:petclinic}
+    password: ${ALERTS_DB_PASSWORD:petclinic}
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/schema.sql
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+  kafka:
+    # localhost:29092 is the listener docker-compose publishes for programs running on the host
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    consumer:
+      group-id: notification-group
+      auto-offset-reset: earliest
+
+petclinic:
+  events:
+    visit-topic: visit-events
+    dead-letter-topic: visit-events.DLT
+    retries: 3
+    retry-interval: 1s
+  alerts:
+    # Override without a code change, for example PETCLINIC_ALERTS_URGENT_TYPES=EMERGENCY,URGENT_CARE,SURGERY
+    urgent-types: EMERGENCY,URGENT_CARE
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+    import: configserver:http://config-server:8888
+  datasource:
+    url: ${ALERTS_DB_URL:jdbc:postgresql://postgres:5432/petclinic_alerts}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://discovery-server:8761/eureka/

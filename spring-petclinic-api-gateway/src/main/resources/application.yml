@@ -36,6 +36,12 @@ spring:
                 - Path=/api/customer/**
               filters:
                 - StripPrefix=2
+            - id: notification-alert-service
+              uri: lb://notification-alert-service
+              predicates:
+                - Path=/api/alert/**
+              filters:
+                - StripPrefix=2
             - id: genai-service
               uri: lb://genai-service
               predicates:

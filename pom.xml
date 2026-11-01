@@ -20,6 +20,7 @@
         <module>spring-petclinic-customers-service</module>
         <module>spring-petclinic-vets-service</module>
         <module>spring-petclinic-visits-service</module>
+        <module>spring-petclinic-notification-alert-service</module>
         <module>spring-petclinic-genai-service</module>
         <module>spring-petclinic-config-server</module>
         <module>spring-petclinic-discovery-server</module>
