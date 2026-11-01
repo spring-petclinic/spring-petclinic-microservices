@@ -1,3 +1,5 @@
+# The shared config server sets server.port to 0 and wins over this file, so docker-compose
+# sets SERVER_PORT=8085. Run outside Docker with the config server up, the port is random.
 server:
   port: 8085
 
@@ -10,10 +12,6 @@ spring:
     url: ${ALERTS_DB_URL:jdbc:postgresql://localhost:5432/petclinic_alerts}
     username: ${ALERTS_DB_USER:petclinic}
     password: ${ALERTS_DB_PASSWORD:petclinic}
-  sql:
-    init:
-      mode: always
-      schema-locations: classpath:db/schema.sql
   jpa:
     open-in-view: false
     hibernate:

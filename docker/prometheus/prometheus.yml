@@ -21,6 +21,11 @@ scrape_configs:
   static_configs:
   - targets: ['customers-service:8081']
 
+- job_name: notification-alert-service
+  metrics_path: /actuator/prometheus
+  static_configs:
+  - targets: ['notification-alert-service:8085']
+
 - job_name: visits-service
   metrics_path: /actuator/prometheus
   static_configs:

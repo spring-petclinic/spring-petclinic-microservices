@@ -1,7 +1,7 @@
 # Setup guide
 
 How to run the whole PetClinic stack plus Kafka on your laptop and check that it works.
-This covers Phase 1; later phases extend it.
+This covers Phases 1 and 2; Phase 3 extends it.
 
 ## Prerequisites
 
@@ -12,25 +12,32 @@ This covers Phase 1; later phases extend it.
 | Bash and curl | Needed for the smoke test. Included in Git Bash, WSL, macOS and Linux |
 | Python 3.9 or newer | Only for the contract test |
 | GitHub CLI (`gh`) | Only for the issue script |
-| JDK 17 or newer | Only to build and test the services; Maven comes with the project (`./mvnw`) |
+| JDK 17 or newer | To build the images and run the tests; Maven comes with the project (`./mvnw`) |
 
-Give Docker at least **8 GB of memory**. The container limits add up to about 6 GB
-(eight Spring services at 512 MB, Kafka at 1 GB, Kafka UI at 512 MB, Grafana and Prometheus
-at 256 MB each). On Docker Desktop this is under Settings > Resources; with the WSL 2 backend
+Give Docker at least **8 GB of memory**. The container limits add up to about 7 GB
+(nine Spring services and Zipkin at 512 MB, Kafka at 1 GB, Kafka UI at 512 MB, PostgreSQL, Grafana
+and Prometheus at 256 MB each). On Docker Desktop this is under Settings > Resources; with the WSL 2 backend
 it is set in `%UserProfile%\.wslconfig` instead.
-
-Java and Maven are not needed to run the stack; the services start from published images.
 
 ## Start the stack
 
-From the repository root:
+The services run from images built from this repository, so that the stack runs our code and
+not the published upstream images. Build them first, and again after changing a service
+(from Git Bash on Windows, with Docker running):
+
+```bash
+./mvnw clean install -P buildDocker -DskipTests
+```
+
+Then start everything from the repository root:
 
 ```bash
 docker compose up -d
 ```
 
-The first run downloads the images and takes several minutes. After that, services need
-one to two minutes to become healthy.
+If `docker compose up` tries to pull a `petclinic/...` image, the build step did not run.
+The first run takes several minutes. After that, services need one to two minutes to become
+healthy.
 
 `kafka-init` is a one-off container: it creates the topics and exits. Seeing it as
 `Exited (0)` in `docker compose ps -a` is expected.
@@ -42,7 +49,9 @@ docker compose down
 ```
 
 Kafka has no volume, so topics and messages are discarded on `down` and recreated by
-`kafka-init` on the next `up`.
+`kafka-init` on the next `up`. Audit records are permanent: PostgreSQL keeps them in the volume
+`alerts-db`, which survives `down`. To start with an empty audit table, run
+`docker compose down -v`.
 
 ## What runs where
 
@@ -55,6 +64,8 @@ Kafka has no volume, so topics and messages are discarded on `down` and recreate
 | visits-service | 8082 |
 | vets-service | 8083 |
 | genai-service | 8084 |
+| notification-alert-service | 8085, and through the gateway at `/api/alert/**` and `/ws` |
+| PostgreSQL (audit database) | 5432 (see [Port 5432](#port-5432-is-already-in-use)) |
 | Admin server | http://localhost:9090 |
 | Zipkin | http://localhost:9411 |
 | Grafana | http://localhost:3030 |
@@ -91,8 +102,34 @@ The script waits up to two minutes in total for services that are still starting
 be run straight after `docker compose up -d`. Set `WAIT=0` for a single attempt, or a larger
 value on a slow machine, for example `WAIT=300 ./scripts/phase1-smoke-test.sh`.
 
-CI validates the compose file and lints the scripts, but it does not start the stack.
-Run the smoke test on each laptop before a demo and record the result in the sprint report.
+The Phase 2 smoke test runs those 18 checks and then the event pipeline: the alert service, the
+audit and WebSocket routes, booking and cancelling a test visit, one audit row for each, and the
+classification. It adds one test visit each time.
+
+```bash
+./scripts/phase2-smoke-test.sh
+```
+
+CI validates the compose file, lints the scripts and runs the unit and integration tests, but it
+does not start the stack. Run the smoke test on each laptop before a demo and record the result
+in the sprint report.
+
+## See it working
+
+1. Open http://localhost:8080, go to an owner, and click **Add Visit** on a pet.
+2. Choose a visit type and save. The visit appears on the owner page with its type and status.
+3. See the event in Kafka UI: http://localhost:8090, topic `visit-events`.
+4. See the audit record:
+
+```bash
+curl "http://localhost:8080/api/alert/audit?petId=1"
+```
+
+Filters, all optional: `petId`, `ownerId`, `type`, `from`, `to`.
+
+The urgent visit types are configuration: set `URGENT_VISIT_TYPES=EMERGENCY,URGENT_CARE,SURGERY`
+in `.env` and run `docker compose up -d`. Live alerts go to the STOMP topic
+`/topic/notifications` at `ws://localhost:8080/ws`; the bell that shows them in the UI is Phase 3.
 
 ## Contract test
 
@@ -110,8 +147,9 @@ every pull request. Details are in [contracts/README.md](contracts/README.md).
 
 ## Building and testing the services
 
-The unit and integration tests need JDK 17, but no Docker and no running stack: the Kafka
-tests start an embedded broker. To run the visits-service tests:
+The tests need JDK 17 but no running stack. visits-service uses an embedded Kafka broker.
+notification-alert-service starts real Kafka and PostgreSQL containers, so its integration tests
+need Docker and are skipped without it. To run the visits-service tests:
 
 ```bash
 ./mvnw -pl spring-petclinic-visits-service test
@@ -176,6 +214,16 @@ CUSTOMERS_PORT=18081
 Then run `docker compose up -d` again. The file is ignored by Git, so it only affects your
 machine, and the smoke test picks up the new port by itself. Nothing else is affected:
 the gateway reaches customers-service inside Docker, not through this port.
+
+### Port 5432 is already in use
+
+Another PostgreSQL on your laptop stops the `postgres` container from starting. Add this to `.env`
+and run `docker compose up -d` again; the services reach the database inside Docker, so nothing
+else changes:
+
+```
+ALERTS_DB_PORT=15432
+```
 
 ### The chat assistant does not answer
 

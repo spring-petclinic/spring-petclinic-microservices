@@ -70,7 +70,7 @@ flowchart LR
         dlt[["visit-events.DLT"]]
     end
 
-    alert["notification-alert-service (P2)<br/>port 8085, proposed<br/>skip duplicates, classify,<br/>store, push"]
+    alert["notification-alert-service (P2)<br/>port 8085<br/>skip duplicates, classify,<br/>store, push"]
     postgres[("PostgreSQL :5432<br/>audit_record (P2)")]
     kafkaui["Kafka UI :8090 (P1)"]
 
@@ -101,8 +101,7 @@ flowchart LR
 
 Thick arrows are the asynchronous path added by this project. `(P1)`, `(P2)` and `(P3)` mark
 the phase that adds each part. The platform services and the observability stack stay as they
-are today; they are drawn as one box each to keep the diagram readable. Port 8085 for
-notification-alert-service is the plan's proposal and is confirmed in W7.
+are today; they are drawn as one box each to keep the diagram readable.
 
 ### How a booking flows
 

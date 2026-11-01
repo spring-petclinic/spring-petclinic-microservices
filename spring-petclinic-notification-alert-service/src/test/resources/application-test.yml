@@ -4,6 +4,11 @@ spring:
       enabled: false
   config:
     import: ""
+  # What the shared config server sends to every service
+  sql:
+    init:
+      schema-locations: classpath*:db/hsqldb/schema.sql
+      data-locations: classpath*:db/hsqldb/data.sql
 
 eureka:
   client:

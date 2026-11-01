@@ -1,6 +1,8 @@
+# The petclinic/* images are built from this repository, not pulled:
+#   ./mvnw clean install -P buildDocker -DskipTests
 services:
   config-server:
-    image: springcommunity/spring-petclinic-config-server
+    image: petclinic/spring-petclinic-config-server
     container_name: config-server
     deploy:
       resources:
@@ -15,7 +17,7 @@ services:
      - 8888:8888
 
   discovery-server:
-    image: springcommunity/spring-petclinic-discovery-server
+    image: petclinic/spring-petclinic-discovery-server
     container_name: discovery-server
     deploy:
       resources:
@@ -33,7 +35,7 @@ services:
      - 8761:8761
 
   customers-service:
-    image: springcommunity/spring-petclinic-customers-service
+    image: petclinic/spring-petclinic-customers-service
     container_name: customers-service
     deploy:
       resources:
@@ -49,7 +51,7 @@ services:
     - ${CUSTOMERS_PORT:-8081}:8081
 
   visits-service:
-    image: springcommunity/spring-petclinic-visits-service
+    image: petclinic/spring-petclinic-visits-service
     container_name: visits-service
     deploy:
       resources:
@@ -67,7 +69,7 @@ services:
      - 8082:8082
 
   vets-service:
-    image: springcommunity/spring-petclinic-vets-service
+    image: petclinic/spring-petclinic-vets-service
     container_name: vets-service
     deploy:
       resources:
@@ -83,7 +85,7 @@ services:
 
 
   genai-service:
-    image: springcommunity/spring-petclinic-genai-service
+    image: petclinic/spring-petclinic-genai-service
     container_name: genai-service
     environment:
       # "demo" only lets the service start; chat needs a real key (see SETUP.md)
@@ -104,7 +106,7 @@ services:
 
 
   api-gateway:
-    image: springcommunity/spring-petclinic-api-gateway
+    image: petclinic/spring-petclinic-api-gateway
     container_name: api-gateway
     deploy:
       resources:
@@ -118,6 +120,53 @@ services:
     ports:
      - 8080:8080
 
+  notification-alert-service:
+    image: petclinic/spring-petclinic-notification-alert-service
+    container_name: notification-alert-service
+    environment:
+      - SERVER_PORT=8085
+      - ALERTS_DB_PASSWORD=${ALERTS_DB_PASSWORD:-petclinic}
+      # Urgent visit types; change here without a code change
+      - PETCLINIC_ALERTS_URGENT_TYPES=${URGENT_VISIT_TYPES:-EMERGENCY,URGENT_CARE}
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    depends_on:
+      config-server:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    ports:
+     - 8085:8085
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_DB: petclinic_alerts
+      POSTGRES_USER: petclinic
+      # Local development only
+      POSTGRES_PASSWORD: ${ALERTS_DB_PASSWORD:-petclinic}
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U petclinic -d petclinic_alerts"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    volumes:
+      # Audit records are permanent, so they survive docker compose down
+      - alerts-db:/var/lib/postgresql/data
+    ports:
+     - ${ALERTS_DB_PORT:-5432}:5432
+
   tracing-server:
     image: openzipkin/zipkin
     container_name: tracing-server
@@ -129,7 +178,7 @@ services:
      - 9411:9411
 
   admin-server:
-    image: springcommunity/spring-petclinic-admin-server
+    image: petclinic/spring-petclinic-admin-server
     container_name: admin-server
     deploy:
       resources:
@@ -241,3 +290,6 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
     ports:
      - 8090:8080
+
+volumes:
+  alerts-db:
