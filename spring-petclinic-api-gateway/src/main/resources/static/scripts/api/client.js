@@ -81,7 +81,7 @@ export async function request(url, options = {}) {
     if (!response.ok) {
         throw new ApiError(`Request failed (${response.status}).`, {
             status: response.status,
-            payload: payload && typeof payload === 'object' ? payload : null
+            payload: payload && typeof payload === 'object' ? payload : (typeof payload === 'string' ? { message: payload } : null)
         });
     }
 
