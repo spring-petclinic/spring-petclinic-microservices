@@ -217,6 +217,7 @@ All those three REST controllers `OwnerResource`, `PetResource` and `VisitResour
 | API Gateway                     | [Spring Cloud Gateway starter](spring-petclinic-api-gateway/pom.xml) and [Routing configuration](/spring-petclinic-api-gateway/src/main/resources/application.yml) |
 | Docker Compose                  | [Spring Boot with Docker guide](https://spring.io/guides/gs/spring-boot-docker/) and [docker-compose file](docker-compose.yml) |
 | Circuit Breaker                 | [Resilience4j fallback method](spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/boundary/web/ApiGatewayController.java)  |
+| Configuration Refresh           | [@RefreshScope dynamic configuration](spring-petclinic-vets-service/src/main/java/org/springframework/samples/petclinic/vets/system/VetsConfiguration.java) and [Actuator /actuator/refresh](spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/boundary/web/FallbackController.java) |
 | Grafana / Prometheus Monitoring | [Micrometer implementation](https://micrometer.io/), [Spring Boot Actuator Production Ready Metrics] |
 
 | Front-end module   | Files                                                                                                                                                                                                 |
@@ -225,6 +226,18 @@ All those three REST controllers `OwnerResource`, `PetResource` and `VisitResour
 | Vue JS             | [Standalone Vue modules](spring-petclinic-api-gateway/src/main/resources/static/scripts/main.js) use runtime templates and native browser imports in no-build mode.                                    |
 | Vue Router         | [Client-side routes](spring-petclinic-api-gateway/src/main/resources/static/scripts/router.js) use browser history for all application screens.                                                        |
 | Static entry point | [HTML host page](spring-petclinic-api-gateway/src/main/resources/static/index.html) mounts the Vue application and loads local WebJar assets.                                                         |
+
+### Dynamic Configuration Refresh with `@RefreshScope`
+
+Spring Cloud Configuration Refresh is enabled across microservices using Spring Boot Actuator's `/actuator/refresh` endpoint and Spring Cloud's `@RefreshScope`.
+
+To update and reload configuration properties at runtime without restarting the service:
+1. Update properties in Spring Cloud Config Server or environment variables (e.g., `petclinic.fallback.message` or `vets.welcome`).
+2. Trigger the refresh endpoint on the desired microservice:
+   ```bash
+   curl -X POST http://localhost:8080/actuator/refresh
+   ```
+3. Beans annotated with `@RefreshScope` (such as `FallbackController` in `api-gateway` and `VetsConfiguration` in `vets-service`) dynamically re-initialize with the updated property values.
 
 ## Pushing to a Docker registry
 
