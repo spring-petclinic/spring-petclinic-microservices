@@ -1,0 +1,25 @@
+server:
+  port: 9000
+
+spring:
+  application:
+    name: auth-server
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888/}
+
+petclinic:
+  auth-server:
+    # Public URL of this authorization server. It is the value of the `iss` claim of the
+    # issued tokens, and the host the browser is redirected to, so it must be reachable
+    # from the end user browser.
+    issuer-uri: ${AUTH_SERVER_ISSUER_URI:http://localhost:9000}
+    # Public URL of the API gateway, used to register its redirect URIs.
+    gateway-base-url: ${GATEWAY_BASE_URL:http://localhost:8080}
+    gateway-client-secret: ${GATEWAY_CLIENT_SECRET:petclinic-gateway-secret}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+    import: configserver:http://config-server:8888
