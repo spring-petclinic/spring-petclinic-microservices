@@ -1,0 +1,5 @@
+---
+petclinic_deploy_dir: "{{ project_root }}"
+petclinic_repo_url: "https://github.com/spring-petclinic/spring-petclinic-microservices.git"
+petclinic_repo_branch: "main"
+

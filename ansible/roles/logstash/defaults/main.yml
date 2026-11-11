@@ -1,0 +1,5 @@
+---
+logstash_version: "{{ elastic_version | default('8.15.0') }}"
+logstash_dir: "{{ elk_install_dir }}/logstash"
+logstash_heap_size: "256m"
+

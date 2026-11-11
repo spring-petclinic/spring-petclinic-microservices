@@ -1,0 +1,13 @@
+services:
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:{{ filebeat_version }}
+    container_name: filebeat
+    user: root
+    restart: unless-stopped
+    volumes:
+      - /etc/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/log:/var/log:ro
+      - {{ project_root }}/target:/opt/logs:ro
+

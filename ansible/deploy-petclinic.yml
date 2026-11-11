@@ -1,0 +1,10 @@
+---
+# Standalone playbook to deploy Petclinic microservices & Filebeat shipper
+- name: Deploy Spring Petclinic & Filebeat
+  hosts: petclinic_servers
+  become: yes
+  roles:
+    - docker
+    - filebeat
+    - petclinic
+

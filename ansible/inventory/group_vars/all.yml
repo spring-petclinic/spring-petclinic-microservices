@@ -1,0 +1,15 @@
+---
+# Global configuration variables
+elastic_version: "8.15.0"
+docker_compose_version: "v2.29.2"
+project_root: "/opt/spring-petclinic"
+elk_install_dir: "/opt/elk"
+
+# Network addresses
+elasticsearch_host: "192.168.1.100"
+elasticsearch_port: 9200
+logstash_host: "192.168.1.100"
+logstash_beat_port: 5044
+logstash_tcp_port: 5000
+kibana_port: 5601
+

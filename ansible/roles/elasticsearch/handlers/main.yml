@@ -1,0 +1,4 @@
+---
+- name: restart elasticsearch
+  command: docker compose -f {{ elasticsearch_dir }}/docker-compose.yml restart
+

@@ -1,0 +1,11 @@
+---
+# Standalone playbook to deploy or update only the ELK centralized logging stack
+- name: Deploy Centralized Logging (ELK) Stack
+  hosts: elk_servers
+  become: yes
+  roles:
+    - docker
+    - elasticsearch
+    - logstash
+    - kibana
+

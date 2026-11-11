@@ -1,0 +1,8 @@
+---
+# ELK specific variables
+es_heap_size: "512m"
+logstash_heap_size: "256m"
+elasticsearch_data_dir: "/var/lib/elasticsearch/data"
+logstash_config_dir: "/etc/logstash"
+kibana_config_dir: "/etc/kibana"
+

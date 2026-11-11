@@ -1,0 +1,7 @@
+---
+# Petclinic Application host variables
+filebeat_log_paths:
+  - "/var/lib/docker/containers/*/*.log"
+  - "/opt/spring-petclinic/target/*.log"
+filebeat_output_logstash: "{{ logstash_host }}:{{ logstash_beat_port }}"
+

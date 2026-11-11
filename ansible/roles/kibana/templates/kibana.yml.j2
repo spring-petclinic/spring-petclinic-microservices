@@ -1,0 +1,7 @@
+server.name: kibana
+server.host: "0.0.0.0"
+server.port: {{ kibana_port }}
+elasticsearch.hosts: [ "http://{{ elasticsearch_host }}:{{ elasticsearch_port }}" ]
+monitoring.ui.container.elasticsearch.enabled: true
+xpack.security.enabled: false
+

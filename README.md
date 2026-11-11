@@ -208,6 +208,61 @@ All those three REST controllers `OwnerResource`, `PetResource` and `VisitResour
 * `visits-service` application has the following custom metrics enabled:
   * @Timed: `petclinic.visit`
 
+## Centralized Logging with ELK Stack & Ansible Deployment
+
+In a microservices architecture, application logs are distributed across multiple containers and services. Spring PetClinic includes a centralized logging stack using **Elasticsearch, Logstash, Kibana (ELK)** and **Filebeat**, with automated **Ansible** deployment playbooks.
+
+### Architecture Overview
+
+```text
+[PetClinic Microservices] ──> [Filebeat] ──> [Logstash:5044] ──> [Elasticsearch:9200] ──> [Kibana:5601]
+                                                    ▲
+                              [Direct TCP:5000] ────┘
+```
+
+- **Filebeat**: Harvests container logs from Docker and Spring Boot log files, attaching container metadata.
+- **Logstash**: Parses Spring Boot log patterns, extracts timestamps, log levels, logger names, and distributed tracing identifiers (`traceId`, `spanId`).
+- **Elasticsearch**: Indexes structured log events into `petclinic-logs-YYYY.MM.DD`.
+- **Kibana**: Provides a unified search and dashboard interface for log querying and troubleshooting.
+
+### Running the ELK Stack locally with Docker Compose
+
+You can launch the centralized logging stack alongside the microservices:
+
+```bash
+# Start the ELK stack (Elasticsearch, Logstash, Kibana, Filebeat)
+./scripts/run_elk.sh
+
+# Or directly with Docker Compose:
+docker compose -f docker-compose-elk.yml up -d
+```
+
+Once running, access Kibana at:
+* **Kibana UI**: http://localhost:5601
+* **Elasticsearch API**: http://localhost:9200
+
+To stop the logging stack:
+```bash
+./scripts/stop_elk.sh
+```
+
+### Automated Deployment with Ansible
+
+Production-ready Ansible playbooks and modular roles are provided in the `ansible/` directory to automate provisioning and deployment across dedicated logging and application servers.
+
+```bash
+cd ansible
+
+# 1. Update target hosts in inventory/hosts.ini
+# 2. Deploy both ELK Stack and Spring PetClinic:
+ansible-playbook -i inventory/hosts.ini site.yml
+
+# Or deploy only the ELK logging stack:
+ansible-playbook -i inventory/hosts.ini deploy-elk.yml
+```
+
+See [ansible/README.md](ansible/README.md) for full configuration options, inventory variables, and role documentation.
+
 ## Looking for something in particular?
 
 | Spring Cloud components         | Resources  |
@@ -218,6 +273,8 @@ All those three REST controllers `OwnerResource`, `PetResource` and `VisitResour
 | Docker Compose                  | [Spring Boot with Docker guide](https://spring.io/guides/gs/spring-boot-docker/) and [docker-compose file](docker-compose.yml) |
 | Circuit Breaker                 | [Resilience4j fallback method](spring-petclinic-api-gateway/src/main/java/org/springframework/samples/petclinic/api/boundary/web/ApiGatewayController.java)  |
 | Grafana / Prometheus Monitoring | [Micrometer implementation](https://micrometer.io/), [Spring Boot Actuator Production Ready Metrics] |
+| Centralized Logging (ELK)       | [ELK Compose](docker-compose-elk.yml), [Logstash Pipeline](docker/logstash/pipeline/logstash.conf), and [Filebeat](docker/filebeat/filebeat.yml) |
+| Ansible Automation              | [Ansible Playbooks and Roles](ansible/README.md) |
 
 | Front-end module   | Files                                                                                                                                                                                                 |
 |--------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|

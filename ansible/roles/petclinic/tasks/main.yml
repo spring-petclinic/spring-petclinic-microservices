@@ -1,0 +1,17 @@
+---
+- name: Ensure Petclinic deployment directory exists
+  file:
+    path: "{{ petclinic_deploy_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Deploy Spring Petclinic Docker Compose stack
+  copy:
+    src: "{{ playbook_dir }}/../docker-compose.yml"
+    dest: "{{ petclinic_deploy_dir }}/docker-compose.yml"
+    mode: "0644"
+
+- name: Start Spring Petclinic stack
+  command: docker compose -f {{ petclinic_deploy_dir }}/docker-compose.yml up -d
+  changed_when: false
+

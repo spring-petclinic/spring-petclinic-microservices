@@ -1,0 +1,28 @@
+---
+- name: Create Kibana directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ kibana_dir }}"
+    - "{{ kibana_dir }}/config"
+
+- name: Deploy Kibana configuration
+  template:
+    src: kibana.yml.j2
+    dest: "{{ kibana_dir }}/config/kibana.yml"
+    mode: "0644"
+  notify: restart kibana
+
+- name: Deploy Kibana Docker Compose manifest
+  template:
+    src: docker-compose.kibana.yml.j2
+    dest: "{{ kibana_dir }}/docker-compose.yml"
+    mode: "0644"
+  notify: restart kibana
+
+- name: Start Kibana container
+  command: docker compose -f {{ kibana_dir }}/docker-compose.yml up -d
+  changed_when: false
+

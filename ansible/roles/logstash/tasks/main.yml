@@ -1,0 +1,36 @@
+---
+- name: Create Logstash directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ logstash_dir }}"
+    - "{{ logstash_dir }}/config"
+    - "{{ logstash_dir }}/pipeline"
+
+- name: Deploy Logstash configuration
+  template:
+    src: logstash.yml.j2
+    dest: "{{ logstash_dir }}/config/logstash.yml"
+    mode: "0644"
+  notify: restart logstash
+
+- name: Deploy Logstash pipeline definition
+  template:
+    src: logstash.conf.j2
+    dest: "{{ logstash_dir }}/pipeline/logstash.conf"
+    mode: "0644"
+  notify: restart logstash
+
+- name: Deploy Logstash Docker Compose manifest
+  template:
+    src: docker-compose.logstash.yml.j2
+    dest: "{{ logstash_dir }}/docker-compose.yml"
+    mode: "0644"
+  notify: restart logstash
+
+- name: Start Logstash container
+  command: docker compose -f {{ logstash_dir }}/docker-compose.yml up -d
+  changed_when: false
+
