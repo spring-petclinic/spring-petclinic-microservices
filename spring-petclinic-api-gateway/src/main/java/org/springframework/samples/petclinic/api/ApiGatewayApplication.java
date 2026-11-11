@@ -72,7 +72,10 @@ public class ApiGatewayApplication {
             .and(RequestPredicates.path("/api/**").negate())
             .and(RequestPredicates.path("/actuator/**").negate())
             .and(RequestPredicates.path("/webjars/**").negate())
-            .and(RequestPredicates.path("/fallback").negate());
+            .and(RequestPredicates.path("/fallback").negate())
+            .and(RequestPredicates.path("/swagger-ui/**").negate())
+            .and(RequestPredicates.path("/swagger-ui.html").negate())
+            .and(RequestPredicates.path("/v3/api-docs/**").negate());
 
         return RouterFunctions.route(htmlNavigation,
             request -> ServerResponse.ok().contentType(MediaType.TEXT_HTML).bodyValue(indexHtml));

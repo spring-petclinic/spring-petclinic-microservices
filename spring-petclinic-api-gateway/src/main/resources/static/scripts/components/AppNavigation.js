@@ -12,6 +12,7 @@ export const AppNavigation = {
                         <li class="nav-item"><router-link exact-active-class="active" class="nav-link" to="/owners" title="find owners"><span class="fa fa-search me-2" aria-hidden="true"></span><span>Find owners</span></router-link></li>
                         <li class="nav-item"><router-link exact-active-class="active" class="nav-link" to="/owners/new" title="register owner"><span class="fa fa-plus me-2" aria-hidden="true"></span><span>Register owner</span></router-link></li>
                         <li class="nav-item"><router-link exact-active-class="active" class="nav-link" to="/vets" title="veterinarians"><span class="fa fa-th-list me-2" aria-hidden="true"></span><span>Veterinarians</span></router-link></li>
+                        <li class="nav-item"><a class="nav-link" href="/swagger-ui.html" target="_blank" title="Swagger API documentation"><span class="fa fa-book me-2" aria-hidden="true"></span><span>Swagger</span></a></li>
                     </ul>
                 </div>
             </div>

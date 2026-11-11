@@ -45,6 +45,17 @@ spring:
                 - CircuitBreaker=name=genaiCircuitBreaker,fallbackUri=/fallback
   reactor:
     context-propagation: auto
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - name: Customers Service
+        url: /api/customer/v3/api-docs
+      - name: Vets Service
+        url: /api/vet/v3/api-docs
+      - name: Visits Service
+        url: /api/visit/v3/api-docs
 ---
 spring:
   config:

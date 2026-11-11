@@ -46,4 +46,22 @@ class ApiGatewayApplicationRouterTest {
             .exchange()
             .expectStatus().isNotFound();
     }
+
+    @Test
+    void doesNotServeTheVueApplicationForSwaggerUi() {
+        client.get()
+            .uri("/swagger-ui.html")
+            .accept(MediaType.TEXT_HTML)
+            .exchange()
+            .expectStatus().isNotFound();
+    }
+
+    @Test
+    void doesNotServeTheVueApplicationForApiDocs() {
+        client.get()
+            .uri("/v3/api-docs")
+            .accept(MediaType.TEXT_HTML)
+            .exchange()
+            .expectStatus().isNotFound();
+    }
 }
