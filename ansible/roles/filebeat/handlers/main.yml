@@ -1,0 +1,4 @@
+---
+- name: restart filebeat
+  command: docker compose -f /etc/filebeat/docker-compose.yml restart
+

@@ -1,0 +1,4 @@
+---
+- name: restart kibana
+  command: docker compose -f {{ kibana_dir }}/docker-compose.yml restart
+

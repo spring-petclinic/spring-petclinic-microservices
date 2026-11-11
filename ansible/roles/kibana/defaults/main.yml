@@ -1,0 +1,5 @@
+---
+kibana_version: "{{ elastic_version | default('8.15.0') }}"
+kibana_dir: "{{ elk_install_dir }}/kibana"
+kibana_port: 5601
+

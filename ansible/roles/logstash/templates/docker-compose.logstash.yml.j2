@@ -1,0 +1,15 @@
+services:
+  logstash:
+    image: docker.elastic.co/logstash/logstash:{{ logstash_version }}
+    container_name: logstash
+    restart: unless-stopped
+    environment:
+      - "LS_JAVA_OPTS=-Xms{{ logstash_heap_size }} -Xmx{{ logstash_heap_size }}"
+    volumes:
+      - {{ logstash_dir }}/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - {{ logstash_dir }}/pipeline/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    ports:
+      - "{{ logstash_beat_port }}:5044"
+      - "{{ logstash_tcp_port }}:5000"
+      - "9600:9600"
+

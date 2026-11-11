@@ -1,0 +1,4 @@
+---
+- name: restart logstash
+  command: docker compose -f {{ logstash_dir }}/docker-compose.yml restart
+

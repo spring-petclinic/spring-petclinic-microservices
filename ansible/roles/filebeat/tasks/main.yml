@@ -1,0 +1,25 @@
+---
+- name: Create Filebeat configuration directory
+  file:
+    path: /etc/filebeat
+    state: directory
+    mode: "0755"
+
+- name: Deploy Filebeat configuration
+  template:
+    src: filebeat.yml.j2
+    dest: /etc/filebeat/filebeat.yml
+    mode: "0644"
+  notify: restart filebeat
+
+- name: Deploy Filebeat Docker Compose manifest
+  template:
+    src: docker-compose.filebeat.yml.j2
+    dest: /etc/filebeat/docker-compose.yml
+    mode: "0644"
+  notify: restart filebeat
+
+- name: Start Filebeat container
+  command: docker compose -f /etc/filebeat/docker-compose.yml up -d
+  changed_when: false
+

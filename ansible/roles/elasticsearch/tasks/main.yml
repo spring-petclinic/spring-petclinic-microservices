@@ -1,0 +1,47 @@
+---
+- name: Set vm.max_map_count for Elasticsearch
+  sysctl:
+    name: vm.max_map_count
+    value: "262144"
+    state: present
+    reload: yes
+
+- name: Create Elasticsearch directory structure
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0775"
+    owner: "1000"
+    group: "1000"
+  loop:
+    - "{{ elasticsearch_dir }}"
+    - "{{ elasticsearch_data }}"
+
+- name: Deploy Elasticsearch configuration
+  template:
+    src: elasticsearch.yml.j2
+    dest: "{{ elasticsearch_dir }}/elasticsearch.yml"
+    mode: "0644"
+  notify: restart elasticsearch
+
+- name: Deploy Elasticsearch Docker Compose manifest
+  template:
+    src: docker-compose.elasticsearch.yml.j2
+    dest: "{{ elasticsearch_dir }}/docker-compose.yml"
+    mode: "0644"
+  notify: restart elasticsearch
+
+- name: Start Elasticsearch container
+  command: docker compose -f {{ elasticsearch_dir }}/docker-compose.yml up -d
+  changed_when: false
+
+- name: Wait for Elasticsearch to become healthy
+  uri:
+    url: "http://127.0.0.1:{{ elasticsearch_port }}/_cluster/health"
+    method: GET
+    status_code: 200
+  register: es_health
+  until: es_health.status == 200
+  retries: 30
+  delay: 3
+

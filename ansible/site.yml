@@ -1,0 +1,27 @@
+---
+# Master playbook to deploy the entire environment:
+# 1. Base Docker on all nodes
+# 2. Centralized Logging (ELK) on logging hosts
+# 3. Filebeat Log Shippers & Spring PetClinic microservices on app hosts
+
+- name: Prepare Docker on all nodes
+  hosts: all
+  become: yes
+  roles:
+    - docker
+
+- name: Deploy Centralized Logging Stack (ELK)
+  hosts: elk_servers
+  become: yes
+  roles:
+    - elasticsearch
+    - logstash
+    - kibana
+
+- name: Deploy Spring Petclinic Microservices & Filebeat Shippers
+  hosts: petclinic_servers
+  become: yes
+  roles:
+    - filebeat
+    - petclinic
+

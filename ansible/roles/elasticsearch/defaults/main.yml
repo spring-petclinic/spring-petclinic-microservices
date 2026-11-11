@@ -1,0 +1,6 @@
+---
+elasticsearch_version: "{{ elastic_version | default('8.15.0') }}"
+elasticsearch_dir: "{{ elk_install_dir }}/elasticsearch"
+elasticsearch_data: "/var/lib/elasticsearch"
+es_heap_size: "512m"
+
