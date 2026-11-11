@@ -42,7 +42,7 @@ spring:
                 - Path=/api/genai/**
               filters:
                 - StripPrefix=2
-                - CircuitBreaker=name=genaiCircuitBreaker,fallbackUri=/fallback
+                - CircuitBreaker=name=genaiCircuitBreaker,fallbackUri=forward:/fallback
   reactor:
     context-propagation: auto
 ---
