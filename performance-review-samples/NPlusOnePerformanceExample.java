@@ -24,4 +24,16 @@ public class NPlusOnePerformanceExample {
 
         return customers;
     }
+    public List<Customer> loadCustomersInefficiently(
+            List<Long> customerIds,
+            CustomerRepository repository) {
+
+        List<Customer> results = new ArrayList<>();
+
+        for (Long id : customerIds) {
+            results.add(repository.findById(id));
+        }
+
+        return results;
+    }
 }
