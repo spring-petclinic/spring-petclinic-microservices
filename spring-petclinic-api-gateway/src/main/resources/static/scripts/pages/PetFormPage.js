@@ -3,7 +3,7 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { jsonRequest, request, requireArray, requireObject } from '../api/client.js';
 import { clearError, reportError } from '../state/errors.js';
-import { toDateInputValue } from '../utils/dates.js';
+import { today, toDateInputValue } from '../utils/dates.js';
 import { useRequest } from '../utils/useRequest.js';
 import { useSubmission } from '../utils/useSubmission.js';
 
@@ -13,6 +13,7 @@ export const PetFormPage = {
         const router = useRouter();
         const ownerId = route.params.ownerId;
         const petId = route.params.petId;
+        const latestBirthDate = today();
         const types = ref([]);
         const pet = reactive({
             owner: '',
@@ -60,7 +61,9 @@ export const PetFormPage = {
                 });
             } catch (error) {
                 if (!error.cancelled) {
-                    reportError(error, errorContext);
+                    reportError(error, errorContext, error.status === 400
+                        ? 'The pet could not be saved. Birth date must be today or earlier.'
+                        : undefined);
                 }
             }
         }
@@ -68,6 +71,7 @@ export const PetFormPage = {
         return {
             isEdit: Boolean(petId),
             pet,
+            latestBirthDate,
             types,
             loading: state.loading,
             failed: state.failed,
@@ -99,7 +103,7 @@ export const PetFormPage = {
                     <div class="col-12 row">
                         <label class="col-md-2 col-form-label" for="pet-birth-date">Birth date</label>
                         <div class="col-md-6">
-                            <input id="pet-birth-date" v-model="pet.birthDate" class="form-control" required type="date">
+                            <input id="pet-birth-date" v-model="pet.birthDate" class="form-control" required type="date" :max="latestBirthDate">
                         </div>
                     </div>
                     <div class="col-12 row">
