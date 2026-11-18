@@ -62,6 +62,7 @@ public class PetclinicChatClient {
 		  return this.chatClient
               .prompt()
               .user(query)
+              .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, "default"))
               .call()
               .content();
 	  } catch (Exception exception) {
