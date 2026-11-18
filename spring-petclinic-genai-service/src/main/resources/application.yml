@@ -11,22 +11,15 @@ spring:
     chat:
       client:
         enabled: true
-    # These apply when using spring-ai-starter-model-azure-openai
-    azure:
-      openai:
-        api-key: ${AZURE_OPENAI_KEY}
-        endpoint: ${AZURE_OPENAI_ENDPOINT}
-        chat:
-          options:
-            temperature: 0.7
-            deployment-name: gpt-4o
-    # These apply when using spring-ai-starter-model-openai
     openai:
       api-key: ${OPENAI_API_KEY:demo}
+      # Uncomment the following properties when using Azure OpenAI / Microsoft Foundry:
+      # base-url: ${AZURE_OPENAI_ENDPOINT}
+      # microsoft-foundry: true
       chat:
-        options:
-            temperature: 0.7
-            model: gpt-4o-mini
+        temperature: 0.7
+        model: gpt-4o-mini
+        # microsoft-deployment-name: gpt-4o
 
 
 logging:

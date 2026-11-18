@@ -11,13 +11,13 @@
 	<parent>
 		<groupId>org.springframework.samples</groupId>
 		<artifactId>spring-petclinic-microservices</artifactId>
-        <version>4.0.1</version>
+        <version>4.1.2</version>
 	</parent>
 
     <properties>
         <docker.image.exposed.port>8081</docker.image.exposed.port>
         <docker.image.dockerfile.dir>${basedir}/../docker</docker.image.dockerfile.dir>
-        <spring-ai.version>2.0.0-M1</spring-ai.version>
+        <spring-ai.version>2.0.2</spring-ai.version>
     </properties>
 
 	<dependencies>
@@ -25,7 +25,6 @@
 		<dependency>
 			<groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-starter-model-openai</artifactId>
-			<!-- artifactId>spring-ai-starter-model-azure-openai</artifactId-->
 		</dependency>
         <dependency>
             <groupId>org.springframework.ai</groupId>
@@ -148,17 +147,6 @@
 		</dependency>
 	</dependencies>
   </dependencyManagement>
-
-  <repositories>
-    <repository>
-      <id>spring-milestones</id>
-      <name>Spring Milestones</name>
-      <url>https://repo.spring.io/milestone</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
 
     <profiles>
         <profile>
