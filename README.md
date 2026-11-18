@@ -121,24 +121,22 @@ Spring Petclinic integrates a Chatbot that allows you to interact with the appli
 This `spring-petclinic-genai-service` microservice currently supports **OpenAI** (default) or **Azure's OpenAI** as the LLM provider.
 In order to start the microservice, perform the following steps:
 
-1. Decide which provider you want to use. By default, the `spring-ai-starter-model-openai` dependency is enabled. 
-   You can change it to `spring-ai-starter-model-azure-openai`in the `pom.xml`.
+1. Decide which provider you want to use. The `spring-ai-starter-model-openai` dependency supports both **OpenAI** (default) and **Azure OpenAI / Microsoft Foundry**.
 2. Create an OpenAI API key or an Azure OpenAI resource in your Azure Portal.
    Refer to the [OpenAI's quickstart](https://platform.openai.com/docs/quickstart) or [Azure's documentation](https://learn.microsoft.com/en-us/azure/ai-services/openai/) for further information on how to obtain these.
-   You only need to populate the provider you're using - either openai, or azure-openai.
    If you don't have your own OpenAI API key, don't worry!
    You can temporarily use the `demo` key, which OpenAI provides free of charge for demonstration purposes.
    This `demo` key has a quota, is limited to the `gpt-4o-mini` model, and is intended solely for demonstration use.
-   With your own OpenAI account, you can test the `gpt-4o` model by modifying the `deployment-name` property of the `application.yml` file.
-3. Export your API keys and endpoint as environment variables:
+   With your own OpenAI account, you can test the `gpt-4o` model by modifying the `model` (or `microsoft-deployment-name` for Azure OpenAI) property of the `application.yml` file.
+3. Export your API key (and endpoint for Azure OpenAI) as environment variables:
     * either OpenAI:
     ```bash
     export OPENAI_API_KEY="your_api_key_here"
     ```
-    * or Azure OpenAI:
+    * or Azure OpenAI (after uncommenting `base-url`, `microsoft-foundry` and `microsoft-deployment-name` in `application.yml`):
     ```bash
     export AZURE_OPENAI_ENDPOINT="https://your_resource.openai.azure.com"
-    export AZURE_OPENAI_KEY="your_api_key_here"
+    export OPENAI_API_KEY="your_api_key_here"
     ```
 
 ## In case you find a bug/suggested improvement for Spring Petclinic Microservices
