@@ -55,7 +55,7 @@ variable "jenkins_ingress_cidrs" {
 variable "use_elastic_ip" {
   description = "Attach an Elastic IP so the Jenkins address (and GitHub webhook URL) survives stop/start. Billed hourly while allocated"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "eks_cluster_name" {

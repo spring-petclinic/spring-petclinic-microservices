@@ -74,7 +74,7 @@ resource "aws_instance" "jenkins" {
   # Jenkins keeps its state on this disk. Do not let a newer AMI or edited bootstrap script
   # silently replace the instance (and wipe Jenkins). Replace deliberately: terraform apply -replace=aws_instance.jenkins
   lifecycle {
-    ignore_changes = [ami, user_data]
+    ignore_changes = [ami, user_data, associate_public_ip_address]
   }
 }
 
