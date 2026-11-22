@@ -1,0 +1,6 @@
+# Copy to backend.hcl (git-ignored). Same bucket as the bootstrap stack, different key.
+bucket       = "petclinic-tfstate-<account-id>-ap-south-1"
+key          = "eks/terraform.tfstate"
+region       = "ap-south-1"
+encrypt      = true
+use_lockfile = true

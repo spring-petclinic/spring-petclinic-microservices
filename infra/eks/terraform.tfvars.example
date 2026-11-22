@@ -1,0 +1,8 @@
+# Copy to terraform.tfvars (git-ignored)
+state_bucket = "petclinic-tfstate-<account-id>-ap-south-1"   # same value as in backend.hcl
+my_ip_cidr   = "203.0.113.10/32"                              # your public IP: curl -s https://checkip.amazonaws.com
+
+# Optional
+# extra_api_cidrs     = []
+# node_capacity_type  = "SPOT"       # or ON_DEMAND if Spot capacity is unavailable
+# kubernetes_version  = "1.35"

@@ -49,8 +49,8 @@ resource "aws_eks_cluster" "main" {
 
   vpc_config {
     subnet_ids              = aws_subnet.public[*].id
-    endpoint_private_access = true # nodes talk to the API privately
-    endpoint_public_access  = true # kubectl from your laptop and Jenkins...
+    endpoint_private_access = true            # nodes talk to the API privately
+    endpoint_public_access  = true            # kubectl from your laptop and Jenkins...
     public_access_cidrs     = local.api_cidrs # ...but ONLY from these addresses
   }
 
@@ -94,4 +94,3 @@ resource "aws_eks_access_policy_association" "jenkins" {
     namespaces = [var.app_namespace]
   }
 }
-
