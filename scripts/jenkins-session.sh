@@ -2,6 +2,9 @@
 # Start/stop/inspect the Jenkins server and print the values that change when its public IP changes.
 # Usage (Git Bash, after: export AWS_PROFILE=petclinic):
 #   bash scripts/jenkins-session.sh start     # start, wait for SSM, print IP + webhook URL + tunnel command
+#   bash scripts/jenkins-session.sh tunnel    # open the Jenkins UI tunnel -> browse http://localhost:8080 (keep window open)
+#   bash scripts/jenkins-session.sh tunnel 8081   # same, on another local port
+#   bash scripts/jenkins-session.sh shell     # open a shell on the server
 #   bash scripts/jenkins-session.sh status
 #   bash scripts/jenkins-session.sh stop
 set -euo pipefail
@@ -54,7 +57,15 @@ case "${1:-status}" in
     aws ec2 stop-instances --instance-ids "${ID}" --region "${REGION}" >/dev/null
     echo "Stopping ${ID}. Remember: destroy the EKS stack first if the cluster is up (cd infra/eks && terraform destroy)."
     ;;
+  tunnel)
+    echo "Jenkins UI: http://localhost:${2:-8080}   (keep this window open; Ctrl+C to close)"
+    aws ssm start-session --target "${ID}" --region "${REGION}" \
+      --document-name AWS-StartPortForwardingSession \
+      --parameters "portNumber=8080,localPortNumber=${2:-8080}"
+    ;;
+  shell)
+    aws ssm start-session --target "${ID}" --region "${REGION}"
+    ;;
   status) show ;;
-  *) echo "usage: $0 start|stop|status" >&2; exit 1 ;;
+  *) echo "usage: $0 start|stop|status|tunnel [port]|shell" >&2; exit 1 ;;
 esac
-
