@@ -12,11 +12,11 @@
     <parent>
         <groupId>org.springframework.samples</groupId>
         <artifactId>spring-petclinic-microservices</artifactId>
-        <version>4.0.1</version>
+        <version>4.1.2</version>
     </parent>
 
     <properties>
-        <spring-boot-admin.version>4.0.2</spring-boot-admin.version>
+        <spring-boot-admin.version>4.1.5</spring-boot-admin.version>
         <docker.image.exposed.port>9090</docker.image.exposed.port>
         <docker.image.dockerfile.dir>${basedir}/../docker</docker.image.dockerfile.dir>
     </properties>
