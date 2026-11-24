@@ -14,13 +14,13 @@ export function clearError() {
     return errorContext;
 }
 
-export function reportError(error, expectedContext, fallbackMessage) {
+export function reportError(error, expectedContext, customMessage) {
     if (expectedContext !== undefined && expectedContext !== errorContext) {
         return;
     }
 
     const payload = error.payload || {};
-    errorState.message = fallbackMessage || payload.error || payload.message || error.message || 'The request could not be completed.';
+    errorState.message = customMessage || payload.error || payload.message || error.message || 'The request could not be completed.';
     errorState.details = Array.isArray(payload.errors)
         ? payload.errors.map((entry) => entry.field ? `${entry.field}: ${entry.defaultMessage}` : entry.defaultMessage)
         : [];
