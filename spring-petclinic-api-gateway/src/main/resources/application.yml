@@ -8,6 +8,8 @@ spring:
       server:
         webflux:
           default-filters:
+            # Forwards the access token of the logged in user to the microservices
+            - TokenRelay=
             - name: CircuitBreaker
               args:
                 name: defaultCircuitBreaker
@@ -45,9 +47,19 @@ spring:
                 - CircuitBreaker=name=genaiCircuitBreaker,fallbackUri=/fallback
   reactor:
     context-propagation: auto
+petclinic:
+  auth-server:
+    issuer-uri: ${AUTH_SERVER_ISSUER_URI:http://localhost:9000}
+    internal-uri: ${AUTH_SERVER_INTERNAL_URI:${petclinic.auth-server.issuer-uri}}
+    client-id: petclinic-gateway
+    client-secret: ${GATEWAY_CLIENT_SECRET:petclinic-gateway-secret}
 ---
 spring:
   config:
     activate:
       on-profile: docker
     import: configserver:http://config-server:8888
+petclinic:
+  auth-server:
+    internal-uri: http://auth-server:9000
+

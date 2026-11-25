@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.mockUser;
+
 @WebFluxTest(controllers = ApiGatewayController.class)
 @Import({ReactiveResilience4JAutoConfiguration.class, CircuitBreakerConfiguration.class})
 class ApiGatewayControllerTest {
@@ -55,7 +57,8 @@ class ApiGatewayControllerTest {
             .when(visitsServiceClient.getVisitsForPets(Collections.singletonList(cat.id())))
             .thenReturn(Mono.just(visits));
 
-        client.get()
+        client.mutateWith(mockUser())
+            .get()
             .uri("/api/gateway/owners/1")
             .exchange()
             .expectStatus().isOk()
@@ -85,7 +88,8 @@ class ApiGatewayControllerTest {
             .when(visitsServiceClient.getVisitsForPets(Collections.singletonList(cat.id())))
             .thenReturn(Mono.error(new ConnectException("Simulate error")));
 
-        client.get()
+        client.mutateWith(mockUser())
+            .get()
             .uri("/api/gateway/owners/1")
             .exchange()
             .expectStatus().isOk()

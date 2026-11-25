@@ -5,6 +5,11 @@ function isJsonResponse(contentType) {
     return mediaType === 'application/json' || mediaType.endsWith('+json');
 }
 
+export function getCsrfToken() {
+    const match = document.cookie.match(/(^|;\s*)XSRF-TOKEN=([^;]*)/);
+    return match ? decodeURIComponent(match[2]) : '';
+}
+
 export class ApiError extends Error {
     constructor(message, { status = null, payload = null, timeout = false, cancelled = false } = {}) {
         super(message);
@@ -47,7 +52,7 @@ function toApiError(error, { timedOut, externalSignal }) {
 }
 
 export async function request(url, options = {}) {
-    const { signal: externalSignal, ...fetchOptions } = options;
+    const { signal: externalSignal, headers: customHeaders, ...fetchOptions } = options;
     const controller = new AbortController();
     let timedOut = false;
     const timeout = setTimeout(() => {
@@ -62,14 +67,29 @@ export async function request(url, options = {}) {
         externalSignal?.addEventListener('abort', abortRequest, { once: true });
     }
 
+    const headers = new Headers(customHeaders || {});
+    const method = (fetchOptions.method || 'GET').toUpperCase();
+    if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+        const csrfToken = getCsrfToken();
+        if (csrfToken && !headers.has('X-XSRF-TOKEN')) {
+            headers.set('X-XSRF-TOKEN', csrfToken);
+        }
+    }
+
     let response;
     let payload;
 
     try {
         response = await fetch(url, {
             ...fetchOptions,
+            headers,
+            credentials: fetchOptions.credentials || 'same-origin',
             signal: controller.signal
         });
+        if (response.status === 401) {
+            window.location.href = '/oauth2/authorization/petclinic';
+            throw new ApiError('Not authenticated', { status: 401 });
+        }
         payload = await readPayload(response);
     } catch (error) {
         throw toApiError(error, { timedOut, externalSignal });
