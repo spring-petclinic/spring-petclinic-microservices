@@ -8,6 +8,14 @@ spring:
   profiles:
     active: production
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,refresh,metrics,prometheus
+  endpoint:
+    refresh:
+      enabled: true
 ---
 spring:
   config:
