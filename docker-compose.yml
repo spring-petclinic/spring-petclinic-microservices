@@ -17,6 +17,8 @@ services:
   discovery-server:
     image: springcommunity/spring-petclinic-discovery-server
     container_name: discovery-server
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
     deploy:
       resources:
         limits:
@@ -35,6 +37,8 @@ services:
   customers-service:
     image: springcommunity/spring-petclinic-customers-service
     container_name: customers-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
     deploy:
       resources:
         limits:
@@ -50,6 +54,8 @@ services:
   visits-service:
     image: springcommunity/spring-petclinic-visits-service
     container_name: visits-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
     deploy:
       resources:
         limits:
@@ -65,6 +71,8 @@ services:
   vets-service:
     image: springcommunity/spring-petclinic-vets-service
     container_name: vets-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
     deploy:
       resources:
         limits:
@@ -82,6 +90,7 @@ services:
     image: springcommunity/spring-petclinic-genai-service
     container_name: genai-service
     environment:
+      - SPRING_PROFILES_ACTIVE=docker
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - AZURE_OPENAI_KEY=${AZURE_OPENAI_KEY}
       - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
@@ -101,10 +110,12 @@ services:
   api-gateway:
     image: springcommunity/spring-petclinic-api-gateway
     container_name: api-gateway
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 1024M
     depends_on:
       config-server:
         condition: service_healthy
@@ -126,6 +137,8 @@ services:
   admin-server:
     image: springcommunity/spring-petclinic-admin-server
     container_name: admin-server
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
     deploy:
       resources:
         limits:

@@ -15,4 +15,36 @@ class FallbackControllerTest {
             .exchange()
             .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
     }
+
+    @Test
+    void returnsServiceUnavailableForPostRequests() {
+        client.post()
+            .uri("/fallback")
+            .exchange()
+            .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    @Test
+    void returnsServiceUnavailableForPutRequests() {
+        client.put()
+            .uri("/fallback")
+            .exchange()
+            .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    @Test
+    void returnsServiceUnavailableForDeleteRequests() {
+        client.delete()
+            .uri("/fallback")
+            .exchange()
+            .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    @Test
+    void returnsServiceUnavailableForPatchRequests() {
+        client.patch()
+            .uri("/fallback")
+            .exchange()
+            .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+    }
 }
